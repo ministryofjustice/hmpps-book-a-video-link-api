@@ -1,6 +1,6 @@
 {
   "role": {
-    "name": "hmpps-template-kotlin"
+    "name": "hmpps-book-a-video-link-api"
   },
   "customDimensions": {
     "service.version": "${BUILD_NUMBER}"
