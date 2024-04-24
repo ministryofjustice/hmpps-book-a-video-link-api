@@ -8,7 +8,14 @@ configurations {
 }
 
 dependencies {
+  // Spring boot dependencies
   implementation("org.springframework.boot:spring-boot-starter-webflux")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:0.2.4")
+
+  // Test dependencies
+  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
+  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
+  testImplementation("org.wiremock:wiremock-standalone:3.5.3")
 }
 
 kotlin {
