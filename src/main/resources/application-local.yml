@@ -13,19 +13,14 @@ spring:
   jpa:
     show-sql: true
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          public-key-location: classpath:local-public-key.pub
-
 system:
   client:
     id: ${SYSTEM_CLIENT_ID}
     secret: ${SYSTEM_CLIENT_SECRET}
 
 # Container-provider local auth server
-hmpps:
-  auth:
-    url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
+api:
+  base:
+    url:
+      hmpps-auth: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
 
