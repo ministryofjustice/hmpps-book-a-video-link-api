@@ -1,17 +1,17 @@
 version: "3"
 services:
-  hmpps-book-a-video-link-api:
-    build:
-      context: .
-    network_mode: "host"
-    container_name: hmpps-book-a-video-link-api
+  db:
+    image: postgres:latest
+    networks:
+      - hmpps
+    container_name: book-a-video-link-db
+    restart: always
     ports:
-      - "8081:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ping"]
+      - "5432:5432"
     environment:
-      - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=dev
+      POSTGRES_DB: book-a-video-link-db
+      POSTGRES_USER: book-a-video-link
+      POSTGRES_PASSWORD: book-a-video-link
 
 networks:
   hmpps:
