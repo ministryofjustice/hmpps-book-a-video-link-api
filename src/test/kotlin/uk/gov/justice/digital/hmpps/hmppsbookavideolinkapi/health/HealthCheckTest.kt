@@ -1,11 +1,10 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.health
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.health
 
-import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.function.Consumer
 
 class HealthCheckTest : IntegrationTestBase() {
 
@@ -20,6 +19,20 @@ class HealthCheckTest : IntegrationTestBase() {
       .isOk
       .expectBody()
       .jsonPath("status").isEqualTo("UP")
+      .jsonPath("components.hmppsAuth.status").isEqualTo("UP")
+  }
+
+  @Test
+  fun `Health page reports down`() {
+    stubPingWithResponse(404)
+
+    webTestClient.get()
+      .uri("/health")
+      .exchange()
+      .expectStatus().is5xxServerError
+      .expectBody()
+      .jsonPath("status").isEqualTo("DOWN")
+      .jsonPath("components.hmppsAuth.status").isEqualTo("DOWN")
   }
 
   @Test
@@ -30,9 +43,7 @@ class HealthCheckTest : IntegrationTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody().jsonPath("components.healthInfo.details.version").value(
-        Consumer<String> {
-          assertThat(it).startsWith(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))
-        },
+        Matchers.startsWith(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE)),
       )
   }
 
@@ -67,18 +78,5 @@ class HealthCheckTest : IntegrationTestBase() {
       .isOk
       .expectBody()
       .jsonPath("status").isEqualTo("UP")
-  }
-
-  @Test
-  fun `Health page reports down`() {
-    stubPingWithResponse(404)
-
-    webTestClient.get()
-      .uri("/health")
-      .exchange()
-      .expectStatus().is5xxServerError
-      .expectBody()
-      .jsonPath("status").isEqualTo("DOWN")
-      .jsonPath("components.hmppsAuth.status").isEqualTo("DOWN")
   }
 }
