@@ -46,20 +46,20 @@ class HmppsAuthMockServer : WireMockServer(8090) {
 class HmppsAuthApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
   companion object {
     @JvmField
-    val hmppsAuth = HmppsAuthMockServer()
+    val server = HmppsAuthMockServer()
   }
 
   override fun beforeAll(context: ExtensionContext) {
-    hmppsAuth.start()
-    hmppsAuth.stubGrantToken()
+    server.start()
+    server.stubGrantToken()
   }
 
   override fun beforeEach(context: ExtensionContext) {
-    hmppsAuth.resetAll()
-    hmppsAuth.stubGrantToken()
+    server.resetAll()
+    server.stubGrantToken()
   }
 
   override fun afterAll(context: ExtensionContext) {
-    hmppsAuth.stop()
+    server.stop()
   }
 }
