@@ -36,11 +36,17 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${api.base.url.hmpps-auth}/.well-known/jwks.json
-
-    client:
-      provider:
-        hmpps-auth:
-          token-uri: ${api.base.url.hmpps-auth}/oauth/token
+      client:
+        registration:
+          locations-inside-prison:
+            provider: hmpps-auth
+            client-id: ${system.client.id}
+            client-secret: ${system.client.secret}
+            authorization-grant-type: client_credentials
+            scope: read
+        provider:
+          hmpps-auth:
+            token-uri: ${api.base.url.hmpps-auth}/oauth/token
 
 server:
   port: 8080

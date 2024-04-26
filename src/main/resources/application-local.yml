@@ -21,9 +21,9 @@ system:
     id: ${SYSTEM_CLIENT_ID}
     secret: ${SYSTEM_CLIENT_SECRET}
 
-# Container-provider local auth server
+# External dependent service DEV URLs
 api:
   base:
     url:
       hmpps-auth: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
-
+      locations-inside-prison: https://locations-inside-prison-api-dev.hmpps.service.justice.gov.uk

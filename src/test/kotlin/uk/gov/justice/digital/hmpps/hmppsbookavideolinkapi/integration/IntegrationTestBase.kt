@@ -8,10 +8,11 @@ import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@ExtendWith(HmppsAuthApiExtension::class)
+@ExtendWith(LocationsInsidePrisonApiExtension::class, HmppsAuthApiExtension::class)
 abstract class IntegrationTestBase {
 
   @Autowired
@@ -27,6 +28,7 @@ abstract class IntegrationTestBase {
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles, scopes)
 
   protected fun stubPingWithResponse(status: Int) {
-    HmppsAuthApiExtension.hmppsAuth.stubHealthPing(status)
+    HmppsAuthApiExtension.server.stubHealthPing(status)
+    LocationsInsidePrisonApiExtension.server.stubHealthPing(status)
   }
 }

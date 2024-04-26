@@ -1,5 +1,12 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jlleitschuh.gradle.ktlint.KtlintExtension
+import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
+import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.6"
+  id("org.openapi.generator") version "7.5.0"
   kotlin("plugin.spring") version "1.9.23"
 }
 
@@ -16,12 +23,14 @@ dependencies {
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-core")
-  runtimeOnly("org.postgresql:postgresql:42.7.1")
+  runtimeOnly("org.postgresql:postgresql:42.7.3")
+
+  // OpenAPI
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
-  testImplementation("org.wiremock:wiremock-standalone:3.5.3")
   testImplementation("com.h2database:h2")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit:3.2.2")
@@ -29,6 +38,7 @@ dependencies {
   testImplementation("net.javacrumbs.json-unit:json-unit-json-path:3.2.2")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.wiremock:wiremock-standalone:3.5.4")
 }
 
 kotlin {
@@ -36,9 +46,56 @@ kotlin {
 }
 
 tasks {
-  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+  withType<KotlinCompile> {
+    dependsOn("buildLocationsInsidePrisonApiModel")
     kotlinOptions {
       jvmTarget = "21"
+    }
+  }
+  withType<KtLintCheckTask> {
+    // Under gradle 8 we must declare the dependency here, even if we're not going to be linting the model
+    mustRunAfter("buildLocationsInsidePrisonApiModel")
+  }
+  withType<KtLintFormatTask> {
+    // Under gradle 8 we must declare the dependency here, even if we're not going to be linting the model
+    mustRunAfter("buildLocationsInsidePrisonApiModel")
+  }
+}
+
+val configValues = mapOf(
+  "dateLibrary" to "java8-localdatetime",
+  "serializationLibrary" to "jackson",
+  "useBeanValidation" to "false",
+  "enumPropertyNaming" to "UPPERCASE",
+)
+
+val buildDirectory: Directory = layout.buildDirectory.get()
+
+tasks.register("buildLocationsInsidePrisonApiModel", GenerateTask::class) {
+  generatorName.set("kotlin-spring")
+  inputSpec.set("openapi-specs/locations-inside-prison-api.json")
+  outputDir.set("$buildDirectory/generated/locationsinsideprisonapi")
+  modelPackage.set("uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model")
+  configOptions.set(configValues)
+  globalProperties.set(mapOf("models" to ""))
+}
+
+val generatedProjectDirs = listOf("locationsinsideprisonapi")
+
+kotlin {
+  generatedProjectDirs.forEach { generatedProject ->
+    sourceSets["main"].apply {
+      kotlin.srcDir("$buildDirectory/generated/$generatedProject/src/main/kotlin")
+    }
+  }
+}
+
+configure<KtlintExtension> {
+  filter {
+    generatedProjectDirs.forEach { generatedProject ->
+      exclude { element ->
+        element.file.path.contains("build/generated/$generatedProject/src/main/")
+      }
     }
   }
 }
