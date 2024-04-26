@@ -13,7 +13,18 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASS}
 
-  # TODO: add path to Flyway migrations here ...
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+
+  flyway:
+    locations: classpath:/migrations/common,classpath:/migrations/prod
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"

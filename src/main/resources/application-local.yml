@@ -13,6 +13,9 @@ spring:
   jpa:
     show-sql: true
 
+  flyway:
+    locations: classpath:/migrations/common,classpath:/migrations/dev
+
 system:
   client:
     id: ${SYSTEM_CLIENT_ID}
