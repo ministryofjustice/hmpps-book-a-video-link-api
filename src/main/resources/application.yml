@@ -9,7 +9,7 @@ spring:
     max-in-memory-size: 10MB
 
   datasource:
-    url: 'jdbc:postgresql://${DB_SERVER}/${DB_NAME}?sslmode=verify-full'
+    url: 'jdbc:postgresql://${DB_SERVER}/${DB_NAME}?sslmode=${DB_SSL_MODE}'
     username: ${DB_USER}
     password: ${DB_PASS}
 
