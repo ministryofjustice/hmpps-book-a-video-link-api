@@ -136,7 +136,7 @@ CREATE TABLE prison
     amended_time timestamp
 );
 
-CREATE INDEX idx_prison_code ON prison(code);
+CREATE UNIQUE INDEX idx_prison_code ON prison(code);
 
 ---------------------------------------------------------------------------------------
 -- Contacts for this prison
