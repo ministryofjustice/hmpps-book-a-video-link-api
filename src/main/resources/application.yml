@@ -43,7 +43,7 @@ spring:
             client-id: ${system.client.id}
             client-secret: ${system.client.secret}
             authorization-grant-type: client_credentials
-            scope: read
+            scope: read,write
           locations-inside-prison:
             provider: hmpps-auth
             client-id: ${system.client.id}
