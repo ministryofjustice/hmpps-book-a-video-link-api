@@ -11,6 +11,7 @@ import java.time.Duration
 
 @Configuration
 class WebClientConfiguration(
+  @Value("\${api.base.url.activities-appointments}") val activitiesAppointmentsApiBaseUri: String,
   @Value("\${api.base.url.locations-inside-prison}") val locationsInsidePrisonApiBaseUri: String,
   @Value("\${api.base.url.hmpps-auth}") val hmppsAuthBaseUri: String,
   @Value("\${api.base.url.prisoner-search}") val prisonerSearchBaseUri: String,
@@ -18,6 +19,13 @@ class WebClientConfiguration(
   @Value("\${api.timeout:30s}") val timeout: Duration,
   private val builder: WebClient.Builder,
 ) {
+  @Bean
+  fun activitiesAppointmentsApiHealthWebClient() = builder.healthWebClient(activitiesAppointmentsApiBaseUri, healthTimeout)
+
+  @Bean
+  fun activitiesAppointmentsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager) =
+    builder.authorisedWebClient(authorizedClientManager, "activities-appointments", activitiesAppointmentsApiBaseUri, timeout)
+
   @Bean
   fun hmppsAuthHealthWebClient() = builder.healthWebClient(hmppsAuthBaseUri, healthTimeout)
 

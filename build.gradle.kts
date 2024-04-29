@@ -47,18 +47,18 @@ kotlin {
 
 tasks {
   withType<KotlinCompile> {
-    dependsOn("buildLocationsInsidePrisonApiModel")
+    dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel")
     kotlinOptions {
       jvmTarget = "21"
     }
   }
   withType<KtLintCheckTask> {
     // Under gradle 8 we must declare the dependency here, even if we're not going to be linting the model
-    mustRunAfter("buildLocationsInsidePrisonApiModel")
+    mustRunAfter("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel")
   }
   withType<KtLintFormatTask> {
     // Under gradle 8 we must declare the dependency here, even if we're not going to be linting the model
-    mustRunAfter("buildLocationsInsidePrisonApiModel")
+    mustRunAfter("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel")
   }
 }
 
@@ -72,7 +72,7 @@ val configValues = mapOf(
 val buildDirectory: Directory = layout.buildDirectory.get()
 
 tasks.register("buildLocationsInsidePrisonApiModel", GenerateTask::class) {
-  generatorName.set("kotlin-spring")
+  generatorName.set("kotlin")
   inputSpec.set("openapi-specs/locations-inside-prison-api.json")
   outputDir.set("$buildDirectory/generated/locationsinsideprisonapi")
   modelPackage.set("uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model")
@@ -80,7 +80,16 @@ tasks.register("buildLocationsInsidePrisonApiModel", GenerateTask::class) {
   globalProperties.set(mapOf("models" to ""))
 }
 
-val generatedProjectDirs = listOf("locationsinsideprisonapi")
+tasks.register("buildActivitiesAppointmentsApiModel", GenerateTask::class) {
+  generatorName.set("kotlin")
+  inputSpec.set("openapi-specs/activities-appointments-api.json")
+  outputDir.set("$buildDirectory/generated/activitiesappointmentsapi")
+  modelPackage.set("uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model")
+  configOptions.set(configValues)
+  globalProperties.set(mapOf("models" to ""))
+}
+
+val generatedProjectDirs = listOf("locationsinsideprisonapi", "activitiesappointmentsapi")
 
 kotlin {
   generatedProjectDirs.forEach { generatedProject ->
