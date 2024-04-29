@@ -7,13 +7,19 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@ExtendWith(LocationsInsidePrisonApiExtension::class, HmppsAuthApiExtension::class, PrisonerSearchApiExtension::class)
+@ExtendWith(
+  ActivitiesAppointmentsApiExtension::class,
+  HmppsAuthApiExtension::class,
+  LocationsInsidePrisonApiExtension::class,
+  PrisonerSearchApiExtension::class,
+)
 abstract class IntegrationTestBase {
 
   @Autowired
@@ -29,6 +35,7 @@ abstract class IntegrationTestBase {
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles, scopes)
 
   protected fun stubPingWithResponse(status: Int) {
+    ActivitiesAppointmentsApiExtension.server.stubHealthPing(status)
     HmppsAuthApiExtension.server.stubHealthPing(status)
     LocationsInsidePrisonApiExtension.server.stubHealthPing(status)
     PrisonerSearchApiExtension.server.stubHealthPing(status)

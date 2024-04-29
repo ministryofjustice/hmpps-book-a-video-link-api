@@ -25,6 +25,7 @@ management.endpoint:
 api:
   base:
     url:
+      activities-appointments: http://localhost:8089
       hmpps-auth: http://localhost:8090/auth
       locations-inside-prison: http://localhost:8091
       prisoner-search: http://localhost:8092
