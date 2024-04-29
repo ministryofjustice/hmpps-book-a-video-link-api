@@ -1,9 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import org.junit.jupiter.api.extension.AfterAllCallback
@@ -13,20 +9,7 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import java.util.UUID
 
-class LocationsInsidePrisonApiMockServer : WireMockServer(8091) {
-
-  val mapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
-
-  fun stubHealthPing(status: Int) {
-    stubFor(
-      get("/health/ping").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(if (status == 200) """{"status":"UP"}""" else """{"status":"DOWN"}""")
-          .withStatus(status),
-      ),
-    )
-  }
+class LocationsInsidePrisonApiMockServer : MockServer(8091) {
 
   fun stubGetLocation(locationId: UUID = UUID.randomUUID(), prisonId: String = "MDI") {
     stubFor(

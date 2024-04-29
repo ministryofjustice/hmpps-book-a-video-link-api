@@ -65,8 +65,8 @@ tasks {
 val configValues = mapOf(
   "dateLibrary" to "java8-localdatetime",
   "serializationLibrary" to "jackson",
-  "useBeanValidation" to "false",
-  "enumPropertyNaming" to "UPPERCASE",
+  "enumPropertyNaming" to "original",
+  "useSpringBoot3" to "true",
 )
 
 val buildDirectory: Directory = layout.buildDirectory.get()
