@@ -9,10 +9,11 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@ExtendWith(LocationsInsidePrisonApiExtension::class, HmppsAuthApiExtension::class)
+@ExtendWith(LocationsInsidePrisonApiExtension::class, HmppsAuthApiExtension::class, PrisonerSearchApiExtension::class)
 abstract class IntegrationTestBase {
 
   @Autowired
@@ -30,5 +31,6 @@ abstract class IntegrationTestBase {
   protected fun stubPingWithResponse(status: Int) {
     HmppsAuthApiExtension.server.stubHealthPing(status)
     LocationsInsidePrisonApiExtension.server.stubHealthPing(status)
+    PrisonerSearchApiExtension.server.stubHealthPing(status)
   }
 }

@@ -21,6 +21,10 @@ class HealthCheckTest : IntegrationTestBase() {
       .jsonPath("status").isEqualTo("UP")
       .jsonPath("components.hmppsAuth.status").isEqualTo("UP")
       .jsonPath("components.locationsInsidePrisonApi.status").isEqualTo("UP")
+      .jsonPath("components.prisonerSearchApi.status").isEqualTo("UP")
+      .jsonPath("components.db.status").isEqualTo("UP")
+      // If we were using postgres test container this would say PostgreSQL
+      .jsonPath("components.db.details.database").isEqualTo("H2")
   }
 
   @Test
@@ -35,6 +39,7 @@ class HealthCheckTest : IntegrationTestBase() {
       .jsonPath("status").isEqualTo("DOWN")
       .jsonPath("components.hmppsAuth.status").isEqualTo("DOWN")
       .jsonPath("components.locationsInsidePrisonApi.status").isEqualTo("DOWN")
+      .jsonPath("components.prisonerSearchApi.status").isEqualTo("DOWN")
   }
 
   @Test
