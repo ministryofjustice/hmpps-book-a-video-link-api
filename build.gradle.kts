@@ -28,6 +28,9 @@ dependencies {
   // OpenAPI
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 
+  // Gov Notify client
+  implementation("uk.gov.service.notify:notifications-java-client:5.0.1-RELEASE")
+
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
