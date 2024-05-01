@@ -16,15 +16,15 @@ import uk.gov.service.notify.NotificationClient
 @Configuration
 class EmailConfiguration(
   @Value("\${notify.api.key:}") private val apiKey: String,
-  @Value("\${notify.templates.prison.transferred:}") private val offenderTransferredPrisonEmailTemplateId: String,
-  @Value("\${notify.templates.court.transferred:}") private val offenderTransferredCourtEmailTemplateId: String,
-  @Value("\${notify.templates.prison.transferred-but-no-court-email:}") private val offenderTransferredPrisonEmailButNoCourtEmailTemplateId: String,
-  @Value("\${notify.templates.prison.released:}") private val offenderReleasedPrisonEmailTemplateId: String,
-  @Value("\${notify.templates.court.released:}") private val offenderReleasedCourtEmailTemplateId: String,
-  @Value("\${notify.templates.prison.released-but-no-court-email:}") private val offenderReleasedPrisonEmailButNoCourtEmailTemplateId: String,
-  @Value("\${notify.templates.appointment-canceled.prison:}") private val appointmentCanceledPrisonEmailTemplateId: String,
-  @Value("\${notify.templates.appointment-canceled.court:}") private val appointmentCanceledCourtEmailTemplateId: String,
-  @Value("\${notify.templates.appointment-canceled.no-court-email:}") private val appointmentCanceledPrisonEmailButNoCourtEmailTemplateId: String,
+  @Value("\${notify.templates.appointment-cancelled-court:}") private val appointmentCancelledCourt: String,
+  @Value("\${notify.templates.appointment-cancelled-no-court:}") private val appointmentCancelledPrisonNoCourt: String,
+  @Value("\${notify.templates.appointment-cancelled-prison:}") private val appointmentCancelledPrison: String,
+  @Value("\${notify.templates.court.released:}") private val offenderReleasedCourt: String,
+  @Value("\${notify.templates.court.transferred:}") private val offenderTransferredCourt: String,
+  @Value("\${notify.templates.prison.released:}") private val offenderReleasedPrison: String,
+  @Value("\${notify.templates.prison.released-no-court:}") private val offenderReleasedPrisonNoCourt: String,
+  @Value("\${notify.templates.prison.transferred:}") private val offenderTransferredPrison: String,
+  @Value("\${notify.templates.prison.transferred-no-court:}") private val offenderTransferredPrisonNoCourt: String,
 ) {
 
   companion object {
@@ -40,31 +40,35 @@ class EmailConfiguration(
     }
 
   private fun emailTemplates() = EmailTemplates(
-    offenderTransferredPrisonEmailTemplateId = offenderTransferredPrisonEmailTemplateId,
-    offenderTransferredCourtEmailTemplateId = offenderTransferredCourtEmailTemplateId,
-    offenderTransferredPrisonEmailButNoCourtEmailTemplateId = offenderTransferredPrisonEmailButNoCourtEmailTemplateId,
-    offenderReleasedPrisonEmailTemplateId = offenderReleasedPrisonEmailTemplateId,
-    offenderReleasedCourtEmailTemplateId = offenderReleasedCourtEmailTemplateId,
-    offenderReleasedPrisonEmailButNoCourtEmailTemplateId = offenderReleasedPrisonEmailButNoCourtEmailTemplateId,
-    appointmentCanceledPrisonEmailTemplateId = appointmentCanceledPrisonEmailTemplateId,
-    appointmentCanceledCourtEmailTemplateId = appointmentCanceledCourtEmailTemplateId,
-    appointmentCanceledPrisonEmailButNoCourtEmailTemplateId = appointmentCanceledPrisonEmailButNoCourtEmailTemplateId,
+    appointmentCancelledCourt = appointmentCancelledCourt,
+    appointmentCancelledPrison = appointmentCancelledPrison,
+    appointmentCancelledPrisonNoCourt = appointmentCancelledPrisonNoCourt,
+    offenderReleasedCourt = offenderReleasedCourt,
+    offenderReleasedPrison = offenderReleasedPrison,
+    offenderReleasedPrisonNoCourt = offenderReleasedPrisonNoCourt,
+    offenderTransferredCourt = offenderTransferredCourt,
+    offenderTransferredPrison = offenderTransferredPrison,
+    offenderTransferredPrisonNoCourt = offenderTransferredPrisonNoCourt,
   )
 }
 
 fun interface EmailService {
-  // TODO: the actual interface for the sendEmail yet to be decided.
-  fun sendEmail()
+  fun send(email: Email)
 }
 
-internal data class EmailTemplates(
-  val offenderTransferredPrisonEmailTemplateId: String,
-  val offenderTransferredCourtEmailTemplateId: String,
-  val offenderTransferredPrisonEmailButNoCourtEmailTemplateId: String,
-  val offenderReleasedPrisonEmailTemplateId: String,
-  val offenderReleasedCourtEmailTemplateId: String,
-  val offenderReleasedPrisonEmailButNoCourtEmailTemplateId: String,
-  val appointmentCanceledPrisonEmailTemplateId: String,
-  val appointmentCanceledCourtEmailTemplateId: String,
-  val appointmentCanceledPrisonEmailButNoCourtEmailTemplateId: String,
+abstract class Email {
+  abstract val address: String
+  abstract val personalisation: Map<String, String?>
+}
+
+data class EmailTemplates(
+  val appointmentCancelledCourt: String,
+  val appointmentCancelledPrison: String,
+  val appointmentCancelledPrisonNoCourt: String,
+  val offenderReleasedCourt: String,
+  val offenderReleasedPrison: String,
+  val offenderReleasedPrisonNoCourt: String,
+  val offenderTransferredCourt: String,
+  val offenderTransferredPrison: String,
+  val offenderTransferredPrisonNoCourt: String,
 )
