@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailTemplates
 import uk.gov.service.notify.NotificationClient
+import java.util.UUID
 
 class GovNotifyEmailService(
   private val client: NotificationClient,
@@ -15,7 +16,7 @@ class GovNotifyEmailService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  override fun send(email: Email) {
+  override fun send(email: Email): Result<UUID> =
     when (email) {
       is AppointmentCancelledCourtEmail -> send(email, emailTemplates.appointmentCancelledCourt)
       is AppointmentCancelledPrisonEmail -> send(email, emailTemplates.appointmentCancelledPrison)
@@ -28,16 +29,13 @@ class GovNotifyEmailService(
       is OffenderTransferredPrisonNoCourtEmail -> send(email, emailTemplates.offenderTransferredPrisonNoCourt)
       else -> throw RuntimeException("Unsupported email type ${email.javaClass.simpleName}.")
     }
-  }
 
-  private fun send(email: Email, templateId: String) {
+  private fun send(email: Email, templateId: String) =
     runCatching {
-      client.sendEmail(templateId, email.address, email.personalisation, null)
+      client.sendEmail(templateId, email.address, email.personalisation, null).notificationId!!
     }
       .onSuccess { log.info("EMAIL: sent ${email.javaClass.simpleName} email.") }
       .onFailure { log.info("EMAIL: failed to send ${email.javaClass.simpleName} email.") }
-      .getOrThrow()
-  }
 }
 
 class AppointmentCancelledCourtEmail(override val address: String, override val personalisation: Map<String, String?>) : Email()
