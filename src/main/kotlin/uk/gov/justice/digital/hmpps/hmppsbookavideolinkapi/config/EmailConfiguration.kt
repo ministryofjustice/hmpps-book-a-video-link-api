@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.GovNotifyEmailService
 import uk.gov.service.notify.NotificationClient
+import java.util.UUID
 
 /**
  * Email configuration for the service. The sending of all emails is handled by the Gov Notify service.
@@ -34,7 +35,7 @@ class EmailConfiguration(
   @Bean
   fun emailService() =
     if (apiKey.isBlank()) {
-      EmailService { log.info("Email will not be sent.") }.also { log.info("Gov Notify emails are disabled") }
+      EmailService { email -> Result.success(UUID.randomUUID()).also { log.info("Email ${email.javaClass.simpleName} not sent.") } }.also { log.info("Gov Notify emails are disabled") }
     } else {
       GovNotifyEmailService(NotificationClient(apiKey), emailTemplates()).also { log.info("Gov Notify emails are enabled") }
     }
@@ -53,7 +54,10 @@ class EmailConfiguration(
 }
 
 fun interface EmailService {
-  fun send(email: Email)
+  /**
+   * On success returns a unique reference for each email sent.
+   */
+  fun send(email: Email): Result<UUID>
 }
 
 abstract class Email {
