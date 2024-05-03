@@ -291,16 +291,18 @@ CREATE INDEX idx_user_probation_username ON user_probation(username);
 
 CREATE TABLE notification
 (
-    notification_id  bigserial  NOT NULL CONSTRAINT notification_id_pk PRIMARY KEY,
-    video_booking_id bigint NOT NULL REFERENCES video_booking(video_booking_id),
-    template_name    varchar(100),
-    email            varchar(100),
-    reason           varchar(40) NOT NULL,
-    created_time     timestamp NOT NULL
+    notification_id            bigserial  NOT NULL CONSTRAINT notification_id_pk PRIMARY KEY,
+    video_booking_id           bigint NOT NULL REFERENCES video_booking(video_booking_id),
+    template_name              varchar(100),
+    email                      varchar(100),
+    reason                     varchar(40) NOT NULL,
+    gov_notify_notification_id uuid NOT NULL,
+    created_time               timestamp NOT NULL
 );
 
 CREATE INDEX idx_notification_booking_id ON notification(video_booking_id);
 CREATE INDEX idx_notification_email ON notification(email);
+CREATE UNIQUE INDEX idx_gov_notify_notification_id ON notification(gov_notify_notification_id);
 
 ---------------------------------------------------------------------------------------
 -- This is the history of changes to a booking
