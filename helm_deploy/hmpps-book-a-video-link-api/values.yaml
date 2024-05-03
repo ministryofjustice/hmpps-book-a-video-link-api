@@ -22,7 +22,6 @@ generic-service:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     DB_SSL_MODE: "verify-full"
-    # Add the gov-notify template IDs here when we know what they are.
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:

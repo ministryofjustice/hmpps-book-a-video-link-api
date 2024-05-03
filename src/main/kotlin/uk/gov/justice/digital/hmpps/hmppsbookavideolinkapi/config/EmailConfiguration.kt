@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.GovNotifyEmailService
 import uk.gov.service.notify.NotificationClient
+import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -17,15 +18,7 @@ import java.util.UUID
 @Configuration
 class EmailConfiguration(
   @Value("\${notify.api.key:}") private val apiKey: String,
-  @Value("\${notify.templates.appointment-cancelled-court:}") private val appointmentCancelledCourt: String,
-  @Value("\${notify.templates.appointment-cancelled-no-court:}") private val appointmentCancelledPrisonNoCourt: String,
-  @Value("\${notify.templates.appointment-cancelled-prison:}") private val appointmentCancelledPrison: String,
-  @Value("\${notify.templates.court.released:}") private val offenderReleasedCourt: String,
-  @Value("\${notify.templates.court.transferred:}") private val offenderTransferredCourt: String,
-  @Value("\${notify.templates.prison.released:}") private val offenderReleasedPrison: String,
-  @Value("\${notify.templates.prison.released-no-court:}") private val offenderReleasedPrisonNoCourt: String,
-  @Value("\${notify.templates.prison.transferred:}") private val offenderTransferredPrison: String,
-  @Value("\${notify.templates.prison.transferred-no-court:}") private val offenderTransferredPrisonNoCourt: String,
+  @Value("\${notify.templates.court.new-booking:}") private val courtNewBooking: String,
 ) {
 
   companion object {
@@ -41,15 +34,7 @@ class EmailConfiguration(
     }
 
   private fun emailTemplates() = EmailTemplates(
-    appointmentCancelledCourt = appointmentCancelledCourt,
-    appointmentCancelledPrison = appointmentCancelledPrison,
-    appointmentCancelledPrisonNoCourt = appointmentCancelledPrisonNoCourt,
-    offenderReleasedCourt = offenderReleasedCourt,
-    offenderReleasedPrison = offenderReleasedPrison,
-    offenderReleasedPrisonNoCourt = offenderReleasedPrisonNoCourt,
-    offenderTransferredCourt = offenderTransferredCourt,
-    offenderTransferredPrison = offenderTransferredPrison,
-    offenderTransferredPrisonNoCourt = offenderTransferredPrisonNoCourt,
+    courtNewBooking = courtNewBooking,
   )
 }
 
@@ -60,19 +45,29 @@ fun interface EmailService {
   fun send(email: Email): Result<UUID>
 }
 
-abstract class Email {
-  abstract val address: String
-  abstract val personalisation: Map<String, String?>
+abstract class Email(
+  val address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  comments: String? = "",
+) {
+  private val common = mapOf(
+    "date" to date.toString(),
+    "prisonerName" to prisonerFirstName.plus(" $prisonerLastName"),
+    "offenderNo" to prisonerNumber,
+    "comments" to comments,
+  )
+  private val personalisation: MutableMap<String, String?> = mutableMapOf()
+
+  protected fun addPersonalisation(key: String, value: String) {
+    personalisation[key] = value
+  }
+
+  fun personalisation() = common.plus(personalisation)
 }
 
 data class EmailTemplates(
-  val appointmentCancelledCourt: String,
-  val appointmentCancelledPrison: String,
-  val appointmentCancelledPrisonNoCourt: String,
-  val offenderReleasedCourt: String,
-  val offenderReleasedPrison: String,
-  val offenderReleasedPrisonNoCourt: String,
-  val offenderTransferredCourt: String,
-  val offenderTransferredPrison: String,
-  val offenderTransferredPrisonNoCourt: String,
+  val courtNewBooking: String,
 )
