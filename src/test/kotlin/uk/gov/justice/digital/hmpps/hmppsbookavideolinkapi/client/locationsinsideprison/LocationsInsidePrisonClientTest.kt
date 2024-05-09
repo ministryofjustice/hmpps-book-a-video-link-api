@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsi
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.health.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiMockServer
 import java.util.UUID
 
