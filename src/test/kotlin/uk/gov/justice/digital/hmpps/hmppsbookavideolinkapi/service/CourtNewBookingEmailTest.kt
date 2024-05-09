@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.health.containsEntriesExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import java.time.LocalDate
 
 class CourtNewBookingEmailTest {

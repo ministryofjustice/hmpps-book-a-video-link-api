@@ -26,7 +26,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.7.3")
 
   // OpenAPI
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:5.0.1-RELEASE")

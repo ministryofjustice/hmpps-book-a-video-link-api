@@ -1,6 +1,10 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.health
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import org.assertj.core.api.Assertions.assertThat
+
+internal inline infix fun <reified T> Collection<T>.containsExactlyInAnyOrder(value: Collection<T>) {
+  assertThat(this).containsExactlyInAnyOrder(*value.toTypedArray())
+}
 
 internal inline infix fun <reified K, V> Map<K, V>.containsEntriesExactlyInAnyOrder(value: Map<K, V>) {
   assertThat(this).containsExactlyInAnyOrderEntriesOf(value)

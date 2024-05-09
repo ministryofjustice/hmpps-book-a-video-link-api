@@ -96,3 +96,7 @@ notify:
   templates:
     court:
       new-booking: "c8d61c0f-1fa0-4281-9597-a45780e345d4"
+
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha
