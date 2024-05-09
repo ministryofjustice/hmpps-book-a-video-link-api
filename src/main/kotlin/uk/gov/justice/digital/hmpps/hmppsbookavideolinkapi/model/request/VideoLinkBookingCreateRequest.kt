@@ -58,7 +58,7 @@ data class Appointment(
   val type: AppointmentType?,
 
   @field:NotEmpty(message = "The location key for the appointment is mandatory")
-  @field:Size(max = 50, message = "The location key should not exceed {max} characters")
+  @field:Size(max = 160, message = "The location key should not exceed {max} characters")
   @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
   val locationKey: String?,
 

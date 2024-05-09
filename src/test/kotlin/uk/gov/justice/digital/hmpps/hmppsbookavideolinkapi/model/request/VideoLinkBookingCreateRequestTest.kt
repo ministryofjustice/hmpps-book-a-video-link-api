@@ -74,7 +74,7 @@ class VideoLinkBookingCreateRequestTest : ValidatorBase<VideoLinkBookingCreateRe
 
   @Test
   fun `should fail when location key too long`() {
-    request.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = "a".repeat(51)))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key should not exceed 50 characters")
+    request.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = "a".repeat(161)))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key should not exceed 160 characters")
   }
 
   @Test
