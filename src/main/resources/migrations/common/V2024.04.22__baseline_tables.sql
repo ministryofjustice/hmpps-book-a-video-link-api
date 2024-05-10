@@ -83,7 +83,7 @@ CREATE TABLE probation_team
     code                 varchar(40) NOT NULL UNIQUE,
     description          varchar(100) NOT NULL,
     enabled              boolean NOT NULL,
-    notes                varchar(100) NOT NULL,
+    notes                varchar(100),
     created_by           varchar(100) NOT NULL,
     created_time         timestamp NOT NULL,
     amended_by           varchar(100),
