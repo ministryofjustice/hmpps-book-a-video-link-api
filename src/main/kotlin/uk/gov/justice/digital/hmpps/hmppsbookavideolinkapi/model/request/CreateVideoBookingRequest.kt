@@ -24,14 +24,65 @@ data class CreateVideoBookingRequest(
   @Schema(description = "The prisoner or prisoners associated with the video link booking")
   val prisoners: List<PrisonerDetails>,
 
+  @Schema(description = "The court identifier is needed if booking type is COURT, otherwise null", example = "123456")
+  val courtId: Long? = null,
+
+  @Schema(description = "The court hearing type is needed if booking type is COURT, otherwise null", example = "APPEAL")
+  val courtHearingType: CourtHearingType? = null,
+
+  @Schema(description = "The probation team identifier is needed if booking type is PROBATION, otherwise null", example = "123456")
+  val probationTeamId: Long? = null,
+
+  @Schema(description = "The probation meeting type is needed if booking type is PROBATION, otherwise null", example = "PSR")
+  val probationMeetingType: ProbationMeetingType? = null,
+
   @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
   @Schema(description = "Free text comments for the video link booking", example = "Waiting to hear on legal representation")
   val comments: String?,
-)
+) {
+  @AssertTrue(message = "The court identifier and court hearing type are mandatory for court bookings")
+  private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtId != null && courtHearingType != null)
+
+  @AssertTrue(message = "The probation team identifier and probation meeting type are mandatory for probation bookings")
+  private fun isInvalidProbationBooking() = (BookingType.PROBATION != bookingType) || (probationTeamId != null && probationMeetingType != null)
+}
 
 enum class BookingType {
   COURT,
   PROBATION,
+}
+
+enum class CourtHearingType {
+  APPEAL,
+  APPLICATION,
+  BACKER,
+  BAIL,
+  CIVIL,
+  CSE,
+  CTA,
+  IMMIGRATION_DEPORTATION,
+  FAMILY,
+  TRIAL,
+  FCMH,
+  FTR,
+  GRH,
+  MDA,
+  MEF,
+  NEWTON,
+  PLE,
+  PTPH,
+  PTR,
+  POCA,
+  REMAND,
+  SECTION_28,
+  SEN,
+  TRIBUNAL,
+  OTHER,
+}
+
+enum class ProbationMeetingType {
+  PSR,
+  RR,
 }
 
 data class PrisonerDetails(
@@ -53,10 +104,6 @@ data class PrisonerDetails(
 )
 
 data class Appointment(
-  @field:NotNull(message = "The appointment type for the appointment is mandatory")
-  @Schema(description = "The appointment type", example = "TO BE DEFINED")
-  val type: AppointmentType?,
-
   @field:NotEmpty(message = "The location key for the appointment is mandatory")
   @field:Size(max = 160, message = "The location key should not exceed {max} characters")
   @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
@@ -83,12 +130,8 @@ data class Appointment(
   val videoLinkUrl: String?,
 ) {
   @AssertTrue(message = "The supplied video link for the appointment is not a valid URL")
-  private fun isValidUrl() = videoLinkUrl == null || runCatching { URI(videoLinkUrl!!).toURL() }.isSuccess
+  private fun isInvalidUrl() = videoLinkUrl == null || runCatching { URI(videoLinkUrl!!).toURL() }.isSuccess
 
   @AssertTrue(message = "The end time must be after the start time for the appointment")
-  private fun isValidTime() = (startTime == null || endTime == null) || startTime.isBefore(endTime)
-}
-
-enum class AppointmentType {
-  TBD,
+  private fun isInvalidTime() = (startTime == null || endTime == null) || startTime.isBefore(endTime)
 }
