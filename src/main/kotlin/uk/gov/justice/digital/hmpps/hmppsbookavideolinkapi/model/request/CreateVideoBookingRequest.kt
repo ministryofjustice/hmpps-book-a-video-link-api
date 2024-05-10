@@ -13,7 +13,7 @@ import java.net.URI
 import java.time.LocalDate
 import java.time.LocalTime
 
-data class VideoLinkBookingCreateRequest(
+data class CreateVideoBookingRequest(
 
   @field:NotNull(message = "The video link booking type is mandatory")
   @Schema(description = "The booking type", example = "COURT")

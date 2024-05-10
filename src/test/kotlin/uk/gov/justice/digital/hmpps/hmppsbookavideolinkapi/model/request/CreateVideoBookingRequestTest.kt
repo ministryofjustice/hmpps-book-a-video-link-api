@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalTime
 
-class VideoLinkBookingCreateRequestTest : ValidatorBase<VideoLinkBookingCreateRequest>() {
+class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>() {
 
   private val appointment = Appointment(
     type = AppointmentType.TBD,
@@ -21,7 +21,7 @@ class VideoLinkBookingCreateRequestTest : ValidatorBase<VideoLinkBookingCreateRe
     appointments = listOf(appointment),
   )
 
-  private val request = VideoLinkBookingCreateRequest(
+  private val request = CreateVideoBookingRequest(
     bookingType = BookingType.COURT,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",

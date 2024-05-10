@@ -208,7 +208,7 @@ CREATE TABLE prison_appointment
     appointment_type       varchar(40) NOT NULL,
     comments               varchar(200),
     prison_loc_key         varchar(160) NOT NULL,  -- from locations API
-    on_day                 date NOT NULL,
+    appointment_date       date NOT NULL,
     start_time             time without time zone NOT NULL,
     end_time               time without time zone NOT NULL,
     ext_system_code        varchar(40) NOT NULL, -- AA or NOMIS
@@ -223,11 +223,11 @@ CREATE INDEX idx_prison_appointment_video_booking_id ON prison_appointment(video
 CREATE INDEX idx_prison_appointment_prison_code ON prison_appointment(prison_code);
 CREATE INDEX idx_prison_appointment_prisoner_number ON prison_appointment(prisoner_number);
 CREATE INDEX idx_prison_appointment_loc_key ON prison_appointment(prison_loc_key);
-CREATE INDEX idx_prison_appointment_date ON prison_appointment(on_day);
+CREATE INDEX idx_prison_appointment_date ON prison_appointment(appointment_date);
 CREATE INDEX idx_prison_appointment_start_time ON prison_appointment(start_time);
 CREATE INDEX idx_prison_appointment_end_time ON prison_appointment(end_time);
 CREATE INDEX idx_prison_appointment_ext_id ON prison_appointment(ext_appointment_id);
-CREATE UNIQUE INDEX idx_prison_appointment_loc_day_start_end on prison_appointment(prison_loc_key, on_day, start_time, end_time);
+CREATE UNIQUE INDEX idx_prison_appointment_loc_date_start_end on prison_appointment(prison_loc_key, appointment_date, start_time, end_time);
 
 ---------------------------------------------------------------------------------------
 -- This is the third party contact details for attendees to a booking
