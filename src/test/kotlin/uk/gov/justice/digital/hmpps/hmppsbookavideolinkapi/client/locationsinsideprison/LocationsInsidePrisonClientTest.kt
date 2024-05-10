@@ -5,19 +5,18 @@ import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiMockServer
-import java.util.UUID
 
 class LocationsInsidePrisonClientTest {
 
-  private val locationId = UUID.randomUUID()
+  private val locationKey = "MDI-A-1-001"
   private val server = LocationsInsidePrisonApiMockServer().also { it.start() }
   private val client = LocationsInsidePrisonClient(WebClient.create("http://localhost:${server.port()}"))
 
   @Test
   fun `should get matching location`() {
-    server.stubGetLocation(locationId)
+    server.stubPostLocationByKeys(listOf(locationKey))
 
-    client.getLocation(locationId)?.id isEqualTo locationId
+    client.getLocationsByKeys(listOf(locationKey)).single().key isEqualTo locationKey
   }
 
   @AfterEach

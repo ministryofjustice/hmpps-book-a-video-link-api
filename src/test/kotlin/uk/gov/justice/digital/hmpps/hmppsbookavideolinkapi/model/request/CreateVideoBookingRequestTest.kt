@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalTime
 
-class VideoLinkBookingCreateRequestTest : ValidatorBase<VideoLinkBookingCreateRequest>() {
+class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>() {
 
   private val appointment = Appointment(
     type = AppointmentType.TBD,
@@ -21,7 +21,7 @@ class VideoLinkBookingCreateRequestTest : ValidatorBase<VideoLinkBookingCreateRe
     appointments = listOf(appointment),
   )
 
-  private val request = VideoLinkBookingCreateRequest(
+  private val request = CreateVideoBookingRequest(
     bookingType = BookingType.COURT,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
@@ -74,7 +74,7 @@ class VideoLinkBookingCreateRequestTest : ValidatorBase<VideoLinkBookingCreateRe
 
   @Test
   fun `should fail when location key too long`() {
-    request.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = "a".repeat(51)))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key should not exceed 50 characters")
+    request.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = "a".repeat(161)))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key should not exceed 160 characters")
   }
 
   @Test
