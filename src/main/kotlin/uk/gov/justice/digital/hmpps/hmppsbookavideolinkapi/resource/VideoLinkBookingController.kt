@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CreateVideoBookingService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 
 @Tag(name = "Video Link Booking")
 @RestController
 @RequestMapping(value = ["video-link-booking"], produces = [MediaType.APPLICATION_JSON_VALUE])
-class VideoLinkBookingController(val createVideoBookingService: CreateVideoBookingService) {
+class VideoLinkBookingController(val bookingFacade: BookingFacade) {
 
   @Operation(summary = "Endpoint to support the creation of video link bookings")
   @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
@@ -29,5 +29,5 @@ class VideoLinkBookingController(val createVideoBookingService: CreateVideoBooki
     @RequestBody
     @Parameter(description = "The request with the new video link booking details", required = true)
     request: CreateVideoBookingRequest,
-  ): Long = createVideoBookingService.create(request)
+  ): Long = bookingFacade.create(request)
 }
