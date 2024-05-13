@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 
+import jakarta.persistence.EntityNotFoundException
+import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 
+@Component
 class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
 
   fun getPrisoner(prisonerNumber: String): Prisoner? =
@@ -14,6 +17,10 @@ class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
       .bodyToMono(Prisoner::class.java)
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
+
+  fun getPrisonerAtPrison(prisonerNumber: String, prisonCode: String): Prisoner =
+    getPrisoner(prisonerNumber)?.takeUnless { prisoner -> prisoner.prisonId != prisonCode }
+      ?: throw EntityNotFoundException("Prisoner $prisonerNumber not found at prison $prisonCode")
 }
 
 // Ideally this model would be generated and not hard coded, however at time of writing the Open API generator did not

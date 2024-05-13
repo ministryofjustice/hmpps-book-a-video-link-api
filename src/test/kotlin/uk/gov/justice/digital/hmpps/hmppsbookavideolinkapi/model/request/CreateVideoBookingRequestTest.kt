@@ -7,11 +7,11 @@ import java.time.LocalTime
 class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>() {
 
   private val appointment = Appointment(
+    type = AppointmentType.HEARING,
     locationKey = "MDI-A-1-001",
     date = LocalDate.now().plusDays(1),
     startTime = LocalTime.now(),
     endTime = LocalTime.now().plusHours(1),
-    videoLinkUrl = "https://video.link.com",
   )
 
   private val prisoner = PrisonerDetails(
@@ -26,6 +26,7 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
+    videoLinkUrl = "https://video.link.com",
   )
 
   private val probationBooking = CreateVideoBookingRequest(
@@ -34,6 +35,7 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     probationMeetingType = ProbationMeetingType.RR,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
+    videoLinkUrl = "https://video.link.com",
   )
 
   @Test
@@ -102,6 +104,11 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   }
 
   @Test
+  fun `should fail when appointment type is missing`() {
+    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(type = null))))) failsWithSingle ModelError("prisoners[0].appointments[0].type", "The appointment type for the appointment is mandatory")
+  }
+
+  @Test
   fun `should fail when location key too long`() {
     courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = "a".repeat(161)))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key should not exceed 160 characters")
   }
@@ -128,12 +135,12 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
 
   @Test
   fun `should fail when appointment video link URL is invalid`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(videoLinkUrl = "blah"))))) failsWithSingle ModelError("prisoners[0].appointments[0].invalidUrl", "The supplied video link for the appointment is not a valid URL")
+    courtBooking.copy(videoLinkUrl = "blah") failsWithSingle ModelError("invalidUrl", "The supplied video link for the appointment is not a valid URL")
   }
 
   @Test
   fun `should fail when appointment video link URL is too long`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(videoLinkUrl = "https://".plus("a".repeat(120).plus(".com"))))))) failsWithSingle ModelError("prisoners[0].appointments[0].videoLinkUrl", "The video link should not exceed 120 characters")
+    courtBooking.copy(videoLinkUrl = "https://".plus("a".repeat(120).plus(".com"))) failsWithSingle ModelError("videoLinkUrl", "The video link should not exceed 120 characters")
   }
 
   @Test

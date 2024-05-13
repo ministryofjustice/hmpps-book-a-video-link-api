@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 internal inline infix fun <reified T> Collection<T>.containsExactlyInAnyOrder(value: Collection<T>) {
   assertThat(this).containsExactlyInAnyOrder(*value.toTypedArray())
@@ -12,6 +15,10 @@ internal inline infix fun <reified K, V> Map<K, V>.containsEntriesExactlyInAnyOr
 
 internal infix fun Boolean.isBool(value: Boolean) {
   assertThat(this).isEqualTo(value)
+}
+
+internal infix fun LocalDateTime?.isCloseTo(dateTime: LocalDateTime) {
+  assertThat(this).isCloseTo(dateTime, Assertions.within(2, ChronoUnit.SECONDS))
 }
 
 internal infix fun <T> T.isEqualTo(value: T) {

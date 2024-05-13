@@ -211,9 +211,7 @@ CREATE TABLE prison_appointment
     appointment_date       date NOT NULL,
     start_time             time without time zone NOT NULL,
     end_time               time without time zone NOT NULL,
-    ext_system_code        varchar(40) NOT NULL, -- AA or NOMIS
-    ext_appointment_id     bigint,  -- the appointment id in A&A or NOMIS
-    created_by             varchar(100) NOT NULL, 
+    created_by             varchar(100) NOT NULL,
     created_time           timestamp    NOT NULL,
     amended_by             varchar(100), 
     amended_time           timestamp
@@ -226,7 +224,6 @@ CREATE INDEX idx_prison_appointment_loc_key ON prison_appointment(prison_loc_key
 CREATE INDEX idx_prison_appointment_date ON prison_appointment(appointment_date);
 CREATE INDEX idx_prison_appointment_start_time ON prison_appointment(start_time);
 CREATE INDEX idx_prison_appointment_end_time ON prison_appointment(end_time);
-CREATE INDEX idx_prison_appointment_ext_id ON prison_appointment(ext_appointment_id);
 CREATE UNIQUE INDEX idx_prison_appointment_loc_date_start_end on prison_appointment(prison_loc_key, appointment_date, start_time, end_time);
 
 ---------------------------------------------------------------------------------------
