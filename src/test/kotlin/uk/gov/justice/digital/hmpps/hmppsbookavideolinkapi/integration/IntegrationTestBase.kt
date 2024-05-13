@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiMockServer
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -25,6 +26,8 @@ abstract class IntegrationTestBase {
   @Autowired
   lateinit var webTestClient: WebTestClient
 
+  lateinit var prisonerSearchApiMockServer: PrisonerSearchApiMockServer
+
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthHelper
 
@@ -38,6 +41,8 @@ abstract class IntegrationTestBase {
     ActivitiesAppointmentsApiExtension.server.stubHealthPing(status)
     HmppsAuthApiExtension.server.stubHealthPing(status)
     LocationsInsidePrisonApiExtension.server.stubHealthPing(status)
-    PrisonerSearchApiExtension.server.stubHealthPing(status)
+    prisonSearchApi().stubHealthPing(status)
   }
+
+  protected fun prisonSearchApi() = PrisonerSearchApiExtension.server
 }
