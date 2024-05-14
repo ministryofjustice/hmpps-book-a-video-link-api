@@ -60,12 +60,13 @@ class VideoBooking private constructor(
   }
 
   companion object {
-    fun court(
+    fun newCourtBooking(
       court: Court,
       hearingType: String,
       videoUrl: String?,
       createdBy: String,
     ): VideoBooking =
+      // TODO check court is enabled?
       VideoBooking(
         bookingType = "COURT",
         court = court,
@@ -76,12 +77,13 @@ class VideoBooking private constructor(
         createdBy = createdBy,
       )
 
-    fun probation(
+    fun newProbationBooking(
       probationTeam: ProbationTeam,
       probationMeetingType: String,
       videoUrl: String?,
       createdBy: String,
     ): VideoBooking =
+      // TODO check probation team is enabled?
       VideoBooking(
         bookingType = "PROBATION",
         court = null,

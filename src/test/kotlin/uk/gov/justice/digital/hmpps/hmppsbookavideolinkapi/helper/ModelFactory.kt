@@ -41,15 +41,22 @@ fun courtBookingRequest(
 
 fun probationBookingRequest(
   probationTeamId: Long = 1,
+  probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
+  videoLinkUrl: String = "https://video.link.com",
   prisonCode: String = "MDI",
   prisonerNumber: String = "123456",
+  locationSuffix: String = "A-1-001",
+  appointmentType: AppointmentType = AppointmentType.PRE_SENTENCE_REPORT,
+  appointmentDate: LocalDate = LocalDate.now().plusDays(1),
+  startTime: LocalTime = LocalTime.now(),
+  endTime: LocalTime = LocalTime.now().plusHours(1),
 ): CreateVideoBookingRequest {
   val appointment = Appointment(
-    type = AppointmentType.PRE_SENTENCE_REPORT,
-    locationKey = "$prisonCode-A-1-001",
-    date = LocalDate.now().plusDays(1),
-    startTime = LocalTime.now(),
-    endTime = LocalTime.now().plusHours(1),
+    type = appointmentType,
+    locationKey = "$prisonCode-$locationSuffix",
+    date = appointmentDate,
+    startTime = startTime,
+    endTime = endTime,
   )
 
   val prisoner = PrisonerDetails(
@@ -61,9 +68,9 @@ fun probationBookingRequest(
   return CreateVideoBookingRequest(
     bookingType = BookingType.PROBATION,
     probationTeamId = probationTeamId,
-    probationMeetingType = ProbationMeetingType.PSR,
+    probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
-    videoLinkUrl = "https://video.link.com",
+    videoLinkUrl = videoLinkUrl,
   )
 }

@@ -5,10 +5,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 
@@ -18,6 +21,7 @@ class CreateVideoBookingService(
   private val prisonerSearchClient: PrisonerSearchClient,
   private val probationTeamRepository: ProbationTeamRepository,
   private val videoBookingRepository: VideoBookingRepository,
+  private val prisonAppointmentRepository: PrisonAppointmentRepository,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -34,40 +38,56 @@ class CreateVideoBookingService(
     // TODO consider what validation may be needed e.g. duplicate, room in already in use etc.
 
     val court = courtRepository.findById(request.courtId!!).orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
-    val prisoner = request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
+    request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
 
-    val newCourtBooking = VideoBooking.court(
+    return VideoBooking.newCourtBooking(
       court = court,
       hearingType = request.courtHearingType!!.name,
       videoUrl = request.videoLinkUrl,
       createdBy = "TBD",
-    )
+    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentsForCourt(booking, request.prisoner()) }
+  }
 
-    log.info("TODO - create the appointments linked to the booking.")
-
-    val persistedBooking = videoBookingRepository.save(newCourtBooking)
-
-    return persistedBooking
+  private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
+    // TODO to be implemented
   }
 
   private fun createProbation(request: CreateVideoBookingRequest): VideoBooking {
     // TODO consider what validation may be needed e.g. duplicate, room in already in use etc.
 
     val probationTeam = probationTeamRepository.findById(request.probationTeamId!!).orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
-    val prisoner = request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
+    request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
 
-    val newProbationTeamBooking = VideoBooking.probation(
+    return VideoBooking.newProbationBooking(
       probationTeam = probationTeam,
       probationMeetingType = request.probationMeetingType!!.name,
       videoUrl = request.videoLinkUrl,
       createdBy = "TBD",
-    )
+    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentForProbation(booking, request.prisoner()) }
+  }
 
-    log.info("TODO - create the appointments linked to the booking.")
+  private fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
+    // TODO check location key against the locations API
 
-    val persistedBooking = videoBookingRepository.save(newProbationTeamBooking)
+    val appointment = with(prisoner.appointments.single()) {
+      require(type!!.isProbation) {
+        "Appointment type $type is not valid for probation appointments"
+      }
 
-    return persistedBooking
+      PrisonAppointment.newAppointment(
+        videoBooking = videoBooking,
+        prisonCode = prisoner.prisonCode!!,
+        prisonerNumber = prisoner.prisonerNumber!!,
+        appointmentType = this.type.name,
+        appointmentDate = this.date!!,
+        startTime = this.startTime!!,
+        endTime = this.endTime!!,
+        locationKey = this.locationKey!!,
+        createdBy = "TBD",
+      )
+    }
+
+    prisonAppointmentRepository.saveAndFlush(appointment)
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.
