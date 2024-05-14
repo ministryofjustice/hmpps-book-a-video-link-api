@@ -8,14 +8,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtsService
 
 @RestController
 @RequestMapping(value = ["courts"], produces = [MediaType.APPLICATION_JSON_VALUE])
-class CourtsController (
+class CourtsController(
   private val courtsService: CourtsService,
 ) {
 
@@ -56,5 +58,5 @@ class CourtsController (
   )
   @GetMapping(value = ["/enabled"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
-  fun enabledCourts(): List<Court>  = courtsService.getEnabledCourts()
+  fun enabledCourts(): List<Court> = courtsService.getEnabledCourts()
 }

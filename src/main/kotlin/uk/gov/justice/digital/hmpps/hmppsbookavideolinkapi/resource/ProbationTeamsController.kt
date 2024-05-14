@@ -13,14 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationTeamsService
 
 @RestController
 @RequestMapping(value = ["probation-teams"], produces = [MediaType.APPLICATION_JSON_VALUE])
-class ProbationTeamsController (
-  private val probationTeamsService: ProbationTeamsService,
-) {
+class ProbationTeamsController(private val probationTeamsService: ProbationTeamsService) {
 
   @Operation(summary = "Endpoint to return a list of enabled probation teams for video link bookings")
   @ApiResponses(

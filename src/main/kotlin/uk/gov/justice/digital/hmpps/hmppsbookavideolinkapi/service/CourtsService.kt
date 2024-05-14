@@ -5,10 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 
 @Service
-class CourtsService(
-  private val courtRepository: CourtRepository,
-) {
-
-  fun getEnabledCourts()
-    = courtRepository.findAllByEnabledIsTrue().toModel()
+class CourtsService(private val courtRepository: CourtRepository) {
+  fun getEnabledCourts() =
+    courtRepository.findAllByEnabledIsTrue().toModel()
 }
