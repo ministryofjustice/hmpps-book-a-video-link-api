@@ -14,19 +14,25 @@ fun courtBookingRequest(
   courtId: Long = 1,
   prisonCode: String = "MDI",
   prisonerNumber: String = "123456",
+  locationSuffix: String = "A-1-001",
+  startTime: LocalTime = LocalTime.now(),
+  endTime: LocalTime = LocalTime.now().plusHours(1),
+  appointments: List<Appointment> = emptyList(),
 ): CreateVideoBookingRequest {
-  val appointment = Appointment(
-    type = AppointmentType.HEARING,
-    locationKey = "$prisonCode-A-1-001",
-    date = LocalDate.now().plusDays(1),
-    startTime = LocalTime.now(),
-    endTime = LocalTime.now().plusHours(1),
-  )
-
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
     prisonerNumber = prisonerNumber,
-    appointments = listOf(appointment),
+    appointments = appointments.ifEmpty {
+      listOf(
+        Appointment(
+          type = AppointmentType.HEARING,
+          locationKey = "$prisonCode-$locationSuffix",
+          date = LocalDate.now().plusDays(1),
+          startTime = startTime,
+          endTime = endTime,
+        ),
+      )
+    },
   )
 
   return CreateVideoBookingRequest(

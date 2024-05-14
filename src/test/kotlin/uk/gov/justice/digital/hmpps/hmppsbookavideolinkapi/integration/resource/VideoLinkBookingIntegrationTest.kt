@@ -31,16 +31,36 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("123456", "MDI")
 
-    val courtBookingRequest = courtBookingRequest()
+    val courtBookingRequest = courtBookingRequest(
+      prisonerNumber = "123456",
+      prisonCode = "MDI",
+      locationSuffix = "ABCDEDFG",
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+    )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest)
 
-    with(videoBookingRepository.findById(bookingId).orElseThrow()) {
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(persistedBooking) {
       videoBookingId isEqualTo bookingId
       bookingType isEqualTo "COURT"
       court?.courtId isEqualTo courtBookingRequest.courtId
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
+    }
+
+    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+      videoBooking isEqualTo persistedBooking
+      prisonCode isEqualTo "MDI"
+      prisonerNumber isEqualTo "123456"
+      appointmentType isEqualTo AppointmentType.HEARING.name
+      appointmentDate isEqualTo LocalDate.now().plusDays(1)
+      prisonLocKey isEqualTo "MDI-ABCDEDFG"
+      startTime isEqualTo LocalTime.of(12, 0)
+      endTime isEqualTo LocalTime.of(12, 30)
+      createdBy isEqualTo "TBD"
     }
   }
 
