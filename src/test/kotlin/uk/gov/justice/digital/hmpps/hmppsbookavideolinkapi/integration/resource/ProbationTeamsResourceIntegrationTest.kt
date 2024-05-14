@@ -12,8 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 
-
-class ProbationTeamsResourceIntegrationTest: IntegrationTestBase() {
+class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var probationTeamRepository: ProbationTeamRepository

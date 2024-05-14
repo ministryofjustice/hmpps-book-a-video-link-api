@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 
-class CourtsResourceIntegrationTest : IntegrationTestBase()  {
+class CourtsResourceIntegrationTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var courtRepository: CourtRepository
