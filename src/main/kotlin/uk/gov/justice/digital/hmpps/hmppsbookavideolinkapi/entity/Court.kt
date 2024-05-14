@@ -7,6 +7,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import java.time.LocalDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court as ModelCourt
 
 @Entity
 @Table(name = "court")
@@ -45,4 +46,13 @@ class Court(
   override fun hashCode(): Int {
     return courtId.hashCode()
   }
+
+  fun toModel() = ModelCourt(
+    courtId = courtId,
+    code = code,
+    description = description,
+    enabled = enabled,
+    notes = notes,
+  )
 }
+fun List<Court>.toModel() = map { it.toModel() }
