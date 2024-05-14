@@ -146,7 +146,7 @@ class CreateVideoBookingServiceTest {
   fun `should fail to create a probation video booking when appointment type not probation specific`() {
     val prisonCode = "MDI"
     val prisonerNumber = "123456"
-    val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, appointmentType = AppointmentType.HEARING)
+    val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, appointmentType = AppointmentType.VLB_COURT_MAIN)
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamId!!)
 
     whenever(probationTeamRepository.findById(probationBookingRequest.probationTeamId!!)) doReturn Optional.of(requestedProbationTeam)
@@ -155,6 +155,6 @@ class CreateVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest) }
 
-    error.message isEqualTo "Appointment type HEARING is not valid for probation appointments"
+    error.message isEqualTo "Appointment type VLB_COURT_MAIN is not valid for probation appointments"
   }
 }

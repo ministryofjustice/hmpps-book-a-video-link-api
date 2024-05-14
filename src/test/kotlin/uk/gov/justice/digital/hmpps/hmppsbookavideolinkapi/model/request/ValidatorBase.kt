@@ -4,8 +4,6 @@ import jakarta.validation.Validation
 import jakarta.validation.Validator
 import org.assertj.core.api.Assertions.assertThat
 
-internal typealias ModelError = Pair<String, String>
-
 abstract class ValidatorBase<MODEL> {
 
   private val validator: Validator = Validation.buildDefaultValidatorFactory().validator
@@ -22,3 +20,5 @@ abstract class ValidatorBase<MODEL> {
     }
   }
 }
+
+internal typealias ModelError = Pair<String, String>

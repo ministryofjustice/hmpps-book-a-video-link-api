@@ -58,7 +58,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(9, 30),
-      appointmentType = AppointmentType.PRE_SENTENCE_REPORT,
+      appointmentType = AppointmentType.VLB_PROBATION,
       locationSuffix = "ABCDEDFG",
     )
 
@@ -79,7 +79,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       videoBooking isEqualTo persistedBooking
       prisonCode isEqualTo "MDI"
       prisonerNumber isEqualTo "123456"
-      appointmentType isEqualTo AppointmentType.PRE_SENTENCE_REPORT.name
+      appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo LocalDate.now().plusDays(1)
       prisonLocKey isEqualTo "MDI-ABCDEDFG"
       startTime isEqualTo LocalTime.of(9, 0)

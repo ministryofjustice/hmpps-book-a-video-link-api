@@ -123,7 +123,7 @@ data class PrisonerDetails(
 
 data class Appointment(
   @field:NotNull(message = "The appointment type for the appointment is mandatory")
-  @Schema(description = "The appointment type", example = "HEARING")
+  @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
   val type: AppointmentType?,
 
   @field:NotEmpty(message = "The location key for the appointment is mandatory")
@@ -153,11 +153,10 @@ data class Appointment(
 
 enum class AppointmentType(val isProbation: Boolean, isCourt: Boolean) {
   // Probation types
-  RECALL_REPORT(true, false),
-  PRE_SENTENCE_REPORT(true, false),
+  VLB_PROBATION(true, false),
 
   // Court types
-  PRE_CONFERENCE(false, true),
-  HEARING(false, true),
-  POST_CONFERENCE(false, true),
+  VLB_COURT_PRE(false, true),
+  VLB_COURT_MAIN(false, true),
+  VLB_COURT_POST(false, true),
 }
