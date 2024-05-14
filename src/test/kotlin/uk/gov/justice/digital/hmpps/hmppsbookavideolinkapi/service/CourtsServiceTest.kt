@@ -7,8 +7,8 @@ import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court as CourtEntity
 
 class CourtsServiceTest {

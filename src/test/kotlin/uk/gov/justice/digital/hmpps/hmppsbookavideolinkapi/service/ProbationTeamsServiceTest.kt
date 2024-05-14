@@ -7,8 +7,8 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam as ProbationTeamEntity
 
 class ProbationTeamsServiceTest {
