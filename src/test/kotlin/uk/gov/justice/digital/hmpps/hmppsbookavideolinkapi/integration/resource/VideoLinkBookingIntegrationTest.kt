@@ -9,13 +9,21 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import java.time.LocalDate
+import java.time.LocalTime
 
 class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
+
+  @Autowired
+  private lateinit var prisonAppointmentRepository: PrisonAppointmentRepository
 
   @Test
   fun `should create a court booking`() {
@@ -42,16 +50,41 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("123456", "MDI")
 
-    val probationBookingRequest = probationBookingRequest()
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamId = 1,
+      probationMeetingType = ProbationMeetingType.PSR,
+      videoLinkUrl = "https://probation.videolink.com",
+      prisonCode = "MDI",
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.PRE_SENTENCE_REPORT,
+      locationSuffix = "ABCDEDFG",
+    )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest)
 
-    with(videoBookingRepository.findById(bookingId).orElseThrow()) {
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(persistedBooking) {
       videoBookingId isEqualTo bookingId
       bookingType isEqualTo "PROBATION"
-      probationTeam?.probationTeamId isEqualTo probationBookingRequest.probationTeamId
-      probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
-      videoUrl isEqualTo probationBookingRequest.videoLinkUrl
+      probationTeam?.probationTeamId isEqualTo 1
+      probationMeetingType isEqualTo ProbationMeetingType.PSR.name
+      videoUrl isEqualTo "https://probation.videolink.com"
+      createdBy isEqualTo "TBD"
+    }
+
+    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+      videoBooking isEqualTo persistedBooking
+      prisonCode isEqualTo "MDI"
+      prisonerNumber isEqualTo "123456"
+      appointmentType isEqualTo AppointmentType.PRE_SENTENCE_REPORT.name
+      appointmentDate isEqualTo LocalDate.now().plusDays(1)
+      prisonLocKey isEqualTo "MDI-ABCDEDFG"
+      startTime isEqualTo LocalTime.of(9, 0)
+      endTime isEqualTo LocalTime.of(9, 30)
+      createdBy isEqualTo "TBD"
     }
   }
 

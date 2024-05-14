@@ -106,7 +106,18 @@ data class PrisonerDetails(
 
   @field:Valid
   @field:NotEmpty(message = "At least one appointment must be supplied for the prisoner")
-  @Schema(description = "The appointments associated with the prisoner")
+  @Schema(
+    description =
+    """
+      The appointment or appointments associated with the prisoner.
+  
+      There should only ever be one appointment for a probation meeting.
+  
+      Court meetings can have up to 3 meetings, a pre, main hearing and post meeting. They must always have a main meeting.
+  
+      Appointment dates and times must not overlap.
+    """,
+  )
   val appointments: List<Appointment>,
 )
 
@@ -140,13 +151,13 @@ data class Appointment(
   private fun isInvalidTime() = (startTime == null || endTime == null) || startTime.isBefore(endTime)
 }
 
-enum class AppointmentType {
+enum class AppointmentType(val isProbation: Boolean, isCourt: Boolean) {
   // Probation types
-  RECALL_REPORT,
-  PRE_SENTENCE_REPORT,
+  RECALL_REPORT(true, false),
+  PRE_SENTENCE_REPORT(true, false),
 
   // Court types
-  PRE_CONFERENCE,
-  HEARING,
-  POST_CONFERENCE,
+  PRE_CONFERENCE(false, true),
+  HEARING(false, true),
+  POST_CONFERENCE(false, true),
 }
