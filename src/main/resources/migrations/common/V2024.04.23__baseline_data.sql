@@ -54,7 +54,7 @@ values ( 1, 'COURT_HEARING_TYPE', 'APPEAL', 'Appeal', 'TIM', current_timestamp),
        (49, 'HISTORY_TYPE', 'HIST_AMENDED', 'Amended', 'TIM', current_timestamp),
        (50, 'HISTORY_TYPE', 'HIST_CANCELLED', 'Cancelled', 'TIM', current_timestamp);
 
-alter sequence if exists reference_code_reference_code_id_seq restart with 49;
+alter sequence if exists reference_code_reference_code_id_seq restart with 51;
 
 ---
 

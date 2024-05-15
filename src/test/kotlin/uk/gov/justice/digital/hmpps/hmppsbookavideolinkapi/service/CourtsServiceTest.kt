@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -32,7 +32,7 @@ class CourtsServiceTest {
 
     whenever(courtRepository.findAllByEnabledIsTrue()).thenReturn(listOfEnabledCourts)
 
-    Assertions.assertThat(service.getEnabledCourts()).isEqualTo(
+    assertThat(service.getEnabledCourts()).isEqualTo(
       listOfEnabledCourts.toModel(),
     )
 
@@ -42,7 +42,7 @@ class CourtsServiceTest {
   @Test
   fun `Should return an empty list when no courts are enabled`() {
     whenever(courtRepository.findAllByEnabledIsTrue()).thenReturn(emptyList())
-    Assertions.assertThat(service.getEnabledCourts()).isEmpty()
+    assertThat(service.getEnabledCourts()).isEmpty()
     Mockito.verify(courtRepository).findAllByEnabledIsTrue()
   }
 }
