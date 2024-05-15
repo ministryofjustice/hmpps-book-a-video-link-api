@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -27,13 +30,13 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should create a court booking`() {
-    videoBookingRepository.findAll().filter { it.bookingType == "COURT" } hasSize 0
+    videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", "MDI")
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
 
     val courtBookingRequest = courtBookingRequest(
       prisonerNumber = "123456",
-      prisonCode = "MDI",
+      prisonCode = BIRMINGHAM,
       locationSuffix = "ABCDEDFG",
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
@@ -53,11 +56,11 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo "MDI"
+      prisonCode isEqualTo BIRMINGHAM
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo LocalDate.now().plusDays(1)
-      prisonLocKey isEqualTo "MDI-ABCDEDFG"
+      prisonLocKey isEqualTo "$BIRMINGHAM-ABCDEDFG"
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       createdBy isEqualTo "TBD"
@@ -65,16 +68,58 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should create a probation booking`() {
-    videoBookingRepository.findAll().filter { it.bookingType == "PROBATION" } hasSize 0
+  fun `should fail to create a clashing court booking`() {
+    videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", "MDI")
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+
+    val courtBookingRequest = courtBookingRequest(
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      locationSuffix = "A-1-001",
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+    )
+
+    webTestClient.createBooking(courtBookingRequest)
+
+    val clashingBookingRequest = courtBookingRequest(
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      locationSuffix = "A-1-001",
+      startTime = LocalTime.of(12, 15),
+      endTime = LocalTime.of(12, 40),
+    )
+
+    val error = webTestClient.post()
+      .uri("/video-link-booking")
+      .bodyValue(clashingBookingRequest)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 400
+      userMessage isEqualTo "Exception: One or more requested court appointments overlaps with an existing appointment at location $BIRMINGHAM-A-1-001"
+      developerMessage isEqualTo "One or more requested court appointments overlaps with an existing appointment at location $BIRMINGHAM-A-1-001"
+    }
+  }
+
+  @Test
+  fun `should create a probation booking`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamId = 1,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
-      prisonCode = "MDI",
+      prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(9, 30),
@@ -97,14 +142,107 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo "MDI"
+      prisonCode isEqualTo BIRMINGHAM
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo LocalDate.now().plusDays(1)
-      prisonLocKey isEqualTo "MDI-ABCDEDFG"
+      prisonLocKey isEqualTo "$BIRMINGHAM-ABCDEDFG"
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
       createdBy isEqualTo "TBD"
+    }
+  }
+
+  @Test
+  fun `should create two probation bookings in same location at different times`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamId = 1,
+      probationMeetingType = ProbationMeetingType.PSR,
+      videoLinkUrl = "https://probation.videolink.com",
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      locationSuffix = "ABCDEDFG",
+    )
+
+    val bookingId = webTestClient.createBooking(probationBookingRequest)
+
+    videoBookingRepository.findById(bookingId).orElseThrow()
+
+    prisonSearchApi().stubGetPrisoner("78910", BIRMINGHAM)
+
+    val secondProbationBookingRequest = probationBookingRequest(
+      probationTeamId = 1,
+      probationMeetingType = ProbationMeetingType.PSR,
+      videoLinkUrl = "https://probation.videolink.com",
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "78910",
+      startTime = LocalTime.of(9, 30),
+      endTime = LocalTime.of(10, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      locationSuffix = "ABCDEDFG",
+    )
+
+    val secondBookingId = webTestClient.createBooking(secondProbationBookingRequest)
+
+    videoBookingRepository.findById(secondBookingId).orElseThrow()
+
+    videoBookingRepository.findAll().map { it.videoBookingId } containsExactlyInAnyOrder listOf(bookingId, secondBookingId)
+  }
+
+  @Test
+  fun `should fail to create a clashing probation booking`() {
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamId = 1,
+      probationMeetingType = ProbationMeetingType.PSR,
+      videoLinkUrl = "https://probation.videolink.com",
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      locationSuffix = "ABCDEDFG",
+    )
+
+    webTestClient.createBooking(probationBookingRequest)
+
+    prisonSearchApi().stubGetPrisoner("789012", BIRMINGHAM)
+
+    val clashingBookingRequest = probationBookingRequest(
+      probationTeamId = 1,
+      probationMeetingType = ProbationMeetingType.PSR,
+      videoLinkUrl = "https://probation.videolink.com",
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "789012",
+      startTime = LocalTime.of(8, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      locationSuffix = "ABCDEDFG",
+    )
+
+    val error = webTestClient.post()
+      .uri("/video-link-booking")
+      .bodyValue(clashingBookingRequest)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 400
+      userMessage isEqualTo "Exception: Requested probation appointment overlaps with an existing appointment at location $BIRMINGHAM-ABCDEDFG"
+      developerMessage isEqualTo "Requested probation appointment overlaps with an existing appointment at location $BIRMINGHAM-ABCDEDFG"
     }
   }
 

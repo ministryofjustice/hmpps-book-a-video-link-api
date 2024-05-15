@@ -27,7 +27,7 @@ fun courtBookingRequest(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-$locationSuffix",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = startTime,
           endTime = endTime,
         ),
@@ -53,7 +53,7 @@ fun probationBookingRequest(
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
   appointmentType: AppointmentType = AppointmentType.VLB_PROBATION,
-  appointmentDate: LocalDate = LocalDate.now().plusDays(1),
+  appointmentDate: LocalDate = tomorrow(),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
 ): CreateVideoBookingRequest {

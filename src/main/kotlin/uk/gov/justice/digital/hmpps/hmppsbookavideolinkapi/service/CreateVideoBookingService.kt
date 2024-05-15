@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
@@ -37,8 +38,6 @@ class CreateVideoBookingService(
     }
 
   private fun createCourt(request: CreateVideoBookingRequest): VideoBooking {
-    // TODO consider what validation may be needed e.g. duplicate, room in already in use etc.
-
     val court = courtRepository.findById(request.courtId!!).orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
     request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
 
@@ -51,11 +50,11 @@ class CreateVideoBookingService(
   }
 
   private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
-    // TODO consider what validation may be needed e.g. duplicate, room in already in use etc.
     // TODO need to check locations against locations API
 
     prisoner.appointments.checkCourtAppointmentTypesOnly()
-    prisoner.appointments.checkCourtAppointmentDateAndTimesDoNotOverlap()
+    prisoner.appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
+    prisoner.appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisoner.prisonCode!!)
 
     prisoner.appointments.map {
       PrisonAppointment.newAppointment(
@@ -69,7 +68,7 @@ class CreateVideoBookingService(
         locationKey = it.locationKey!!,
         createdBy = "TBD",
       )
-    }.forEach { prisonAppointmentRepository.saveAndFlush(it) }
+    }.forEach(prisonAppointmentRepository::saveAndFlush)
   }
 
   private fun List<Appointment>.checkCourtAppointmentTypesOnly() {
@@ -84,13 +83,34 @@ class CreateVideoBookingService(
     }
   }
 
-  private fun List<Appointment>.checkCourtAppointmentDateAndTimesDoNotOverlap() {
+  private fun List<Appointment>.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap() {
     val pre = singleOrNull { it.type == AppointmentType.VLB_COURT_PRE }
     val hearing = single { it.type == AppointmentType.VLB_COURT_MAIN }
     val post = singleOrNull { it.type == AppointmentType.VLB_COURT_POST }
 
     require((pre == null || pre.isBefore(hearing)) && (post == null || hearing.isBefore(post))) {
-      "Court booking appointments must not overlap."
+      "Requested court booking appointments must not overlap."
+    }
+  }
+
+  private fun List<Appointment>.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
+    forEach { newAppointment ->
+      prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(
+        prisonCode,
+        newAppointment.locationKey!!,
+        newAppointment.date!!,
+      ).forEach { existingAppointment ->
+        require(
+          !isTimesOverlap(
+            newAppointment.startTime!!,
+            newAppointment.endTime!!,
+            existingAppointment.startTime,
+            existingAppointment.endTime,
+          ),
+        ) {
+          "One or more requested court appointments overlaps with an existing appointment at location ${newAppointment.locationKey}"
+        }
+      }
     }
   }
 
@@ -98,7 +118,6 @@ class CreateVideoBookingService(
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
   private fun createProbation(request: CreateVideoBookingRequest): VideoBooking {
-    // TODO consider what validation may be needed e.g. duplicate, room in already in use etc.
     // TODO need to check locations against locations API
 
     val probationTeam = probationTeamRepository.findById(request.probationTeamId!!).orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
@@ -118,6 +137,8 @@ class CreateVideoBookingService(
         "Appointment type $type is not valid for probation appointments"
       }
 
+      checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisoner.prisonCode!!)
+
       PrisonAppointment.newAppointment(
         videoBooking = videoBooking,
         prisonCode = prisoner.prisonCode!!,
@@ -132,6 +153,25 @@ class CreateVideoBookingService(
     }
 
     prisonAppointmentRepository.saveAndFlush(appointment)
+  }
+
+  private fun Appointment.checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
+    prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(
+      prisonCode,
+      locationKey!!,
+      date!!,
+    ).forEach { existingAppointment ->
+      require(
+        !isTimesOverlap(
+          startTime!!,
+          endTime!!,
+          existingAppointment.startTime,
+          existingAppointment.endTime,
+        ),
+      ) {
+        "Requested probation appointment overlaps with an existing appointment at location $locationKey"
+      }
+    }
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.
