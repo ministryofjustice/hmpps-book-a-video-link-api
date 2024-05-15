@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
@@ -49,11 +51,55 @@ class CreateVideoBookingService(
   }
 
   private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
-    // TODO to be implemented
+    // TODO consider what validation may be needed e.g. duplicate, room in already in use etc.
+    // TODO need to check locations against locations API
+
+    prisoner.appointments.checkCourtAppointmentTypesOnly()
+    prisoner.appointments.checkCourtAppointmentDateAndTimesDoNotOverlap()
+
+    prisoner.appointments.map {
+      PrisonAppointment.newAppointment(
+        videoBooking = videoBooking,
+        prisonCode = prisoner.prisonCode!!,
+        prisonerNumber = prisoner.prisonerNumber!!,
+        appointmentType = it.type!!.name,
+        appointmentDate = it.date!!,
+        startTime = it.startTime!!,
+        endTime = it.endTime!!,
+        locationKey = it.locationKey!!,
+        createdBy = "TBD",
+      )
+    }.forEach { prisonAppointmentRepository.saveAndFlush(it) }
   }
+
+  private fun List<Appointment>.checkCourtAppointmentTypesOnly() {
+    require(
+      size <= 3 &&
+        count { it.type == AppointmentType.VLB_COURT_PRE } <= 1 &&
+        count { it.type == AppointmentType.VLB_COURT_POST } <= 1 &&
+        count { it.type == AppointmentType.VLB_COURT_MAIN } == 1 &&
+        all { it.type!!.isCourt },
+    ) {
+      "Court bookings can only have one pre-conference, one hearing and one post-conference."
+    }
+  }
+
+  private fun List<Appointment>.checkCourtAppointmentDateAndTimesDoNotOverlap() {
+    val pre = singleOrNull { it.type == AppointmentType.VLB_COURT_PRE }
+    val hearing = single { it.type == AppointmentType.VLB_COURT_MAIN }
+    val post = singleOrNull { it.type == AppointmentType.VLB_COURT_POST }
+
+    require((pre == null || pre.isBefore(hearing)) && (post == null || hearing.isBefore(post))) {
+      "Court booking appointments must not overlap."
+    }
+  }
+
+  private fun Appointment.isBefore(other: Appointment): Boolean =
+    this.date!! <= other.date && this.endTime!! <= other.startTime
 
   private fun createProbation(request: CreateVideoBookingRequest): VideoBooking {
     // TODO consider what validation may be needed e.g. duplicate, room in already in use etc.
+    // TODO need to check locations against locations API
 
     val probationTeam = probationTeamRepository.findById(request.probationTeamId!!).orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
     request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
@@ -67,8 +113,6 @@ class CreateVideoBookingService(
   }
 
   private fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
-    // TODO check location key against the locations API
-
     val appointment = with(prisoner.appointments.single()) {
       require(type!!.isProbation) {
         "Appointment type $type is not valid for probation appointments"

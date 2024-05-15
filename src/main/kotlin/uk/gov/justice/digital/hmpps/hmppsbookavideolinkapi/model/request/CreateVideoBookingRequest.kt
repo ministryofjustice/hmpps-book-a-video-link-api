@@ -151,7 +151,7 @@ data class Appointment(
   private fun isInvalidTime() = (startTime == null || endTime == null) || startTime.isBefore(endTime)
 }
 
-enum class AppointmentType(val isProbation: Boolean, isCourt: Boolean) {
+enum class AppointmentType(val isProbation: Boolean, val isCourt: Boolean) {
   // Probation types
   VLB_PROBATION(true, false),
 
