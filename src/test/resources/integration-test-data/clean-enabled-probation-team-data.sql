@@ -1,0 +1,5 @@
+SET REFERENTIAL_INTEGRITY FALSE;
+
+delete from probation_team where code in ('ENABLED', 'NOT_ENABLED');
+
+SET REFERENTIAL_INTEGRITY TRUE;

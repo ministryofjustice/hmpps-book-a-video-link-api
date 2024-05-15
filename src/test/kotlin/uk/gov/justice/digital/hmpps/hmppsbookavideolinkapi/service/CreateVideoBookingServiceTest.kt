@@ -63,21 +63,21 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
-          type = AppointmentType.PRE_CONFERENCE,
+          type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-ABCEDFG",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
-          type = AppointmentType.HEARING,
+          type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-ABCEDFG",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
-          type = AppointmentType.POST_CONFERENCE,
+          type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-ABCEDFG",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(10, 0),
@@ -112,7 +112,7 @@ class CreateVideoBookingServiceTest {
       videoBooking isEqualTo persistedVideoBooking
       this.prisonCode isEqualTo prisonCode
       this.prisonerNumber isEqualTo prisonerNumber
-      appointmentType isEqualTo AppointmentType.PRE_CONFERENCE.name
+      appointmentType isEqualTo AppointmentType.VLB_COURT_PRE.name
       appointmentDate isEqualTo LocalDate.now().plusDays(1)
       startTime isEqualTo LocalTime.of(9, 0).toMinutePrecision()
       endTime isEqualTo LocalTime.of(9, 30).toMinutePrecision()
@@ -124,7 +124,7 @@ class CreateVideoBookingServiceTest {
       videoBooking isEqualTo persistedVideoBooking
       this.prisonCode isEqualTo prisonCode
       this.prisonerNumber isEqualTo prisonerNumber
-      appointmentType isEqualTo AppointmentType.HEARING.name
+      appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo LocalDate.now().plusDays(1)
       startTime isEqualTo LocalTime.of(9, 30).toMinutePrecision()
       endTime isEqualTo LocalTime.of(10, 0).toMinutePrecision()
@@ -136,7 +136,7 @@ class CreateVideoBookingServiceTest {
       videoBooking isEqualTo persistedVideoBooking
       this.prisonCode isEqualTo prisonCode
       this.prisonerNumber isEqualTo prisonerNumber
-      appointmentType isEqualTo AppointmentType.POST_CONFERENCE.name
+      appointmentType isEqualTo AppointmentType.VLB_COURT_POST.name
       appointmentDate isEqualTo LocalDate.now().plusDays(1)
       startTime isEqualTo LocalTime.of(10, 0).toMinutePrecision()
       endTime isEqualTo LocalTime.of(10, 30).toMinutePrecision()
@@ -154,28 +154,28 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
-          type = AppointmentType.PRE_CONFERENCE,
+          type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
-          type = AppointmentType.HEARING,
+          type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
-          type = AppointmentType.POST_CONFERENCE,
+          type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
-          type = AppointmentType.POST_CONFERENCE,
+          type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(10, 30),
@@ -203,14 +203,14 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
-          type = AppointmentType.PRE_CONFERENCE,
+          type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
         ),
         Appointment(
-          type = AppointmentType.HEARING,
+          type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 30),
@@ -238,14 +238,14 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
-          type = AppointmentType.HEARING,
+          type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
         ),
         Appointment(
-          type = AppointmentType.POST_CONFERENCE,
+          type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 30),
@@ -273,14 +273,14 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
-          type = AppointmentType.PRE_CONFERENCE,
+          type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
-          type = AppointmentType.POST_CONFERENCE,
+          type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(10, 0),
@@ -308,21 +308,21 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
-          type = AppointmentType.PRE_CONFERENCE,
+          type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
-          type = AppointmentType.PRE_CONFERENCE,
+          type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
-          type = AppointmentType.HEARING,
+          type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 30),
@@ -350,21 +350,21 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
-          type = AppointmentType.HEARING,
+          type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
-          type = AppointmentType.POST_CONFERENCE,
+          type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
-          type = AppointmentType.POST_CONFERENCE,
+          type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(10, 30),
@@ -392,21 +392,21 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
-          type = AppointmentType.HEARING,
+          type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
-          type = AppointmentType.POST_CONFERENCE,
+          type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
-          type = AppointmentType.PRE_SENTENCE_REPORT,
+          type = AppointmentType.VLB_PROBATION,
           locationKey = "$prisonCode-A-1-001",
           date = LocalDate.now().plusDays(1),
           startTime = LocalTime.of(10, 30),
@@ -497,7 +497,7 @@ class CreateVideoBookingServiceTest {
   fun `should fail to create a probation video booking when appointment type not probation specific`() {
     val prisonCode = "MDI"
     val prisonerNumber = "123456"
-    val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, appointmentType = AppointmentType.HEARING)
+    val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, appointmentType = AppointmentType.VLB_COURT_MAIN)
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamId!!)
 
     whenever(probationTeamRepository.findById(probationBookingRequest.probationTeamId!!)) doReturn Optional.of(requestedProbationTeam)
@@ -506,6 +506,6 @@ class CreateVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest) }
 
-    error.message isEqualTo "Appointment type HEARING is not valid for probation appointments"
+    error.message isEqualTo "Appointment type VLB_COURT_MAIN is not valid for probation appointments"
   }
 }

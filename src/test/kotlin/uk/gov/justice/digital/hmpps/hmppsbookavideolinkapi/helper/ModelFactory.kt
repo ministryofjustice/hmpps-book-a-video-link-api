@@ -25,7 +25,7 @@ fun courtBookingRequest(
     appointments = appointments.ifEmpty {
       listOf(
         Appointment(
-          type = AppointmentType.HEARING,
+          type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-$locationSuffix",
           date = LocalDate.now().plusDays(1),
           startTime = startTime,
@@ -52,7 +52,7 @@ fun probationBookingRequest(
   prisonCode: String = "MDI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
-  appointmentType: AppointmentType = AppointmentType.PRE_SENTENCE_REPORT,
+  appointmentType: AppointmentType = AppointmentType.VLB_PROBATION,
   appointmentDate: LocalDate = LocalDate.now().plusDays(1),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),

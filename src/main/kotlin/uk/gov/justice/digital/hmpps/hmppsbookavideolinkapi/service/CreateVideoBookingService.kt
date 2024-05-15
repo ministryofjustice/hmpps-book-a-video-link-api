@@ -75,9 +75,9 @@ class CreateVideoBookingService(
   private fun List<Appointment>.checkCourtAppointmentTypesOnly() {
     require(
       size <= 3 &&
-        count { it.type == AppointmentType.PRE_CONFERENCE } <= 1 &&
-        count { it.type == AppointmentType.POST_CONFERENCE } <= 1 &&
-        count { it.type == AppointmentType.HEARING } == 1 &&
+        count { it.type == AppointmentType.VLB_COURT_PRE } <= 1 &&
+        count { it.type == AppointmentType.VLB_COURT_POST } <= 1 &&
+        count { it.type == AppointmentType.VLB_COURT_MAIN } == 1 &&
         all { it.type!!.isCourt },
     ) {
       "Court bookings can only have one pre-conference, one hearing and one post-conference."
@@ -85,9 +85,9 @@ class CreateVideoBookingService(
   }
 
   private fun List<Appointment>.checkCourtAppointmentDateAndTimesDoNotOverlap() {
-    val pre = singleOrNull { it.type == AppointmentType.PRE_CONFERENCE }
-    val hearing = single { it.type == AppointmentType.HEARING }
-    val post = singleOrNull { it.type == AppointmentType.POST_CONFERENCE }
+    val pre = singleOrNull { it.type == AppointmentType.VLB_COURT_PRE }
+    val hearing = single { it.type == AppointmentType.VLB_COURT_MAIN }
+    val post = singleOrNull { it.type == AppointmentType.VLB_COURT_POST }
 
     require((pre == null || pre.isBefore(hearing)) && (post == null || hearing.isBefore(post))) {
       "Court booking appointments must not overlap."
