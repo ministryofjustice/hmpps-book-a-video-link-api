@@ -16,19 +16,20 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
@@ -56,7 +57,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should create a court video booking`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -65,21 +66,21 @@ class CreateVideoBookingServiceTest {
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-ABCEDFG",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-ABCEDFG",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-ABCEDFG",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
@@ -113,10 +114,10 @@ class CreateVideoBookingServiceTest {
       this.prisonCode isEqualTo prisonCode
       this.prisonerNumber isEqualTo prisonerNumber
       appointmentType isEqualTo AppointmentType.VLB_COURT_PRE.name
-      appointmentDate isEqualTo LocalDate.now().plusDays(1)
+      appointmentDate isEqualTo tomorrow()
       startTime isEqualTo LocalTime.of(9, 0).toMinutePrecision()
       endTime isEqualTo LocalTime.of(9, 30).toMinutePrecision()
-      prisonLocKey isEqualTo "MDI-ABCEDFG"
+      prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
       createdBy isEqualTo "TBD"
     }
 
@@ -125,10 +126,10 @@ class CreateVideoBookingServiceTest {
       this.prisonCode isEqualTo prisonCode
       this.prisonerNumber isEqualTo prisonerNumber
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
-      appointmentDate isEqualTo LocalDate.now().plusDays(1)
+      appointmentDate isEqualTo tomorrow()
       startTime isEqualTo LocalTime.of(9, 30).toMinutePrecision()
       endTime isEqualTo LocalTime.of(10, 0).toMinutePrecision()
-      prisonLocKey isEqualTo "MDI-ABCEDFG"
+      prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
       createdBy isEqualTo "TBD"
     }
 
@@ -137,17 +138,17 @@ class CreateVideoBookingServiceTest {
       this.prisonCode isEqualTo prisonCode
       this.prisonerNumber isEqualTo prisonerNumber
       appointmentType isEqualTo AppointmentType.VLB_COURT_POST.name
-      appointmentDate isEqualTo LocalDate.now().plusDays(1)
+      appointmentDate isEqualTo tomorrow()
       startTime isEqualTo LocalTime.of(10, 0).toMinutePrecision()
       endTime isEqualTo LocalTime.of(10, 30).toMinutePrecision()
-      prisonLocKey isEqualTo "MDI-ABCEDFG"
+      prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
       createdBy isEqualTo "TBD"
     }
   }
 
   @Test
   fun `should fail to create a court video booking when too many appointments`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -156,28 +157,28 @@ class CreateVideoBookingServiceTest {
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
         ),
@@ -196,7 +197,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when pre-hearing overlaps hearing`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -205,14 +206,14 @@ class CreateVideoBookingServiceTest {
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
@@ -226,12 +227,12 @@ class CreateVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest) }
 
-    error.message isEqualTo "Court booking appointments must not overlap."
+    error.message isEqualTo "Requested court booking appointments must not overlap."
   }
 
   @Test
   fun `should fail to create a court video booking when post-hearing overlaps hearing`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -240,14 +241,14 @@ class CreateVideoBookingServiceTest {
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
@@ -261,12 +262,12 @@ class CreateVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest) }
 
-    error.message isEqualTo "Court booking appointments must not overlap."
+    error.message isEqualTo "Requested court booking appointments must not overlap."
   }
 
   @Test
   fun `should fail to create a court video booking when no hearing appointment`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -275,14 +276,14 @@ class CreateVideoBookingServiceTest {
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
@@ -301,7 +302,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when too many pre-hearing appointments`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -310,21 +311,21 @@ class CreateVideoBookingServiceTest {
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
@@ -343,7 +344,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when too many post-hearing appointments`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -352,21 +353,21 @@ class CreateVideoBookingServiceTest {
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
         ),
@@ -385,7 +386,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when wrong appointment type`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -394,21 +395,21 @@ class CreateVideoBookingServiceTest {
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_PROBATION,
           locationKey = "$prisonCode-A-1-001",
-          date = LocalDate.now().plusDays(1),
+          date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
         ),
@@ -426,6 +427,41 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
+  fun `should fail to create a court video booking when new appointment overlaps existing`() {
+    val prisonCode = BIRMINGHAM
+    val prisonerNumber = "123456"
+    val courtBookingRequest = courtBookingRequest(
+      prisonCode = prisonCode,
+      prisonerNumber = prisonerNumber,
+      appointments = listOf(
+        Appointment(
+          type = AppointmentType.VLB_COURT_MAIN,
+          locationKey = "$prisonCode-A-1-001",
+          date = tomorrow(),
+          startTime = LocalTime.of(9, 30),
+          endTime = LocalTime.of(10, 0),
+        ),
+      ),
+    )
+
+    val overlappingAppointment: PrisonAppointment = mock {
+      on { startTime } doReturn LocalTime.of(9, 0)
+      on { endTime } doReturn LocalTime.of(10, 0)
+    }
+
+    val requestedCourt = court(courtBookingRequest.courtId!!)
+
+    whenever(courtRepository.findById(courtBookingRequest.courtId!!)) doReturn Optional.of(requestedCourt)
+    whenever(prisonerSearchClient.getPrisonerAtPrison(prisonCode = prisonCode, prisonerNumber = prisonerNumber)) doReturn Prisoner(prisonerNumber = prisonerNumber, prisonId = prisonCode)
+    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
+
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest) }
+
+    error.message isEqualTo "One or more requested court appointments overlaps with an existing appointment at location $prisonCode-A-1-001"
+  }
+
+  @Test
   fun `should fail to create a court video booking when court not found`() {
     val courtBookingRequest = courtBookingRequest()
 
@@ -440,7 +476,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should create a probation video booking`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber)
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamId!!)
@@ -481,6 +517,34 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
+  fun `should fail to create a probation video booking when new appointment overlaps existing`() {
+    val prisonCode = BIRMINGHAM
+    val prisonerNumber = "123456"
+    val probationBookingRequest = probationBookingRequest(
+      prisonCode = prisonCode,
+      prisonerNumber = prisonerNumber,
+      startTime = LocalTime.of(8, 30),
+      endTime = LocalTime.of(9, 30),
+      locationSuffix = "B-2-001",
+    )
+    val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamId!!)
+
+    val overlappingAppointment: PrisonAppointment = mock {
+      on { startTime } doReturn LocalTime.of(9, 0)
+      on { endTime } doReturn LocalTime.of(10, 0)
+    }
+
+    whenever(probationTeamRepository.findById(probationBookingRequest.probationTeamId!!)) doReturn Optional.of(requestedProbationTeam)
+    whenever(prisonerSearchClient.getPrisonerAtPrison(prisonCode = prisonCode, prisonerNumber = prisonerNumber)) doReturn Prisoner(prisonerNumber = prisonerNumber, prisonId = prisonCode)
+    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(BIRMINGHAM, "$BIRMINGHAM-B-2-001", tomorrow())) doReturn listOf(overlappingAppointment)
+
+    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest) }
+
+    error.message isEqualTo "Requested probation appointment overlaps with an existing appointment at location $BIRMINGHAM-B-2-001"
+  }
+
+  @Test
   fun `should fail to create a probation video booking when team not found`() {
     val probationBookingRequest = probationBookingRequest()
 
@@ -495,7 +559,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a probation video booking when appointment type not probation specific`() {
-    val prisonCode = "MDI"
+    val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, appointmentType = AppointmentType.VLB_COURT_MAIN)
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamId!!)

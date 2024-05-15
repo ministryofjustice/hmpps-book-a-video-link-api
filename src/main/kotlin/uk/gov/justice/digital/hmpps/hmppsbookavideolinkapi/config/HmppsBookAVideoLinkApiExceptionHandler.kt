@@ -46,6 +46,20 @@ class HmppsBookAVideoLinkApiExceptionHandler {
       ),
     ).also { log.error("Unexpected exception", e) }
 
+  @ExceptionHandler(IllegalArgumentException::class)
+  fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> {
+    log.info("Exception: {}", e.message)
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = BAD_REQUEST,
+          userMessage = "Exception: ${e.message}",
+          developerMessage = e.message,
+        ),
+      )
+  }
+
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }

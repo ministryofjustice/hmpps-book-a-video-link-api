@@ -3,4 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
-fun LocalTime.toMinutePrecision() = this.truncatedTo(ChronoUnit.MINUTES)
+fun LocalTime.toMinutePrecision(): LocalTime = this.truncatedTo(ChronoUnit.MINUTES)
+
+fun LocalTime.isOnOrBefore(other: LocalTime) = this <= other
+
+fun LocalTime.isOnOrAfter(other: LocalTime) = this >= other
