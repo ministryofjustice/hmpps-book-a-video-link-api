@@ -19,7 +19,6 @@ fun courtBookingRequest(
   endTime: LocalTime = LocalTime.now().plusHours(1),
   appointments: List<Appointment> = emptyList(),
 ): CreateVideoBookingRequest {
-
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
     prisonerNumber = prisonerNumber,
