@@ -17,29 +17,28 @@ class WebClientConfiguration(
   @Value("\${api.base.url.prisoner-search}") val prisonerSearchBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @Value("\${api.timeout:30s}") val timeout: Duration,
-  private val builder: WebClient.Builder,
 ) {
   @Bean
-  fun activitiesAppointmentsApiHealthWebClient() = builder.healthWebClient(activitiesAppointmentsApiBaseUri, healthTimeout)
+  fun activitiesAppointmentsApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(activitiesAppointmentsApiBaseUri, healthTimeout)
 
   @Bean
-  fun activitiesAppointmentsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager) =
+  fun activitiesAppointmentsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
     builder.authorisedWebClient(authorizedClientManager, "activities-appointments", activitiesAppointmentsApiBaseUri, timeout)
 
   @Bean
-  fun hmppsAuthHealthWebClient() = builder.healthWebClient(hmppsAuthBaseUri, healthTimeout)
+  fun hmppsAuthHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(hmppsAuthBaseUri, healthTimeout)
 
   @Bean
-  fun locationsInsidePrisonApiHealthWebClient() = builder.healthWebClient(locationsInsidePrisonApiBaseUri, healthTimeout)
+  fun locationsInsidePrisonApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(locationsInsidePrisonApiBaseUri, healthTimeout)
 
   @Bean
-  fun locationsInsidePrisonApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager) =
+  fun locationsInsidePrisonApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
     builder.authorisedWebClient(authorizedClientManager, "locations-inside-prison", locationsInsidePrisonApiBaseUri, timeout)
 
   @Bean
-  fun prisonerSearchApiHealthWebClient() = builder.healthWebClient(prisonerSearchBaseUri, healthTimeout)
+  fun prisonerSearchApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(prisonerSearchBaseUri, healthTimeout)
 
   @Bean
-  fun prisonerSearchApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager) =
+  fun prisonerSearchApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
     builder.authorisedWebClient(authorizedClientManager, "prisoner-search", prisonerSearchBaseUri, timeout)
 }
