@@ -46,4 +46,20 @@ class ProbationTeamsServiceTest {
     assertThat(service.getEnabledProbationTeams()).isEmpty()
     verify(probationTeamRepository).findAllByEnabledIsTrue()
   }
+
+  @Test
+  fun `Should get user-probation team preferences for a user`() {
+    val listOfTeamsForUser = listOf(
+      generateEntity(1L, "NORTH", "One"),
+      generateEntity(2L, "SOUTH", "Two"),
+    )
+
+    whenever(probationTeamRepository.findProbationTeamsByUsername("user")).thenReturn(listOfTeamsForUser)
+
+    assertThat(service.getUserProbationTeamPreferences("user")).isEqualTo(
+      listOfTeamsForUser.toModel(),
+    )
+
+    verify(probationTeamRepository).findProbationTeamsByUsername("user")
+  }
 }

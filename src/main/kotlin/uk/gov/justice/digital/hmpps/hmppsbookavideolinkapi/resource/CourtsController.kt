@@ -59,45 +59,42 @@ class CourtsController(private val courtsService: CourtsService) {
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun enabledCourts(): List<Court> = courtsService.getEnabledCourts()
 
-@Operation(summary = "Endpoint to return the user preferences for courts")
-@ApiResponses(
-  value = [
-    ApiResponse(
-      responseCode = "200",
-      description = "Courts",
-      content = [
-        Content(
-          mediaType = "application/json",
-          array = ArraySchema(schema = Schema(implementation = Court::class)),
-        ),
-      ],
-    ),
-    ApiResponse(
-      responseCode = "401",
-      description = "Unauthorised, requires a valid Oauth2 token",
-      content = [
-        Content(
-          mediaType = "application/json",
-          schema = Schema(implementation = ErrorResponse::class),
-        ),
-      ],
-    ),
-    ApiResponse(
-      responseCode = "403",
-      description = "Forbidden, requires an appropriate role",
-      content = [
-        Content(
-          mediaType = "application/json",
-          schema = Schema(implementation = ErrorResponse::class),
-        ),
-      ],
-    ),
-  ],
-)
-@GetMapping(value = ["/user-preferences/{username}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-@PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
-fun userPreferences(
-  @PathVariable("username") username: String,
-  ): List<Court> = courtsService.getCourtsUserPreferences(username)
-
+  @Operation(summary = "Endpoint to return the list of courts selected by a user")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Courts selected by this user",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = Court::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @GetMapping(value = ["/user-preferences/{username}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  fun userPreferences(@PathVariable("username") username: String): List<Court> = courtsService.getUserCourtPreferences(username)
 }

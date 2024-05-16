@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.MockitoAnnotations
+import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
@@ -19,7 +19,7 @@ class CourtsServiceTest {
 
   @BeforeEach
   fun setUp() {
-    MockitoAnnotations.openMocks(this)
+    openMocks(this)
   }
 
   @Test
@@ -36,13 +36,30 @@ class CourtsServiceTest {
       listOfEnabledCourts.toModel(),
     )
 
-    Mockito.verify(courtRepository).findAllByEnabledIsTrue()
+    verify(courtRepository).findAllByEnabledIsTrue()
   }
 
   @Test
   fun `Should return an empty list when no courts are enabled`() {
     whenever(courtRepository.findAllByEnabledIsTrue()).thenReturn(emptyList())
     assertThat(service.getEnabledCourts()).isEmpty()
-    Mockito.verify(courtRepository).findAllByEnabledIsTrue()
+    verify(courtRepository).findAllByEnabledIsTrue()
+  }
+
+  @Test
+  fun `Should get user-court preferences for a user`() {
+    val listOfCourtsForUser = listOf(
+      generateEntity(1L, "COURT1", "One"),
+      generateEntity(2L, "COURT2", "Two"),
+      generateEntity(3L, "COURT3", "Three"),
+    )
+
+    whenever(courtRepository.findCourtsByUsername("user")).thenReturn(listOfCourtsForUser)
+
+    assertThat(service.getUserCourtPreferences("user")).isEqualTo(
+      listOfCourtsForUser.toModel(),
+    )
+
+    verify(courtRepository).findCourtsByUsername("user")
   }
 }

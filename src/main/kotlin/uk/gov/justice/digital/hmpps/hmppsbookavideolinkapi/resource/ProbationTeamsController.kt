@@ -59,12 +59,12 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun enabledProbationTeams(): List<ProbationTeam> = probationTeamsService.getEnabledProbationTeams()
 
-  @Operation(summary = "Endpoint to return the user preferences for probation teams")
+  @Operation(summary = "Endpoint to return the list of probation teams select by a user")
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Probation teams",
+        description = "Probation teams select by this user",
         content = [
           Content(
             mediaType = "application/json",
@@ -96,8 +96,6 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
   )
   @GetMapping(value = ["/user-preferences/{username}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
-  fun probationTeamsUserPreferences(
-    @PathVariable("username") username: String,
-  ): List<ProbationTeam> = probationTeamsService.getProbationTeamsUserPreferences(username)
-
+  fun probationTeamsUserPreferences(@PathVariable("username") username: String): List<ProbationTeam>
+    = probationTeamsService.getUserProbationTeamPreferences(username)
 }
