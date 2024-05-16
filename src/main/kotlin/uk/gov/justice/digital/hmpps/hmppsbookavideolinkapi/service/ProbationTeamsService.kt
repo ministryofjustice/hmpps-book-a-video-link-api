@@ -8,7 +8,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 class ProbationTeamsService(
   private val probationTeamRepository: ProbationTeamRepository,
 ) {
-
   fun getEnabledProbationTeams() =
     probationTeamRepository.findAllByEnabledIsTrue().toModel()
+
+  fun getUserProbationTeamPreferences(username: String) =
+    probationTeamRepository.findProbationTeamsByUsername(username).toModel()
 }

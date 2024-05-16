@@ -17,7 +17,10 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Autowired
   private lateinit var courtRepository: CourtRepository
 
-  @Sql("classpath:integration-test-data/clean-enabled-court-data.sql")
+  @Sql(
+    "classpath:integration-test-data/clean-enabled-court-data.sql",
+    "classpath:integration-test-data/clean-user-court-data.sql",
+  )
   @AfterEach
   fun afterEach() {
   }
@@ -25,18 +28,42 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-enabled-court-data.sql")
   @Test
   fun `should return a list of enabled courts`() {
-    courtRepository.findAll() hasSize 3
+    courtRepository.findAll() hasSize 329
 
     val listOfEnabledCourts = webTestClient.getEnabledCourts()
 
-    assertThat(listOfEnabledCourts).hasSize(2)
     assertThat(listOfEnabledCourts).extracting("code").contains("ENABLED")
     assertThat(listOfEnabledCourts).extracting("code").doesNotContain("NOT_ENABLED")
+  }
+
+  @Sql("classpath:integration-test-data/seed-user-court-data.sql")
+  @Test
+  fun `should return a list of preferred courts for a specified user`() {
+    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts("michael.horden@itv.com")
+
+    // Check that the user-preferences as setup by the SQL above are returned
+    assertThat(listOfPreferredCourts).extracting("courtId").containsExactlyInAnyOrder(1L, 2L)
+    assertThat(listOfPreferredCourts).extracting("code").containsExactlyInAnyOrder("TESTC", "DRBYMC")
+
+    // And that the trixy hoax values for a different username are not
+    assertThat(listOfPreferredCourts).extracting("courtId").doesNotContain(3L)
+    assertThat(listOfPreferredCourts).extracting("code").doesNotContain("NWPIAC")
   }
 
   private fun WebTestClient.getEnabledCourts() =
     get()
       .uri("/courts/enabled")
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().isOk
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBodyList(Court::class.java)
+      .returnResult().responseBody
+
+  private fun WebTestClient.getUserPreferenceCourts(username: String) =
+    get()
+      .uri("/courts/user-preferences/{username}", username)
       .accept(MediaType.APPLICATION_JSON)
       .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()

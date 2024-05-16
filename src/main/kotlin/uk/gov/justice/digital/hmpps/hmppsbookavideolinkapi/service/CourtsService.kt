@@ -8,4 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 class CourtsService(private val courtRepository: CourtRepository) {
   fun getEnabledCourts() =
     courtRepository.findAllByEnabledIsTrue().toModel()
+
+  fun getUserCourtPreferences(username: String) =
+    courtRepository.findCourtsByUsername(username).toModel()
 }
