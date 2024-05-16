@@ -31,13 +31,13 @@ class CreateVideoBookingService(
   }
 
   @Transactional
-  fun create(booking: CreateVideoBookingRequest): VideoBooking =
+  fun create(booking: CreateVideoBookingRequest, createdBy: String): VideoBooking =
     when (booking.bookingType!!) {
-      BookingType.COURT -> createCourt(booking)
-      BookingType.PROBATION -> createProbation(booking)
+      BookingType.COURT -> createCourt(booking, createdBy)
+      BookingType.PROBATION -> createProbation(booking, createdBy)
     }
 
-  private fun createCourt(request: CreateVideoBookingRequest): VideoBooking {
+  private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): VideoBooking {
     val court = courtRepository.findById(request.courtId!!)
       .orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
       .also { require(it.enabled) { "Court with ID ${it.courtId} is not enabled" } }
@@ -49,11 +49,11 @@ class CreateVideoBookingService(
       hearingType = request.courtHearingType!!.name,
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
-      createdBy = "TBD",
-    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentsForCourt(booking, request.prisoner()) }
+      createdBy = createdBy,
+    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
   }
 
-  private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
+  private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
     // TODO need to check locations against locations API
 
     prisoner.appointments.checkCourtAppointmentTypesOnly()
@@ -63,14 +63,14 @@ class CreateVideoBookingService(
     prisoner.appointments.map {
       PrisonAppointment.newAppointment(
         videoBooking = videoBooking,
-        prisonCode = prisoner.prisonCode!!,
+        prisonCode = prisoner.prisonCode,
         prisonerNumber = prisoner.prisonerNumber!!,
         appointmentType = it.type!!.name,
         appointmentDate = it.date!!,
         startTime = it.startTime!!,
         endTime = it.endTime!!,
         locationKey = it.locationKey!!,
-        createdBy = "TBD",
+        createdBy = createdBy,
       )
     }.forEach(prisonAppointmentRepository::saveAndFlush)
   }
@@ -121,7 +121,7 @@ class CreateVideoBookingService(
   private fun Appointment.isBefore(other: Appointment): Boolean =
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
-  private fun createProbation(request: CreateVideoBookingRequest): VideoBooking {
+  private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): VideoBooking {
     // TODO need to check locations against locations API
 
     val probationTeam = probationTeamRepository.findById(request.probationTeamId!!)
@@ -135,11 +135,11 @@ class CreateVideoBookingService(
       probationMeetingType = request.probationMeetingType!!.name,
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
-      createdBy = "TBD",
-    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentForProbation(booking, request.prisoner()) }
+      createdBy = createdBy,
+    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentForProbation(booking, request.prisoner(), createdBy) }
   }
 
-  private fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
+  private fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
     val appointment = with(prisoner.appointments.single()) {
       require(type!!.isProbation) {
         "Appointment type $type is not valid for probation appointments"
@@ -149,14 +149,14 @@ class CreateVideoBookingService(
 
       PrisonAppointment.newAppointment(
         videoBooking = videoBooking,
-        prisonCode = prisoner.prisonCode!!,
+        prisonCode = prisoner.prisonCode,
         prisonerNumber = prisoner.prisonerNumber!!,
         appointmentType = this.type.name,
         appointmentDate = this.date!!,
         startTime = this.startTime!!,
         endTime = this.endTime!!,
         locationKey = this.locationKey!!,
-        createdBy = "TBD",
+        createdBy = createdBy,
       )
     }
 

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.getBvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 
@@ -68,5 +70,6 @@ class VideoLinkBookingController(val bookingFacade: BookingFacade) {
     @RequestBody
     @Parameter(description = "The request with the new video link booking details", required = true)
     request: CreateVideoBookingRequest,
-  ): Long = bookingFacade.create(request)
+    httpRequest: HttpServletRequest,
+  ): Long = bookingFacade.create(request, httpRequest.getBvlsRequestContext())
 }
