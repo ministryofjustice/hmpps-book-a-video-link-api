@@ -54,6 +54,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
+      createdBy isEqualTo "BOOKING_CREATOR"
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -65,7 +66,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonLocKey isEqualTo "$BIRMINGHAM-ABCDEDFG"
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
-      createdBy isEqualTo "TBD"
+      createdBy isEqualTo "BOOKING_CREATOR"
     }
   }
 
@@ -141,7 +142,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
       comments isEqualTo "integration test probation booking comments"
       videoUrl isEqualTo "https://probation.videolink.com"
-      createdBy isEqualTo "TBD"
+      createdBy isEqualTo "BOOKING_CREATOR"
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -153,7 +154,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonLocKey isEqualTo "$BIRMINGHAM-ABCDEDFG"
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
-      createdBy isEqualTo "TBD"
+      createdBy isEqualTo "BOOKING_CREATOR"
     }
   }
 
@@ -256,7 +257,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       .uri("/video-link-booking")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = "BOOKING_CREATOR", roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isCreated
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
