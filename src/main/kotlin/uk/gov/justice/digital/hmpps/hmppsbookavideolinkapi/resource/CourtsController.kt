@@ -96,5 +96,5 @@ class CourtsController(private val courtsService: CourtsService) {
   )
   @GetMapping(value = ["/user-preferences/{username}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
-  fun userPreferences(@PathVariable("username") username: String): List<Court> = courtsService.getUserCourtPreferences(username)
+  fun userPreferences(@PathVariable("username") username: String) = courtsService.getUserCourtPreferences(username)
 }

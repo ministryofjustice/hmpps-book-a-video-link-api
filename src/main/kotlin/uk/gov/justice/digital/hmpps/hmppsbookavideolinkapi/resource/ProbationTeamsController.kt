@@ -96,6 +96,7 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
   )
   @GetMapping(value = ["/user-preferences/{username}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
-  fun probationTeamsUserPreferences(@PathVariable("username") username: String): List<ProbationTeam>
-    = probationTeamsService.getUserProbationTeamPreferences(username)
+  fun probationTeamsUserPreferences(
+    @PathVariable("username") username: String,
+  ) = probationTeamsService.getUserProbationTeamPreferences(username)
 }
