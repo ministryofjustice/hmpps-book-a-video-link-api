@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.setExtractBareNamePropertyMethods
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,8 +11,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
-import java.time.LocalDateTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court as CourtEntity
 
 class CourtsResourceIntegrationTest : IntegrationTestBase() {
 
