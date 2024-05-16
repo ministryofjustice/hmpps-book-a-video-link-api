@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
@@ -18,8 +19,8 @@ class BookingFacade(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun create(booking: CreateVideoBookingRequest): Long =
-    createVideoBookingService.create(booking).let { newBooking ->
+  fun create(booking: CreateVideoBookingRequest, context: BvlsRequestContext): Long =
+    createVideoBookingService.create(booking, context.username).let { newBooking ->
       sendNewCourtBookingEmail(newBooking)
       newBooking.videoBookingId
     }

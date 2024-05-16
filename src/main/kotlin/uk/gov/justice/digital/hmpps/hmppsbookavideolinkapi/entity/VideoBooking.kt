@@ -33,7 +33,9 @@ class VideoBooking private constructor(
 
   val probationMeetingType: String?,
 
-  var videoUrl: String?,
+  var comments: String? = null,
+
+  var videoUrl: String? = null,
 
   val createdBy: String,
 
@@ -63,6 +65,7 @@ class VideoBooking private constructor(
     fun newCourtBooking(
       court: Court,
       hearingType: String,
+      comments: String?,
       videoUrl: String?,
       createdBy: String,
     ): VideoBooking =
@@ -73,6 +76,7 @@ class VideoBooking private constructor(
         hearingType = hearingType,
         probationTeam = null,
         probationMeetingType = null,
+        comments = comments,
         videoUrl = videoUrl,
         createdBy = createdBy,
       )
@@ -80,6 +84,7 @@ class VideoBooking private constructor(
     fun newProbationBooking(
       probationTeam: ProbationTeam,
       probationMeetingType: String,
+      comments: String?,
       videoUrl: String?,
       createdBy: String,
     ): VideoBooking =
@@ -90,6 +95,7 @@ class VideoBooking private constructor(
         hearingType = null,
         probationTeam = probationTeam,
         probationMeetingType = probationMeetingType,
+        comments = comments,
         videoUrl = videoUrl,
         createdBy = createdBy,
       )
