@@ -38,12 +38,16 @@ class CreateVideoBookingService(
     }
 
   private fun createCourt(request: CreateVideoBookingRequest): VideoBooking {
-    val court = courtRepository.findById(request.courtId!!).orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
+    val court = courtRepository.findById(request.courtId!!)
+      .orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
+      .also { require(it.enabled) { "Court with ID ${it.courtId} is not enabled" } }
+
     request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
 
     return VideoBooking.newCourtBooking(
       court = court,
       hearingType = request.courtHearingType!!.name,
+      comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = "TBD",
     ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentsForCourt(booking, request.prisoner()) }
@@ -120,12 +124,16 @@ class CreateVideoBookingService(
   private fun createProbation(request: CreateVideoBookingRequest): VideoBooking {
     // TODO need to check locations against locations API
 
-    val probationTeam = probationTeamRepository.findById(request.probationTeamId!!).orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
+    val probationTeam = probationTeamRepository.findById(request.probationTeamId!!)
+      .orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
+      .also { require(it.enabled) { "Probation team with ID ${it.probationTeamId} is not enabled" } }
+
     request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
 
     return VideoBooking.newProbationBooking(
       probationTeam = probationTeam,
       probationMeetingType = request.probationMeetingType!!.name,
+      comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = "TBD",
     ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentForProbation(booking, request.prisoner()) }

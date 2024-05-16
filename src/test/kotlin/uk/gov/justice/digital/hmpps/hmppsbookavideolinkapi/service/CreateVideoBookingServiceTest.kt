@@ -102,6 +102,7 @@ class CreateVideoBookingServiceTest {
       court isEqualTo requestedCourt
       createdTime isCloseTo LocalDateTime.now()
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
+      comments isEqualTo "court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
     }
 
@@ -464,6 +465,20 @@ class CreateVideoBookingServiceTest {
   @Test
   fun `should fail to create a court video booking when court not found`() {
     val courtBookingRequest = courtBookingRequest()
+    val disabledCourt = court(courtBookingRequest.courtId!!, enabled = false)
+
+    whenever(courtRepository.findById(courtBookingRequest.courtId!!)) doReturn Optional.of(disabledCourt)
+
+    val error = assertThrows<java.lang.IllegalArgumentException> { service.create(courtBookingRequest) }
+
+    error.message isEqualTo "Court with ID ${courtBookingRequest.courtId} is not enabled"
+
+    verifyNoInteractions(videoBookingRepository)
+  }
+
+  @Test
+  fun `should fail to create a court video booking when court not enabled`() {
+    val courtBookingRequest = courtBookingRequest()
 
     whenever(courtRepository.findById(courtBookingRequest.courtId!!)) doReturn Optional.empty()
 
@@ -494,6 +509,7 @@ class CreateVideoBookingServiceTest {
       probationTeam isEqualTo requestedProbationTeam
       createdTime isCloseTo LocalDateTime.now()
       probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
+      comments isEqualTo "probation booking comments"
       videoUrl isEqualTo probationBookingRequest.videoLinkUrl
     }
 
@@ -553,6 +569,20 @@ class CreateVideoBookingServiceTest {
     val error = assertThrows<EntityNotFoundException> { service.create(probationBookingRequest) }
 
     error.message isEqualTo "Probation team with ID ${probationBookingRequest.probationTeamId} not found"
+
+    verifyNoInteractions(videoBookingRepository)
+  }
+
+  @Test
+  fun `should fail to create a probation video booking when team not enabled`() {
+    val probationBookingRequest = probationBookingRequest()
+    val disabledProbationTeam = probationTeam(probationBookingRequest.probationTeamId!!, false)
+
+    whenever(probationTeamRepository.findById(probationBookingRequest.probationTeamId!!)) doReturn Optional.of(disabledProbationTeam)
+
+    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest) }
+
+    error.message isEqualTo "Probation team with ID ${probationBookingRequest.probationTeamId} is not enabled"
 
     verifyNoInteractions(videoBookingRepository)
   }
