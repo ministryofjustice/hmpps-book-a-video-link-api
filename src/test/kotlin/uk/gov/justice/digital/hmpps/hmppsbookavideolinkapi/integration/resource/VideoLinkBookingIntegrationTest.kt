@@ -40,6 +40,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       locationSuffix = "ABCDEDFG",
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest)
@@ -51,6 +52,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       bookingType isEqualTo "COURT"
       court?.courtId isEqualTo courtBookingRequest.courtId
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
+      comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
     }
 
@@ -125,6 +127,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       locationSuffix = "ABCDEDFG",
+      comments = "integration test probation booking comments",
     )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest)
@@ -136,6 +139,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       bookingType isEqualTo "PROBATION"
       probationTeam?.probationTeamId isEqualTo 1
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
+      comments isEqualTo "integration test probation booking comments"
       videoUrl isEqualTo "https://probation.videolink.com"
       createdBy isEqualTo "TBD"
     }

@@ -17,6 +17,7 @@ fun courtBookingRequest(
   locationSuffix: String = "A-1-001",
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
+  comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
 ): CreateVideoBookingRequest {
   val prisoner = PrisonerDetails(
@@ -40,7 +41,7 @@ fun courtBookingRequest(
     courtId = courtId,
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
-    comments = "Blah de blah",
+    comments = comments,
     videoLinkUrl = "https://video.link.com",
   )
 }
@@ -56,6 +57,7 @@ fun probationBookingRequest(
   appointmentDate: LocalDate = tomorrow(),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
+  comments: String = "probation booking comments",
 ): CreateVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
@@ -76,7 +78,7 @@ fun probationBookingRequest(
     probationTeamId = probationTeamId,
     probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
-    comments = "Blah de blah",
+    comments = comments,
     videoLinkUrl = videoLinkUrl,
   )
 }
