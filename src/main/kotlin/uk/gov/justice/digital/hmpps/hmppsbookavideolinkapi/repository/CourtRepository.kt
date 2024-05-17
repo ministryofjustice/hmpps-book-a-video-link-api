@@ -19,4 +19,6 @@ interface CourtRepository : JpaRepository<Court, Long> {
     nativeQuery = true,
   )
   fun findCourtsByUsername(username: String): List<Court>
+
+  fun findAllByCodeIn(codes: List<String>): List<Court>
 }

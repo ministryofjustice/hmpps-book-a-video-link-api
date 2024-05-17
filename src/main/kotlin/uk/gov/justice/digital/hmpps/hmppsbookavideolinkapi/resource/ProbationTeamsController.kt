@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationTeamsService
 
+@Tag(name = "Probation Teams Controller")
 @RestController
 @RequestMapping(value = ["probation-teams"], produces = [MediaType.APPLICATION_JSON_VALUE])
 class ProbationTeamsController(private val probationTeamsService: ProbationTeamsService) {
@@ -59,7 +61,7 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun enabledProbationTeams(): List<ProbationTeam> = probationTeamsService.getEnabledProbationTeams()
 
-  @Operation(summary = "Endpoint to return the list of probation teams select by a user")
+  @Operation(summary = "Endpoint to return the list of enabled probation teams select by a user")
   @ApiResponses(
     value = [
       ApiResponse(

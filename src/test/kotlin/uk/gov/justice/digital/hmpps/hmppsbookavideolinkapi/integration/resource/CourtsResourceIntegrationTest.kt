@@ -28,7 +28,7 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-enabled-court-data.sql")
   @Test
   fun `should return a list of enabled courts`() {
-    courtRepository.findAll() hasSize 329
+    courtRepository.findAll() hasSize 328
 
     val listOfEnabledCourts = webTestClient.getEnabledCourts()
 
@@ -43,11 +43,11 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
 
     // Check that the user-preferences as setup by the SQL above are returned
     assertThat(listOfPreferredCourts).extracting("courtId").containsExactlyInAnyOrder(1L, 2L)
-    assertThat(listOfPreferredCourts).extracting("code").containsExactlyInAnyOrder("TESTC", "DRBYMC")
+    assertThat(listOfPreferredCourts).extracting("code").containsExactlyInAnyOrder("DRBYMC", "NWPIAC")
 
     // And that the trixy hoax values for a different username are not
     assertThat(listOfPreferredCourts).extracting("courtId").doesNotContain(3L)
-    assertThat(listOfPreferredCourts).extracting("code").doesNotContain("NWPIAC")
+    assertThat(listOfPreferredCourts).extracting("code").doesNotContain("CRNRCT")
   }
 
   private fun WebTestClient.getEnabledCourts() =
