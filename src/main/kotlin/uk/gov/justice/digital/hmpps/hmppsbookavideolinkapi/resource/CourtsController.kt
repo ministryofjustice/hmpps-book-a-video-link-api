@@ -168,5 +168,5 @@ class CourtsController(private val courtsService: CourtsService) {
     @Parameter(description = "The request body containing the user court preferences", required = true)
     request: SetCourtPreferencesRequest,
     httpRequest: HttpServletRequest,
-  ) = courtsService.setUserCourtPreferences(request, httpRequest.getBvlsRequestContext())
+  ) = courtsService.setUserCourtPreferences(request, httpRequest.getBvlsRequestContext().username)
 }

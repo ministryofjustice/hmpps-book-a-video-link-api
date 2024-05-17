@@ -59,19 +59,17 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Test
   fun `should set a list of preferred courts for a specified user`() {
     val newCourts = listOf("CVNTCC", "DRBYCC", "MNSFMC")
-    val request = SetCourtPreferencesRequest(
-      username = "test-user@mymail.com",
-      courtCodes = newCourts,
-    )
+    val username = "test-user@mymail.com"
+    val request = SetCourtPreferencesRequest(courtCodes = newCourts)
 
     userCourtRepository.findAll() hasSize 0
 
-    val response = webTestClient.setUserPreferenceCourts(request, request.username)
+    val response = webTestClient.setUserPreferenceCourts(request, username)
 
     assertThat(response?.courtsSaved).isEqualTo(3)
     userCourtRepository.findAll() hasSize 3
 
-    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(request.username)
+    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(username)
     assertThat(listOfPreferredCourts).extracting("code").containsAll(newCourts)
 
     userCourtRepository.deleteAll()
@@ -79,31 +77,25 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should replace the preferred courts for a specified user`() {
-    // Setup three court preferences
     val courts1 = listOf("CVNTCC", "DRBYCC", "MNSFMC")
-    val request1 = SetCourtPreferencesRequest(
-      username = "test-user@mymail.com",
-      courtCodes = courts1,
-    )
+    val username = "test-user@mymail.com"
+    val request1 = SetCourtPreferencesRequest(courtCodes = courts1)
 
-    val response = webTestClient.setUserPreferenceCourts(request1, request1.username)
+    val response = webTestClient.setUserPreferenceCourts(request1, username)
     assertThat(response?.courtsSaved).isEqualTo(3)
 
     userCourtRepository.findAll() hasSize 3
 
-    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(request1.username)
+    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(username)
     assertThat(listOfPreferredCourts).extracting("code").containsAll(courts1)
 
-    // Now replace these with a different set of courts
+    // Replace originals with this set of different courts
     val courts2 = listOf("SWINCC", "SWINMC", "AMERCC")
-    val request2 = SetCourtPreferencesRequest(
-      username = "test-user@mymail.com",
-      courtCodes = courts2,
-    )
+    val request2 = SetCourtPreferencesRequest(courtCodes = courts2)
 
-    val response2 = webTestClient.setUserPreferenceCourts(request2, request2.username)
+    val response2 = webTestClient.setUserPreferenceCourts(request2, username)
 
-    val newPreferredCourts = webTestClient.getUserPreferenceCourts(request2.username)
+    val newPreferredCourts = webTestClient.getUserPreferenceCourts(username)
     assertThat(newPreferredCourts).extracting("code").containsAll(courts2)
 
     userCourtRepository.findAll() hasSize 3
@@ -134,13 +126,13 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
 
   private fun WebTestClient.setUserPreferenceCourts(
     request: SetCourtPreferencesRequest,
-    user: String,
+    username: String,
   ) =
     post()
       .uri("/courts/user-preferences/set")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

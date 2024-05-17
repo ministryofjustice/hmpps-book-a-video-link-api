@@ -9,13 +9,11 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserCourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
-import java.time.LocalDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court as CourtEntity
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UserCourt as UserCourtEntity
 
@@ -80,8 +78,7 @@ class CourtsServiceTest {
     val username = "user"
     val existingCourts = listOf("COURT1", "COURT2")
     val requestedCourts = listOf("COURT3", "COURT4")
-    val request = SetCourtPreferencesRequest(username, courtCodes = requestedCourts)
-    val context = BvlsRequestContext(username, requestAt = LocalDateTime.now())
+    val request = SetCourtPreferencesRequest(courtCodes = requestedCourts)
 
     // Mock response for the current UserCourt selections to remove
     val existingPreferences = listOf(
@@ -98,7 +95,7 @@ class CourtsServiceTest {
     whenever(userCourtRepository.findAllByUsername(username)).thenReturn(existingPreferences)
     whenever(courtRepository.findAllByCodeIn(requestedCourts)).thenReturn(newCourts)
 
-    assertThat(service.setUserCourtPreferences(request, context))
+    assertThat(service.setUserCourtPreferences(request, username))
       .isEqualTo(SetCourtPreferencesResponse(courtsSaved = 2))
 
     verify(userCourtRepository).findAllByUsername(username)
@@ -112,8 +109,7 @@ class CourtsServiceTest {
     val username = "user"
     val existingCourts = listOf("COURT1")
     val requestedCourts = listOf("COURT3", "COURT4")
-    val request = SetCourtPreferencesRequest(username, courtCodes = requestedCourts)
-    val context = BvlsRequestContext(username, requestAt = LocalDateTime.now())
+    val request = SetCourtPreferencesRequest(courtCodes = requestedCourts)
 
     // Mock response for the current UserCourt selections to remove
     val existingPreferences = listOf(
@@ -129,7 +125,7 @@ class CourtsServiceTest {
     whenever(userCourtRepository.findAllByUsername(username)).thenReturn(existingPreferences)
     whenever(courtRepository.findAllByCodeIn(requestedCourts)).thenReturn(newCourts)
 
-    assertThat(service.setUserCourtPreferences(request, context))
+    assertThat(service.setUserCourtPreferences(request, username))
       .isEqualTo(SetCourtPreferencesResponse(courtsSaved = 1))
 
     verify(userCourtRepository).findAllByUsername(username)
