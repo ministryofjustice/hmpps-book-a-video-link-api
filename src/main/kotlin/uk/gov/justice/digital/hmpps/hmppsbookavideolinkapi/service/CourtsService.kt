@@ -28,10 +28,10 @@ class CourtsService(
   ): SetCourtPreferencesResponse {
     // Find and remove the existing court preferences for this user and remove them
     val existingCourtPreferences = userCourtRepository.findAllByUsername(context.username)
-    userCourtRepository.deleteAll(existingCourtPreferences)
+    existingCourtPreferences?.forEach(userCourtRepository::delete)
 
     // Get the court entities for the codes in the request and filter any not enabled
-    val newCourts = courtRepository.findAllByCodeIn(request.courtCodes).filter { !it.enabled }
+    val newCourts = courtRepository.findAllByCodeIn(request.courtCodes).filter { it.enabled }
 
     // Recreate the UserCourt entities for these courts including the primary key of the related court
     newCourts.map { court ->
