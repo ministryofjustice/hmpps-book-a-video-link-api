@@ -19,4 +19,5 @@ interface ProbationTeamRepository : JpaRepository<ProbationTeam, Long> {
     nativeQuery = true,
   )
   fun findProbationTeamsByUsername(username: String): List<ProbationTeam>
+  fun findAllByCodeIn(codes: List<String>): List<ProbationTeam>
 }
