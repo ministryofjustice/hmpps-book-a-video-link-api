@@ -258,9 +258,7 @@ CREATE TABLE user_court
     court_id        bigint NOT NULL REFERENCES court(court_id),
     username        varchar(100) NOT NULL,
     created_by      varchar(100) NOT NULL,         
-    created_time    timestamp    NOT NULL,
-    amended_by      varchar(100),         
-    amended_time    timestamp
+    created_time    timestamp    NOT NULL
 );
 
 CREATE INDEX idx_user_court_court_id ON user_court(court_id);
@@ -276,9 +274,7 @@ CREATE TABLE user_probation
     probation_team_id  bigint NOT NULL REFERENCES probation_team(probation_team_id),
     username           varchar(100) NOT NULL,
     created_by         varchar(100) NOT NULL,
-    created_time       timestamp    NOT NULL,
-    amended_by         varchar(100),
-    amended_time       timestamp
+    created_time       timestamp    NOT NULL
 );
 
 CREATE INDEX idx_user_probation_team_id ON user_probation(probation_team_id);

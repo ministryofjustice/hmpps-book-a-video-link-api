@@ -3,19 +3,29 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserCourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court as CourtEntity
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UserCourt as UserCourtEntity
 
 class CourtsServiceTest {
   private val courtRepository: CourtRepository = mock()
-  private val service = CourtsService(courtRepository)
-  private fun generateEntity(id: Long, code: String, desc: String, enabled: Boolean = true, notes: String? = "notes") =
+  private val userCourtRepository: UserCourtRepository = mock()
+  private val service = CourtsService(courtRepository, userCourtRepository)
+  private fun courtEntity(id: Long, code: String, desc: String, enabled: Boolean = true, notes: String? = "notes") =
     CourtEntity(id, code, desc, enabled, notes, "name")
+
+  private fun userCourtEntity(id: Long, court: CourtEntity, username: String) =
+    UserCourtEntity(id, court, username, username)
 
   @BeforeEach
   fun setUp() {
@@ -25,9 +35,9 @@ class CourtsServiceTest {
   @Test
   fun `Should return a list of enabled courts`() {
     val listOfEnabledCourts = listOf(
-      generateEntity(1L, "COURT1", "One"),
-      generateEntity(2L, "COURT2", "Two"),
-      generateEntity(3L, "COURT3", "Three"),
+      courtEntity(1L, "COURT1", "One"),
+      courtEntity(2L, "COURT2", "Two"),
+      courtEntity(3L, "COURT3", "Three"),
     )
 
     whenever(courtRepository.findAllByEnabledIsTrue()).thenReturn(listOfEnabledCourts)
@@ -49,9 +59,9 @@ class CourtsServiceTest {
   @Test
   fun `Should get user-court preferences for a user`() {
     val listOfCourtsForUser = listOf(
-      generateEntity(1L, "COURT1", "One"),
-      generateEntity(2L, "COURT2", "Two"),
-      generateEntity(3L, "COURT3", "Three"),
+      courtEntity(1L, "COURT1", "One"),
+      courtEntity(2L, "COURT2", "Two"),
+      courtEntity(3L, "COURT3", "Three"),
     )
 
     whenever(courtRepository.findCourtsByUsername("user")).thenReturn(listOfCourtsForUser)
@@ -61,5 +71,66 @@ class CourtsServiceTest {
     )
 
     verify(courtRepository).findCourtsByUsername("user")
+  }
+
+  @Test
+  fun `Should set court preferences for a user`() {
+    val username = "user"
+    val existingCourts = listOf("COURT1", "COURT2")
+    val requestedCourts = listOf("COURT3", "COURT4")
+    val request = SetCourtPreferencesRequest(courtCodes = requestedCourts)
+
+    // Mock response for the current UserCourt selections to remove
+    val existingPreferences = listOf(
+      userCourtEntity(1L, courtEntity(1, existingCourts.first(), "One"), username),
+      userCourtEntity(2L, courtEntity(2, existingCourts.last(), "Two"), username),
+    )
+
+    // Mock response for requested courts
+    val newCourts = listOf(
+      courtEntity(3L, "COURT3", "Three"),
+      courtEntity(4L, "COURT4", "Four"),
+    )
+
+    whenever(userCourtRepository.findAllByUsername(username)).thenReturn(existingPreferences)
+    whenever(courtRepository.findAllByCodeIn(requestedCourts)).thenReturn(newCourts)
+
+    assertThat(service.setUserCourtPreferences(request, username))
+      .isEqualTo(SetCourtPreferencesResponse(courtsSaved = 2))
+
+    verify(userCourtRepository).findAllByUsername(username)
+    verify(userCourtRepository, times(2)).delete(any())
+    verify(userCourtRepository, times(2)).saveAndFlush(any())
+    verify(courtRepository).findAllByCodeIn(requestedCourts)
+  }
+
+  @Test
+  fun `Should set court preferences for a user only for enabled courts`() {
+    val username = "user"
+    val existingCourts = listOf("COURT1")
+    val requestedCourts = listOf("COURT3", "COURT4")
+    val request = SetCourtPreferencesRequest(courtCodes = requestedCourts)
+
+    // Mock response for the current UserCourt selections to remove
+    val existingPreferences = listOf(
+      userCourtEntity(1L, courtEntity(1, existingCourts.first(), "One"), username),
+    )
+
+    // Mock response for requested courts
+    val newCourts = listOf(
+      courtEntity(3L, "COURT3", "Three", enabled = false),
+      courtEntity(4L, "COURT4", "Four"),
+    )
+
+    whenever(userCourtRepository.findAllByUsername(username)).thenReturn(existingPreferences)
+    whenever(courtRepository.findAllByCodeIn(requestedCourts)).thenReturn(newCourts)
+
+    assertThat(service.setUserCourtPreferences(request, username))
+      .isEqualTo(SetCourtPreferencesResponse(courtsSaved = 1))
+
+    verify(userCourtRepository).findAllByUsername(username)
+    verify(userCourtRepository).delete(any())
+    verify(userCourtRepository).saveAndFlush(any())
+    verify(courtRepository).findAllByCodeIn(requestedCourts)
   }
 }

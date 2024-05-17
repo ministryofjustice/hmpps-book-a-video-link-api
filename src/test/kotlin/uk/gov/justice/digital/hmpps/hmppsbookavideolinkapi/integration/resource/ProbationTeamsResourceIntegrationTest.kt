@@ -28,7 +28,7 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-enabled-probation-team-data.sql")
   @Test
   fun `should return a list of enabled probation teams`() {
-    probationTeamRepository.findAll() hasSize 31
+    probationTeamRepository.findAll() hasSize 30
 
     val listOfEnabledTeams = webTestClient.getEnabledProbationTeams()
 
@@ -43,11 +43,11 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
     // Check that the user-preferences as setup by the SQL above are returned
     assertThat(listOfPreferredTeams).extracting("probationTeamId").containsExactlyInAnyOrder(1L, 2L)
-    assertThat(listOfPreferredTeams).extracting("code").containsExactlyInAnyOrder("TESTP", "BLKPPP")
+    assertThat(listOfPreferredTeams).extracting("code").containsExactlyInAnyOrder("BLKPPP", "BARSPP")
 
     // And that it avoids the preferences set for other users
     assertThat(listOfPreferredTeams).extracting("probationTeamId").doesNotContain(3L)
-    assertThat(listOfPreferredTeams).extracting("code").doesNotContain("BARSPP")
+    assertThat(listOfPreferredTeams).extracting("code").doesNotContain("PPOCFD")
   }
 
   private fun WebTestClient.getEnabledProbationTeams() =
