@@ -4,7 +4,8 @@ import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -21,10 +22,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 @Service
 class CreateVideoBookingService(
   private val courtRepository: CourtRepository,
-  private val prisonerSearchClient: PrisonerSearchClient,
   private val probationTeamRepository: ProbationTeamRepository,
   private val videoBookingRepository: VideoBookingRepository,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
+  private val locationValidator: LocationValidator,
+  private val prisonerValidator: PrisonerValidator,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -42,7 +44,7 @@ class CreateVideoBookingService(
       .orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
       .also { require(it.enabled) { "Court with ID ${it.courtId} is not enabled" } }
 
-    request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
+    request.prisoner().let { prisonerValidator.validatePrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
 
     return VideoBooking.newCourtBooking(
       court = court,
@@ -54,11 +56,10 @@ class CreateVideoBookingService(
   }
 
   private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
-    // TODO need to check locations against locations API
-
     prisoner.appointments.checkCourtAppointmentTypesOnly()
     prisoner.appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
     prisoner.appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisoner.prisonCode!!)
+    locationValidator.validatePrisonLocations(prisoner.prisonCode, prisoner.appointments.mapNotNull { it.locationKey }.toSet())
 
     prisoner.appointments.map {
       PrisonAppointment.newAppointment(
@@ -122,13 +123,11 @@ class CreateVideoBookingService(
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
   private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): VideoBooking {
-    // TODO need to check locations against locations API
-
     val probationTeam = probationTeamRepository.findById(request.probationTeamId!!)
       .orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
       .also { require(it.enabled) { "Probation team with ID ${it.probationTeamId} is not enabled" } }
 
-    request.prisoner().let { prisonerSearchClient.getPrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
+    request.prisoner().let { prisonerValidator.validatePrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
 
     return VideoBooking.newProbationBooking(
       probationTeam = probationTeam,
@@ -146,6 +145,7 @@ class CreateVideoBookingService(
       }
 
       checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisoner.prisonCode!!)
+      locationValidator.validatePrisonLocation(prisoner.prisonCode, this.locationKey!!)
 
       PrisonAppointment.newAppointment(
         videoBooking = videoBooking,

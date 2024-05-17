@@ -85,6 +85,7 @@ class PrisonAppointment private constructor(
       endTime = endTime.toMinutePrecision(),
       prisonLocKey = locationKey,
       createdBy = createdBy,
+      comments = videoBooking.comments,
     )
   }
 }

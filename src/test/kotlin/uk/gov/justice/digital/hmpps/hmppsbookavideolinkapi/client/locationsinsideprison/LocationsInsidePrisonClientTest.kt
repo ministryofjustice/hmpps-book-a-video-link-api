@@ -14,9 +14,9 @@ class LocationsInsidePrisonClientTest {
 
   @Test
   fun `should get matching location`() {
-    server.stubPostLocationByKeys(listOf(locationKey))
+    server.stubPostLocationByKeys(setOf(locationKey))
 
-    client.getLocationsByKeys(listOf(locationKey)).single().key isEqualTo locationKey
+    client.getLocationsByKeys(setOf(locationKey)).single().key isEqualTo locationKey
   }
 
   @AfterEach

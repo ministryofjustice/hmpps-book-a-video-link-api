@@ -11,7 +11,7 @@ import java.util.UUID
 
 class LocationsInsidePrisonApiMockServer : MockServer(8091) {
 
-  fun stubPostLocationByKeys(keys: List<String>, prisonId: String = "MDI") {
+  fun stubPostLocationByKeys(keys: Set<String>, prisonId: String = "MDI") {
     keys.forEach { k -> stubGetLocationByKey(k, prisonId) }
   }
 
@@ -35,33 +35,6 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                 deactivatedByParent = false,
                 topLevelId = id,
                 key = key,
-                isResidential = true,
-              ),
-            ),
-          )
-          .withStatus(200),
-      ),
-    )
-  }
-
-  fun stubGetLocation(locationId: UUID = UUID.randomUUID(), prisonId: String = "MDI") {
-    stubFor(
-      get("/locations/$locationId").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            mapper.writeValueAsString(
-              Location(
-                id = locationId,
-                prisonId = prisonId,
-                code = "001",
-                pathHierarchy = "A-1-001",
-                locationType = Location.LocationType.VIDEO_LINK,
-                permanentlyInactive = false,
-                active = true,
-                deactivatedByParent = false,
-                topLevelId = locationId,
-                key = "$prisonId-A-1-001",
                 isResidential = true,
               ),
             ),
