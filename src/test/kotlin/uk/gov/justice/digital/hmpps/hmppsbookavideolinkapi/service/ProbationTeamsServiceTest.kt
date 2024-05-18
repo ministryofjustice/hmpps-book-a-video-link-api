@@ -8,12 +8,14 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserProbationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam as ProbationTeamEntity
 
 class ProbationTeamsServiceTest {
   private val probationTeamRepository: ProbationTeamRepository = mock()
-  private val service = ProbationTeamsService(probationTeamRepository)
+  private val userProbationRepository: UserProbationRepository = mock()
+  private val service = ProbationTeamsService(probationTeamRepository, userProbationRepository)
   private fun generateEntity(id: Long, code: String, desc: String, enabled: Boolean = true, notes: String? = "notes") =
     ProbationTeamEntity(id, code, desc, enabled, notes, "name")
 

@@ -93,7 +93,7 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
     val courts2 = listOf("SWINCC", "SWINMC", "AMERCC")
     val request2 = SetCourtPreferencesRequest(courtCodes = courts2)
 
-    val response2 = webTestClient.setUserPreferenceCourts(request2, username)
+    webTestClient.setUserPreferenceCourts(request2, username)
 
     val newPreferredCourts = webTestClient.getUserPreferenceCourts(username)
     assertThat(newPreferredCourts).extracting("code").containsAll(courts2)
