@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -35,18 +36,18 @@ class CreateVideoBookingService(
   }
 
   @Transactional
-  fun create(booking: CreateVideoBookingRequest, createdBy: String): VideoBooking =
+  fun create(booking: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> =
     when (booking.bookingType!!) {
       BookingType.COURT -> createCourt(booking, createdBy)
       BookingType.PROBATION -> createProbation(booking, createdBy)
     }
 
-  private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): VideoBooking {
+  private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
     val court = courtRepository.findById(request.courtId!!)
       .orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
       .also { require(it.enabled) { "Court with ID ${it.courtId} is not enabled" } }
 
-    request.prisoner().validate()
+    val prisoner = request.prisoner().validate()
 
     return VideoBooking.newCourtBooking(
       court = court,
@@ -54,7 +55,9 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
-    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
+    ).let(videoBookingRepository::saveAndFlush)
+      .also { booking -> createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
+      .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
   }
 
   private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
@@ -124,12 +127,12 @@ class CreateVideoBookingService(
   private fun Appointment.isBefore(other: Appointment): Boolean =
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
-  private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): VideoBooking {
+  private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
     val probationTeam = probationTeamRepository.findById(request.probationTeamId!!)
       .orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
       .also { require(it.enabled) { "Probation team with ID ${it.probationTeamId} is not enabled" } }
 
-    request.prisoner().validate()
+    val prisoner = request.prisoner().validate()
 
     return VideoBooking.newProbationBooking(
       probationTeam = probationTeam,
@@ -137,14 +140,16 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
-    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentForProbation(booking, request.prisoner(), createdBy) }
+    ).let(videoBookingRepository::saveAndFlush)
+      .also { booking -> createAppointmentForProbation(booking, request.prisoner(), createdBy) }
+      .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} created") } to prisoner
   }
 
-  private fun PrisonerDetails.validate() {
+  private fun PrisonerDetails.validate(): Prisoner {
     // We are not checking if the prison is enabled here as we need to support prison users also. Our UI should not be sending disabled prisons though.
     prisonRepository.findByCode(prisonCode!!) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
 
-    prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode)
+    return prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode)
   }
 
   private fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {

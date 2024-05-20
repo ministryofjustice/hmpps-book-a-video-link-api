@@ -48,6 +48,6 @@ class ProbationTeam(
 
   @Override
   override fun toString(): String {
-    return this::class.simpleName + "(probationTeamId = $probationTeamId )"
+    return this::class.simpleName + "(probationTeamId = $probationTeamId)"
   }
 }

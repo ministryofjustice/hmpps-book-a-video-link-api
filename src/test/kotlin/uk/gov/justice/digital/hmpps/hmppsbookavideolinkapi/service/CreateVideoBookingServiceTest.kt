@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
@@ -102,8 +103,12 @@ class CreateVideoBookingServiceTest {
     whenever(courtRepository.findById(courtBookingRequest.courtId!!)) doReturn Optional.of(requestedCourt)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisoner(prisonerNumber, prisonCode)
 
-    service.create(courtBookingRequest, CREATED_BY)
+    val (booking, prisoner) = service.create(courtBookingRequest, CREATED_BY)
+
+    booking isEqualTo persistedVideoBooking
+    prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
 
     verify(videoBookingRepository).saveAndFlush(newBookingCaptor.capture())
 
@@ -530,8 +535,12 @@ class CreateVideoBookingServiceTest {
     whenever(probationTeamRepository.findById(probationBookingRequest.probationTeamId!!)) doReturn Optional.of(requestedProbationTeam)
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
+    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisoner(prisonerNumber, prisonCode)
 
-    service.create(probationBookingRequest, CREATED_BY)
+    val (booking, prisoner) = service.create(probationBookingRequest, CREATED_BY)
+
+    booking isEqualTo persistedVideoBooking
+    prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
 
     verify(videoBookingRepository).saveAndFlush(newBookingCaptor.capture())
 

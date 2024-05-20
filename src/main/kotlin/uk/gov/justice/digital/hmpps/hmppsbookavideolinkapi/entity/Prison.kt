@@ -45,4 +45,9 @@ class Prison(
   override fun hashCode(): Int {
     return prisonId.hashCode()
   }
+
+  @Override
+  override fun toString(): String {
+    return this::class.simpleName + "(prisonId = $prisonId)"
+  }
 }

@@ -43,6 +43,6 @@ class UserCourt(
 
   @Override
   override fun toString(): String {
-    return this::class.simpleName + "(userCourtId = $userCourtId )"
+    return this::class.simpleName + "(userCourtId = $userCourtId)"
   }
 }

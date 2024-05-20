@@ -32,4 +32,6 @@ class PrisonerValidator(val prisonerSearchClient: PrisonerSearchClient) {
 data class Prisoner(
   val prisonerNumber: String,
   val prisonId: String?,
+  val firstName: String,
+  val lastName: String,
 )

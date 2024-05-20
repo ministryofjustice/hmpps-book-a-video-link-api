@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -28,6 +29,18 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   topLevelId = UUID.randomUUID(),
   key = "$prisonCode-$locationKeySuffix",
   isResidential = false,
+)
+
+fun prisoner(
+  prisonerNumber: String,
+  prisonCode: String,
+  firstName: String = "Fred",
+  lastName: String = "Bloggs",
+) = Prisoner(
+  prisonerNumber = prisonerNumber,
+  prisonId = prisonCode,
+  firstName = firstName,
+  lastName = lastName,
 )
 
 fun courtBookingRequest(

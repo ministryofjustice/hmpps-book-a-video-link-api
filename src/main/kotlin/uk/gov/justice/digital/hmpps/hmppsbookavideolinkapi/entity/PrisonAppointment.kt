@@ -66,7 +66,7 @@ class PrisonAppointment private constructor(
 
   @Override
   override fun toString(): String {
-    return this::class.simpleName + "(prisonAppointmentId = $prisonAppointmentId )"
+    return this::class.simpleName + "(prisonAppointmentId = $prisonAppointmentId)"
   }
 
   companion object {

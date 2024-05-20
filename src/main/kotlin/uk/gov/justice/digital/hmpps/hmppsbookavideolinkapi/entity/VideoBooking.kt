@@ -63,7 +63,7 @@ class VideoBooking private constructor(
 
   @Override
   override fun toString(): String {
-    return this::class.simpleName + "(videoBookingId = $videoBookingId )"
+    return this::class.simpleName + "(videoBookingId = $videoBookingId)"
   }
 
   companion object {
