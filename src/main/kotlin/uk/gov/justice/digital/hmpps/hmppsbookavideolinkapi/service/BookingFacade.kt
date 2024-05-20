@@ -25,7 +25,10 @@ class BookingFacade(
       newBooking.videoBookingId
     }
 
-  private fun sendNewCourtBookingEmail(newBooking: VideoBooking) {
+  private fun sendNewCourtBookingEmail(booking: VideoBooking) {
     log.info("TODO - send new court booking email.")
+
+    // Agreed with Tim will be using a SQL view to pull back the necessary contact information related to the booking just created.
+    // Multiple contacts will result in multiple emails i.e. one email per contact.
   }
 }
