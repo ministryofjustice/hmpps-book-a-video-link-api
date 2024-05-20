@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -71,7 +70,7 @@ class CourtsController(private val courtsService: CourtsService) {
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun enabledCourts(): List<Court> = courtsService.getEnabledCourts()
 
-  @Operation(summary = "Endpoint to return the list of enabled courts selected by a user")
+  @Operation(summary = "Endpoint to return the list of enabled courts selected by a user (identified from the token content)")
   @ApiResponses(
     value = [
       ApiResponse(
@@ -106,11 +105,13 @@ class CourtsController(private val courtsService: CourtsService) {
       ),
     ],
   )
-  @GetMapping(value = ["/user-preferences/{username}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+  @GetMapping(value = ["/user-preferences"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
-  fun getUserCourtPreferences(@PathVariable("username") username: String) = courtsService.getUserCourtPreferences(username)
+  fun getUserCourtPreferences(
+    httpRequest: HttpServletRequest,
+  ) = courtsService.getUserCourtPreferences(httpRequest.getBvlsRequestContext().username)
 
-  @Operation(summary = "Endpoint to set the court preferences for a user")
+  @Operation(summary = "Endpoint to set the court preferences for a user (identified from the token content)")
   @ApiResponses(
     value = [
       ApiResponse(

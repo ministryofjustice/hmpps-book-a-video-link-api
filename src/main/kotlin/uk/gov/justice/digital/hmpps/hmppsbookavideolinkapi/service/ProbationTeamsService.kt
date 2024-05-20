@@ -28,8 +28,6 @@ class ProbationTeamsService(
     userProbationRepository.findAllByUsername(username).forEach(userProbationRepository::delete)
 
     val newTeams = probationTeamRepository.findAllByCodeIn(request.probationTeamCodes).filter { it.enabled }
-
-    // Recreate the UserCourt entities for these courts including the primary key of the related court
     newTeams.map { probationTeam ->
       UserProbation(probationTeam = probationTeam, username = username, createdBy = username)
     }.forEach(userProbationRepository::saveAndFlush)

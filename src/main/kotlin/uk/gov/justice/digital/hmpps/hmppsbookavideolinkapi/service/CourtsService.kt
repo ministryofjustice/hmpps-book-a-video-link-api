@@ -25,8 +25,6 @@ class CourtsService(
     userCourtRepository.findAllByUsername(username).forEach(userCourtRepository::delete)
 
     val newCourts = courtRepository.findAllByCodeIn(request.courtCodes).filter { it.enabled }
-
-    // Recreate the UserCourt entities for these courts including the primary key of the related court
     newCourts.map { court ->
       UserCourt(court = court, username = username, createdBy = username)
     }.forEach(userCourtRepository::saveAndFlush)
