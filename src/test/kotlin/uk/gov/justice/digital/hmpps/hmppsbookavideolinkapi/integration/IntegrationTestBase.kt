@@ -41,9 +41,11 @@ abstract class IntegrationTestBase {
   protected fun stubPingWithResponse(status: Int) {
     ActivitiesAppointmentsApiExtension.server.stubHealthPing(status)
     HmppsAuthApiExtension.server.stubHealthPing(status)
-    LocationsInsidePrisonApiExtension.server.stubHealthPing(status)
+    locationsInsidePrisonApi().stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
   }
 
   protected fun prisonSearchApi() = PrisonerSearchApiExtension.server
+
+  protected fun locationsInsidePrisonApi() = LocationsInsidePrisonApiExtension.server
 }

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -9,12 +10,32 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Prisone
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.*
+
+val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG")
+val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
+val moorlandLocation = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG")
+
+fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true) = Location(
+  id = UUID.randomUUID(),
+  prisonId = prisonCode,
+  code = "VIDEOLINK",
+  pathHierarchy = "VIDEOLINK",
+  locationType = Location.LocationType.VIDEO_LINK,
+  permanentlyInactive = false,
+  active = active,
+  deactivatedByParent = false,
+  topLevelId = UUID.randomUUID(),
+  key = "$prisonCode-$locationKeySuffix",
+  isResidential = false,
+)
 
 fun courtBookingRequest(
   courtId: Long = 1,
   prisonCode: String = "MDI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
+  location: Location? = null,
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "court booking comments",
@@ -27,7 +48,7 @@ fun courtBookingRequest(
       listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-$locationSuffix",
+          locationKey = location?.key ?: "$prisonCode-$locationSuffix",
           date = tomorrow(),
           startTime = startTime,
           endTime = endTime,
@@ -53,6 +74,7 @@ fun probationBookingRequest(
   prisonCode: String = "MDI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
+  location: Location? = null,
   appointmentType: AppointmentType = AppointmentType.VLB_PROBATION,
   appointmentDate: LocalDate = tomorrow(),
   startTime: LocalTime = LocalTime.now(),
@@ -61,7 +83,7 @@ fun probationBookingRequest(
 ): CreateVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
-    locationKey = "$prisonCode-$locationSuffix",
+    locationKey = location?.key ?: "$prisonCode-$locationSuffix",
     date = appointmentDate,
     startTime = startTime,
     endTime = endTime,
