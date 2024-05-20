@@ -81,6 +81,7 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
     val username = "test-user@mymail.com"
     val request1 = SetCourtPreferencesRequest(courtCodes = courts1)
 
+    // Set the preferences to this set of initial courts
     val response = webTestClient.setUserPreferenceCourts(request1, username)
     assertThat(response?.courtsSaved).isEqualTo(3)
 
@@ -89,12 +90,13 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
     val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(username)
     assertThat(listOfPreferredCourts).extracting("code").containsAll(courts1)
 
-    // Replace originals with this set of different courts
+    // Replace original preferences with a different set of courts
     val courts2 = listOf("SWINCC", "SWINMC", "AMERCC")
     val request2 = SetCourtPreferencesRequest(courtCodes = courts2)
 
     webTestClient.setUserPreferenceCourts(request2, username)
 
+    // Assert that the preferences are changed to the second set
     val newPreferredCourts = webTestClient.getUserPreferenceCourts(username)
     assertThat(newPreferredCourts).extracting("code").containsAll(courts2)
 
@@ -115,19 +117,16 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
 
   private fun WebTestClient.getUserPreferenceCourts(username: String) =
     get()
-      .uri("/courts/user-preferences/{username}", username)
+      .uri("/courts/user-preferences")
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(Court::class.java)
       .returnResult().responseBody
 
-  private fun WebTestClient.setUserPreferenceCourts(
-    request: SetCourtPreferencesRequest,
-    username: String,
-  ) =
+  private fun WebTestClient.setUserPreferenceCourts(request: SetCourtPreferencesRequest, username: String) =
     post()
       .uri("/courts/user-preferences/set")
       .bodyValue(request)

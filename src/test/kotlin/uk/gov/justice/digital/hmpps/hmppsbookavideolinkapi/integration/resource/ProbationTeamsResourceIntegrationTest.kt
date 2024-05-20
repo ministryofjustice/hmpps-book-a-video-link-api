@@ -115,19 +115,16 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
   private fun WebTestClient.getUserPreferenceTeams(username: String) =
     get()
-      .uri("/probation-teams/user-preferences/{username}", username)
+      .uri("/probation-teams/user-preferences")
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(ProbationTeam::class.java)
       .returnResult().responseBody
 
-  private fun WebTestClient.setUserPreferenceTeams(
-    request: SetProbationTeamPreferencesRequest,
-    username: String,
-  ) =
+  private fun WebTestClient.setUserPreferenceTeams(request: SetProbationTeamPreferencesRequest, username: String) =
     post()
       .uri("/probation-teams/user-preferences/set")
       .bodyValue(request)

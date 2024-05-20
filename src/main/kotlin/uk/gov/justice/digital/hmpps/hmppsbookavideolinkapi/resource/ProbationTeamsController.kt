@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -71,7 +70,7 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun enabledProbationTeams(): List<ProbationTeam> = probationTeamsService.getEnabledProbationTeams()
 
-  @Operation(summary = "Endpoint to return the list of enabled probation teams select by a user")
+  @Operation(summary = "Endpoint to return the list of enabled probation teams select by a user (identified from the token content)")
   @ApiResponses(
     value = [
       ApiResponse(
@@ -106,13 +105,13 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
       ),
     ],
   )
-  @GetMapping(value = ["/user-preferences/{username}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+  @GetMapping(value = ["/user-preferences"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun probationTeamsUserPreferences(
-    @PathVariable("username") username: String,
-  ) = probationTeamsService.getUserProbationTeamPreferences(username)
+    httpRequest: HttpServletRequest,
+  ) = probationTeamsService.getUserProbationTeamPreferences(httpRequest.getBvlsRequestContext().username)
 
-  @Operation(summary = "Endpoint to set the probation team preferences for a user")
+  @Operation(summary = "Endpoint to set the probation team preferences for a user (identified from the token content)")
   @ApiResponses(
     value = [
       ApiResponse(
