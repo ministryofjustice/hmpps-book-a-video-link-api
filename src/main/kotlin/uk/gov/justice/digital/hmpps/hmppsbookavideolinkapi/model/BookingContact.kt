@@ -7,8 +7,12 @@ data class BookingContact(
   @Schema(description = "Describes the internal id of the video booking", example = "123")
   val videoBookingId: Long,
 
-  @Schema(description = "Describes the contact type (OWNER, PRISON, PROBATION, COURT, THIRD_PARTY)", example = "PRISON")
-  val contactType: String,
+  @Schema(
+    description = "Describes the contact type",
+    allowableValues = ["PRISON", "COURT", "PROBATION", "THIRD_PARTY", "OWNER"],
+    example = "PRISON",
+  )
+  val contactType: ContactType,
 
   @Schema(description = "Describes the contact name (optional)", example = "Mr. Person-contact")
   val name: String?,
@@ -22,3 +26,11 @@ data class BookingContact(
   @Schema(description = "Describes the telephone number of this contact (optional)", example = "00902 0909779")
   val telephone: String?,
 )
+
+enum class ContactType {
+  OWNER,
+  COURT,
+  PROBATION,
+  PRISON,
+  THIRD_PARTY,
+}

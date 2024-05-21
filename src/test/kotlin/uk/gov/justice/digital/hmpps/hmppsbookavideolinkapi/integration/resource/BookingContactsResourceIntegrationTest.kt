@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -50,9 +51,9 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     val listOfContacts = webTestClient.getBookingContacts("user", bookingId)
 
     // Check contacts returned
-    assertThat(listOfContacts).extracting("contactType").contains("PRISON")
-    assertThat(listOfContacts).extracting("contactType").contains("COURT")
-    assertThat(listOfContacts).extracting("contactType").doesNotContain("PROBATION")
+    assertThat(listOfContacts).extracting("contactType").contains(ContactType.PRISON)
+    assertThat(listOfContacts).extracting("contactType").contains(ContactType.COURT)
+    assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.PROBATION)
     assertThat(listOfContacts).hasSize(6)
     assertThat(listOfContacts).extracting("email").containsAll(
       listOf("m@m.com", "t@t.com", "s@s.com"),
@@ -85,9 +86,9 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     val listOfContacts = webTestClient.getBookingContacts("user", bookingId)
 
     // Check contacts returned
-    assertThat(listOfContacts).extracting("contactType").contains("PRISON")
-    assertThat(listOfContacts).extracting("contactType").contains("PROBATION")
-    assertThat(listOfContacts).extracting("contactType").doesNotContain("COURT")
+    assertThat(listOfContacts).extracting("contactType").contains(ContactType.PRISON)
+    assertThat(listOfContacts).extracting("contactType").contains(ContactType.PROBATION)
+    assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.COURT)
     assertThat(listOfContacts).hasSize(6)
     assertThat(listOfContacts).extracting("email").containsAll(
       listOf("m@m.com", "t@t.com", "s@s.com"),
@@ -124,6 +125,11 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should return a list of third party contacts for a booking`() {
+    // TODO: Not implemented yet
+  }
+
+  @Test
+  fun `should return the owner contact details for a booking`() {
     // TODO: Not implemented yet
   }
 
