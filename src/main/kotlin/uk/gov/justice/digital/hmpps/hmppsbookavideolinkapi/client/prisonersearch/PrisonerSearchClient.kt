@@ -21,9 +21,9 @@ class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
 
 @Component
 class PrisonerValidator(val prisonerSearchClient: PrisonerSearchClient) {
-  fun validatePrisonerAtPrison(prisonerNumber: String, prisonerCode: String): Prisoner =
-    prisonerSearchClient.getPrisoner(prisonerNumber)?.takeUnless { prisoner -> prisoner.prisonId != prisonerCode }
-      ?: throw ValidationException("Prisoner $prisonerNumber not found at prison $prisonerCode")
+  fun validatePrisonerAtPrison(prisonerNumber: String, prisonCode: String): Prisoner =
+    prisonerSearchClient.getPrisoner(prisonerNumber)?.takeUnless { prisoner -> prisoner.prisonId != prisonCode }
+      ?: throw ValidationException("Prisoner $prisonerNumber not found at prison $prisonCode")
 }
 
 // Ideally this model would be generated and not hard coded, however at time of writing the Open API generator did not
@@ -32,4 +32,6 @@ class PrisonerValidator(val prisonerSearchClient: PrisonerSearchClient) {
 data class Prisoner(
   val prisonerNumber: String,
   val prisonId: String?,
+  val firstName: String,
+  val lastName: String,
 )

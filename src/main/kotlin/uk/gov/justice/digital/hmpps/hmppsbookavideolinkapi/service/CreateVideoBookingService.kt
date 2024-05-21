@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -16,13 +17,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
 
 @Service
 class CreateVideoBookingService(
   private val courtRepository: CourtRepository,
   private val probationTeamRepository: ProbationTeamRepository,
+  private val prisonRepository: PrisonRepository,
   private val videoBookingRepository: VideoBookingRepository,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val locationValidator: LocationValidator,
@@ -33,18 +37,18 @@ class CreateVideoBookingService(
   }
 
   @Transactional
-  fun create(booking: CreateVideoBookingRequest, createdBy: String): VideoBooking =
+  fun create(booking: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> =
     when (booking.bookingType!!) {
       BookingType.COURT -> createCourt(booking, createdBy)
       BookingType.PROBATION -> createProbation(booking, createdBy)
     }
 
-  private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): VideoBooking {
+  private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
     val court = courtRepository.findById(request.courtId!!)
       .orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
       .also { require(it.enabled) { "Court with ID ${it.courtId} is not enabled" } }
 
-    request.prisoner().let { prisonerValidator.validatePrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
+    val prisoner = request.prisoner().validate()
 
     return VideoBooking.newCourtBooking(
       court = court,
@@ -52,7 +56,9 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
-    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
+    ).let(videoBookingRepository::saveAndFlush)
+      .also { booking -> createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
+      .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
   }
 
   private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
@@ -122,12 +128,12 @@ class CreateVideoBookingService(
   private fun Appointment.isBefore(other: Appointment): Boolean =
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
-  private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): VideoBooking {
+  private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
     val probationTeam = probationTeamRepository.findById(request.probationTeamId!!)
       .orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
       .also { require(it.enabled) { "Probation team with ID ${it.probationTeamId} is not enabled" } }
 
-    request.prisoner().let { prisonerValidator.validatePrisonerAtPrison(it.prisonerNumber!!, it.prisonCode!!) }
+    val prisoner = request.prisoner().validate()
 
     return VideoBooking.newProbationBooking(
       probationTeam = probationTeam,
@@ -135,7 +141,16 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
-    ).let(videoBookingRepository::saveAndFlush).also { booking -> createAppointmentForProbation(booking, request.prisoner(), createdBy) }
+    ).let(videoBookingRepository::saveAndFlush)
+      .also { booking -> createAppointmentForProbation(booking, request.prisoner(), createdBy) }
+      .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} created") } to prisoner
+  }
+
+  private fun PrisonerDetails.validate(): Prisoner {
+    // We are not checking if the prison is enabled here as we need to support prison users also. Our UI should not be sending disabled prisons though.
+    prisonRepository.findByCode(prisonCode!!) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
+
+    return prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode).toPrisonerDetails()
   }
 
   private fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
@@ -155,7 +170,7 @@ class CreateVideoBookingService(
         appointmentDate = this.date!!,
         startTime = this.startTime!!,
         endTime = this.endTime!!,
-        locationKey = this.locationKey!!,
+        locationKey = this.locationKey,
         createdBy = createdBy,
       )
     }

@@ -40,4 +40,9 @@ class UserCourt(
   override fun hashCode(): Int {
     return userCourtId.hashCode()
   }
+
+  @Override
+  override fun toString(): String {
+    return this::class.simpleName + "(userCourtId = $userCourtId)"
+  }
 }
