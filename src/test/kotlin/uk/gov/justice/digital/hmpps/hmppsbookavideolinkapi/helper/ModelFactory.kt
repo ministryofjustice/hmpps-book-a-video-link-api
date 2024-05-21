@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as Mod
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
 val moorlandLocation = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG")
+val werringtonLocation = location(prisonCode = WERRINGTON, locationKeySuffix = "ABCDEFG")
 
 fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true) = Location(
   id = UUID.randomUUID(),
