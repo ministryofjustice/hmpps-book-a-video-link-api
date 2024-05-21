@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.GovNotifyEmailService
 import uk.gov.service.notify.NotificationClient
 import java.time.LocalDate
@@ -54,7 +55,7 @@ abstract class Email(
   comments: String? = "",
 ) {
   private val common = mapOf(
-    "date" to date.toString(),
+    "date" to date.toMediumFormatStyle(),
     "prisonerName" to prisonerFirstName.plus(" $prisonerLastName"),
     "offenderNo" to prisonerNumber,
     "comments" to comments,

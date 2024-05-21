@@ -19,9 +19,9 @@ class Prison(
 
   val name: String,
 
-  val description: String?,
+  val description: String,
 
-  // Enabled == Courts/probation cannot self-serve, but we will accept bookings from the prison (via DPS and A&A)
+  // Enabled == false means courts/probation cannot self-serve, but we will accept bookings from the prison (via DPS and A&A)
   val enabled: Boolean,
 
   val notes: String?,

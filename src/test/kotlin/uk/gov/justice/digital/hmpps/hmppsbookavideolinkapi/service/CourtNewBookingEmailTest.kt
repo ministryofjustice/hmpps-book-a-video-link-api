@@ -13,7 +13,7 @@ class CourtNewBookingEmailTest {
       prisonerFirstName = "builder",
       prisonerLastName = "bob",
       prisonerNumber = "123456",
-      date = LocalDate.now(),
+      date = LocalDate.of(2200, 12, 12),
       userName = "username",
       comments = "comments for bob",
       preAppointmentInfo = "bobs pre-appointment info",
@@ -24,7 +24,7 @@ class CourtNewBookingEmailTest {
     )
 
     email.personalisation() containsEntriesExactlyInAnyOrder mapOf(
-      "date" to LocalDate.now().toString(),
+      "date" to "12 Dec 2200",
       "prisonerName" to "builder bob",
       "offenderNo" to "123456",
       "comments" to "comments for bob",

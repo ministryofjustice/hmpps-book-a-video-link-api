@@ -40,17 +40,17 @@ class CourtNewBookingEmail(
   userName: String,
   court: String,
   prison: String,
-  preAppointmentInfo: String = "",
+  preAppointmentInfo: String?,
   mainAppointmentInfo: String,
-  postAppointmentInfo: String = "",
-  comments: String?,
+  postAppointmentInfo: String?,
+  comments: String? = "None entered",
 ) : Email(address, prisonerFirstName, prisonerLastName, prisonerNumber, date, comments) {
   init {
     addPersonalisation("userName", userName)
     addPersonalisation("court", court)
     addPersonalisation("prison", prison)
-    addPersonalisation("preAppointmentInfo", preAppointmentInfo)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
     addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
-    addPersonalisation("postAppointmentInfo", postAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
   }
 }
