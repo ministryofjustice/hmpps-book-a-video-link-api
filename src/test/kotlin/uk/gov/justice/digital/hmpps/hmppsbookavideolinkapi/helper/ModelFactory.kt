@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Probati
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as ModelPrisoner
 
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
@@ -31,7 +32,7 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   isResidential = false,
 )
 
-fun prisoner(
+fun prisonerSearchPrisoner(
   prisonerNumber: String,
   prisonCode: String,
   firstName: String = "Fred",
@@ -39,6 +40,18 @@ fun prisoner(
 ) = Prisoner(
   prisonerNumber = prisonerNumber,
   prisonId = prisonCode,
+  firstName = firstName,
+  lastName = lastName,
+)
+
+fun prisoner(
+  prisonerNumber: String,
+  prisonCode: String,
+  firstName: String = "Fred",
+  lastName: String = "Bloggs",
+) = ModelPrisoner(
+  prisonerNumber = prisonerNumber,
+  prisonCode = prisonCode,
   firstName = firstName,
   lastName = lastName,
 )

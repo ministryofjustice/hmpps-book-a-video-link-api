@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 
 class PrisonerSearchApiMockServer : MockServer(8092) {
 
@@ -18,7 +18,7 @@ class PrisonerSearchApiMockServer : MockServer(8092) {
             .withHeader("Content-Type", "application/json")
             .withBody(
               mapper.writeValueAsString(
-                prisoner(
+                prisonerSearchPrisoner(
                   prisonerNumber = prisonNumber,
                   prisonCode = prisonCode,
                 ),

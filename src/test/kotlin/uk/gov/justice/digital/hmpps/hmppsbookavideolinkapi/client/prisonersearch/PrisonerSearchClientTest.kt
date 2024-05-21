@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiMockServer
 
 class PrisonerSearchClientTest {
@@ -17,7 +17,7 @@ class PrisonerSearchClientTest {
   fun `should get matching prisoner`() {
     server.stubGetPrisoner("123456", RISLEY)
 
-    client.getPrisoner("123456") isEqualTo prisoner("123456", RISLEY)
+    client.getPrisoner("123456") isEqualTo prisonerSearchPrisoner("123456", RISLEY)
   }
 
   @AfterEach
