@@ -7,11 +7,7 @@ data class BookingContact(
   @Schema(description = "Describes the internal id of the video booking", example = "123")
   val videoBookingId: Long,
 
-  @Schema(
-    description = "Describes the contact type",
-    allowableValues = ["PRISON", "COURT", "PROBATION", "THIRD_PARTY", "OWNER"],
-    example = "PRISON",
-  )
+  @Schema(description = "Describes the contact type", example = "PRISON")
   val contactType: ContactType,
 
   @Schema(description = "Describes the contact name (optional)", example = "Mr. Person-contact")
