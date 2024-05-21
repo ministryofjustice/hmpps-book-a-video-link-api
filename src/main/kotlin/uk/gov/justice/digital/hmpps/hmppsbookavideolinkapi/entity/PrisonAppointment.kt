@@ -64,6 +64,11 @@ class PrisonAppointment private constructor(
     return prisonAppointmentId.hashCode()
   }
 
+  @Override
+  override fun toString(): String {
+    return this::class.simpleName + "(prisonAppointmentId = $prisonAppointmentId)"
+  }
+
   companion object {
     fun newAppointment(
       videoBooking: VideoBooking,

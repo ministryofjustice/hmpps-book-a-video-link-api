@@ -61,6 +61,11 @@ class VideoBooking private constructor(
     return videoBookingId.hashCode()
   }
 
+  @Override
+  override fun toString(): String {
+    return this::class.simpleName + "(videoBookingId = $videoBookingId)"
+  }
+
   companion object {
     fun newCourtBooking(
       court: Court,

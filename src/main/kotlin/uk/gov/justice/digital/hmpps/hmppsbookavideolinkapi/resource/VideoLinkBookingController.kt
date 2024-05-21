@@ -71,5 +71,5 @@ class VideoLinkBookingController(val bookingFacade: BookingFacade) {
     @Parameter(description = "The request with the new video link booking details", required = true)
     request: CreateVideoBookingRequest,
     httpRequest: HttpServletRequest,
-  ): Long = bookingFacade.create(request, httpRequest.getBvlsRequestContext())
+  ): Long = bookingFacade.create(request, httpRequest.getBvlsRequestContext().username)
 }

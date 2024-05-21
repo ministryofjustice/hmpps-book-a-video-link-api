@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -11,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Probati
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as ModelPrisoner
 
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
@@ -28,6 +30,30 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   topLevelId = UUID.randomUUID(),
   key = "$prisonCode-$locationKeySuffix",
   isResidential = false,
+)
+
+fun prisonerSearchPrisoner(
+  prisonerNumber: String,
+  prisonCode: String,
+  firstName: String = "Fred",
+  lastName: String = "Bloggs",
+) = Prisoner(
+  prisonerNumber = prisonerNumber,
+  prisonId = prisonCode,
+  firstName = firstName,
+  lastName = lastName,
+)
+
+fun prisoner(
+  prisonerNumber: String,
+  prisonCode: String,
+  firstName: String = "Fred",
+  lastName: String = "Bloggs",
+) = ModelPrisoner(
+  prisonerNumber = prisonerNumber,
+  prisonCode = prisonCode,
+  firstName = firstName,
+  lastName = lastName,
 )
 
 fun courtBookingRequest(

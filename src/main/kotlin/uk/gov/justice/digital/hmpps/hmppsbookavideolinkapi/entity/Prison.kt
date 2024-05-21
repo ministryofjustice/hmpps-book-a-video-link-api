@@ -9,16 +9,17 @@ import org.hibernate.Hibernate
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "court")
-class Court(
+@Table(name = "prison")
+class Prison(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val courtId: Long = 0,
+  val prisonId: Long = 0,
 
   val code: String,
 
   val description: String,
 
+  // Enabled == Courts/probation cannot self-serve, but we will accept bookings from the prison (via DPS and A&A)
   val enabled: Boolean,
 
   val notes: String?,
@@ -37,17 +38,17 @@ class Court(
     if (this === other) return true
     if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
 
-    other as Court
+    other as Prison
 
-    return courtId == other.courtId
+    return prisonId == other.prisonId
   }
 
   override fun hashCode(): Int {
-    return courtId.hashCode()
+    return prisonId.hashCode()
   }
 
   @Override
   override fun toString(): String {
-    return this::class.simpleName + "(courtId = $courtId)"
+    return this::class.simpleName + "(prisonId = $prisonId)"
   }
 }

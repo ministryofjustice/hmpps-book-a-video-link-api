@@ -6,11 +6,11 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 
 class PrisonerSearchApiMockServer : MockServer(8092) {
 
-  fun stubGetPrisoner(prisonNumber: String, prisonId: String = "MDI") {
+  fun stubGetPrisoner(prisonNumber: String, prisonCode: String = "MDI") {
     stubFor(
       get("/prisoner/$prisonNumber")
         .willReturn(
@@ -18,9 +18,9 @@ class PrisonerSearchApiMockServer : MockServer(8092) {
             .withHeader("Content-Type", "application/json")
             .withBody(
               mapper.writeValueAsString(
-                Prisoner(
+                prisonerSearchPrisoner(
                   prisonerNumber = prisonNumber,
-                  prisonId = prisonId,
+                  prisonCode = prisonCode,
                 ),
               ),
             )
