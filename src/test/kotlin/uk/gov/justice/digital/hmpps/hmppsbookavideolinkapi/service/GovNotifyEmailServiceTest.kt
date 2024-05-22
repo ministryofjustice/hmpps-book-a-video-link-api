@@ -51,7 +51,7 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo notificationId
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 1")
 
     verify(client).sendEmail(
       "template 1",

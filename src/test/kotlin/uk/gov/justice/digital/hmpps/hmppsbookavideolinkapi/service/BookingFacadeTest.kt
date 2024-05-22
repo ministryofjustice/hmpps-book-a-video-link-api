@@ -8,6 +8,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
@@ -15,16 +16,19 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 class BookingFacadeTest {
   private val bookingService: CreateVideoBookingService = mock()
@@ -32,10 +36,12 @@ class BookingFacadeTest {
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val prisonRepository: PrisonRepository = mock()
   private val emailService: EmailService = mock()
+  private val notificationRepository: NotificationRepository = mock()
 
-  private val facade = BookingFacade(bookingService, bookingContactsService, prisonAppointmentRepository, prisonRepository, emailService)
+  private val facade = BookingFacade(bookingService, bookingContactsService, prisonAppointmentRepository, prisonRepository, emailService, notificationRepository)
 
-  private var emailCaptor = argumentCaptor<CourtNewBookingEmail>()
+  private val emailCaptor = argumentCaptor<CourtNewBookingEmail>()
+  private val notificationCaptor = argumentCaptor<Notification>()
 
   @Test
   fun `should send court booking emails on creation of court booking`() {
@@ -57,10 +63,13 @@ class BookingFacadeTest {
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
     whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.COURT, email = "jon@somewhere.com", name = "Jon"))
 
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(emailCaptor.capture())) doReturn Result.success(notificationId to "court template id")
+
     facade.create(bookingRequest, "facade court user")
 
     verify(bookingService).create(bookingRequest, "facade court user")
-    verify(emailService).send(emailCaptor.capture())
 
     with(emailCaptor.firstValue) {
       address isEqualTo "jon@somewhere.com"
@@ -76,6 +85,17 @@ class BookingFacadeTest {
         "postAppointmentInfo" to "Not required",
         "comments" to "Court hearing comments",
       )
+    }
+
+    verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+
+    notificationCaptor.allValues hasSize 1
+
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@somewhere.com"
+      templateName isEqualTo "court template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo booking
     }
   }
 

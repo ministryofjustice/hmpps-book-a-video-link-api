@@ -29,7 +29,7 @@ class EmailConfiguration(
   @Bean
   fun emailService() =
     if (apiKey.isBlank()) {
-      EmailService { email -> Result.success(UUID.randomUUID()).also { log.info("Email ${email.javaClass.simpleName} not sent.") } }.also { log.info("Gov Notify emails are disabled") }
+      EmailService { email -> Result.success(UUID.randomUUID() to "fake template id").also { log.info("Email ${email.javaClass.simpleName} not sent.") } }.also { log.info("Gov Notify emails are disabled") }
     } else {
       GovNotifyEmailService(NotificationClient(apiKey), emailTemplates()).also { log.info("Gov Notify emails are enabled") }
     }
@@ -39,11 +39,13 @@ class EmailConfiguration(
   )
 }
 
+typealias TemplateId = String
+
 fun interface EmailService {
   /**
-   * On success returns a unique reference for each email sent.
+   * On success returns a unique reference for each email sent along with the template identifier used.
    */
-  fun send(email: Email): Result<UUID>
+  fun send(email: Email): Result<Pair<UUID, TemplateId>>
 }
 
 abstract class Email(

@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
@@ -11,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 
@@ -24,6 +26,7 @@ class BookingFacade(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val prisonRepository: PrisonRepository,
   private val emailService: EmailService,
+  private val notificationRepository: NotificationRepository,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -41,7 +44,7 @@ class BookingFacade(
   }
 
   private fun sendNewCourtBookingEmails(booking: VideoBooking, prisoner: Prisoner) {
-    val (pre, main, post) = prisonAppointmentRepository.findByVideoBooking(booking).courtAppointments()
+    val (pre, main, post) = prisonAppointmentRepository.findByVideoBooking(booking).prisonAppointmentsForCourtHearing()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
 
     bookingContactsService.getBookingContacts(booking.videoBookingId)
@@ -66,8 +69,17 @@ class BookingFacade(
           else -> null
         }
       }.forEach { email ->
-        // TODO check success of return result, if successful record notification.
-        val result = emailService.send(email)
+        emailService.send(email).onSuccess { (govNotifyId, templateId) ->
+          notificationRepository.saveAndFlush(
+            Notification(
+              videoBooking = booking,
+              email = email.address,
+              govNotifyNotificationId = govNotifyId,
+              templateName = templateId,
+              reason = "New court booking request",
+            ),
+          )
+        }.onFailure { log.info("BOOKINGS: Failed to send new court booking email.") }
       }
   }
 
@@ -80,7 +92,7 @@ class BookingFacade(
 
   private fun Collection<BookingContact>.allContactsWithAnEmailAddress() = filter { it.email != null }
 
-  private fun Collection<PrisonAppointment>.courtAppointments() = Triple(pre(), main(), post())
+  private fun Collection<PrisonAppointment>.prisonAppointmentsForCourtHearing() = Triple(pre(), main(), post())
 
   private fun Collection<PrisonAppointment>.pre() = singleOrNull { it.appointmentType == "VLB_COURT_PRE" }
 
