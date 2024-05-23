@@ -17,6 +17,7 @@ fun court(courtId: Long = 0, enabled: Boolean = true) = Court(
 fun prison(prisonCode: String, enabled: Boolean = true) = Prison(
   prisonId = 0,
   code = prisonCode,
+  name = "prison name",
   description = "prison description",
   enabled = enabled,
   notes = null,

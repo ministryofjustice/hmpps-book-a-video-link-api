@@ -7,4 +7,5 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 @Repository
 interface PrisonRepository : JpaRepository<Prison, Long> {
   fun findByCode(prisonCode: String): Prison?
+  fun findAllByEnabledIsTrue(): List<Prison>
 }
