@@ -52,7 +52,7 @@ class BookingFacade(
       .mapNotNull { contact ->
         // TODO need to look at different contact types as this will dictate which emails/templates to use/send
         when (contact.contactType) {
-          ContactType.COURT -> CourtNewBookingEmail(
+          ContactType.OWNER -> CourtNewBookingEmail(
             address = contact.email!!,
             userName = contact.name ?: "Book Video",
             prisonerFirstName = prisoner.firstName,
@@ -66,7 +66,7 @@ class BookingFacade(
             postAppointmentInfo = post?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
             comments = booking.comments,
           )
-          else -> null
+          else -> log.info("No contacts found for video booking ID ${booking.videoBookingId}").let { null }
         }
       }.forEach { email ->
         emailService.send(email).onSuccess { (govNotifyId, templateId) ->
