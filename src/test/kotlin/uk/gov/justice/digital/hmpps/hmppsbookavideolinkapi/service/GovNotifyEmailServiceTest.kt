@@ -9,6 +9,7 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailTemplates
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -17,11 +18,10 @@ import uk.gov.service.notify.NotificationClient
 import uk.gov.service.notify.NotificationClientException
 import uk.gov.service.notify.SendEmailResponse
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class GovNotifyEmailServiceTest {
-  private val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+  private val today = LocalDate.now()
   private val notificationId = UUID.randomUUID()
   private val sendEmailResponse: SendEmailResponse = mock { on { notificationId } doReturn notificationId }
   private val client: NotificationClient =
@@ -40,7 +40,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = LocalDate.now(),
+        date = today,
         userName = "username",
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
@@ -51,13 +51,13 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo notificationId
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 1")
 
     verify(client).sendEmail(
       "template 1",
       "address 1",
       mapOf(
-        "date" to today,
+        "date" to today.toMediumFormatStyle(),
         "prisonerName" to "builder bob",
         "offenderNo" to "123456",
         "comments" to "comments for bob",

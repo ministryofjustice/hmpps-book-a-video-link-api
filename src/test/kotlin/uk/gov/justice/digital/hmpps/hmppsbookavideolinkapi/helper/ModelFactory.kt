@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -131,3 +133,12 @@ fun probationBookingRequest(
     videoLinkUrl = videoLinkUrl,
   )
 }
+
+fun bookingContact(contactType: ContactType, email: String?, name: String? = null) = BookingContact(
+  videoBookingId = 0,
+  contactType = contactType,
+  name = name,
+  position = null,
+  email = email,
+  telephone = null,
+)

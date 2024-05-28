@@ -2,8 +2,11 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import java.time.LocalDate
+import java.time.LocalTime
 
 fun court(courtId: Long = 0, enabled: Boolean = true) = Court(
   courtId = courtId,
@@ -18,7 +21,7 @@ fun prison(prisonCode: String, enabled: Boolean = true) = Prison(
   prisonId = 0,
   code = prisonCode,
   name = "prison name",
-  description = "prison description",
+  description = "$prisonCode prison description",
   enabled = enabled,
   notes = null,
   createdBy = "Test",
@@ -47,4 +50,26 @@ fun probationBooking() = VideoBooking.newProbationBooking(
   comments = "Probation meeting comments",
   videoUrl = "https://probation.meeting.link",
   createdBy = "Probation team user",
+)
+
+fun appointment(
+  booking: VideoBooking,
+  prisonCode: String,
+  prisonerNumber: String,
+  date: LocalDate = tomorrow(),
+  startTime: LocalTime = LocalTime.of(9, 0),
+  endTime: LocalTime = LocalTime.of(10, 0),
+  appointmentType: String,
+  locationKey: String,
+  createdBy: String = "Test",
+) = PrisonAppointment.newAppointment(
+  videoBooking = booking,
+  prisonCode = prisonCode,
+  prisonerNumber = prisonerNumber,
+  appointmentType = appointmentType,
+  appointmentDate = date,
+  startTime = startTime,
+  endTime = endTime,
+  locationKey = locationKey,
+  createdBy = createdBy,
 )
