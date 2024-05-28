@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.LocalDate
@@ -31,9 +33,13 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
   @Autowired
   private lateinit var prisonAppointmentRepository: PrisonAppointmentRepository
 
+  @Autowired
+  private lateinit var notificationRepository: NotificationRepository
+
   @Test
   fun `should create a court booking`() {
     videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
@@ -72,6 +78,16 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       endTime isEqualTo LocalTime.of(12, 30)
       createdBy isEqualTo "BOOKING_CREATOR"
       comments isEqualTo "integration test court booking comments"
+    }
+
+    // There should be three notifications for 3 court contacts
+    with(notificationRepository.findAll()) {
+      this hasSize 3
+      all { it.templateName == "fake template id" } isBool true
+      all { it.videoBooking == persistedBooking } isBool true
+      single { it.email == "t@t.com" }
+      single { it.email == "m@m.com" }
+      single { it.email == "s@s.com" }
     }
   }
 
