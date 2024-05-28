@@ -76,7 +76,7 @@ class BookingFacadeTest {
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",
         "court" to "court description",
-        "prison" to "MDI prison description",
+        "prison" to "Moorland",
         "offenderNo" to "123456",
         "prisonerName" to "Fred Bloggs",
         "date" to "1 Jan 2100",
