@@ -61,7 +61,7 @@ class BookingFacadeTest {
     whenever(bookingService.create(bookingRequest, "facade court user")) doReturn Pair(booking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
     whenever(prisonAppointmentRepository.findByVideoBooking(booking)) doReturn listOf(appointment)
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
-    whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.COURT, email = "jon@somewhere.com", name = "Jon"))
+    whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"))
 
     val notificationId = UUID.randomUUID()
 
