@@ -151,7 +151,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     val errorResponse = webTestClient.getBookingContactsNotFound(bookingCreator, bookingId + 300)
 
-    assertThat(errorResponse.status).isEqualTo(404)
+    assertThat(errorResponse?.status).isEqualTo(404)
   }
 
   @Test
@@ -202,7 +202,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     )
 
     // Check the owner email and name are as expected
-    val ownerObject = listOfContacts.find { it.contactType == ContactType.OWNER }
+    val ownerObject = listOfContacts?.find { it.contactType == ContactType.OWNER }
     assertThat(ownerObject?.email).isEqualTo(bookingCreator)
     assertThat(ownerObject?.name).isEqualTo(bookingCreator)
   }
