@@ -14,9 +14,6 @@ data class Prison(
   @Schema(description = "A fuller description for this prison", example = "HMP Birmingham")
   val name: String,
 
-  @Schema(description = "A fuller description for this prison (usually the same as the name)", example = "HMP Birmingham")
-  val description: String?,
-
   @Schema(description = "A boolean value to show whether the prison is enabled for self-service video link bookings by court/probation.", example = "true")
   val enabled: Boolean,
 

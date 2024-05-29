@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison
 
 import jakarta.validation.ValidationException
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -9,18 +10,21 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isAtPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 
+inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
+
 @Component
 class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient: WebClient) {
 
-  fun getLocationsByKeys(keys: Set<String>): List<Location> = keys.mapNotNull(::getLocationByKey)
-
-  @Deprecated(message = "We are waiting on a post endpoint to avoid multiple location API calls")
-  private fun getLocationByKey(key: String): Location? = locationsInsidePrisonApiWebClient.get()
-    .uri("/locations/key/{key}", key)
+  fun getLocationsByKeys(keys: Set<String>): List<Location> = locationsInsidePrisonApiWebClient.post()
+    .uri("/locations/keys")
+    .bodyValue(keys)
     .retrieve()
-    .bodyToMono(Location::class.java)
+    .bodyToMono(typeReference<List<Location>>())
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()
+    .block() ?: emptyList()
+
+  // TODO to be implemented
+  fun getLocationsAtPrison(prisonCode: String): List<Location> = emptyList()
 }
 
 @Component

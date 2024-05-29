@@ -1,31 +1,41 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingContactsService
 import java.time.LocalDate
 import java.time.LocalTime
 
 class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
+
+  // This is temporary until we can stub the call to the manage users api for establishing the owners email address.
+  @MockBean
+  private lateinit var contactsService: BookingContactsService
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
@@ -43,6 +53,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    whenever(contactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"))
 
     val courtBookingRequest = courtBookingRequest(
       prisonerNumber = "123456",
@@ -81,14 +92,11 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments isEqualTo "integration test court booking comments"
     }
 
-    // There should be three notifications for 3 court contacts
-    with(notificationRepository.findAll()) {
-      this hasSize 3
-      all { it.templateName == "fake template id" } isBool true
-      all { it.videoBooking == persistedBooking } isBool true
-      single { it.email == "t@t.com" }
-      single { it.email == "m@m.com" }
-      single { it.email == "s@s.com" }
+    // There should be one owner notification email
+    with(notificationRepository.findAll().single()) {
+      templateName isEqualTo "fake template id"
+      videoBooking isEqualTo persistedBooking
+      email isEqualTo "jon@somewhere.com"
     }
   }
 

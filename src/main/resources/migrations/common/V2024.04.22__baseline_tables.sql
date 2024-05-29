@@ -127,7 +127,6 @@ CREATE TABLE prison
     prison_id    bigserial   NOT NULL CONSTRAINT prison_id_pk PRIMARY KEY,
     code         varchar(10) NOT NULL UNIQUE,
     name         varchar(60) NOT NULL,
-    description  varchar(100) NOT NULL,
     enabled      boolean NOT NULL,
     notes        varchar(200),
     created_by   varchar(100) NOT NULL,
