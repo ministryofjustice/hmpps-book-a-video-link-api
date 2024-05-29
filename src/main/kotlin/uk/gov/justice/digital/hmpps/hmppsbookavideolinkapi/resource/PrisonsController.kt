@@ -11,17 +11,23 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonsService
 
 @Tag(name = "Prisons Controller")
 @RestController
 @RequestMapping(value = ["prisons"], produces = [MediaType.APPLICATION_JSON_VALUE])
-class PrisonsController(private val prisonsService: PrisonsService) {
+class PrisonsController(
+  private val prisonsService: PrisonsService,
+  private val locationsService: LocationsService,
+) {
 
   @Operation(summary = "Endpoint to return the list of prisons known to the service")
   @ApiResponses(
@@ -65,4 +71,58 @@ class PrisonsController(private val prisonsService: PrisonsService) {
     @RequestParam(name = "enabledOnly", required = false)
     enabledOnly: Boolean = false,
   ): List<Prison> = prisonsService.getListOfPrisons(enabledOnly)
+
+  @Operation(summary = "Endpoint to return a list of suitable appointment locations at a given prison")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Locations",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = Location::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @GetMapping(value = ["/{prisonCode}/locations"], produces = [MediaType.APPLICATION_JSON_VALUE])
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  fun getAppointmentLocationsAtPrison(
+    @Parameter(description = "The prison code for which locations will be retrieved.")
+    @PathVariable(name = "prisonCode", required = true)
+    prisonCode: String,
+    @Parameter(description = "Enabled only, true or false. Defaults to false if not supplied.")
+    @RequestParam(name = "enabledOnly", required = false)
+    enabledOnly: Boolean = false,
+    @Parameter(description = "Video link only, true or false. When true only returns video link suitable locations. Defaults to true if not supplied.")
+    @RequestParam(name = "videoLinkOnly", required = false)
+    videoLinkOnly: Boolean = true,
+  ): List<Location> =
+    if (videoLinkOnly) {
+      locationsService.getVideoLinkLocationsAtPrison(prisonCode, enabledOnly)
+    } else {
+      locationsService.getNonResidentialLocationsAtPrison(prisonCode, enabledOnly)
+    }
 }

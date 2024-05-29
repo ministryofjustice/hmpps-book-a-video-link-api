@@ -23,8 +23,19 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block() ?: emptyList()
 
-  // TODO to be implemented
-  fun getLocationsAtPrison(prisonCode: String): List<Location> = emptyList()
+  fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
+    .uri("/locations/prison/{prisonCode}/non-residential-usage-type/APPOINTMENT", prisonCode)
+    .retrieve()
+    .bodyToMono(typeReference<List<Location>>())
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block() ?: emptyList()
+
+  fun getVideoLinkLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
+    .uri("/locations/prison/{prisonCode}/location-type/VIDEO_LINK", prisonCode)
+    .retrieve()
+    .bodyToMono(typeReference<List<Location>>())
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block() ?: emptyList()
 }
 
 @Component
