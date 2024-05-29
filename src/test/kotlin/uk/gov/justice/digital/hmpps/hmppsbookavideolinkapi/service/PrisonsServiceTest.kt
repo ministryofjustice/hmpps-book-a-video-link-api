@@ -16,7 +16,7 @@ class PrisonsServiceTest {
   private val service = PrisonsService(prisonRepository)
 
   private fun prisonEntity(id: Long, code: String, name: String, enabled: Boolean = true, notes: String? = "notes") =
-    PrisonEntity(id, code, name, name, enabled, notes, "name")
+    PrisonEntity(id, code, name, enabled, notes, "name")
 
   @BeforeEach
   fun setUp() {

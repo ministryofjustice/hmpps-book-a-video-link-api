@@ -59,7 +59,7 @@ class BookingFacade(
             prisonerLastName = prisoner.lastName,
             prisonerNumber = prisoner.prisonerNumber,
             court = booking.court!!.description,
-            prison = prison.description,
+            prison = prison.name,
             date = main.appointmentDate,
             preAppointmentInfo = pre?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
             mainAppointmentInfo = main.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },

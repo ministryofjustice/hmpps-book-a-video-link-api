@@ -7,7 +7,6 @@ fun PrisonEntity.toModel() = Prison(
   prisonId = prisonId,
   code = code,
   name = name,
-  description = description,
   enabled = enabled,
   notes = notes,
 )
