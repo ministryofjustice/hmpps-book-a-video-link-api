@@ -180,6 +180,7 @@ CREATE TABLE video_booking
     probation_meeting_type varchar(40), -- Nullable
     video_url              varchar(120),
     comments               varchar(400),
+    created_by_prison      boolean NOT NULL DEFAULT false,
     created_by             varchar(100) NOT NULL, 
     created_time           timestamp    NOT NULL,
     amended_by             varchar(100), 

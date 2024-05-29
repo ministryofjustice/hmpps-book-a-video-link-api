@@ -42,6 +42,7 @@ fun courtBooking() = VideoBooking.newCourtBooking(
   comments = "Court hearing comments",
   videoUrl = "https://court.hearing.link",
   createdBy = "Court user",
+  createdByPrison = false,
 )
 
 fun probationBooking() = VideoBooking.newProbationBooking(
@@ -50,6 +51,7 @@ fun probationBooking() = VideoBooking.newProbationBooking(
   comments = "Probation meeting comments",
   videoUrl = "https://probation.meeting.link",
   createdBy = "Probation team user",
+  createdByPrison = false,
 )
 
 fun appointment(
