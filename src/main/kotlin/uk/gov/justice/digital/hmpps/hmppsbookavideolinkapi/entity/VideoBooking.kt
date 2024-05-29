@@ -37,6 +37,8 @@ class VideoBooking private constructor(
 
   var videoUrl: String? = null,
 
+  val createdByPrison: Boolean = false,
+
   val createdBy: String,
 
   val createdTime: LocalDateTime = LocalDateTime.now(),
@@ -73,6 +75,7 @@ class VideoBooking private constructor(
       comments: String?,
       videoUrl: String?,
       createdBy: String,
+      createdByPrison: Boolean,
     ): VideoBooking =
       // TODO check court is enabled?
       VideoBooking(
@@ -84,6 +87,7 @@ class VideoBooking private constructor(
         comments = comments,
         videoUrl = videoUrl,
         createdBy = createdBy,
+        createdByPrison = createdByPrison,
       )
 
     fun newProbationBooking(
@@ -92,6 +96,7 @@ class VideoBooking private constructor(
       comments: String?,
       videoUrl: String?,
       createdBy: String,
+      createdByPrison: Boolean,
     ): VideoBooking =
       // TODO check probation team is enabled?
       VideoBooking(
@@ -103,6 +108,7 @@ class VideoBooking private constructor(
         comments = comments,
         videoUrl = videoUrl,
         createdBy = createdBy,
+        createdByPrison = createdByPrison,
       )
   }
 }

@@ -76,6 +76,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
       createdBy isEqualTo "BOOKING_CREATOR"
+      createdByPrison isEqualTo false
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -207,6 +208,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments isEqualTo "integration test probation booking comments"
       videoUrl isEqualTo "https://probation.videolink.com"
       createdBy isEqualTo "BOOKING_CREATOR"
+      createdByPrison isEqualTo false
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {

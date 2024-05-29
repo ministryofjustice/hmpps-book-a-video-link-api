@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config
 
+import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -34,6 +35,17 @@ class HmppsBookAVideoLinkApiExceptionHandler {
         developerMessage = e.message,
       ),
     ).also { log.info("No resource found exception: {}", e.message) }
+
+  @ExceptionHandler(EntityNotFoundException::class)
+  fun handleEntityNotFoundException(e: EntityNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(NOT_FOUND)
+    .body(
+      ErrorResponse(
+        status = NOT_FOUND,
+        userMessage = "Entity not found : ${e.message}",
+        developerMessage = e.message,
+      ),
+    ).also { log.info("Entity not found exception: {}", e.message) }
 
   @ExceptionHandler(Exception::class)
   fun handleException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity

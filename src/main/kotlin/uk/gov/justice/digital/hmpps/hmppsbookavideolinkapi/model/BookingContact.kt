@@ -14,13 +14,13 @@ data class BookingContact(
   val name: String?,
 
   @Schema(description = "Describes the position or role of the contact person (optional)", example = "BVLS Administator")
-  val position: String?,
+  val position: String? = null,
 
   @Schema(description = "Describes the email address of this contact (optional)", example = "example@example.com")
   val email: String?,
 
   @Schema(description = "Describes the telephone number of this contact (optional)", example = "00902 0909779")
-  val telephone: String?,
+  val telephone: String? = null,
 )
 
 enum class ContactType {

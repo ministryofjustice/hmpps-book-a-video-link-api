@@ -54,6 +54,16 @@ class BookingContactsController(val bookingContactsService: BookingContactsServi
           ),
         ],
       ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The video booking ID was not found.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
     ],
   )
   @GetMapping(value = ["/id/{videoBookingId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
