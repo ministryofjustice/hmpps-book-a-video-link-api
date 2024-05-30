@@ -1,18 +1,13 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -20,22 +15,18 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingContactsService
 import java.time.LocalDate
 import java.time.LocalTime
 
 class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
-
-  // This is temporary until we can stub the call to the manage users api for establishing the owners email address.
-  @MockBean
-  private lateinit var contactsService: BookingContactsService
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
@@ -53,7 +44,8 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
-    whenever(contactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"))
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     val courtBookingRequest = courtBookingRequest(
       prisonerNumber = "123456",
@@ -64,7 +56,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -75,7 +67,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo "BOOKING_CREATOR"
+      createdBy isEqualTo TEST_USERNAME
       createdByPrison isEqualTo false
     }
 
@@ -88,7 +80,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonLocKey isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
-      createdBy isEqualTo "BOOKING_CREATOR"
+      createdBy isEqualTo TEST_USERNAME
       comments isEqualTo "integration test court booking comments"
     }
 
@@ -96,7 +88,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     with(notificationRepository.findAll().single()) {
       templateName isEqualTo "fake template id"
       videoBooking isEqualTo persistedBooking
-      email isEqualTo "jon@somewhere.com"
+      email isEqualTo TEST_USER_EMAIL
     }
   }
 
@@ -207,7 +199,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
       comments isEqualTo "integration test probation booking comments"
       videoUrl isEqualTo "https://probation.videolink.com"
-      createdBy isEqualTo "BOOKING_CREATOR"
+      createdBy isEqualTo "booking@creator.com"
       createdByPrison isEqualTo false
     }
 
@@ -220,7 +212,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonLocKey isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
-      createdBy isEqualTo "BOOKING_CREATOR"
+      createdBy isEqualTo "booking@creator.com"
       comments isEqualTo "integration test probation booking comments"
     }
   }
@@ -354,13 +346,13 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     }
   }
 
-  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =
+  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest, username: String = "booking@creator.com") =
     this
       .post()
       .uri("/video-link-booking")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = "BOOKING_CREATOR", roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isCreated
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

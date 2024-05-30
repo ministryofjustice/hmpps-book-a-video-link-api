@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.EmailAddressDto
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.UserDetailsDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
@@ -45,6 +47,16 @@ fun prisonerSearchPrisoner(
   prisonId = prisonCode,
   firstName = firstName,
   lastName = lastName,
+)
+
+fun userEmail(username: String, email: String) = EmailAddressDto(username, email, true)
+
+fun userDetails(username: String, name: String) = UserDetailsDto(
+  username = username,
+  active = true,
+  name = name,
+  authSource = "TEST",
+  activeCaseLoadId = null,
 )
 
 fun prisoner(
