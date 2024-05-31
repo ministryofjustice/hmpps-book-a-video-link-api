@@ -13,7 +13,7 @@ data class BookingContact(
   @Schema(description = "Describes the contact name (optional)", example = "Mr. Person-contact")
   val name: String?,
 
-  @Schema(description = "Describes the position or role of the contact person (optional)", example = "BVLS Administator")
+  @Schema(description = "Describes the position or role of the contact person (optional)", example = "BVLS Administrator")
   val position: String? = null,
 
   @Schema(description = "Describes the email address of this contact (optional)", example = "example@example.com")

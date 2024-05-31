@@ -45,10 +45,8 @@ class VideoBooking private constructor(
 ) {
 
   var amendedBy: String? = null
-    private set
 
   var amendedTime: LocalDateTime? = null
-    private set
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

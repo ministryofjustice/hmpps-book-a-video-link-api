@@ -14,6 +14,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -162,12 +164,14 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
   @Test
   fun `should return the owner contact details for a created booking`() {
     // If the creating username is an email address, this will be returned as the OWNER name and contact
-    val bookingCreator = "booking-creator@test.com"
+    val bookingCreator = TEST_USERNAME
 
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     // For court DRBYMC
     val courtBookingRequest = courtBookingRequest(
@@ -198,13 +202,13 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     // Check that the contact addresses are present
     assertThat(listOfContacts).extracting("email").containsAll(
-      listOf("m@m.com", "t@t.com", "s@s.com", "booking-creator@test.com"),
+      listOf("m@m.com", "t@t.com", "s@s.com", TEST_USER_EMAIL),
     )
 
     // Check the owner email and name are as expected
     val ownerObject = listOfContacts?.find { it.contactType == ContactType.OWNER }
-    assertThat(ownerObject?.email).isEqualTo(bookingCreator)
-    assertThat(ownerObject?.name).isEqualTo(bookingCreator)
+    assertThat(ownerObject?.email).isEqualTo(TEST_USER_EMAIL)
+    assertThat(ownerObject?.name).isEqualTo("Test Users Name")
   }
 
   @Test

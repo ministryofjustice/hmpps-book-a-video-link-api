@@ -35,12 +35,12 @@ fun probationTeam(probationTeamId: Long = 0, enabled: Boolean = true) = Probatio
   createdBy = "Test",
 )
 
-fun courtBooking() = VideoBooking.newCourtBooking(
+fun courtBooking(createdBy: String = "court_user") = VideoBooking.newCourtBooking(
   court = court(),
   hearingType = "COURT",
   comments = "Court hearing comments",
   videoUrl = "https://court.hearing.link",
-  createdBy = "Court user",
+  createdBy = createdBy,
   createdByPrison = false,
 )
 

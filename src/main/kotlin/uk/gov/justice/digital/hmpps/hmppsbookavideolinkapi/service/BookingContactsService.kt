@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.ManageUsersClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
@@ -11,9 +13,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 
 @Service
 class BookingContactsService(
-  val bookingContactsRepository: BookingContactsRepository,
-  val videoBookingRepository: VideoBookingRepository,
+  private val bookingContactsRepository: BookingContactsRepository,
+  private val videoBookingRepository: VideoBookingRepository,
+  private val manageUsersClient: ManageUsersClient,
 ) {
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
   fun getBookingContacts(videoBookingId: Long): List<BookingContact> {
     // Get the contact details of people set up as contacts for the prison, court or probation team
     val listOfContacts = bookingContactsRepository.findContactsForBooking(videoBookingId).toModel().toMutableList()
@@ -22,34 +30,46 @@ class BookingContactsService(
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
 
-    // TODO: Call manage-user-api to get full name and email (GET /users/{username}, GET /users/{username}/email)
+    val mayBeCreatedByContactDetails = getContactDetails(booking.createdBy)
 
-    // For now - check if the username is an email address and return it as the owner contact
-    if (booking.createdBy.isEmail()) {
+    if (mayBeCreatedByContactDetails?.email != null) {
       listOfContacts.add(
         BookingContact(
           videoBookingId = videoBookingId,
           contactType = ContactType.OWNER,
-          name = booking.createdBy,
-          email = booking.createdBy,
+          name = mayBeCreatedByContactDetails.name,
+          email = mayBeCreatedByContactDetails.email,
         ),
       )
     }
 
     // Include the person who amended this booking as a second owner, if different
     if (booking.amendedBy != null && booking.amendedBy != booking.createdBy) {
-      if (booking.amendedBy!!.isEmail()) {
+      val mayBeAmendedByContactDetails = getContactDetails(booking.amendedBy!!)
+
+      if (mayBeAmendedByContactDetails?.email != null) {
         listOfContacts.add(
           BookingContact(
             videoBookingId = videoBookingId,
             contactType = ContactType.OWNER,
-            name = booking.amendedBy,
-            email = booking.amendedBy,
+            name = mayBeAmendedByContactDetails.name,
+            email = mayBeAmendedByContactDetails.email,
           ),
         )
       }
     }
 
-    return listOfContacts
+    return listOfContacts.toList()
   }
+
+  private fun getContactDetails(username: String): ContactDetails? {
+    val mayBeUserDetails = manageUsersClient.getUsersDetails(username) ?: return null
+
+    return if (username.isEmail()) {
+      ContactDetails(name = mayBeUserDetails.name, email = username)
+    } else {
+      return ContactDetails(name = mayBeUserDetails.name, email = manageUsersClient.getUsersEmail(username)?.email)
+    }
+  }
+  private data class ContactDetails(val name: String, val email: String?)
 }
