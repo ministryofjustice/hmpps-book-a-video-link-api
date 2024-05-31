@@ -20,11 +20,11 @@ class ManageUsersClient(private val manageUsersApiWebClient: WebClient) {
   fun getUsersEmail(username: String): EmailAddressDto? =
     manageUsersApiWebClient
       .get()
-      .uri("/users/{username}/email", username)
+      .uri("/users/{username}/email?unverified=false", username)
       .retrieve()
       .bodyToMono(EmailAddressDto::class.java)
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()
+      .block()?.takeIf(EmailAddressDto::verified)
 }
 
 data class UserDetailsDto(

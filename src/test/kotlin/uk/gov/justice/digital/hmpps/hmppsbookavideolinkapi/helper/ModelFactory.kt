@@ -49,7 +49,7 @@ fun prisonerSearchPrisoner(
   lastName = lastName,
 )
 
-fun userEmail(username: String, email: String) = EmailAddressDto(username, email, true)
+fun userEmail(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, email, verified)
 
 fun userDetails(username: String, name: String) = UserDetailsDto(
   username = username,

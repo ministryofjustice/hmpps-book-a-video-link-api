@@ -21,10 +21,17 @@ class ManageUsersClientTest {
   }
 
   @Test
-  fun `should get users email`() {
-    server.stubGetUserEmail("username", "email")
+  fun `should return a verified users email`() {
+    server.stubGetUserEmail("username", "verified@email.com", true)
 
-    client.getUsersEmail("username") isEqualTo userEmail("username", "email")
+    client.getUsersEmail("username") isEqualTo userEmail("username", "verified@email.com")
+  }
+
+  @Test
+  fun `should not return an unverified users email`() {
+    server.stubGetUserEmail("username", "unverified@email.com", false)
+
+    client.getUsersEmail("username") isEqualTo null
   }
 
   @AfterEach

@@ -23,13 +23,13 @@ class ManageUsersApiMockServer : MockServer(8093) {
     )
   }
 
-  fun stubGetUserEmail(username: String = TEST_USERNAME, email: String = TEST_USER_EMAIL) {
+  fun stubGetUserEmail(username: String = TEST_USERNAME, email: String = TEST_USER_EMAIL, verified: Boolean = true) {
     stubFor(
-      get("/users/$username/email")
+      get("/users/$username/email?unverified=false")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(userEmail(username, email)))
+            .withBody(mapper.writeValueAsString(userEmail(username, email, verified)))
             .withStatus(200),
         ),
     )
