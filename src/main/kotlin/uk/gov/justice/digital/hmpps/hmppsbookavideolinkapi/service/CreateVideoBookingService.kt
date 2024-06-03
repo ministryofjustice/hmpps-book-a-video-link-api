@@ -44,9 +44,9 @@ class CreateVideoBookingService(
     }
 
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
-    val court = courtRepository.findById(request.courtId!!)
-      .orElseThrow { EntityNotFoundException("Court with ID ${request.courtId} not found") }
-      .also { require(it.enabled) { "Court with ID ${it.courtId} is not enabled" } }
+    val court = courtRepository.findByCode(request.courtCode!!)
+      ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
 
     val prisoner = request.prisoner().validate()
 
@@ -130,9 +130,9 @@ class CreateVideoBookingService(
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
   private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
-    val probationTeam = probationTeamRepository.findById(request.probationTeamId!!)
-      .orElseThrow { EntityNotFoundException("Probation team with ID ${request.probationTeamId} not found") }
-      .also { require(it.enabled) { "Probation team with ID ${it.probationTeamId} is not enabled" } }
+    val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
+      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
 
     val prisoner = request.prisoner().validate()
 

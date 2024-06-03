@@ -24,14 +24,14 @@ data class CreateVideoBookingRequest(
   @Schema(description = "The prisoner or prisoners associated with the video link booking")
   val prisoners: List<PrisonerDetails>,
 
-  @Schema(description = "The court identifier is needed if booking type is COURT, otherwise null", example = "123456")
-  val courtId: Long? = null,
+  @Schema(description = "The court code is needed if booking type is COURT, otherwise null", example = "DRBYMC")
+  val courtCode: String? = null,
 
   @Schema(description = "The court hearing type is needed if booking type is COURT, otherwise null", example = "APPEAL")
   val courtHearingType: CourtHearingType? = null,
 
-  @Schema(description = "The probation team identifier is needed if booking type is PROBATION, otherwise null", example = "123456")
-  val probationTeamId: Long? = null,
+  @Schema(description = "The probation team code is needed if booking type is PROBATION, otherwise null", example = "BLKPPP")
+  val probationTeamCode: String? = null,
 
   @Schema(description = "The probation meeting type is needed if booking type is PROBATION, otherwise null", example = "PSR")
   val probationMeetingType: ProbationMeetingType? = null,
@@ -47,11 +47,11 @@ data class CreateVideoBookingRequest(
   @Schema(description = "Set to true when called by a prison request. Will default to false.", example = "false")
   val createdByPrison: Boolean? = false,
 ) {
-  @AssertTrue(message = "The court identifier and court hearing type are mandatory for court bookings")
-  private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtId != null && courtHearingType != null)
+  @AssertTrue(message = "The court code and court hearing type are mandatory for court bookings")
+  private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtCode != null && courtHearingType != null)
 
-  @AssertTrue(message = "The probation team identifier and probation meeting type are mandatory for probation bookings")
-  private fun isInvalidProbationBooking() = (BookingType.PROBATION != bookingType) || (probationTeamId != null && probationMeetingType != null)
+  @AssertTrue(message = "The probation team code and probation meeting type are mandatory for probation bookings")
+  private fun isInvalidProbationBooking() = (BookingType.PROBATION != bookingType) || (probationTeamCode != null && probationMeetingType != null)
 
   @AssertTrue(message = "The supplied video link for the appointment is not a valid URL")
   private fun isInvalidUrl() = videoLinkUrl == null || runCatching { URI(videoLinkUrl!!).toURL() }.isSuccess

@@ -22,7 +22,7 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
 
   private val courtBooking = CreateVideoBookingRequest(
     bookingType = BookingType.COURT,
-    courtId = 123456,
+    courtCode = "ABC",
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
@@ -31,7 +31,7 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
 
   private val probationBooking = CreateVideoBookingRequest(
     bookingType = BookingType.PROBATION,
-    probationTeamId = 123456,
+    probationTeamCode = "DEF",
     probationMeetingType = ProbationMeetingType.RR,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
@@ -54,23 +54,23 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   }
 
   @Test
-  fun `should fail when court booking missing court identifier`() {
-    courtBooking.copy(courtId = null) failsWithSingle ModelError("invalidCourtBooking", "The court identifier and court hearing type are mandatory for court bookings")
+  fun `should fail when court booking missing court code`() {
+    courtBooking.copy(courtCode = null) failsWithSingle ModelError("invalidCourtBooking", "The court code and court hearing type are mandatory for court bookings")
   }
 
   @Test
   fun `should fail when court booking missing court hearing type code`() {
-    courtBooking.copy(courtHearingType = null) failsWithSingle ModelError("invalidCourtBooking", "The court identifier and court hearing type are mandatory for court bookings")
+    courtBooking.copy(courtHearingType = null) failsWithSingle ModelError("invalidCourtBooking", "The court code and court hearing type are mandatory for court bookings")
   }
 
   @Test
-  fun `should fail when probation booking missing probation team identifier`() {
-    probationBooking.copy(probationTeamId = null) failsWithSingle ModelError("invalidProbationBooking", "The probation team identifier and probation meeting type are mandatory for probation bookings")
+  fun `should fail when probation booking missing probation team code`() {
+    probationBooking.copy(probationTeamCode = null) failsWithSingle ModelError("invalidProbationBooking", "The probation team code and probation meeting type are mandatory for probation bookings")
   }
 
   @Test
   fun `should fail when probation booking missing probation meeting type code`() {
-    probationBooking.copy(probationMeetingType = null) failsWithSingle ModelError("invalidProbationBooking", "The probation team identifier and probation meeting type are mandatory for probation bookings")
+    probationBooking.copy(probationMeetingType = null) failsWithSingle ModelError("invalidProbationBooking", "The probation team code and probation meeting type are mandatory for probation bookings")
   }
 
   @Test

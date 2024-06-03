@@ -72,7 +72,7 @@ fun prisoner(
 )
 
 fun courtBookingRequest(
-  courtId: Long = 1,
+  courtCode: String = "DRBYMC",
   prisonCode: String = "MDI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
@@ -100,7 +100,7 @@ fun courtBookingRequest(
 
   return CreateVideoBookingRequest(
     bookingType = BookingType.COURT,
-    courtId = courtId,
+    courtCode = courtCode,
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
     comments = comments,
@@ -109,7 +109,7 @@ fun courtBookingRequest(
 }
 
 fun probationBookingRequest(
-  probationTeamId: Long = 1,
+  probationTeamCode: String = "BLKPPP",
   probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
   videoLinkUrl: String = "https://video.link.com",
   prisonCode: String = "MDI",
@@ -138,7 +138,7 @@ fun probationBookingRequest(
 
   return CreateVideoBookingRequest(
     bookingType = BookingType.PROBATION,
-    probationTeamId = probationTeamId,
+    probationTeamCode = probationTeamCode,
     probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
     comments = comments,

@@ -48,6 +48,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     val courtBookingRequest = courtBookingRequest(
+      courtCode = "DRBYMC",
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -63,7 +64,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     with(persistedBooking) {
       videoBookingId isEqualTo bookingId
       bookingType isEqualTo "COURT"
-      court?.courtId isEqualTo courtBookingRequest.courtId
+      court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
@@ -100,6 +101,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val courtBookingRequest = courtBookingRequest(
+      courtCode = "DRBYMC",
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -110,6 +112,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     webTestClient.createBooking(courtBookingRequest)
 
     val clashingBookingRequest = courtBookingRequest(
+      courtCode = "DRBYMC",
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -143,6 +146,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val courtBookingRequest = courtBookingRequest(
+      courtCode = "DRBYMC",
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -176,7 +180,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
-      probationTeamId = 1,
+      probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
@@ -225,7 +229,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
-      probationTeamId = 1,
+      probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
@@ -243,7 +247,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("78910", BIRMINGHAM)
 
     val secondProbationBookingRequest = probationBookingRequest(
-      probationTeamId = 1,
+      probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
@@ -267,7 +271,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
 
     val probationBookingRequest = probationBookingRequest(
-      probationTeamId = 1,
+      probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = MOORLAND,
@@ -283,7 +287,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("789012", MOORLAND)
 
     val clashingBookingRequest = probationBookingRequest(
-      probationTeamId = 1,
+      probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = MOORLAND,
@@ -317,7 +321,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("789012", BIRMINGHAM)
 
     val clashingBookingRequest = probationBookingRequest(
-      probationTeamId = 1,
+      probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = MOORLAND,

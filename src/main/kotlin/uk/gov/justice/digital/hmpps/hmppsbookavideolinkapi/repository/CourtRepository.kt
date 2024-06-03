@@ -21,4 +21,6 @@ interface CourtRepository : JpaRepository<Court, Long> {
   fun findCourtsByUsername(username: String): List<Court>
 
   fun findAllByCodeIn(codes: List<String>): List<Court>
+
+  fun findByCode(code: String): Court?
 }
