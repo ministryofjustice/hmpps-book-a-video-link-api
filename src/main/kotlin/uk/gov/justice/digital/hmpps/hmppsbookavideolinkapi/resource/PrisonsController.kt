@@ -113,8 +113,8 @@ class PrisonsController(
     @Parameter(description = "The prison code for which locations will be retrieved.")
     @PathVariable(name = "prisonCode", required = true)
     prisonCode: String,
-    @Parameter(description = "Enabled only, true or false. Defaults to false if not supplied.")
-    @RequestParam(name = "enabledOnly", required = false)
+    @Parameter(description = "Enabled (active) locations only, true or false. Defaults to true if not supplied.")
+    @RequestParam(name = "enabledOnly", required = true)
     enabledOnly: Boolean = false,
     @Parameter(description = "Video link only, true or false. When true only returns video link suitable locations. Defaults to true if not supplied.")
     @RequestParam(name = "videoLinkOnly", required = false)
