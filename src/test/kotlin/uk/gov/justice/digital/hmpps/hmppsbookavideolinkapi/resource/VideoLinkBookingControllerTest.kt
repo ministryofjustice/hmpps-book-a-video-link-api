@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.hmpps.kotlin.auth.HmppsResourceServerConfiguration
@@ -79,21 +80,23 @@ class VideoLinkBookingControllerTest {
       ]
     }
   ],
-  "courtId": 1,
+  "courtCode": "DRBYMC",
   "courtHearingType": "APPEAL",
   "comments": "Waiting to hear on legal representation",
   "videoLinkUrl": "https://video.here.com"
 }
     """.trimIndent()
 
-    mockMvc.post("/video-link-booking") {
+    val response = mockMvc.post("/video-link-booking") {
       contentType = MediaType.APPLICATION_JSON
       content = json
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext("FRED", LocalDateTime.now()))
     }
       .andExpect {
         status { isBadRequest() }
-      }
+      }.andReturn()
+
+    response.resolvedException?.message!! contains "JSON parse error: Cannot deserialize value of type `java.time.LocalDate` from String \"2200-02-31\""
 
     verifyNoInteractions(bookingFacade)
   }
@@ -119,7 +122,7 @@ class VideoLinkBookingControllerTest {
       ]
     }
   ],
-  "courtId": 1,
+  "courtCode": "DRBYMC",
   "courtHearingType": "APPEAL",
   "comments": "Waiting to hear on legal representation",
   "videoLinkUrl": "https://video.here.com"

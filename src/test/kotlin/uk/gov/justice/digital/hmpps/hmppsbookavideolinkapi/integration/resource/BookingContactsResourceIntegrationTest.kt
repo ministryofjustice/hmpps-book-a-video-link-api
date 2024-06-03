@@ -36,9 +36,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
 
-    // For court DRBYMC
     val courtBookingRequest = courtBookingRequest(
-      courtId = 1L,
+      courtCode = "DRBYMC",
       prisonerNumber = "A1111AA",
       prisonCode = WERRINGTON,
       location = werringtonLocation,
@@ -70,9 +69,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
 
-    // For probation team BLKPPP
     val probationBookingRequest = probationBookingRequest(
-      probationTeamId = 1L,
+      probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = WERRINGTON,
@@ -108,9 +106,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("A1111AA", BIRMINGHAM)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
-    // For court NWPIAC
     val courtBookingRequest = courtBookingRequest(
-      courtId = 2L,
+      courtCode = "NWPIAC",
       prisonerNumber = "A1111AA",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -138,7 +135,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val courtBookingRequest = courtBookingRequest(
-      courtId = 2L,
+      courtCode = "DRBYMC",
       prisonerNumber = "A1111AA",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -173,9 +170,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
     manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
-    // For court DRBYMC
     val courtBookingRequest = courtBookingRequest(
-      courtId = 1L,
+      courtCode = "DRBYMC",
       prisonerNumber = "A1111AA",
       prisonCode = WERRINGTON,
       location = werringtonLocation,

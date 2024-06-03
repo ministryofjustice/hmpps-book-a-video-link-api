@@ -20,4 +20,6 @@ interface ProbationTeamRepository : JpaRepository<ProbationTeam, Long> {
   )
   fun findProbationTeamsByUsername(username: String): List<ProbationTeam>
   fun findAllByCodeIn(codes: List<String>): List<ProbationTeam>
+
+  fun findByCode(code: String): ProbationTeam?
 }

@@ -28,3 +28,7 @@ internal infix fun LocalDateTime?.isCloseTo(dateTime: LocalDateTime) {
 internal infix fun <T> T.isEqualTo(value: T) {
   assertThat(this).isEqualTo(value)
 }
+
+internal infix fun String.contains(value: String) {
+  assertThat(this).contains(value)
+}

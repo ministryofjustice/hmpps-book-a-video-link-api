@@ -8,9 +8,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
 
-fun court(courtId: Long = 0, enabled: Boolean = true) = Court(
-  courtId = courtId,
-  code = "code",
+fun court(code: String = "DRBYMC", enabled: Boolean = true) = Court(
+  courtId = 0,
+  code = code,
   description = "court description",
   enabled = enabled,
   notes = null,
@@ -26,9 +26,9 @@ fun prison(prisonCode: String, enabled: Boolean = true) = Prison(
   createdBy = "Test",
 )
 
-fun probationTeam(probationTeamId: Long = 0, enabled: Boolean = true) = ProbationTeam(
-  probationTeamId = probationTeamId,
-  code = "code",
+fun probationTeam(code: String = "BLKPPP", enabled: Boolean = true) = ProbationTeam(
+  probationTeamId = 0,
+  code = code,
   description = "probation team description",
   enabled = enabled,
   notes = null,
