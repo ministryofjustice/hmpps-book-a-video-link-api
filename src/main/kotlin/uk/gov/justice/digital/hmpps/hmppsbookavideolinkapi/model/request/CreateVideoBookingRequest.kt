@@ -137,7 +137,7 @@ data class Appointment(
   @field:NotNull(message = "The date for the appointment is mandatory")
   @field:Future(message = "The date for the appointment must be in the future")
   @Schema(description = "The future date for which the appointment will start", example = "2022-12-23")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "uuuu-MM-dd")
   val date: LocalDate?,
 
   @field:NotNull(message = "The start time for the appointment is mandatory")
