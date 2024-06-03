@@ -44,8 +44,8 @@ data class CreateVideoBookingRequest(
   @Schema(description = "The video link for the appointment. Must be a valid URL", example = "https://video.here.com")
   val videoLinkUrl: String?,
 
-  @Schema(description = "Set to true when called by a prison user action. Will default to false.", example = "false")
-  val createdByPrison: Boolean = false,
+  @Schema(description = "Set to true when called by a prison request. Will default to false.", example = "false")
+  val createdByPrison: Boolean? = false,
 ) {
   @AssertTrue(message = "The court identifier and court hearing type are mandatory for court bookings")
   private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtId != null && courtHearingType != null)

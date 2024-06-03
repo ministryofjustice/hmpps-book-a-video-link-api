@@ -56,7 +56,7 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
-      createdByPrison = request.createdByPrison,
+      createdByPrison = request.createdByPrison!!,
     ).let(videoBookingRepository::saveAndFlush)
       .also { booking -> createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
       .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
@@ -142,7 +142,7 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
-      createdByPrison = request.createdByPrison,
+      createdByPrison = request.createdByPrison!!,
     ).let(videoBookingRepository::saveAndFlush)
       .also { booking -> createAppointmentForProbation(booking, request.prisoner(), createdBy) }
       .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} created") } to prisoner
