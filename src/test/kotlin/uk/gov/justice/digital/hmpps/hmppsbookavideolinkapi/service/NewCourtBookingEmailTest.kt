@@ -4,11 +4,11 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import java.time.LocalDate
 
-class CourtNewBookingEmailTest {
+class NewCourtBookingEmailTest {
 
   @Test
   fun `should personalise court new booking email`() {
-    val email = CourtNewBookingEmail(
+    val email = NewCourtBookingEmail(
       address = "address 1",
       prisonerFirstName = "builder",
       prisonerLastName = "bob",

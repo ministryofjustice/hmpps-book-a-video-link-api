@@ -39,6 +39,7 @@ class BookingContactsService(
           contactType = ContactType.OWNER,
           name = mayBeCreatedByContactDetails.name,
           email = mayBeCreatedByContactDetails.email,
+          primaryContact = true,
         ),
       )
     }
@@ -54,6 +55,7 @@ class BookingContactsService(
             contactType = ContactType.OWNER,
             name = mayBeAmendedByContactDetails.name,
             email = mayBeAmendedByContactDetails.email,
+            primaryContact = true,
           ),
         )
       }

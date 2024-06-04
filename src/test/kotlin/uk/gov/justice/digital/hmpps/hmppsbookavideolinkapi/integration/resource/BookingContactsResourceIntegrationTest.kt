@@ -7,10 +7,12 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
@@ -103,14 +105,14 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     val bookingCreator = "BOOKING_CREATOR"
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("A1111AA", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    prisonSearchApi().stubGetPrisoner("A1111AA", MOORLAND)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "NWPIAC",
       prisonerNumber = "A1111AA",
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
+      prisonCode = MOORLAND,
+      location = moorlandLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",

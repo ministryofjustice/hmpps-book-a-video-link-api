@@ -20,7 +20,9 @@ class GovNotifyEmailService(
 
   override fun send(email: Email): Result<Pair<UUID, TemplateId>> =
     when (email) {
-      is CourtNewBookingEmail -> send(email, emailTemplates.courtNewBooking)
+      is NewCourtBookingEmail -> send(email, emailTemplates.newCourtBookingOwner)
+      is NewCourtBookingPrisonCourtEmail -> send(email, emailTemplates.newCourtBookingPrisonCourtEmail)
+      is NewCourtBookingPrisonNoCourtEmail -> send(email, emailTemplates.newCourtBookingPrisonNoCourtEmail)
       else -> throw RuntimeException("Unsupported email type ${email.javaClass.simpleName}.")
     }
 
@@ -29,10 +31,10 @@ class GovNotifyEmailService(
       client.sendEmail(templateId, email.address, email.personalisation(), null).notificationId!! to templateId
     }
       .onSuccess { log.info("EMAIL: sent ${email.javaClass.simpleName} email.") }
-      .onFailure { log.info("EMAIL: failed to send ${email.javaClass.simpleName} email.") }
+      .onFailure { exception -> log.info("EMAIL: failed to send ${email.javaClass.simpleName} email.", exception) }
 }
 
-class CourtNewBookingEmail(
+class NewCourtBookingEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
@@ -44,10 +46,56 @@ class CourtNewBookingEmail(
   preAppointmentInfo: String?,
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
-  comments: String? = "None entered",
+  comments: String?,
 ) : Email(address, prisonerFirstName, prisonerLastName, prisonerNumber, date, comments) {
   init {
     addPersonalisation("userName", userName)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class NewCourtBookingPrisonCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  court: String,
+  courtEmailAddress: String,
+  prison: String,
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, prisonerNumber, date, comments) {
+  init {
+    addPersonalisation("court", court)
+    addPersonalisation("courtEmailAddress", courtEmailAddress)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class NewCourtBookingPrisonNoCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  court: String,
+  prison: String,
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, prisonerNumber, date, comments) {
+  init {
     addPersonalisation("court", court)
     addPersonalisation("prison", prison)
     addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")

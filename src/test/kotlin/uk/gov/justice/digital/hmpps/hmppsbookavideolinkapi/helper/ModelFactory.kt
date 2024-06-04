@@ -153,4 +153,5 @@ fun bookingContact(contactType: ContactType, email: String?, name: String? = nul
   position = null,
   email = email,
   telephone = null,
+  primaryContact = true,
 )

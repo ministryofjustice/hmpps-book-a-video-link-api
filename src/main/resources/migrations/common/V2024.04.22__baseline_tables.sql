@@ -59,6 +59,7 @@ CREATE TABLE court_contact
     position            varchar(100),
     enabled             boolean NOT NULL,
     notes               varchar(200),
+    primary_contact     boolean NOT NULL,
     created_by          varchar(100) NOT NULL,
     created_time        timestamp NOT NULL,
     amended_by          varchar(100),
@@ -108,6 +109,7 @@ CREATE TABLE probation_team_contact
     position             varchar(100),
     enabled              boolean NOT NULL,
     notes                varchar(200),
+    primary_contact      boolean NOT NULL,
     created_by           varchar(100) NOT NULL,
     created_time         timestamp NOT NULL,
     amended_by           varchar(100),
@@ -143,18 +145,19 @@ CREATE UNIQUE INDEX idx_prison_code ON prison(code);
 
 CREATE TABLE prison_contact
 (
-    prison_contact_id  bigserial NOT NULL CONSTRAINT prison_contact_id_pk PRIMARY KEY,
-    prison_id bigint NOT NULL REFERENCES prison(prison_id),
-    name varchar(100) NOT NULL,
-    email varchar(100),
-    telephone varchar(20),
-    position varchar(100),
-    enabled boolean NOT NULL,
-    notes varchar(200),
-    created_by   varchar(100) NOT NULL,
-    created_time timestamp NOT NULL,
-    amended_by   varchar(100),
-    amended_time timestamp
+    prison_contact_id bigserial NOT NULL CONSTRAINT prison_contact_id_pk PRIMARY KEY,
+    prison_id         bigint NOT NULL REFERENCES prison(prison_id),
+    name              varchar(100) NOT NULL,
+    email             varchar(100),
+    telephone         varchar(20),
+    position          varchar(100),
+    enabled boolean   NOT NULL,
+    notes             varchar(200),
+    primary_contact   boolean NOT NULL,
+    created_by        varchar(100) NOT NULL,
+    created_time      timestamp NOT NULL,
+    amended_by        varchar(100),
+    amended_time      timestamp
 );
 
 CREATE INDEX idx_prison_prison_id ON prison_contact(prison_id);
@@ -240,7 +243,8 @@ CREATE TABLE third_party
     organisation       varchar(100),
     email              varchar(100),
     telephone          varchar(20),
-    created_by         varchar(100) NOT NULL, 
+    primary_contact    boolean NOT NULL,
+    created_by         varchar(100) NOT NULL,
     created_time       timestamp NOT NULL,
     amended_by         varchar(100), 
     amended_time       timestamp
