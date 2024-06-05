@@ -29,7 +29,7 @@ class PrisonsController(
   private val locationsService: LocationsService,
 ) {
 
-  @Operation(summary = "Endpoint to return the list of prisons known to the service")
+  @Operation(summary = "Endpoint to return the list of prisons sorted by name known to the service")
   @ApiResponses(
     value = [
       ApiResponse(
@@ -72,7 +72,7 @@ class PrisonsController(
     enabledOnly: Boolean = false,
   ): List<Prison> = prisonsService.getListOfPrisons(enabledOnly)
 
-  @Operation(summary = "Endpoint to return a list of suitable appointment locations at a given prison")
+  @Operation(summary = "Endpoint to return a list of suitable appointment locations sorted by description at a given prison")
   @ApiResponses(
     value = [
       ApiResponse(
