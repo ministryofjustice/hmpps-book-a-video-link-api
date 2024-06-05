@@ -25,6 +25,8 @@ data class BookingContact(
   val email: String?,
 
   val telephone: String?,
+
+  val primaryContact: Boolean,
 )
 
 data class UniquePropertyId(val contactType: String, val email: String?) : Serializable {

@@ -2,11 +2,21 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
@@ -14,6 +24,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
@@ -23,9 +35,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Probati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
 import java.time.LocalTime
+import java.util.UUID
 
+@ContextConfiguration(classes = [TestEmailConfiguration::class])
 class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
   @Autowired
@@ -38,7 +54,64 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
   private lateinit var notificationRepository: NotificationRepository
 
   @Test
-  fun `should create a court booking`() {
+  fun `should create a Derby court booking and emails sent to Werrington prison`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(persistedBooking) {
+      videoBookingId isEqualTo bookingId
+      bookingType isEqualTo "COURT"
+      court?.code isEqualTo courtBookingRequest.courtCode
+      hearingType isEqualTo courtBookingRequest.courtHearingType?.name
+      comments isEqualTo "integration test court booking comments"
+      videoUrl isEqualTo courtBookingRequest.videoLinkUrl
+      createdBy isEqualTo TEST_USERNAME
+      createdByPrison isEqualTo false
+    }
+
+    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+      videoBooking isEqualTo persistedBooking
+      prisonCode isEqualTo WERRINGTON
+      prisonerNumber isEqualTo "123456"
+      appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
+      appointmentDate isEqualTo tomorrow()
+      prisonLocKey isEqualTo werringtonLocation.key
+      startTime isEqualTo LocalTime.of(12, 0)
+      endTime isEqualTo LocalTime.of(12, 30)
+      createdBy isEqualTo TEST_USERNAME
+      comments isEqualTo "integration test court booking comments"
+    }
+
+    // There should be 4 notifications one owner email and 3 prisoner emails
+    val notifications = notificationRepository.findAll().also { it hasSize 4 }
+
+    notifications.isPresent("m@m.com", "prison template court email id", persistedBooking)
+    notifications.isPresent("t@t.com", "prison template court email id", persistedBooking)
+    notifications.isPresent("t@t.com", "prison template court email id", persistedBooking)
+    notifications.isPresent(TEST_USER_EMAIL, "owner template id", persistedBooking)
+  }
+
+  @Test
+  fun `should create a Chesterfield court booking and emails sent to Birmingham prison`() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
@@ -48,7 +121,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     val courtBookingRequest = courtBookingRequest(
-      courtCode = "DRBYMC",
+      courtCode = CHESTERFIELD_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -77,7 +150,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonCode isEqualTo BIRMINGHAM
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
-      appointmentDate isEqualTo LocalDate.now().plusDays(1)
+      appointmentDate isEqualTo tomorrow()
       prisonLocKey isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
@@ -85,11 +158,17 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments isEqualTo "integration test court booking comments"
     }
 
-    // There should be one owner notification email
-    with(notificationRepository.findAll().single()) {
-      templateName isEqualTo "fake template id"
-      videoBooking isEqualTo persistedBooking
-      email isEqualTo TEST_USER_EMAIL
+    // There should be 2 notifications one owner email and 1 prisoner email
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+
+    notifications.isPresent("j@j.com", "prison template no court email id", persistedBooking)
+    notifications.isPresent(TEST_USER_EMAIL, "owner template id", persistedBooking)
+  }
+
+  private fun Collection<Notification>.isPresent(email: String, template: String, booking: VideoBooking) {
+    with(single { it.email == email }) {
+      templateName isEqualTo template
+      videoBooking isEqualTo booking
     }
   }
 
@@ -101,7 +180,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val courtBookingRequest = courtBookingRequest(
-      courtCode = "DRBYMC",
+      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -112,7 +191,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     webTestClient.createBooking(courtBookingRequest)
 
     val clashingBookingRequest = courtBookingRequest(
-      courtCode = "DRBYMC",
+      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -146,7 +225,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val courtBookingRequest = courtBookingRequest(
-      courtCode = "DRBYMC",
+      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -180,7 +259,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
-      probationTeamCode = "BLKPPP",
+      probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
@@ -212,7 +291,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonCode isEqualTo BIRMINGHAM
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
-      appointmentDate isEqualTo LocalDate.now().plusDays(1)
+      appointmentDate isEqualTo tomorrow()
       prisonLocKey isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
@@ -229,7 +308,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
-      probationTeamCode = "BLKPPP",
+      probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
@@ -247,7 +326,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("78910", BIRMINGHAM)
 
     val secondProbationBookingRequest = probationBookingRequest(
-      probationTeamCode = "BLKPPP",
+      probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
@@ -271,7 +350,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
 
     val probationBookingRequest = probationBookingRequest(
-      probationTeamCode = "BLKPPP",
+      probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = MOORLAND,
@@ -287,7 +366,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("789012", MOORLAND)
 
     val clashingBookingRequest = probationBookingRequest(
-      probationTeamCode = "BLKPPP",
+      probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = MOORLAND,
@@ -321,7 +400,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("789012", BIRMINGHAM)
 
     val clashingBookingRequest = probationBookingRequest(
-      probationTeamCode = "BLKPPP",
+      probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = MOORLAND,
@@ -362,4 +441,18 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
       .returnResult().responseBody!!
+}
+
+@TestConfiguration
+class TestEmailConfiguration {
+  @Bean
+  fun emailService() =
+    EmailService { email ->
+      when (email) {
+        is NewCourtBookingEmail -> Result.success(UUID.randomUUID() to "owner template id")
+        is NewCourtBookingPrisonCourtEmail -> Result.success(UUID.randomUUID() to "prison template court email id")
+        is NewCourtBookingPrisonNoCourtEmail -> Result.success(UUID.randomUUID() to "prison template no court email id")
+        else -> throw RuntimeException("Unsupported email")
+      }
+    }
 }

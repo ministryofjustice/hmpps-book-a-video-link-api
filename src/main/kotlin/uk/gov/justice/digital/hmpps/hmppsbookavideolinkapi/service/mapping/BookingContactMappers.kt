@@ -11,6 +11,7 @@ fun BookingContactEntity.toModel() = BookingContact(
   position = position,
   email = email,
   telephone = telephone,
+  primaryContact = primaryContact,
 )
 
 fun List<BookingContactEntity>.toModel() = map { it.toModel() }

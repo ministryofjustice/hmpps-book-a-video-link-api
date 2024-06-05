@@ -47,41 +47,79 @@ class BookingFacade(
     val (pre, main, post) = prisonAppointmentRepository.findByVideoBooking(booking).prisonAppointmentsForCourtHearing()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
 
-    bookingContactsService.getBookingContacts(booking.videoBookingId)
-      .allContactsWithAnEmailAddress()
-      .mapNotNull { contact ->
-        // TODO need to look at different contact types as this will dictate which emails/templates to use/send
-        when (contact.contactType) {
-          ContactType.OWNER -> CourtNewBookingEmail(
-            address = contact.email!!,
-            userName = contact.name ?: "Book Video",
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            prison = prison.name,
-            date = main.appointmentDate,
-            preAppointmentInfo = pre?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-            mainAppointmentInfo = main.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-            postAppointmentInfo = post?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-            comments = booking.comments,
-          )
-          else -> log.info("No contacts found for video booking ID ${booking.videoBookingId}").let { null }
+    val contacts = bookingContactsService.getBookingContacts(booking.videoBookingId).allContactsWithAnEmailAddress()
+
+    contacts.mapNotNull { contact ->
+      when (contact.contactType) {
+        ContactType.OWNER -> NewCourtBookingEmail(
+          address = contact.email!!,
+          userName = contact.name ?: "Book Video",
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          prisonerNumber = prisoner.prisonerNumber,
+          court = booking.court!!.description,
+          prison = prison.name,
+          date = main.appointmentDate,
+          preAppointmentInfo = pre?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+          mainAppointmentInfo = main.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+          postAppointmentInfo = post?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+          comments = booking.comments,
+        )
+
+        ContactType.PRISON -> {
+          val primaryCourtContact = contacts.primaryCourtContact()
+
+          if (primaryCourtContact != null) {
+            NewCourtBookingPrisonCourtEmail(
+              address = contact.email!!,
+              prisonerFirstName = prisoner.firstName,
+              prisonerLastName = prisoner.lastName,
+              prisonerNumber = prisoner.prisonerNumber,
+              court = booking.court!!.description,
+              courtEmailAddress = primaryCourtContact.email!!,
+              prison = prison.name,
+              date = main.appointmentDate,
+              preAppointmentInfo = pre?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+              mainAppointmentInfo = main.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+              postAppointmentInfo = post?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+              comments = booking.comments,
+            )
+          } else {
+            NewCourtBookingPrisonNoCourtEmail(
+              address = contact.email!!,
+              prisonerFirstName = prisoner.firstName,
+              prisonerLastName = prisoner.lastName,
+              prisonerNumber = prisoner.prisonerNumber,
+              court = booking.court!!.description,
+              prison = prison.name,
+              date = main.appointmentDate,
+              preAppointmentInfo = pre?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+              mainAppointmentInfo = main.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+              postAppointmentInfo = post?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+              comments = booking.comments,
+            )
+          }
         }
-      }.forEach { email ->
-        emailService.send(email).onSuccess { (govNotifyId, templateId) ->
-          notificationRepository.saveAndFlush(
-            Notification(
-              videoBooking = booking,
-              email = email.address,
-              govNotifyNotificationId = govNotifyId,
-              templateName = templateId,
-              reason = "New court booking request",
-            ),
-          )
-        }.onFailure { log.info("BOOKINGS: Failed to send new court booking email.") }
+
+        else -> log.info("No contacts found for video booking ID ${booking.videoBookingId}").let { null }
       }
+    }.forEach { email ->
+      emailService.send(email).onSuccess { (govNotifyId, templateId) ->
+        notificationRepository.saveAndFlush(
+          Notification(
+            videoBooking = booking,
+            email = email.address,
+            govNotifyNotificationId = govNotifyId,
+            templateName = templateId,
+            reason = "New court booking request",
+          ),
+        )
+      }.onFailure { log.info("BOOKINGS: Failed to send new court booking email.") }
+    }
   }
+
+  private fun Collection<BookingContact>.primaryCourtContact() =
+    allContactsWithAnEmailAddress().singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
 
   private fun sendNewProbationBookingEmail(booking: VideoBooking, prisoner: Prisoner) {
     log.info("TODO - send new probation booking email.")

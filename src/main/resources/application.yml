@@ -101,8 +101,11 @@ management:
 
 notify:
   templates:
-    court:
-      new-booking: "c8d61c0f-1fa0-4281-9597-a45780e345d4"
+    new-court-booking:
+      owner: "c8d61c0f-1fa0-4281-9597-a45780e345d4"
+      prison-court-email: "bf2c340e-31a4-45db-bc70-e902ee499ec5"
+      prison-no-court-email: "d555929e-c8a5-4771-911b-4538ba259eba"
+
 
 springdoc:
   swagger-ui:

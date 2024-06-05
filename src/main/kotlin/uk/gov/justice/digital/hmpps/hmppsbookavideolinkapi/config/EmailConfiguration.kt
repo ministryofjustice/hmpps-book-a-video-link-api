@@ -19,7 +19,9 @@ import java.util.UUID
 @Configuration
 class EmailConfiguration(
   @Value("\${notify.api.key:}") private val apiKey: String,
-  @Value("\${notify.templates.court.new-booking:}") private val courtNewBooking: String,
+  @Value("\${notify.templates.new-court-booking.owner:}") private val newCourtBookingOwner: String,
+  @Value("\${notify.templates.new-court-booking.prison-court-email:}") private val newCourtBookingPrisonCourtEmail: String,
+  @Value("\${notify.templates.new-court-booking.prison-no-court-email:}") private val newCourtBookingPrisonNoCourtEmail: String,
 ) {
 
   companion object {
@@ -35,7 +37,9 @@ class EmailConfiguration(
     }
 
   private fun emailTemplates() = EmailTemplates(
-    courtNewBooking = courtNewBooking,
+    newCourtBookingOwner = newCourtBookingOwner,
+    newCourtBookingPrisonCourtEmail = newCourtBookingPrisonCourtEmail,
+    newCourtBookingPrisonNoCourtEmail = newCourtBookingPrisonNoCourtEmail,
   )
 }
 
@@ -54,13 +58,13 @@ abstract class Email(
   prisonerLastName: String,
   prisonerNumber: String,
   date: LocalDate = LocalDate.now(),
-  comments: String? = "",
+  comments: String? = null,
 ) {
   private val common = mapOf(
     "date" to date.toMediumFormatStyle(),
     "prisonerName" to prisonerFirstName.plus(" $prisonerLastName"),
     "offenderNo" to prisonerNumber,
-    "comments" to comments,
+    "comments" to (comments ?: "None entered"),
   )
   private val personalisation: MutableMap<String, String?> = mutableMapOf()
 
@@ -72,5 +76,7 @@ abstract class Email(
 }
 
 data class EmailTemplates(
-  val courtNewBooking: String,
+  val newCourtBookingOwner: String,
+  val newCourtBookingPrisonCourtEmail: String,
+  val newCourtBookingPrisonNoCourtEmail: String,
 )

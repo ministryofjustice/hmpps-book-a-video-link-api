@@ -40,7 +40,7 @@ class BookingFacadeTest {
 
   private val facade = BookingFacade(bookingService, bookingContactsService, prisonAppointmentRepository, prisonRepository, emailService, notificationRepository)
 
-  private val emailCaptor = argumentCaptor<CourtNewBookingEmail>()
+  private val emailCaptor = argumentCaptor<NewCourtBookingEmail>()
   private val notificationCaptor = argumentCaptor<Notification>()
 
   @Test
