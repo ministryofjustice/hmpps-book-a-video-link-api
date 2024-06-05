@@ -15,11 +15,11 @@ class LocationsService(
     prisonRepository.findByCode(prisonCode)
       ?.let { locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(prisonCode) }
       ?.filter { !enabledOnly || it.active }
-      ?.map(Location::toModel) ?: emptyList()
+      ?.map(Location::toModel)?.sortedBy { it.description } ?: emptyList()
 
   fun getVideoLinkLocationsAtPrison(prisonCode: String, enabledOnly: Boolean) =
     prisonRepository.findByCode(prisonCode)
       ?.let { locationsInsidePrisonClient.getVideoLinkLocationsAtPrison(prisonCode) }
       ?.filter { !enabledOnly || it.active }
-      ?.map(Location::toModel) ?: emptyList()
+      ?.map(Location::toModel)?.sortedBy { it.description } ?: emptyList()
 }
