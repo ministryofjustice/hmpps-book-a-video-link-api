@@ -7,4 +7,5 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 @Repository
 interface ReferenceCodeRepository : JpaRepository<ReferenceCode, Long> {
   fun findAllByGroupCodeEquals(groupCode: String): List<ReferenceCode>
+  fun findByGroupCodeAndCode(groupCode: String, code: String): ReferenceCode?
 }
