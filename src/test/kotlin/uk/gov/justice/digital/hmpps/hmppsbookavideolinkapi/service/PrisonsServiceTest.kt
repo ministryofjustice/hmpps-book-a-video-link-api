@@ -24,34 +24,34 @@ class PrisonsServiceTest {
   }
 
   @Test
-  fun `Should return a list of enabled prisons`() {
+  fun `Should return a list of enabled prisons sorted by name`() {
     val listOfEnabledPrisons = listOf(
-      prisonEntity(1L, "BMI", "Birmingham"),
       prisonEntity(2L, "LEI", "Leeds"),
       prisonEntity(3L, "PVI", "Pentonville"),
+      prisonEntity(1L, "BMI", "Birmingham"),
     )
 
     whenever(prisonRepository.findAllByEnabledIsTrue()).thenReturn(listOfEnabledPrisons)
 
     assertThat(service.getListOfPrisons(true)).isEqualTo(
-      listOfEnabledPrisons.toModel(),
+      listOfEnabledPrisons.toModel().sortedBy { it.name },
     )
 
     verify(prisonRepository).findAllByEnabledIsTrue()
   }
 
   @Test
-  fun `Should return a list of all prisons`() {
+  fun `Should return a list of all prisons sorted by name`() {
     val listOfAllPrisons = listOf(
-      prisonEntity(1L, "BMI", "Birmingham"),
       prisonEntity(2L, "LEI", "Leeds"),
       prisonEntity(3L, "PVI", "Pentonville"),
+      prisonEntity(1L, "BMI", "Birmingham"),
     )
 
     whenever(prisonRepository.findAll()).thenReturn(listOfAllPrisons)
 
     assertThat(service.getListOfPrisons(false)).isEqualTo(
-      listOfAllPrisons.toModel(),
+      listOfAllPrisons.toModel().sortedBy { it.name },
     )
 
     verify(prisonRepository).findAll()

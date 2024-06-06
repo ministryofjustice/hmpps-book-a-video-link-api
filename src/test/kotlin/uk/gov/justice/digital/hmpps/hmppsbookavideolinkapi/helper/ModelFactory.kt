@@ -23,7 +23,7 @@ val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySu
 val moorlandLocation = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG")
 val werringtonLocation = location(prisonCode = WERRINGTON, locationKeySuffix = "ABCDEFG")
 
-fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true) = Location(
+fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null) = Location(
   id = UUID.randomUUID(),
   prisonId = prisonCode,
   code = "VIDEOLINK",
@@ -35,6 +35,7 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   topLevelId = UUID.randomUUID(),
   key = "$prisonCode-$locationKeySuffix",
   isResidential = false,
+  localName = localName,
 )
 
 fun prisonerSearchPrisoner(
