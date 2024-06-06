@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalTime
 
 class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>() {
@@ -9,7 +11,7 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   private val appointment = Appointment(
     type = AppointmentType.VLB_COURT_MAIN,
     locationKey = "MDI-A-1-001",
-    date = LocalDate.now().plusDays(1),
+    date = tomorrow(),
     startTime = LocalTime.now(),
     endTime = LocalTime.now().plusHours(1),
   )
@@ -119,8 +121,15 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   }
 
   @Test
-  fun `should fail when appointment date is not in the future`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(date = LocalDate.now()))))) failsWithSingle ModelError("prisoners[0].appointments[0].date", "The date for the appointment must be in the future")
+  fun `should fail when appointment date is in the past`() {
+    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(date = yesterday()))))) failsWithSingle ModelError("prisoners[0].appointments[0].date", "The combination of date and start time for the appointment must be in the future")
+  }
+
+  @Test
+  fun `should fail when appointment date and time is not in the future`() {
+    courtBooking.copy(
+      prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(date = today(), startTime = LocalTime.now().minusSeconds(1))))),
+    ) failsWithSingle ModelError("prisoners[0].appointments[0].invalidStart", "The combination of date and start time for the appointment must be in the future")
   }
 
   @Test

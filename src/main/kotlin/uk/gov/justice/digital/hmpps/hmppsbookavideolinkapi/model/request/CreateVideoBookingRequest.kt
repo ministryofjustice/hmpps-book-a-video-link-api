@@ -1,16 +1,19 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.GroupSequence
 import jakarta.validation.Valid
 import jakarta.validation.constraints.AssertTrue
-import jakarta.validation.constraints.Future
+import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.net.URI
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 data class CreateVideoBookingRequest(
@@ -47,12 +50,15 @@ data class CreateVideoBookingRequest(
   @Schema(description = "Set to true when called by a prison request. Will default to false.", example = "false")
   val createdByPrison: Boolean? = false,
 ) {
+  @JsonIgnore
   @AssertTrue(message = "The court code and court hearing type are mandatory for court bookings")
   private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtCode != null && courtHearingType != null)
 
+  @JsonIgnore
   @AssertTrue(message = "The probation team code and probation meeting type are mandatory for probation bookings")
   private fun isInvalidProbationBooking() = (BookingType.PROBATION != bookingType) || (probationTeamCode != null && probationMeetingType != null)
 
+  @JsonIgnore
   @AssertTrue(message = "The supplied video link for the appointment is not a valid URL")
   private fun isInvalidUrl() = videoLinkUrl == null || runCatching { URI(videoLinkUrl!!).toURL() }.isSuccess
 }
@@ -124,6 +130,7 @@ data class PrisonerDetails(
   val appointments: List<Appointment>,
 )
 
+@GroupSequence(Appointment::class, DateValidationExtension::class)
 data class Appointment(
   @field:NotNull(message = "The appointment type for the appointment is mandatory")
   @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
@@ -135,7 +142,7 @@ data class Appointment(
   val locationKey: String?,
 
   @field:NotNull(message = "The date for the appointment is mandatory")
-  @field:Future(message = "The date for the appointment must be in the future")
+  @field:FutureOrPresent(message = "The combination of date and start time for the appointment must be in the future")
   @Schema(description = "The future date for which the appointment will start", example = "2022-12-23")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "uuuu-MM-dd")
   val date: LocalDate?,
@@ -150,9 +157,16 @@ data class Appointment(
   @JsonFormat(pattern = "HH:mm")
   val endTime: LocalTime?,
 ) {
-  @AssertTrue(message = "The end time must be after the start time for the appointment")
+  @JsonIgnore
+  @AssertTrue(message = "The end time must be after the start time for the appointment", groups = [DateValidationExtension::class])
   private fun isInvalidTime() = (startTime == null || endTime == null) || startTime.isBefore(endTime)
+
+  @JsonIgnore
+  @AssertTrue(message = "The combination of date and start time for the appointment must be in the future", groups = [DateValidationExtension::class])
+  private fun isInvalidStart() = (date == null || startTime == null) || date.atTime(startTime).isAfter(LocalDateTime.now())
 }
+
+private interface DateValidationExtension
 
 enum class AppointmentType(val isProbation: Boolean, val isCourt: Boolean) {
   // Probation types
