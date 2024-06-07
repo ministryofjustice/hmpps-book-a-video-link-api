@@ -22,11 +22,9 @@ class VideoLinkBookingsService(
   }
 
   fun getVideoLinkBookingById(videoBookingId: Long): VideoLinkBooking {
-    // Get the booking - fail if not found
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
 
-    // Decorate with the prison appointments associated with the booking (should be at least one)
     val prisonAppointments = prisonAppointmentRepository.findByVideoBooking(booking)
 
     // Get the optional court hearing type reference data (if a court booking)

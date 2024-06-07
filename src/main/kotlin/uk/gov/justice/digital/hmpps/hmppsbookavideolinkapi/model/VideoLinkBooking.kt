@@ -12,33 +12,34 @@ data class VideoLinkBooking(
   @Schema(description = "The internal ID for this booking", example = "123")
   val videoLinkBookingId: Long,
 
-  val status: BookingStatus,
+  @Schema(description = "The status of this booking", example = "ACTIVE")
+  val statusCode: BookingStatus,
 
   @Schema(description = "The booking type", example = "COURT")
-  val bookingType: BookingType?,
+  val bookingType: BookingType,
 
   @Schema(description = "The prisone appointments related to this booking")
   val prisonAppointments: List<PrisonAppointment>,
 
-  @Schema(description = "The court code is needed if booking type is COURT, otherwise null", example = "DRBYMC")
+  @Schema(description = "The court code for booking type COURT, otherwise null", example = "DRBYMC")
   val courtCode: String? = null,
 
-  @Schema(description = "The court descriptipn for booking types of COURT, otherwise null", example = "Derby Justice Centre")
+  @Schema(description = "The court description for booking type COURT, otherwise null", example = "Derby Justice Centre")
   val courtDescription: String? = null,
 
-  @Schema(description = "The court hearing type is needed if booking type is COURT, otherwise null", example = "APPEAL")
+  @Schema(description = "The court hearing type for booking type COURT, otherwise null", example = "APPEAL")
   val courtHearingType: CourtHearingType? = null,
 
-  @Schema(description = "The court hearing type description, required for booking type COURT", example = "Appeal hearing")
+  @Schema(description = "The court hearing type description, for booking type COURT, otherwise null", example = "Appeal hearing")
   val courtHearingTypeDescription: String? = null,
 
-  @Schema(description = "The probation team code is needed if booking type is PROBATION, otherwise null", example = "BLKPPP")
+  @Schema(description = "The probation team code for booking type PROBATION, otherwise null", example = "BLKPPP")
   val probationTeamCode: String? = null,
 
-  @Schema(description = "The probation team description, required for booking type PROBATION", example = "Barnet PPOC")
+  @Schema(description = "The probation team description for booking type PROBATION, otherwise null", example = "Barnet PPOC")
   val probationTeamDescription: String? = null,
 
-  @Schema(description = "The probation meeting type is needed if booking type is PROBATION, otherwise null", example = "PSR")
+  @Schema(description = "The probation meeting type for booking type PROBATION, otherwise null", example = "PSR")
   val probationMeetingType: ProbationMeetingType? = null,
 
   @Schema(description = "The probation meeting type description, required for booking type PROBATION", example = "Pre-sentence report")

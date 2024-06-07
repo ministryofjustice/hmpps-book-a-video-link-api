@@ -128,6 +128,6 @@ class VideoLinkBookingController(
   )
   @GetMapping(value = ["/id/{videoBookingId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
-  fun getVideoLinkBookingById(@PathVariable("videoBookingId") videoBookingId: Long)
-    = videoLinkBookingsService.getVideoLinkBookingById(videoBookingId)
+  fun getVideoLinkBookingById(@PathVariable("videoBookingId") videoBookingId: Long) =
+    videoLinkBookingsService.getVideoLinkBookingById(videoBookingId)
 }

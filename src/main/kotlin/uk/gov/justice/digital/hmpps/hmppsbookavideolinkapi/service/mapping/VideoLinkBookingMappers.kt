@@ -17,8 +17,8 @@ fun VideoBookingEntity.toModel(
   probationMeetingTypeDescription: String? = null,
 ) = VideoLinkBooking(
   videoLinkBookingId = videoBookingId,
-  bookingType = bookingType.let { BookingType.valueOf(bookingType) },
-  status = BookingStatus.valueOf(statusCode),
+  bookingType = BookingType.valueOf(bookingType),
+  statusCode = BookingStatus.valueOf(statusCode),
   prisonAppointments = prisonAppointments.toModel(),
   courtCode = court?.code,
   courtDescription = court?.code?.let { courtDescription },
@@ -37,5 +37,5 @@ fun VideoBookingEntity.toModel(
   amendedAt = amendedTime,
 )
 
-fun List<VideoBookingEntity>.toModel(prisonAppointments: List<PrisonAppointment>)
-  = map { it.toModel(prisonAppointments = prisonAppointments) }
+fun List<VideoBookingEntity>.toModel(prisonAppointments: List<PrisonAppointment>) =
+  map { it.toModel(prisonAppointments = prisonAppointments) }

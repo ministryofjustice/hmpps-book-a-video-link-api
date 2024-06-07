@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestCon
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBookingsService
 import uk.gov.justice.hmpps.kotlin.auth.HmppsResourceServerConfiguration
 import java.time.LocalDateTime
 
@@ -44,6 +45,9 @@ class VideoLinkBookingControllerTest {
 
   @MockBean
   private lateinit var bookingFacade: BookingFacade
+
+  @MockBean
+  private lateinit var videoLinkBookingsService: VideoLinkBookingsService
 
   @Autowired
   private lateinit var context: WebApplicationContext
