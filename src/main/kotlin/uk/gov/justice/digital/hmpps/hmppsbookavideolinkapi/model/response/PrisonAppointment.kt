@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate

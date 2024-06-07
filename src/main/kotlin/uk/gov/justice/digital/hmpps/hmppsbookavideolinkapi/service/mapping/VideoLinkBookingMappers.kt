@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingStatus
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment as PrisonAppointmentEntity
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking as VideoBookingEntity
 

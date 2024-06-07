@@ -1,7 +1,6 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.validation.constraints.Size
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -45,11 +44,9 @@ data class VideoLinkBooking(
   @Schema(description = "The probation meeting type description, required for booking type PROBATION", example = "Pre-sentence report")
   val probationMeetingTypeDescription: String? = null,
 
-  @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
   @Schema(description = "Free text comments for the video link booking", example = "Waiting to hear on legal representation")
   val comments: String?,
 
-  @field:Size(max = 120, message = "The video link should not exceed {max} characters")
   @Schema(description = "The video link for the appointment. Must be a valid URL", example = "https://video.here.com")
   val videoLinkUrl: String?,
 
