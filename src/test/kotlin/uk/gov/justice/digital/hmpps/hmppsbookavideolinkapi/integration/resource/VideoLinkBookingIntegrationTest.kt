@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
+import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
@@ -30,8 +31,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -429,6 +432,144 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     }
   }
 
+  @Test
+  fun `should return the details of a court video link booking by ID`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+
+    assertThat(bookingId).isGreaterThan(0L)
+
+    val bookingDetails = webTestClient.getBookingByIdRequest(bookingId)
+
+    assertThat(bookingDetails).isNotNull
+
+    with(bookingDetails) {
+      // Verify court details present for this court booking
+      assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
+      assertThat(courtDescription).isEqualTo("Derby Justice Centre")
+      assertThat(courtHearingType).isEqualTo(CourtHearingType.TRIBUNAL)
+      assertThat(courtHearingTypeDescription).isEqualTo("Tribunal")
+
+      // Verify probation details are null
+      assertThat(probationTeamCode).isNull()
+      assertThat(probationTeamDescription).isNull()
+      assertThat(probationMeetingType).isNull()
+      assertThat(probationMeetingTypeDescription).isNull()
+
+      assertThat(createdByPrison).isFalse()
+      assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
+
+      // Verify that there is a single appointment
+      assertThat(prisonAppointments).asList().hasSize(1)
+      with(prisonAppointments.first()) {
+        assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
+        assertThat(comments).contains("integration test")
+        assertThat(prisonCode).isEqualTo(WERRINGTON)
+        assertThat(prisonLocKey).isEqualTo(werringtonLocation.key)
+      }
+    }
+  }
+
+  @Test
+  fun `should return the details of a probation video link booking by ID`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonerNumber = "123456",
+      prisonCode = MOORLAND,
+      location = moorlandLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test probation",
+    )
+
+    val bookingId = webTestClient.createBooking(probationBookingRequest, TEST_USERNAME)
+
+    assertThat(bookingId).isGreaterThan(0L)
+
+    val bookingDetails = webTestClient.getBookingByIdRequest(bookingId)
+
+    assertThat(bookingDetails).isNotNull
+
+    with(bookingDetails) {
+      // Verify probation details present
+      assertThat(probationTeamCode).isEqualTo(BLACKPOOL_MC_PPOC)
+      assertThat(probationTeamDescription).isEqualTo("Blackpool MC (PPOC)")
+      assertThat(probationMeetingType).isEqualTo(ProbationMeetingType.PSR)
+      assertThat(probationMeetingTypeDescription).isEqualTo("Pre-sentence report")
+
+      // Verify court details are null
+      assertThat(courtCode).isNull()
+      assertThat(courtDescription).isNull()
+      assertThat(courtHearingType).isNull()
+      assertThat(courtHearingTypeDescription).isNull()
+
+      assertThat(createdByPrison).isFalse()
+      assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
+
+      // Verify that there is a single appointment
+      assertThat(prisonAppointments).asList().hasSize(1)
+      with(prisonAppointments.first()) {
+        assertThat(appointmentType).isEqualTo("VLB_PROBATION")
+        assertThat(comments).contains("integration test")
+        assertThat(prisonCode).isEqualTo(MOORLAND)
+        assertThat(prisonLocKey).isEqualTo(moorlandLocation.key)
+      }
+    }
+  }
+
+  @Test
+  fun `should return a 404 not found when requesting an invalid video booking ID`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test not found",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+
+    assertThat(bookingId).isGreaterThan(0L)
+
+    val errorResponse = webTestClient.getBookingByIdNotFound(bookingId + 300)
+
+    assertThat(errorResponse).isNotNull
+    assertThat(errorResponse.status).isEqualTo(404)
+  }
+
   private fun WebTestClient.createBooking(request: CreateVideoBookingRequest, username: String = "booking@creator.com") =
     this
       .post()
@@ -440,6 +581,30 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       .expectStatus().isCreated
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
+      .returnResult().responseBody!!
+
+  private fun WebTestClient.getBookingByIdRequest(videoBookingId: Long, username: String = "booking@creator.com") =
+    this
+      .get()
+      .uri("/video-link-booking/id/{videoBookinId}", videoBookingId)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().isOk
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(VideoLinkBooking::class.java)
+      .returnResult().responseBody!!
+
+  private fun WebTestClient.getBookingByIdNotFound(videoBookingId: Long, username: String = "booking@creator.com") =
+    this
+      .get()
+      .uri("/video-link-booking/id/{videoBookinId}", videoBookingId)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().isNotFound
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
       .returnResult().responseBody!!
 }
 
