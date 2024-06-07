@@ -12,7 +12,7 @@ fun PrisonAppointmentEntity.toModel() = PrisonAppointment(
   prisonLocKey = prisonLocKey,
   appointmentDate = appointmentDate,
   startTime = startTime,
-  endTime = startTime,
+  endTime = endTime,
 )
 
 fun List<PrisonAppointmentEntity>.toModel() = map { it.toModel() }
