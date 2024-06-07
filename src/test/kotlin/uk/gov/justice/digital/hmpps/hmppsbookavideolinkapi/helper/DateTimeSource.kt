@@ -2,4 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import java.time.LocalDate
 
-fun tomorrow() = LocalDate.now().plusDays(1)
+fun today(): LocalDate = LocalDate.now()
+
+fun yesterday(): LocalDate = today().minusDays(1)
+fun tomorrow(): LocalDate = today().plusDays(1)

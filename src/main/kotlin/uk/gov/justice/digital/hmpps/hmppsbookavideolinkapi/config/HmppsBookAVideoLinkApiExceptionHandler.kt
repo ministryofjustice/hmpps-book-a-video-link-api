@@ -3,18 +3,22 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config
 import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import org.springframework.web.servlet.resource.NoResourceFoundException
+import org.springframework.web.context.request.WebRequest
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
 @RestControllerAdvice
-class HmppsBookAVideoLinkApiExceptionHandler {
+class HmppsBookAVideoLinkApiExceptionHandler : ResponseEntityExceptionHandler() {
   @ExceptionHandler(ValidationException::class)
   fun handleValidationException(e: ValidationException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(BAD_REQUEST)
@@ -25,17 +29,6 @@ class HmppsBookAVideoLinkApiExceptionHandler {
         developerMessage = e.message,
       ),
     ).also { log.info("Validation exception: {}", e.message) }
-
-  @ExceptionHandler(NoResourceFoundException::class)
-  fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .status(NOT_FOUND)
-    .body(
-      ErrorResponse(
-        status = NOT_FOUND,
-        userMessage = "No resource found failure: ${e.message}",
-        developerMessage = e.message,
-      ),
-    ).also { log.info("No resource found exception: {}", e.message) }
 
   @ExceptionHandler(EntityNotFoundException::class)
   fun handleEntityNotFoundException(e: EntityNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -59,7 +52,7 @@ class HmppsBookAVideoLinkApiExceptionHandler {
       ),
     ).also { log.error("Unexpected exception", e) }
 
-  @ExceptionHandler(IllegalArgumentException::class, HttpMessageNotReadableException::class)
+  @ExceptionHandler(IllegalArgumentException::class)
   fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> {
     log.info("Exception: {}", e.message)
     return ResponseEntity
@@ -69,6 +62,43 @@ class HmppsBookAVideoLinkApiExceptionHandler {
           status = BAD_REQUEST,
           userMessage = "Exception: ${e.message}",
           developerMessage = e.message,
+        ),
+      )
+  }
+
+  override fun handleHttpMessageNotReadable(
+    ex: HttpMessageNotReadableException,
+    headers: HttpHeaders,
+    status: HttpStatusCode,
+    request: WebRequest,
+  ): ResponseEntity<Any>? {
+    log.info("Exception not readable: {}", ex.message)
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = BAD_REQUEST,
+          userMessage = ex.localizedMessage,
+          developerMessage = ex.message,
+        ),
+      )
+  }
+
+  override fun handleMethodArgumentNotValid(
+    ex: MethodArgumentNotValidException,
+    headers: HttpHeaders,
+    status: HttpStatusCode,
+    request: WebRequest,
+  ): ResponseEntity<Any>? {
+    val errors = ex.bindingResult.allErrors.map { it.defaultMessage }
+
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = BAD_REQUEST,
+          userMessage = errors.joinToString(", "),
+          developerMessage = ex.toString(),
         ),
       )
   }
