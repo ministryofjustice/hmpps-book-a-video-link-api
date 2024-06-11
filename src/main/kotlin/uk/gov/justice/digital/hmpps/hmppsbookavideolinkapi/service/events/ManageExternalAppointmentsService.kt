@@ -39,6 +39,7 @@ class ManageExternalAppointmentsService(
     val prisonCode = appointments.map(PrisonAppointment::prisonCode).distinct().single()
 
     if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
+      // TODO change to call proper create method when we can establish the internal location ID.
       activitiesAppointmentsClient.createAppointment()
 
       log.info("EXTERNAL APPOINTMENTS: created appointments for video booking ID $videoBookingId in activities and appointments")
