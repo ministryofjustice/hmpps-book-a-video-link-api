@@ -7,8 +7,10 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -24,6 +26,7 @@ class ManageExternalAppointmentsServiceTest {
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
+  private val prisonApiClient: PrisonApiClient = mock()
   private val booking = courtBooking()
   private val appointments = listOf(
     appointment(
@@ -48,7 +51,7 @@ class ManageExternalAppointmentsServiceTest {
     ),
   )
 
-  private val service = ManageExternalAppointmentsService(videoBookingRepository, prisonAppointmentRepository, activitiesAppointmentsClient)
+  private val service = ManageExternalAppointmentsService(videoBookingRepository, prisonAppointmentRepository, activitiesAppointmentsClient, prisonApiClient)
 
   @Test
   fun `should call create appointment on activities client when appointments rolled out`() {
@@ -59,10 +62,11 @@ class ManageExternalAppointmentsServiceTest {
     service.createAppointments(1)
 
     verify(activitiesAppointmentsClient).createAppointment()
+    verifyNoInteractions(prisonApiClient)
   }
 
   @Test
-  fun `should not call create appointment on activities client when appointments not rolled out`() {
+  fun `should call create appointment on prison api client when appointments not rolled out`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(booking)
     whenever(prisonAppointmentRepository.findByVideoBooking(booking)) doReturn appointments
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
@@ -70,6 +74,7 @@ class ManageExternalAppointmentsServiceTest {
     service.createAppointments(1)
 
     verify(activitiesAppointmentsClient, never()).createAppointment()
+    verify(prisonApiClient).createAppointment()
   }
 
   @Test

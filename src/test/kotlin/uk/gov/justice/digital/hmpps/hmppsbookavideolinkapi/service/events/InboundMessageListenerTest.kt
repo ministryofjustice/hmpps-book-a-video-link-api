@@ -29,7 +29,7 @@ class InboundMessageListenerTest {
   fun `should delegate booking created domain event to service when SNS feature is enabled`() {
     whenever(featureSwitches.isEnabled(Feature.SNS_ENABLED)) doReturn true
 
-    val event = InboundVideoBookingCreatedEvent(1)
+    val event = InboundVideoBookingCreatedEvent(VideoBookingInformation(1))
     val message = message(event)
     val rawMessage = mapper.writeValueAsString(message)
 
@@ -42,7 +42,7 @@ class InboundMessageListenerTest {
   fun `should not delegate booking created domain event to service when SNS feature is not enabled`() {
     whenever(featureSwitches.isEnabled(Feature.SNS_ENABLED)) doReturn false
 
-    val event = InboundVideoBookingCreatedEvent(1)
+    val event = InboundVideoBookingCreatedEvent(VideoBookingInformation(1))
     val message = message(event)
     val rawMessage = mapper.writeValueAsString(message)
 

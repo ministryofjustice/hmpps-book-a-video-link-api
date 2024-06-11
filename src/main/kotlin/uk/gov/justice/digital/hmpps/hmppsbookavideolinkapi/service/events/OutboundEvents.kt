@@ -32,6 +32,7 @@ enum class OutboundEvent(val eventType: String) {
 
   abstract fun event(additionalInformation: AdditionalInformation): OutboundHMPPSDomainEvent
 }
+data class VideoBookingCreatedInformation(val videoBookingId: Long) : AdditionalInformation
 
 interface AdditionalInformation
 

@@ -63,8 +63,12 @@ class InboundMessageListener(
 
 interface InboundEvent
 
-data class InboundVideoBookingCreatedEvent(val videoBookingId: Long) :
-  InboundDomainEvent(InboundEventType.VIDEO_BOOKING_CREATED.eventType), InboundEvent
+data class InboundVideoBookingCreatedEvent(val additionalInformation: VideoBookingInformation) :
+  InboundDomainEvent(InboundEventType.VIDEO_BOOKING_CREATED.eventType), InboundEvent {
+  val videoBookingId = additionalInformation.videoBookingId
+}
+
+data class VideoBookingInformation(val videoBookingId: Long)
 
 enum class InboundEventType(val eventType: String) {
   VIDEO_BOOKING_CREATED("book-a-video-link.video-booking.created") {

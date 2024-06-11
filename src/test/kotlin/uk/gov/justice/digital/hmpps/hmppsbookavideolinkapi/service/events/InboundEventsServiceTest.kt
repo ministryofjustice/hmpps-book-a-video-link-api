@@ -12,10 +12,10 @@ class InboundEventsServiceTest {
 
   @Test
   fun `should call appointments service for booking created event`() {
-    service.process(InboundVideoBookingCreatedEvent(1))
+    service.process(InboundVideoBookingCreatedEvent(VideoBookingInformation(1)))
     verify(appointmentsService).createAppointments(1)
 
-    service.process(InboundVideoBookingCreatedEvent(2))
+    service.process(InboundVideoBookingCreatedEvent(VideoBookingInformation(2)))
     verify(appointmentsService).createAppointments(2)
   }
 }

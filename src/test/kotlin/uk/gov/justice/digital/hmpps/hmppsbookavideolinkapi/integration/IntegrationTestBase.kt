@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
   HmppsAuthApiExtension::class,
   LocationsInsidePrisonApiExtension::class,
   ManageUsersApiExtension::class,
+  PrisonApiExtension::class,
   PrisonerSearchApiExtension::class,
 )
 @Sql(
@@ -45,6 +47,7 @@ abstract class IntegrationTestBase {
     HmppsAuthApiExtension.server.stubHealthPing(status)
     locationsInsidePrisonApi().stubHealthPing(status)
     manageUsersApi().stubHealthPing(status)
+    PrisonApiExtension.server.stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
   }
 

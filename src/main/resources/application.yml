@@ -54,6 +54,12 @@ spring:
             client-secret: ${system.client.secret}
             authorization-grant-type: client_credentials
             scope: read
+          prisoner-api:
+            provider: hmpps-auth
+            client-id: ${system.client.id}
+            client-secret: ${system.client.secret}
+            authorization-grant-type: client_credentials
+            scope: read,write
           prisoner-search:
             provider: hmpps-auth
             client-id: ${system.client.id}

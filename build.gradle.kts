@@ -60,18 +60,18 @@ kotlin {
 
 tasks {
   withType<KotlinCompile> {
-    dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel")
+    dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel")
     kotlinOptions {
       jvmTarget = "21"
     }
   }
   withType<KtLintCheckTask> {
     // Under gradle 8 we must declare the dependency here, even if we're not going to be linting the model
-    mustRunAfter("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel")
+    mustRunAfter("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel")
   }
   withType<KtLintFormatTask> {
     // Under gradle 8 we must declare the dependency here, even if we're not going to be linting the model
-    mustRunAfter("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel")
+    mustRunAfter("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel")
   }
 }
 
@@ -101,8 +101,16 @@ tasks.register("buildActivitiesAppointmentsApiModel", GenerateTask::class) {
   configOptions.set(configValues)
   globalProperties.set(mapOf("models" to ""))
 }
+tasks.register("buildPrisonApiModel", GenerateTask::class) {
+  generatorName.set("kotlin")
+  inputSpec.set("openapi-specs/prison-api.json")
+  outputDir.set("$buildDirectory/generated/prisonapi")
+  modelPackage.set("uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model")
+  configOptions.set(configValues)
+  globalProperties.set(mapOf("models" to ""))
+}
 
-val generatedProjectDirs = listOf("locationsinsideprisonapi", "activitiesappointmentsapi")
+val generatedProjectDirs = listOf("locationsinsideprisonapi", "activitiesappointmentsapi", "prisonapi")
 
 kotlin {
   generatedProjectDirs.forEach { generatedProject ->
