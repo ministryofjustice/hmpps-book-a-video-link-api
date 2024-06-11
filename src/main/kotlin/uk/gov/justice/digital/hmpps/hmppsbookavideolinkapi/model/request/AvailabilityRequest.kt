@@ -13,7 +13,6 @@ import kotlin.reflect.KClass
 
 @Schema(description = "The request object sent to the availability check endpoint")
 data class AvailabilityRequest(
-  @field:NotEmpty(message = "Booking type is mandatory")
   @Schema(description = "The booking type", example = "COURT")
   val bookingType: BookingType,
 

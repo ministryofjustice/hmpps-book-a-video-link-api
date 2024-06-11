@@ -30,7 +30,7 @@ class AvailabilityService(
    *  - Incorporate prison room decoration logic here, to find other rooms?
    */
 
-  fun checkAvailability(request: AvailabilityRequest, username: String): AvailabilityResponse {
+  fun checkAvailability(request: AvailabilityRequest): AvailabilityResponse {
     // Gather the distinct list of locations from the request
     val listOfLocationKeys = listOfNotNull(
       request.preAppointment?.prisonLocKey,

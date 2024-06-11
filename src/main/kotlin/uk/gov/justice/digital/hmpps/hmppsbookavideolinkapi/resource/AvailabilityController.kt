@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.getBvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AvailabilityService
@@ -68,6 +66,5 @@ class AvailabilityController(val availabilityService: AvailabilityService) {
     @RequestBody
     @Parameter(description = "The request containing the times and locations of hearings to check for availability", required = true)
     request: AvailabilityRequest,
-    httpRequest: HttpServletRequest,
-  ) = availabilityService.checkAvailability(request, httpRequest.getBvlsRequestContext().username)
+  ) = availabilityService.checkAvailability(request)
 }
