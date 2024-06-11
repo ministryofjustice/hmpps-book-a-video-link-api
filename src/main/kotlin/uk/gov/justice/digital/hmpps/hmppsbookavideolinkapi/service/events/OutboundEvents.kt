@@ -1,23 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
-import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import java.time.LocalDateTime
-
-@Service
-class OutboundEventsService
-
-@Component
-class OutboundEventsPublisher(private val features: FeatureSwitches) {
-
-  fun send(event: OutboundHMPPSDomainEvent) {
-    if (features.isEnabled(Feature.SNS_ENABLED)) {
-      TODO()
-    }
-  }
-}
 
 enum class OutboundEvent(val eventType: String) {
   VIDEO_BOOKING_CREATED("book-a-video-link.video-booking.created") {
