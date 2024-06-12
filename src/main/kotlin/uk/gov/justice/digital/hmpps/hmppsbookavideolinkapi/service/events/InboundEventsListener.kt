@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,10 +26,10 @@ class InboundMessageListener(
 
       when (message.Type) {
         "Notification" -> {
-          mapper.readValue<InboundDomainEvent>(message.Message).let { domainEvent ->
-            domainEvent.toInboundEventType()?.let { inboundEventType ->
+          mapper.readValue<DomainEvent>(message.Message).let { domainEvent ->
+            domainEvent.toEventType()?.let { eventType ->
               runCatching {
-                inboundEventsService.process(inboundEventType.toInboundEvent(mapper, message.Message))
+                inboundEventsService.process(eventType.toInboundEvent(mapper, message.Message))
               }.onFailure {
                 log.error("Error processing message ${message.MessageId}", it)
                 throw it
@@ -41,3 +43,16 @@ class InboundMessageListener(
     }
   }
 }
+
+@JsonNaming(value = PropertyNamingStrategies.UpperCamelCaseStrategy::class)
+data class EventType(val Value: String, val Type: String)
+
+data class MessageAttributes(val eventType: EventType)
+
+@JsonNaming(value = PropertyNamingStrategies.UpperCamelCaseStrategy::class)
+data class Message(
+  val Type: String,
+  val Message: String,
+  val MessageId: String? = null,
+  val MessageAttributes: MessageAttributes,
+)
