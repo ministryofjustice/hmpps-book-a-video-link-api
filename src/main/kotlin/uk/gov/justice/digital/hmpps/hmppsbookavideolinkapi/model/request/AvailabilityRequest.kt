@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 import jakarta.validation.Payload
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
@@ -37,12 +38,13 @@ data class AvailabilityRequest(
   )
   val prisonCode: String?,
 
+  @field:NotNull(message = "The date is mandatory")
   @Schema(
     description = "The date for the appointments on this booking (must all be on the same day)",
     example = "2024-04-05",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val date: LocalDate,
+  val date: LocalDate?,
 
   @Schema(
     description = "If present, the prison location and start/end time of the requested pre-conference, else null",
@@ -50,11 +52,12 @@ data class AvailabilityRequest(
   )
   val preAppointment: LocationAndInterval? = null,
 
+  @field:NotNull(message = "The main appointment is mandatory")
   @Schema(
     description = "The main appointment which is always present",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val mainAppointment: LocationAndInterval,
+  val mainAppointment: LocationAndInterval?,
 
   @Schema(
     description = "If present, the prison location and start/end time of the post-conference, else null",
@@ -82,24 +85,26 @@ data class LocationAndInterval(
   val interval: Interval,
 ) {
   fun shift(duration: Duration): LocationAndInterval =
-    copy(interval = Interval(interval.start.plus(duration), interval.end.plus(duration)))
+    copy(interval = Interval(interval.start?.plus(duration), interval.end?.plus(duration)))
 }
 
 @Schema(description = "A time interval between a start and end time")
 data class Interval(
+  @field:NotNull(message = "The start time is mandatory")
   @Schema(
     description = "The interval start time, inclusive. ISO-8601 format (hh:mm)",
     example = "09:00",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val start: LocalTime,
+  val start: LocalTime?,
 
+  @field:NotNull(message = "The end time is mandatory")
   @Schema(
     description = "The interval end time (inclusive). ISO-8601 format (hh:mm)",
     example = "09:30",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val end: LocalTime,
+  val end: LocalTime?,
 )
 
 @Target(AnnotationTarget.TYPE, AnnotationTarget.FIELD)
@@ -115,6 +120,6 @@ class IntervalValidator : ConstraintValidator<ValidInterval, Interval> {
   override fun isValid(interval: Interval?, context: ConstraintValidatorContext?) =
     when (interval) {
       null -> true
-      else -> interval.start.isBefore(interval.end)
+      else -> interval.start?.isBefore(interval.end) ?: false
     }
 }

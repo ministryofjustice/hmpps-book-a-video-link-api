@@ -40,9 +40,9 @@ data class BookingOption(
 
   fun endsOnOrBefore(endTime: LocalTime): Boolean = latestEndTime().isBefore(endTime) || latestEndTime() == endTime
 
-  private fun earliestStartTime(): LocalTime = pre?.interval?.start ?: main.interval.start
+  private fun earliestStartTime(): LocalTime = pre?.interval?.start ?: main.interval.start!!
 
-  private fun latestEndTime(): LocalTime = post?.interval?.end ?: main.interval.end
+  private fun latestEndTime(): LocalTime = post?.interval?.end ?: main.interval.end!!
 
   companion object {
     // Converts the availability check request into a booking option
@@ -52,7 +52,7 @@ data class BookingOption(
           LocationAndInterval(prisonLocKey = it.prisonLocKey, interval = it.interval)
         },
         main = request.mainAppointment.let {
-          LocationAndInterval(prisonLocKey = it.prisonLocKey, interval = it.interval)
+          LocationAndInterval(prisonLocKey = it!!.prisonLocKey, interval = it.interval)
         },
         post = request.postAppointment?.let {
           LocationAndInterval(prisonLocKey = it.prisonLocKey, interval = it.interval)

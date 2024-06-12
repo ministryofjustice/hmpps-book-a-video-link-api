@@ -35,14 +35,14 @@ class AvailabilityService(
     val listOfLocationKeys = listOfNotNull(
       request.preAppointment?.prisonLocKey,
       request.postAppointment?.prisonLocKey,
-      request.mainAppointment.prisonLocKey,
+      request.mainAppointment!!.prisonLocKey,
     ).distinct()
 
     log.info("Checking availability for locationKeys $listOfLocationKeys")
 
     // Get the existing VLB appointments at these locations, on this date
     val videoAppointments = videoAppointmentRepository.findVideoAppointmentsAtPrison(
-      forDate = request.date,
+      forDate = request.date!!,
       forPrison = request.prisonCode!!,
       forLocationKeys = listOfLocationKeys,
     )

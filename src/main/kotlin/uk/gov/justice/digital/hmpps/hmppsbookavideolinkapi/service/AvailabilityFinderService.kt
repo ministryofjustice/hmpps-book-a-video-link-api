@@ -138,7 +138,7 @@ class Timeline(events: List<Event>) {
    * Answer the question 'is this Timeline free of appointments during the specified interval'.
    */
   fun isFreeForInterval(interval: Interval): Boolean {
-    if (interval.end.isBefore(interval.start)) {
+    if (interval.end!!.isBefore(interval.start)) {
       throw IllegalArgumentException("start must precede end")
     }
     val freePeriod = emptyPeriods.floorEntry(interval.start)
