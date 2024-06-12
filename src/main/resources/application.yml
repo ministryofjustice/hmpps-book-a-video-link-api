@@ -107,3 +107,11 @@ notify:
 springdoc:
   swagger-ui:
     tags-sorter: alpha
+
+# Options to configure suggested alternative booking times
+video-link-booking:
+  options:
+    day-start: "10:00"
+    day-end: "17:00"
+    step: "PT15M"
+    max-alternatives: 3
