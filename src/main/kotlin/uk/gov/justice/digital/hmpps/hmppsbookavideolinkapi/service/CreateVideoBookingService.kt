@@ -36,6 +36,7 @@ class CreateVideoBookingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  // TODO: Assumes one person per booking, so revisit for co-defendant cases
   @Transactional
   fun create(booking: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> =
     when (booking.bookingType!!) {
