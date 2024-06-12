@@ -19,7 +19,7 @@ data class AvailabilityRequest(
     example = "COURT",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val bookingType: BookingType,
+  val bookingType: BookingType?,
 
   @field:NotEmpty(message = "Court or probation team code is mandatory")
   @Schema(
@@ -27,7 +27,7 @@ data class AvailabilityRequest(
     example = "DRBYMC",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val courtOrProbationCode: String,
+  val courtOrProbationCode: String?,
 
   @field:NotEmpty(message = "The prison code must be present")
   @Schema(
@@ -35,7 +35,7 @@ data class AvailabilityRequest(
     example = "MDI",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val prisonCode: String,
+  val prisonCode: String?,
 
   @Schema(
     description = "The date for the appointments on this booking (must all be on the same day)",
@@ -72,7 +72,7 @@ data class LocationAndInterval(
     example = "VCC-ROOM-1",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val prisonLocKey: String,
+  val prisonLocKey: String?,
 
   @Schema(
     description = "The start and end time of a prison appointment to define the interval",

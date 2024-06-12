@@ -98,7 +98,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     assertThat(availabilityResponse).isNotNull
     with(availabilityResponse) {
       assertThat(availabilityOk).isFalse()
-      assertThat(alternatives).isNotEmpty()
       assertThat(alternatives).hasSize(3)
     }
   }
@@ -177,7 +176,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     assertThat(availabilityResponse).isNotNull
     with(availabilityResponse) {
       assertThat(availabilityOk).isFalse()
-      assertThat(alternatives).isNotEmpty()
       assertThat(alternatives).hasSize(3)
     }
   }

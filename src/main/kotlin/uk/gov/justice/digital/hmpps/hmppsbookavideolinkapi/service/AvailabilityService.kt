@@ -43,7 +43,7 @@ class AvailabilityService(
     // Get the existing VLB appointments at these locations, on this date
     val videoAppointments = videoAppointmentRepository.findVideoAppointmentsAtPrison(
       forDate = request.date,
-      forPrison = request.prisonCode,
+      forPrison = request.prisonCode!!,
       forLocationKeys = listOfLocationKeys,
     )
 
