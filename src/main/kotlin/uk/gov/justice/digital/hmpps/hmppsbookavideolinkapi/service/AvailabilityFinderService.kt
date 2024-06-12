@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interva
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingOption
 import java.time.LocalTime
-import java.util.*
+import java.util.TreeMap
 
 @Service
 class AvailabilityFinderService(
@@ -25,7 +25,7 @@ class AvailabilityFinderService(
     // Convert the requested times into a booking option object
     val preferredOption = BookingOption.from(request)
 
-    // If the requested times are available, return ok with no alternatives
+    // If the preferred option (requested times) is available, return ok with no alternatives
     if (optionIsBookable(preferredOption, timelinesByLocation)) {
       return AvailabilityResponse(availabilityOk = true, alternatives = emptyList())
     }
@@ -37,7 +37,7 @@ class AvailabilityFinderService(
       .take(maxAlternatives)
       .sortedBy { it.main.interval.start }
 
-    // Return the alternative booking suggestions
+    // Return the alternatives
     return AvailabilityResponse(availabilityOk = false, alternatives = alternatives.toList())
   }
 
@@ -72,7 +72,8 @@ class EndEvent(time: LocalTime) : Event(time)
 
 /**
  * The Timeline class is constructed with the list of video appointment start/end times occurring today.
- * Its init block it will process all events passed in the constructor, and identify the free periods.
+ * Its init block it will process all events passed in the constructor, and identify the free periods for each
+ * of the rooms requested.
  */
 
 class Timeline(events: List<Event>) {
