@@ -11,3 +11,5 @@ fun LocalTime.toMinutePrecision(): LocalTime = this.truncatedTo(ChronoUnit.MINUT
 fun LocalTime.isOnOrBefore(other: LocalTime) = this <= other
 
 fun LocalTime.isOnOrAfter(other: LocalTime) = this >= other
+
+fun LocalTime.toHourMinuteStyle(): String = this.format(DateTimeFormatter.ofPattern("HH:mm"))
