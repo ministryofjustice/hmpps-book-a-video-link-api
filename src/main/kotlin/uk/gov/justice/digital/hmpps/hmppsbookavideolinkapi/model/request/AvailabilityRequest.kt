@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import jakarta.validation.Constraint
@@ -96,6 +97,7 @@ data class Interval(
     example = "09:00",
     requiredMode = RequiredMode.REQUIRED,
   )
+  @JsonFormat(pattern = "HH:mm")
   val start: LocalTime?,
 
   @field:NotNull(message = "The end time is mandatory")
@@ -104,6 +106,7 @@ data class Interval(
     example = "09:30",
     requiredMode = RequiredMode.REQUIRED,
   )
+  @JsonFormat(pattern = "HH:mm")
   val end: LocalTime?,
 )
 
