@@ -16,7 +16,7 @@ data class ScheduleItem(
   @Schema(description = "The internal ID for an appointment related to a booking. It is unique in this list", example = "123")
   val prisonAppointmentId: Long,
 
-  @Schema(description = "The booking type", allowableValues = ["COURT", "PROBATION"], example = "COURT")
+  @Schema(description = "The booking type", example = "COURT")
   val bookingType: BookingType,
 
   @Schema(description = "The booking status", allowableValues = ["ACTIVE", "CANCELLED"], example = "ACTIVE")
@@ -70,11 +70,7 @@ data class ScheduleItem(
   @Schema(description = "The prisoner number (NOMS ID)", example = "A1234AA")
   val prisonerNumber: String,
 
-  @Schema(
-    description = "The appointment type",
-    allowableValues = ["VLB_COURT_PRE", "VLB_COURT_MAIN", "VLB_COURT_POST", "VLB_PROBATION"],
-    example = "1234",
-  )
+  @Schema(description = "The appointment type", example = "1234")
   val appointmentType: AppointmentType,
 
   @Schema(description = "The appointment type description", example = "Court - main hearing")

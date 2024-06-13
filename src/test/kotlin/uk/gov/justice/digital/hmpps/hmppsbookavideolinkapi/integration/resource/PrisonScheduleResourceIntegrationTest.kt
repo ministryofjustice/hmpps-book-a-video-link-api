@@ -6,11 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -49,7 +51,7 @@ class PrisonScheduleResourceIntegrationTest : IntegrationTestBase() {
 
     // Will default to tomorrow's date
     val courtBookingRequest = courtBookingRequest(
-      courtCode = "DRBYMC",
+      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "A1111AA",
       prisonCode = WERRINGTON,
       location = werringtonLocation,
@@ -64,18 +66,19 @@ class PrisonScheduleResourceIntegrationTest : IntegrationTestBase() {
     val scheduleResponse = webTestClient.getPrisonSchedule(
       username = "PRISON-USER",
       prisonCode = WERRINGTON,
-      date = LocalDate.now().plusDays(1),
+      date = tomorrow(),
     )
 
     assertThat(scheduleResponse).isNotNull
     assertThat(scheduleResponse).hasSize(1)
 
     with(scheduleResponse.first()) {
-      assertThat(courtCode).isEqualTo("DRBYMC")
+      assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
       assertThat(courtDescription).isEqualTo("Derby Justice Centre")
       assertThat(prisonCode).isEqualTo(WERRINGTON)
       assertThat(appointmentType).isEqualTo(AppointmentType.VLB_COURT_MAIN.name)
       assertThat(prisonerNumber).isEqualTo("A1111AA")
+      assertThat(appointmentDate).isEqualTo(tomorrow())
       assertThat(startTime).isEqualTo(LocalTime.of(12, 0))
       assertThat(endTime).isEqualTo(LocalTime.of(12, 30))
       assertThat(bookingComments).isEqualTo("integration test court booking comments")
@@ -93,7 +96,7 @@ class PrisonScheduleResourceIntegrationTest : IntegrationTestBase() {
 
     // Will default to tomorrow's date
     val courtBookingRequest = courtBookingRequest(
-      courtCode = "DRBYMC",
+      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "A1111AA",
       prisonCode = WERRINGTON,
       location = werringtonLocation,
@@ -123,7 +126,7 @@ class PrisonScheduleResourceIntegrationTest : IntegrationTestBase() {
     val scheduleResponse = webTestClient.getPrisonSchedule(
       username = "PRISON-USER",
       prisonCode = WERRINGTON,
-      date = LocalDate.now().plusDays(1),
+      date = tomorrow(),
     )
 
     assertThat(scheduleResponse).isNotNull
@@ -136,6 +139,8 @@ class PrisonScheduleResourceIntegrationTest : IntegrationTestBase() {
     assertThat(scheduleResponse.map { it.appointmentType }).containsAll(
       listOf(AppointmentType.VLB_COURT_MAIN.name, AppointmentType.VLB_PROBATION.name),
     )
+
+    assertThat(scheduleResponse.map { it.appointmentDate }).containsOnly(tomorrow())
 
     assertThat(scheduleResponse.map { it.startTime }).containsAll(
       listOf(LocalTime.of(9, 0), LocalTime.of(12, 0)),
