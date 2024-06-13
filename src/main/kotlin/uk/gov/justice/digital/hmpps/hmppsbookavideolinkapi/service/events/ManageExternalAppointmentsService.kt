@@ -45,7 +45,6 @@ class ManageExternalAppointmentsService(
         } else {
           prisonApiClient.createAppointment(
             bookingId = appointment.bookingId(),
-            appointmentType = appointment.appointmentType,
             locationId = appointment.internalLocationId(),
             appointmentDate = appointment.appointmentDate,
             startTime = appointment.startTime,

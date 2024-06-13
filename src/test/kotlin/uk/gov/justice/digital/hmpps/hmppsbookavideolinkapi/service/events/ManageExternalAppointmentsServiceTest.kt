@@ -74,7 +74,6 @@ class ManageExternalAppointmentsServiceTest {
     verify(activitiesAppointmentsClient, never()).createAppointment(any(), any(), any(), any(), any(), any())
     verify(prisonApiClient).createAppointment(
       bookingId = 1,
-      appointmentType = "VLB_COURT_PRE",
       locationId = 123456,
       appointmentDate = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),

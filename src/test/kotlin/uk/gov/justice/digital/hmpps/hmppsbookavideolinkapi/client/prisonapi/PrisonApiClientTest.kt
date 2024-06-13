@@ -31,7 +31,7 @@ class PrisonApiClientTest {
   fun `should post appointment`() {
     server.stubPostCreateAppointment(
       bookingId = 1,
-      appointmentType = "TEST",
+      appointmentType = "VLB",
       locationId = 2,
       appointmentDate = LocalDate.now(),
       startTime = LocalTime.MIDNIGHT,
@@ -40,7 +40,6 @@ class PrisonApiClientTest {
 
     client.createAppointment(
       bookingId = 1,
-      appointmentType = "TEST",
       locationId = 2,
       appointmentDate = LocalDate.now(),
       startTime = LocalTime.MIDNIGHT,

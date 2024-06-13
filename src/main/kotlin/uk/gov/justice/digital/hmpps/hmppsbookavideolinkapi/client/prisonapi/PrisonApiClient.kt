@@ -12,6 +12,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
 import java.time.LocalTime
 
+const val VIDEO_LINK_BOOKING = "VLB"
+
 @Component
 class PrisonApiClient(private val prisonApiWebClient: WebClient) {
 
@@ -30,7 +32,6 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
 
   fun createAppointment(
     bookingId: Long,
-    appointmentType: String,
     locationId: Long,
     appointmentDate: LocalDate,
     startTime: LocalTime,
@@ -43,7 +44,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .header("no-event-propagation", true.toString())
       .bodyValue(
         NewAppointment(
-          appointmentType = appointmentType,
+          appointmentType = VIDEO_LINK_BOOKING,
           locationId = locationId,
           startTime = appointmentDate.atTime(startTime).toIsoDateTime(),
           endTime = appointmentDate.atTime(endTime).toIsoDateTime(),
