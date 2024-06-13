@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -26,6 +27,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
@@ -37,14 +40,13 @@ class BookingFacadeTest {
   private val prisonRepository: PrisonRepository = mock()
   private val emailService: EmailService = mock()
   private val notificationRepository: NotificationRepository = mock()
-
-  private val facade = BookingFacade(bookingService, bookingContactsService, prisonAppointmentRepository, prisonRepository, emailService, notificationRepository)
-
+  private val outboundEventsService: OutboundEventsService = mock()
   private val emailCaptor = argumentCaptor<NewCourtBookingEmail>()
   private val notificationCaptor = argumentCaptor<Notification>()
+  private val facade = BookingFacade(bookingService, bookingContactsService, prisonAppointmentRepository, prisonRepository, emailService, notificationRepository, outboundEventsService)
 
   @Test
-  fun `should send court booking emails on creation of court booking`() {
+  fun `should send court booking emails and booking created event on creation of court booking`() {
     val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = "123456")
     val booking = courtBooking()
     val appointment = appointment(
@@ -65,11 +67,16 @@ class BookingFacadeTest {
 
     val notificationId = UUID.randomUUID()
 
-    whenever(emailService.send(emailCaptor.capture())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any())) doReturn Result.success(notificationId to "court template id")
 
     facade.create(bookingRequest, "facade court user")
 
-    verify(bookingService).create(bookingRequest, "facade court user")
+    inOrder(bookingService, outboundEventsService, emailService, notificationRepository) {
+      verify(bookingService).create(bookingRequest, "facade court user")
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
 
     with(emailCaptor.firstValue) {
       address isEqualTo "jon@somewhere.com"
@@ -86,8 +93,6 @@ class BookingFacadeTest {
         "comments" to "Court hearing comments",
       )
     }
-
-    verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
 
     notificationCaptor.allValues hasSize 1
 
