@@ -31,7 +31,8 @@ class PrisonerValidator(val prisonerSearchClient: PrisonerSearchClient) {
 // TODO add additional fields as and when needed e.g. ACTIVE/NOT ACTIVE in prison
 data class Prisoner(
   val prisonerNumber: String,
-  val prisonId: String?,
+  val prisonId: String? = null,
   val firstName: String,
   val lastName: String,
+  val bookingId: String? = null,
 )

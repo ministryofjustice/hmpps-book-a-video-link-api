@@ -15,6 +15,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 
 /**
  * This facade exists to ensure booking related transactions are fully committed prior to sending any emails.
@@ -27,6 +29,7 @@ class BookingFacade(
   private val prisonRepository: PrisonRepository,
   private val emailService: EmailService,
   private val notificationRepository: NotificationRepository,
+  private val outboundEventsService: OutboundEventsService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -34,6 +37,7 @@ class BookingFacade(
 
   fun create(bookingRequest: CreateVideoBookingRequest, username: String): Long {
     val (booking, prisoner) = createVideoBookingService.create(bookingRequest, username)
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
 
     when (bookingRequest.bookingType!!) {
       BookingType.COURT -> sendNewCourtBookingEmails(booking, prisoner)

@@ -16,6 +16,7 @@ import kotlin.reflect.KClass
 
 @Schema(description = "The request object sent to the availability check endpoint")
 data class AvailabilityRequest(
+  @field:NotNull(message = "The date is mandatory")
   @Schema(
     description = "The booking type",
     example = "COURT",

@@ -41,25 +41,6 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()?.appointmentsRolledOut == true
 
-  @Deprecated(
-    message = "Temporary until we can work out internal location ids",
-    replaceWith = ReplaceWith(
-      """
-      createAppointment(
-        prisonCode: String,
-        prisonerNumber: String,
-        startDate: LocalDate,
-        startTime: LocalTime,
-        endTime: LocalTime,
-        internalLocationId: Long,
-      )
-    """,
-    ),
-  )
-  fun createAppointment() {
-    TODO("to be implemented")
-  }
-
   fun createAppointment(
     prisonCode: String,
     prisonerNumber: String,
@@ -67,7 +48,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     startTime: LocalTime,
     endTime: LocalTime,
     internalLocationId: Long,
-  ) {
+  ): AppointmentSeries? =
     activitiesAppointmentsApiWebClient.post()
       .uri("/appointment-series")
       .bodyValue(
@@ -87,8 +68,6 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       )
       .retrieve()
       .bodyToMono(AppointmentSeries::class.java)
-      .block()?.also {
-        log.info("Single appointment series created in activities and appointments with series ID ${it.id}")
-      } ?: log.error("Failed to create single appointment series in activities and appointments")
-  }
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()
 }
