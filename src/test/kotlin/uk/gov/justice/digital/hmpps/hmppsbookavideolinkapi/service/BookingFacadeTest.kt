@@ -8,6 +8,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
@@ -19,6 +20,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
@@ -43,7 +45,17 @@ class BookingFacadeTest {
   private val outboundEventsService: OutboundEventsService = mock()
   private val emailCaptor = argumentCaptor<NewCourtBookingEmail>()
   private val notificationCaptor = argumentCaptor<Notification>()
-  private val facade = BookingFacade(bookingService, bookingContactsService, prisonAppointmentRepository, prisonRepository, emailService, notificationRepository, outboundEventsService)
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val facade = BookingFacade(
+    bookingService,
+    bookingContactsService,
+    prisonAppointmentRepository,
+    prisonRepository,
+    emailService,
+    notificationRepository,
+    outboundEventsService,
+    locationsInsidePrisonClient,
+  )
 
   @Test
   fun `should send court booking emails and booking created event on creation of court booking`() {
@@ -57,13 +69,14 @@ class BookingFacadeTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = "",
+      locationKey = moorlandLocation.key,
     )
 
     whenever(bookingService.create(bookingRequest, "facade court user")) doReturn Pair(booking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
     whenever(prisonAppointmentRepository.findByVideoBooking(booking)) doReturn listOf(appointment)
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
     whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"))
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
 
     val notificationId = UUID.randomUUID()
 
@@ -88,7 +101,7 @@ class BookingFacadeTest {
         "prisonerName" to "Fred Bloggs",
         "date" to "1 Jan 2100",
         "preAppointmentInfo" to "Not required",
-        "mainAppointmentInfo" to "11:00:00 to 11:30:00",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
         "postAppointmentInfo" to "Not required",
         "comments" to "Court hearing comments",
       )

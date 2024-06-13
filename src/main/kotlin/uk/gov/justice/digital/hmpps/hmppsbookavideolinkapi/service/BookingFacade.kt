@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -30,6 +32,7 @@ class BookingFacade(
   private val emailService: EmailService,
   private val notificationRepository: NotificationRepository,
   private val outboundEventsService: OutboundEventsService,
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -53,6 +56,8 @@ class BookingFacade(
 
     val contacts = bookingContactsService.getBookingContacts(booking.videoBookingId).allContactsWithAnEmailAddress()
 
+    val locations = locationsInsidePrisonClient.getLocationsByKeys(setOfNotNull(pre?.prisonLocKey, main.prisonLocKey, post?.prisonLocKey)).associateBy { it.key }
+
     contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.OWNER -> NewCourtBookingEmail(
@@ -64,9 +69,9 @@ class BookingFacade(
           court = booking.court!!.description,
           prison = prison.name,
           date = main.appointmentDate,
-          preAppointmentInfo = pre?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-          mainAppointmentInfo = main.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-          postAppointmentInfo = post?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+          preAppointmentInfo = pre?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+          mainAppointmentInfo = main.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+          postAppointmentInfo = post?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
           comments = booking.comments,
         )
 
@@ -83,9 +88,9 @@ class BookingFacade(
               courtEmailAddress = primaryCourtContact.email!!,
               prison = prison.name,
               date = main.appointmentDate,
-              preAppointmentInfo = pre?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-              mainAppointmentInfo = main.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-              postAppointmentInfo = post?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+              preAppointmentInfo = pre?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+              mainAppointmentInfo = main.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+              postAppointmentInfo = post?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
               comments = booking.comments,
             )
           } else {
@@ -97,9 +102,9 @@ class BookingFacade(
               court = booking.court!!.description,
               prison = prison.name,
               date = main.appointmentDate,
-              preAppointmentInfo = pre?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-              mainAppointmentInfo = main.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
-              postAppointmentInfo = post?.let { "${it.startTime.toIsoTime()} to ${it.endTime.toIsoTime()}" },
+              preAppointmentInfo = pre?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+              mainAppointmentInfo = main.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+              postAppointmentInfo = post?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
               comments = booking.comments,
             )
           }
@@ -141,4 +146,6 @@ class BookingFacade(
   private fun Collection<PrisonAppointment>.main() = single { it.appointmentType == "VLB_COURT_MAIN" }
 
   private fun Collection<PrisonAppointment>.post() = singleOrNull { it.appointmentType == "VLB_COURT_POST" }
+
+  private fun Map<String, Location>.room(key: String) = this[key]?.localName ?: ""
 }
