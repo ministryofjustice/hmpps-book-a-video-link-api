@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Probati
 import java.time.LocalDate
 import java.time.LocalTime
 
-@Schema(description = "An item on a prison schedule (all prison appointments and their booking details)")
+@Schema(description = "An item on a schedule i.e. prison appointments and their booking details")
 data class ScheduleItem(
   @Schema(description = "The internal ID for the video booking", example = "123")
   val videoBookingId: Long,
