@@ -162,6 +162,37 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
   inner class CourtSchedule {
     @Test
     fun `Court - return no items when only probation bookings are present`() {
+      val bookingCreator = "BOOKING_CREATOR"
+
+      videoBookingRepository.findAll() hasSize 0
+
+      prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+
+      // Will default to tomorrow's date
+      val probationBookingRequest = probationBookingRequest(
+        probationTeamCode = "BLKPPP",
+        probationMeetingType = ProbationMeetingType.PSR,
+        videoLinkUrl = "https://probation.videolink.com",
+        prisonCode = WERRINGTON,
+        prisonerNumber = "A1111AA",
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(9, 30),
+        appointmentType = AppointmentType.VLB_PROBATION,
+        location = werringtonLocation,
+      )
+
+      webTestClient.createBooking(bookingCreator, probationBookingRequest)
+
+      // Check for tomorrow's date for court bookings
+      val scheduleResponse = webTestClient.getCourtSchedule(
+        username = "PRISON-USER",
+        courtCode = DERBY_JUSTICE_CENTRE,
+        date = tomorrow(),
+      )
+
+      assertThat(scheduleResponse).isNotNull
+      assertThat(scheduleResponse).hasSize(0)
     }
 
     @Test
@@ -214,7 +245,36 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
   @DisplayName("Probation schedule")
   inner class ProbationSchedule {
     @Test
-    fun `Probation - return no items when only probation bookings are present`() {
+    fun `Probation - return no items when only court bookings are present`() {
+      val bookingCreator = "BOOKING_CREATOR"
+
+      videoBookingRepository.findAll() hasSize 0
+
+      prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+
+      // Will default to tomorrow's date
+      val courtBookingRequest = courtBookingRequest(
+        courtCode = DERBY_JUSTICE_CENTRE,
+        prisonerNumber = "A1111AA",
+        prisonCode = WERRINGTON,
+        location = werringtonLocation,
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(12, 30),
+        comments = "integration test court booking comments",
+      )
+
+      webTestClient.createBooking(bookingCreator, courtBookingRequest)
+
+      // Check for tomorrow's date
+      val scheduleResponse = webTestClient.getProbationSchedule(
+        username = "PRISON-USER",
+        probationTeamCode = "BLKPPP",
+        date = tomorrow(),
+      )
+
+      assertThat(scheduleResponse).isNotNull
+      assertThat(scheduleResponse).hasSize(0)
     }
 
     @Test
