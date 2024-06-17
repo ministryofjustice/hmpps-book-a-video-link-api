@@ -45,7 +45,7 @@ class AvailabilityService(
       forDate = request.date!!,
       forPrison = request.prisonCode!!,
       forLocationKeys = listOfLocationKeys,
-    )
+    ).filter { vlb -> vlb.videoBookingId != request.vlbIdToExclude }
 
     log.info("Found ${videoAppointments.size} appointments in these rooms")
 

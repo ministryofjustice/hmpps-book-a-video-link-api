@@ -103,6 +103,52 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should exclude specific booking when checking for availability`() {
+    val bookingCreator = "BOOKING_CREATOR"
+
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = "DRBYMC",
+      prisonerNumber = "A1111AA",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+    )
+
+    val id = webTestClient.createBooking(bookingCreator, courtBookingRequest)
+
+    // Do the availability check for a booking at the same time as the existing booking above
+    val availabilityRequest = AvailabilityRequest(
+      bookingType = BookingType.COURT,
+      courtOrProbationCode = "DRBYMC",
+      prisonCode = WERRINGTON,
+      date = LocalDate.now().plusDays(1),
+      mainAppointment = LocationAndInterval(
+        werringtonLocation.key,
+        Interval(
+          start = LocalTime.of(12, 0),
+          end = LocalTime.of(12, 30),
+        ),
+      ),
+      vlbIdToExclude = id,
+    )
+
+    val availabilityResponse = webTestClient.availabilityCheck(bookingCreator, availabilityRequest)
+
+    assertThat(availabilityResponse).isNotNull
+    with(availabilityResponse) {
+      assertThat(availabilityOk).isTrue()
+      assertThat(alternatives).hasSize(0)
+    }
+  }
+
+  @Test
   fun `should confirm availability for a probation booking when the prison room is free`() {
     val bookingCreator = "BOOKING_CREATOR"
 
