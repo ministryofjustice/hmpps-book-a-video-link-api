@@ -10,12 +10,12 @@ class OutboundEventsService(
 ) {
   fun send(domainEventType: DomainEventType, identifier: Long) {
     when (domainEventType) {
-      APPOINTMENT_CREATED -> send(domainEventType.toOutboundEvent(AppointmentInformation(identifier)))
-      VIDEO_BOOKING_CREATED -> send(domainEventType.toOutboundEvent(VideoBookingInformation(identifier)))
+      APPOINTMENT_CREATED -> send(AppointmentCreatedEvent(AppointmentInformation(identifier)))
+      VIDEO_BOOKING_CREATED -> send(VideoBookingCreatedEvent(VideoBookingInformation(identifier)))
     }
   }
 
-  private fun send(event: OutboundHMPPSDomainEvent) {
+  private fun send(event: DomainEvent<*>) {
     outboundEventsPublisher.send(event)
   }
 }

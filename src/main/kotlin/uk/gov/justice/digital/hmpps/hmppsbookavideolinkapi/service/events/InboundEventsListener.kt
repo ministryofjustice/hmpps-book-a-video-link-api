@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 
 @Component
-class InboundMessageListener(
+class InboundEventsListener(
   private val features: FeatureSwitches,
   private val mapper: ObjectMapper,
   private val inboundEventsService: InboundEventsService,
@@ -26,19 +26,16 @@ class InboundMessageListener(
 
       when (message.Type) {
         "Notification" -> {
-          mapper.readValue<DomainEvent>(message.Message).let { domainEvent ->
-            domainEvent.toEventType()?.let { eventType ->
-              runCatching {
-                inboundEventsService.process(eventType.toInboundEvent(mapper, message.Message))
-              }.onFailure {
-                log.error("Error processing message ${message.MessageId}", it)
-                throw it
-              }
-            } ?: log.info("Unrecognised event ${domainEvent.eventType}")
-          }
+          message.toDomainEventType()?.let { eventType ->
+            runCatching {
+              inboundEventsService.process(eventType.toInboundEvent(mapper, message.Message))
+            }.onFailure {
+              log.error("Error processing message ${message.MessageId}", it)
+              throw it
+            }
+          } ?: log.info("Unrecognised event ${message.MessageAttributes.eventType.Value}")
         }
-
-        else -> log.info("Unrecognised message type: ${message.Type}")
+        else -> log.info("Ignoring message, actual message type '${message.Type}' is not a Notification.")
       }
     }
   }
@@ -55,4 +52,6 @@ data class Message(
   val Message: String,
   val MessageId: String? = null,
   val MessageAttributes: MessageAttributes,
-)
+) {
+  fun toDomainEventType() = DomainEventType.entries.singleOrNull { it.eventType == MessageAttributes.eventType.Type }
+}
