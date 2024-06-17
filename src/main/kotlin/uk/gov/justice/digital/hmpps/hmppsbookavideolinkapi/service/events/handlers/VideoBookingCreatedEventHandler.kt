@@ -24,7 +24,7 @@ class VideoBookingCreatedEventHandler(
   }
 
   override fun handle(event: VideoBookingCreatedEvent) {
-    videoBookingRepository.findById(event.videoBookingId).ifPresentOrElse(
+    videoBookingRepository.findById(event.additionalInformation.videoBookingId).ifPresentOrElse(
       { booking ->
         prisonAppointmentRepository.findByVideoBooking(booking).forEach {
           outboundEventsService.send(DomainEventType.APPOINTMENT_CREATED, it.prisonAppointmentId)
@@ -32,7 +32,7 @@ class VideoBookingCreatedEventHandler(
       },
       {
         // Ignore, there is nothing we can do if we do not find the booking
-        log.warn("Video booking with ID ${event.videoBookingId} not found")
+        log.warn("Video booking with ID ${event.additionalInformation.videoBookingId} not found")
       },
     )
   }

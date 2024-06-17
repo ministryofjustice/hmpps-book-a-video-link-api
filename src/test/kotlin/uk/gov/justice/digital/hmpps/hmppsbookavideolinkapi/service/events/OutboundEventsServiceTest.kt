@@ -13,7 +13,7 @@ class OutboundEventsServiceTest {
 
   private val eventsPublisher: OutboundEventsPublisher = mock()
   private val service = OutboundEventsService(eventsPublisher)
-  private val eventCaptor = argumentCaptor<OutboundHMPPSDomainEvent>()
+  private val eventCaptor = argumentCaptor<DomainEvent<*>>()
 
   @Test
   fun `should publish video booking created outbound event`() {

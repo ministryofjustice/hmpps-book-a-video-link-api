@@ -25,11 +25,11 @@ class AppointmentCreatedEventHandler(
   }
 
   override fun handle(event: AppointmentCreatedEvent) {
-    if (prisonAppointmentRepository.existsById(event.appointmentId)) {
-      manageExternalAppointmentsService.createAppointment(event.appointmentId)
+    if (prisonAppointmentRepository.existsById(event.additionalInformation.appointmentId)) {
+      manageExternalAppointmentsService.createAppointment(event.additionalInformation.appointmentId)
     } else {
       // Ignore, there is nothing we can do if we do not find the prison appointment
-      log.warn("Prison appointment with ID ${event.appointmentId} not found")
+      log.warn("Prison appointment with ID ${event.additionalInformation.appointmentId} not found")
     }
   }
 }

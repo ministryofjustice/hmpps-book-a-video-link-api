@@ -32,3 +32,7 @@ internal infix fun <T> T.isEqualTo(value: T) {
 internal infix fun String.contains(value: String) {
   assertThat(this).contains(value)
 }
+
+internal infix fun <T> T.isInstanceOf(value: Class<*>) {
+  assertThat(this).isInstanceOf(value)
+}

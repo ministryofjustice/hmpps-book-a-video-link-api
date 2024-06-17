@@ -53,9 +53,7 @@ class BookingFacade(
   private fun sendNewCourtBookingEmails(booking: VideoBooking, prisoner: Prisoner) {
     val (pre, main, post) = prisonAppointmentRepository.findByVideoBooking(booking).prisonAppointmentsForCourtHearing()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
-
     val contacts = bookingContactsService.getBookingContacts(booking.videoBookingId).allContactsWithAnEmailAddress()
-
     val locations = locationsInsidePrisonClient.getLocationsByKeys(setOfNotNull(pre?.prisonLocKey, main.prisonLocKey, post?.prisonLocKey)).associateBy { it.key }
 
     contacts.mapNotNull { contact ->
@@ -69,9 +67,9 @@ class BookingFacade(
           court = booking.court!!.description,
           prison = prison.name,
           date = main.appointmentDate,
-          preAppointmentInfo = pre?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
-          mainAppointmentInfo = main.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
-          postAppointmentInfo = post?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+          preAppointmentInfo = pre?.appointmentInformation(locations),
+          mainAppointmentInfo = main.appointmentInformation(locations),
+          postAppointmentInfo = post?.appointmentInformation(locations),
           comments = booking.comments,
         )
 
@@ -88,9 +86,9 @@ class BookingFacade(
               courtEmailAddress = primaryCourtContact.email!!,
               prison = prison.name,
               date = main.appointmentDate,
-              preAppointmentInfo = pre?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
-              mainAppointmentInfo = main.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
-              postAppointmentInfo = post?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+              preAppointmentInfo = pre?.appointmentInformation(locations),
+              mainAppointmentInfo = main.appointmentInformation(locations),
+              postAppointmentInfo = post?.appointmentInformation(locations),
               comments = booking.comments,
             )
           } else {
@@ -102,9 +100,9 @@ class BookingFacade(
               court = booking.court!!.description,
               prison = prison.name,
               date = main.appointmentDate,
-              preAppointmentInfo = pre?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
-              mainAppointmentInfo = main.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
-              postAppointmentInfo = post?.let { "${locations.room(it.prisonLocKey)} - ${it.startTime.toHourMinuteStyle()} to ${it.endTime.toHourMinuteStyle()}" },
+              preAppointmentInfo = pre?.appointmentInformation(locations),
+              mainAppointmentInfo = main.appointmentInformation(locations),
+              postAppointmentInfo = post?.appointmentInformation(locations),
               comments = booking.comments,
             )
           }
@@ -146,6 +144,9 @@ class BookingFacade(
   private fun Collection<PrisonAppointment>.main() = single { it.appointmentType == "VLB_COURT_MAIN" }
 
   private fun Collection<PrisonAppointment>.post() = singleOrNull { it.appointmentType == "VLB_COURT_POST" }
+
+  private fun PrisonAppointment.appointmentInformation(locations: Map<String, Location>) =
+    "${locations.room(prisonLocKey)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Map<String, Location>.room(key: String) = this[key]?.localName ?: ""
 }
