@@ -41,6 +41,12 @@ generic-service:
       DB_PASS: "database_password"
     gov-notify:
       NOTIFY_API_KEY: "notify_api_key"
+    hmpps-domain-events-topic:
+      HMPPS_SQS_TOPICS_DOMAINEVENTS_ARN: "topic_arn"
+    sqs-domain-event-secret:
+      HMPPS_SQS_QUEUES_BVLS_QUEUE_NAME: "sqs_queue_name"
+    sqs-domain-event-dlq-secret:
+      HMPPS_SQS_QUEUES_BVLS_DLQ_NAME: "sqs_queue_name"
 
   allowlist:
     groups:
