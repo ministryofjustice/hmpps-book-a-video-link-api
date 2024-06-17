@@ -218,4 +218,54 @@ class AvailabilityServiceTest {
       assertThat(alternatives).hasSize(0)
     }
   }
+
+  @Test
+  fun `Excludes appointments with the same videoBookingId as vlbIdToExclude`() {
+    // Request to exclude certain videoBookingId
+    val request = AvailabilityRequest(
+      bookingType = BookingType.COURT,
+      courtOrProbationCode = "TESTC",
+      prisonCode = MOORLAND,
+      date = LocalDate.now(),
+      mainAppointment = LocationAndInterval(
+        prisonLocKey = room1,
+        interval = Interval(start = LocalTime.of(10, 0), end = LocalTime.of(11, 0)),
+      ),
+      vlbIdToExclude = 2L,
+    )
+
+    val response = service.checkAvailability(request)
+
+    // We should exclude appointments with videoBookingId == 2L
+    assertThat(response).isNotNull
+    with(response) {
+      assertThat(availabilityOk).isTrue()
+      assertThat(alternatives).hasSize(0) // No conflicts after excluding
+    }
+  }
+
+  @Test
+  fun `Includes appointments not matching vlbIdToExclude`() {
+    // Request to exclude certain videoBookingId
+    val request = AvailabilityRequest(
+      bookingType = BookingType.COURT,
+      courtOrProbationCode = "TESTC",
+      prisonCode = MOORLAND,
+      date = LocalDate.now(),
+      mainAppointment = LocationAndInterval(
+        prisonLocKey = room1,
+        interval = Interval(start = LocalTime.of(10, 0), end = LocalTime.of(11, 0)),
+      ),
+      vlbIdToExclude = 5L,
+    )
+
+    val response = service.checkAvailability(request)
+
+    // We should not exclude appointments with videoBookingId == 2L (conflict exists)
+    assertThat(response).isNotNull
+    with(response) {
+      assertThat(availabilityOk).isFalse()
+      assertThat(alternatives).hasSize(3)
+    }
+  }
 }

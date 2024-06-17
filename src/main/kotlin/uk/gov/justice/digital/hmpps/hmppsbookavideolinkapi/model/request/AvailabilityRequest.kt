@@ -66,6 +66,12 @@ data class AvailabilityRequest(
     requiredMode = RequiredMode.NOT_REQUIRED,
   )
   val postAppointment: LocationAndInterval? = null,
+
+  @Schema(
+    description = "Exclude the video link booking with this ID from the availability check. Useful when checking availability during the amending of a booking.",
+    requiredMode = RequiredMode.NOT_REQUIRED,
+  )
+  val vlbIdToExclude: Long? = null,
 )
 
 @Schema(description = "The prison location key and start/end interval for an appointment slot")
