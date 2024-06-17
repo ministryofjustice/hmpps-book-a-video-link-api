@@ -4,12 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.awspring.cloud.sqs.annotation.SqsListener
+import io.opentelemetry.api.trace.SpanKind
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 
+@Profile("!test && !local")
 @Component
 class InboundEventsListener(
   private val features: FeatureSwitches,
@@ -20,6 +25,8 @@ class InboundEventsListener(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
+  @SqsListener("bvls", factory = "hmppsQueueContainerFactoryProxy")
+  @WithSpan(value = "Digital-Prison-Services-book_a_video_link_queue", kind = SpanKind.SERVER)
   fun onMessage(rawMessage: String) {
     if (features.isEnabled(Feature.SNS_ENABLED)) {
       val message: Message = mapper.readValue(rawMessage)
