@@ -80,6 +80,6 @@ class InboundEventsListenerTest {
       "Notification",
       mapper.writeValueAsString(event),
       UUID.randomUUID().toString(),
-      MessageAttributes(EventType("String", event.eventType)),
+      MessageAttributes(EventType(Type = "String", Value = event.eventType)),
     )
 }
