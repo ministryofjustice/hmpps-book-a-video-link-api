@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -89,8 +90,10 @@ data class ScheduleItem(
   val appointmentDate: LocalDate,
 
   @Schema(description = "The start time for the appointment ISO time format (HH:MI)", example = "12:45")
+  @JsonFormat(pattern = "HH:mm")
   val startTime: LocalTime,
 
   @Schema(description = "The end time for the appointment ISO time format (HH:MI)", example = "13:15")
+  @JsonFormat(pattern = "HH:mm")
   val endTime: LocalTime,
 )
