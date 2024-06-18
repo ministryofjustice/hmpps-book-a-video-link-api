@@ -62,5 +62,5 @@ data class Message(
   val MessageId: String? = null,
   val MessageAttributes: MessageAttributes,
 ) {
-  fun toDomainEventType() = DomainEventType.entries.singleOrNull { it.eventType == MessageAttributes.eventType.Type }
+  fun toDomainEventType() = DomainEventType.entries.singleOrNull { it.eventType == MessageAttributes.eventType.Value }
 }
