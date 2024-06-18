@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitche
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import java.util.UUID
+import org.mockito.kotlin.check as mockitoCheck
 
 class InboundEventsListenerTest {
 
@@ -36,7 +37,7 @@ class InboundEventsListenerTest {
     eventListener.onMessage(rawMessage)
 
     verify(inboundEventsService).process(
-      org.mockito.kotlin.check {
+      mockitoCheck {
         it isInstanceOf VideoBookingCreatedEvent::class.java
         (it as VideoBookingCreatedEvent).additionalInformation.videoBookingId isEqualTo 1
       },
@@ -54,7 +55,7 @@ class InboundEventsListenerTest {
     eventListener.onMessage(rawMessage)
 
     verify(inboundEventsService).process(
-      org.mockito.kotlin.check {
+      mockitoCheck {
         it isInstanceOf AppointmentCreatedEvent::class.java
         (it as AppointmentCreatedEvent).additionalInformation.appointmentId isEqualTo 1
       },

@@ -17,7 +17,7 @@ class VideoBookingCreatedEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val outboundEventsService: OutboundEventsService,
-) : EventHandler<VideoBookingCreatedEvent> {
+) : DomainEventHandler<VideoBookingCreatedEvent> {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

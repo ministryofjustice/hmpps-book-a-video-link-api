@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
 
-interface Event
-
 abstract class DomainEvent<T : AdditionalInformation>(
   eventType: DomainEventType,
   val additionalInformation: T,
@@ -21,12 +19,12 @@ abstract class DomainEvent<T : AdditionalInformation>(
 interface AdditionalInformation
 
 class AppointmentCreatedEvent(additionalInformation: AppointmentInformation) :
-  DomainEvent<AppointmentInformation>(DomainEventType.APPOINTMENT_CREATED, additionalInformation), Event
+  DomainEvent<AppointmentInformation>(DomainEventType.APPOINTMENT_CREATED, additionalInformation)
 
 data class AppointmentInformation(val appointmentId: Long) : AdditionalInformation
 
 class VideoBookingCreatedEvent(additionalInformation: VideoBookingInformation) :
-  DomainEvent<VideoBookingInformation>(DomainEventType.VIDEO_BOOKING_CREATED, additionalInformation), Event
+  DomainEvent<VideoBookingInformation>(DomainEventType.VIDEO_BOOKING_CREATED, additionalInformation)
 
 data class VideoBookingInformation(val videoBookingId: Long) : AdditionalInformation
 
@@ -47,5 +45,5 @@ enum class DomainEventType(val eventType: String, val description: String) {
   },
   ;
 
-  abstract fun toInboundEvent(mapper: ObjectMapper, message: String): Event
+  abstract fun toInboundEvent(mapper: ObjectMapper, message: String): DomainEvent<*>
 }
