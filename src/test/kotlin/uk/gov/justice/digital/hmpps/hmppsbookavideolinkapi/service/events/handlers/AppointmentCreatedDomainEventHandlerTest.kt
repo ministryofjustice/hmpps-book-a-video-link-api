@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Appoin
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
 
-class AppointmentCreatedEventHandlerTest {
+class AppointmentCreatedDomainEventHandlerTest {
 
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val manageExternalAppointmentsService: ManageExternalAppointmentsService = mock()

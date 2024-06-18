@@ -22,7 +22,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Optional
 
-class VideoBookingCreatedEventHandlerTest {
+class VideoBookingCreatedDomainEventHandlerTest {
 
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()

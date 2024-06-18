@@ -15,11 +15,11 @@ class InboundEventsService(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun process(event: Event) {
+  fun process(event: DomainEvent<*>) {
     when (event) {
       is VideoBookingCreatedEvent -> videoBookingCreatedEventHandler.handle(event)
       is AppointmentCreatedEvent -> appointmentCreatedEventHandler.handle(event)
-      else -> log.warn("Unsupported event ${event.javaClass.name}")
+      else -> log.warn("Unsupported domain event ${event.javaClass.name}")
     }
   }
 }

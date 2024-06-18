@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Manage
 class AppointmentCreatedEventHandler(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val manageExternalAppointmentsService: ManageExternalAppointmentsService,
-) : EventHandler<AppointmentCreatedEvent> {
+) : DomainEventHandler<AppointmentCreatedEvent> {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
