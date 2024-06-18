@@ -32,6 +32,8 @@ class ManageExternalAppointmentsService(
     prisonAppointmentRepository.findById(prisonAppointmentId).ifPresentOrElse(
       { appointment ->
         if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode)) {
+          log.info("EXTERNAL APPOINTMENTS: appointments rolled out at ${appointment.prisonCode} creating via activities and appointments")
+
           activitiesAppointmentsClient.createAppointment(
             prisonCode = appointment.prisonCode,
             prisonerNumber = appointment.prisonerNumber,
@@ -43,6 +45,8 @@ class ManageExternalAppointmentsService(
             log.info("EXTERNAL APPOINTMENTS: created activities and appointments series ${appointmentSeries.id} for prison appointment $prisonAppointmentId")
           }
         } else {
+          log.info("EXTERNAL APPOINTMENTS: appointments not rolled out at ${appointment.prisonCode} creating via prison api")
+
           prisonApiClient.createAppointment(
             bookingId = appointment.bookingId(),
             locationId = appointment.internalLocationId(),

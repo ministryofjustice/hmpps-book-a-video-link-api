@@ -26,8 +26,10 @@ class InboundEventsListener(
   }
 
   @SqsListener("bvls", factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "Digital-Prison-Services-book_a_video_link_queue", kind = SpanKind.SERVER)
+  @WithSpan(value = "farsight-devs-book_a_video_link_queue", kind = SpanKind.SERVER)
   fun onMessage(rawMessage: String) {
+    log.info("LISTENER: raw message $rawMessage")
+
     if (features.isEnabled(Feature.SNS_ENABLED)) {
       val message: Message = mapper.readValue(rawMessage)
 
@@ -37,12 +39,12 @@ class InboundEventsListener(
             runCatching {
               inboundEventsService.process(eventType.toInboundEvent(mapper, message.Message))
             }.onFailure {
-              log.error("Error processing message ${message.MessageId}", it)
+              log.error("LISTENER: Error processing message ${message.MessageId}", it)
               throw it
             }
-          } ?: log.info("Unrecognised event ${message.MessageAttributes.eventType.Value}")
+          } ?: log.info("LISTENER: Unrecognised event ${message.MessageAttributes.eventType.Value}")
         }
-        else -> log.info("Ignoring message, actual message type '${message.Type}' is not a Notification.")
+        else -> log.info("LISTENER: Ignoring message, actual message type '${message.Type}' is not a Notification.")
       }
     }
   }
