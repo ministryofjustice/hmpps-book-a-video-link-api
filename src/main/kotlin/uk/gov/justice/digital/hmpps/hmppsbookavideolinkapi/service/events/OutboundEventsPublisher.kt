@@ -34,6 +34,8 @@ class OutboundEventsPublisher(
 
   fun send(event: DomainEvent<*>) {
     if (isSnsEnabled) {
+      log.info("PUBLISHER: publishing domain event $event")
+
       runCatching {
         domainEventsTopic.snsClient.publish(
           PublishRequest.builder()
@@ -43,6 +45,8 @@ class OutboundEventsPublisher(
             .build(),
         ).get()
       }.onFailure { log.error("PUBLISHER: error publishing event $event", it) }
+    } else {
+      log.info("PUBLISHER: domain event $event not published, publishing is disabled ")
     }
   }
 
