@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Outbou
 @Component
 class BookingFacade(
   private val createVideoBookingService: CreateVideoBookingService,
+  private val amendVideoBookingService: AmendVideoBookingService,
   private val bookingContactsService: BookingContactsService,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val prisonRepository: PrisonRepository,
@@ -52,7 +53,7 @@ class BookingFacade(
   }
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, username: String): Long {
-    val (booking) = createVideoBookingService.amend(videoBookingId, bookingRequest, username)
+    val (booking) = amendVideoBookingService.amend(videoBookingId, bookingRequest, username)
 
     // TODO: Emit VIDEO_BOOKING_AMENDED domain event
     // TODO: Send Booking amended emails
