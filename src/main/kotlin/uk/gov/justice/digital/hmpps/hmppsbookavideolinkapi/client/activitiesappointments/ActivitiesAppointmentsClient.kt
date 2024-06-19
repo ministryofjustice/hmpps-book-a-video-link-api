@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -48,11 +48,11 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     startTime: LocalTime,
     endTime: LocalTime,
     internalLocationId: Long,
+    extraInformation: String,
   ): AppointmentSeries? =
     activitiesAppointmentsApiWebClient.post()
       .uri("/appointment-series")
       .bodyValue(
-        // TODO should we be setting the event/appointment organiser e.g. OTHER or EXTERNAL_PROVIDER
         AppointmentSeriesCreateRequest(
           appointmentType = AppointmentSeriesCreateRequest.AppointmentType.INDIVIDUAL,
           prisonCode = prisonCode,
@@ -61,13 +61,13 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
           tierCode = AppointmentSeriesCreateRequest.TierCode.TIER_1,
           inCell = false,
           startDate = startDate,
-          startTime = startTime.toIsoTime(),
-          endTime = endTime.toIsoTime(),
+          startTime = startTime.toHourMinuteStyle(),
+          endTime = endTime.toHourMinuteStyle(),
           internalLocationId = internalLocationId,
+          extraInformation = extraInformation,
         ),
       )
       .retrieve()
       .bodyToMono(AppointmentSeries::class.java)
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
 }

@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendee
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -62,6 +62,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     startTime: LocalTime,
     endTime: LocalTime,
     internalLocationId: Long,
+    extraInformation: String,
   ) {
     val request = AppointmentSeriesCreateRequest(
       appointmentType = AppointmentSeriesCreateRequest.AppointmentType.INDIVIDUAL,
@@ -71,9 +72,10 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
       tierCode = AppointmentSeriesCreateRequest.TierCode.TIER_1,
       inCell = false,
       startDate = startDate,
-      startTime = startTime.toIsoTime(),
-      endTime = endTime.toIsoTime(),
+      startTime = startTime.toHourMinuteStyle(),
+      endTime = endTime.toHourMinuteStyle(),
       internalLocationId = internalLocationId,
+      extraInformation = extraInformation,
     )
 
     stubFor(

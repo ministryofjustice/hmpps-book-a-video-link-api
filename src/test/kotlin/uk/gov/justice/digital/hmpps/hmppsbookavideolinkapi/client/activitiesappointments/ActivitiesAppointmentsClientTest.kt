@@ -30,6 +30,7 @@ class ActivitiesAppointmentsClientTest {
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
       internalLocationId = 1,
+      extraInformation = "extra info",
     )
 
     client.createAppointment(
@@ -39,6 +40,7 @@ class ActivitiesAppointmentsClientTest {
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
       internalLocationId = 1,
+      extraInformation = "extra info",
     )
   }
 
