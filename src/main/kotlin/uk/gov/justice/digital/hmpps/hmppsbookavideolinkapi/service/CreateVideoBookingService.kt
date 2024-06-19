@@ -50,12 +50,10 @@ class CreateVideoBookingService(
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
 
-    val prisoner = request.prisoner().validate()
-
-    booking.amendedBy = amendedBy
-    booking.amendedTime = LocalDateTime.now()
-
-    return booking to prisoner
+    return when (BookingType.valueOf(booking.bookingType)) {
+      BookingType.COURT -> amendCourt(booking, request, amendedBy)
+      BookingType.PROBATION -> amendProbation(booking, request, amendedBy)
+    }
   }
 
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
@@ -73,12 +71,34 @@ class CreateVideoBookingService(
       createdBy = createdBy,
       createdByPrison = request.createdByPrison!!,
     ).let(videoBookingRepository::saveAndFlush)
-      .also { booking -> createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
+      .also { booking -> createAppointmentsForCourt(booking, request.prisoner()) }
       .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
   }
 
+  private fun amendCourt(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: String): Pair<VideoBooking, Prisoner> {
+    val court = courtRepository.findByCode(request.courtCode!!)
+      ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
+
+    val prisoner = request.prisoner().validate()
+
+    booking.apply {
+      this.court = court
+      hearingType = request.courtHearingType!!.name
+      comments = request.comments
+      videoUrl = request.videoLinkUrl
+      this.amendedBy = amendedBy
+      amendedTime = LocalDateTime.now()
+    }
+
+    return booking.let(videoBookingRepository::saveAndFlush)
+      .also { prisonAppointmentRepository.deletePrisonAppointmentsByVideoBooking(it) }
+      .also { createAppointmentsForCourt(booking, request.prisoner()) }
+      .also { log.info("BOOKINGS: court booking ${it.videoBookingId} amended") } to prisoner
+  }
+
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
-  private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
+  private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
     prisoner.appointments.checkCourtAppointmentTypesOnly()
     prisoner.appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
     prisoner.appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisoner.prisonCode!!)
@@ -94,7 +114,6 @@ class CreateVideoBookingService(
         startTime = it.startTime!!,
         endTime = it.endTime!!,
         locationKey = it.locationKey!!,
-        createdBy = createdBy,
       )
     }.forEach(prisonAppointmentRepository::saveAndFlush)
   }
@@ -160,8 +179,30 @@ class CreateVideoBookingService(
       createdBy = createdBy,
       createdByPrison = request.createdByPrison!!,
     ).let(videoBookingRepository::saveAndFlush)
-      .also { booking -> createAppointmentForProbation(booking, request.prisoner(), createdBy) }
+      .also { booking -> createAppointmentForProbation(booking, request.prisoner()) }
       .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} created") } to prisoner
+  }
+
+  private fun amendProbation(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: String): Pair<VideoBooking, Prisoner> {
+    val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
+      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
+
+    val prisoner = request.prisoner().validate()
+
+    booking.apply {
+      this.probationTeam = probationTeam
+      probationMeetingType = request.probationMeetingType!!.name
+      comments = request.comments
+      videoUrl = request.videoLinkUrl
+      this.amendedBy = amendedBy
+      amendedTime = LocalDateTime.now()
+    }
+
+    return booking.let(videoBookingRepository::saveAndFlush)
+      .also { prisonAppointmentRepository.deletePrisonAppointmentsByVideoBooking(it) }
+      .also { createAppointmentForProbation(booking, request.prisoner()) }
+      .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} amended") } to prisoner
   }
 
   private fun PrisonerDetails.validate(): Prisoner {
@@ -171,7 +212,7 @@ class CreateVideoBookingService(
     return prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode).toPrisonerDetails()
   }
 
-  private fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
+  private fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
     val appointment = with(prisoner.appointments.single()) {
       require(type!!.isProbation) {
         "Appointment type $type is not valid for probation appointments"
@@ -189,7 +230,6 @@ class CreateVideoBookingService(
         startTime = this.startTime!!,
         endTime = this.endTime!!,
         locationKey = this.locationKey,
-        createdBy = createdBy,
       )
     }
 
