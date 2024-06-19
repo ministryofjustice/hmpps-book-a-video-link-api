@@ -55,7 +55,7 @@ class ManageExternalAppointmentsService(
             endTime = appointment.endTime,
             comments = appointment.comments,
           )?.let { event ->
-            log.info("EXTERNAL APPOINTMENTS: created prison api event ${event.id} for prison appointment $prisonAppointmentId")
+            log.info("EXTERNAL APPOINTMENTS: created prison api event ${event.eventId} for prison appointment $prisonAppointmentId")
           }
         }
       },
@@ -69,10 +69,10 @@ class ManageExternalAppointmentsService(
   // TODO question - this should never happen but what happens if we find no location? An exception here means the event will never clean up.
   private fun PrisonAppointment.internalLocationId() =
     prisonApiClient.getInternalLocationByKey(prisonLocKey)?.locationId
-      ?: throw NullPointerException("Internal location id not found for prison appointment $prisonAppointmentId")
+      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocKey not found for prison appointment $prisonAppointmentId")
 
   // TODO question - this should never happen but what happens if we find no booking id? An exception here means the event will never clean up.
   private fun PrisonAppointment.bookingId() =
     prisonerSearchClient.getPrisoner(prisonerNumber)?.bookingId?.toLong()
-      ?: throw NullPointerException("Booking id not found for prisoner $prisonerNumber for prison appointment $prisonAppointmentId")
+      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Booking id not found for prisoner $prisonerNumber for prison appointment $prisonAppointmentId")
 }

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
@@ -38,13 +39,15 @@ class PrisonApiClientTest {
       endTime = LocalTime.MIDNIGHT.plusHours(1),
     )
 
-    client.createAppointment(
+    val response = client.createAppointment(
       bookingId = 1,
       locationId = 2,
       appointmentDate = LocalDate.now(),
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
     )
+
+    assertThat(response).isNotNull
   }
 
   @AfterEach

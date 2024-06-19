@@ -7,12 +7,11 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Event
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 
 class PrisonApiMockServer : MockServer(8094) {
@@ -48,7 +47,7 @@ class PrisonApiMockServer : MockServer(8094) {
     comments: String? = null,
   ) {
     stubFor(
-      post("/bookings/$bookingId/appointments")
+      post("/api/bookings/$bookingId/appointments")
         .withRequestBody(
           WireMock.equalToJson(
             mapper.writeValueAsString(
@@ -66,16 +65,7 @@ class PrisonApiMockServer : MockServer(8094) {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(
-              mapper.writeValueAsString(
-                Event(
-                  id = 1,
-                  type = appointmentType,
-                  prisonId = "MDI",
-                  nomsId = "ABC123",
-                  timestamp = LocalDateTime.now().toIsoDateTime(),
-                  eventData = null,
-                ),
-              ),
+              mapper.writeValueAsString(ScheduledEvent(eventId = 1)),
             )
             .withStatus(200),
         ),
