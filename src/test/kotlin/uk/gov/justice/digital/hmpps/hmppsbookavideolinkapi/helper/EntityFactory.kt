@@ -8,10 +8,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
 
-fun court(code: String = "DRBYMC", enabled: Boolean = true) = Court(
+fun court(code: String = DERBY_JUSTICE_CENTRE, enabled: Boolean = true) = Court(
   courtId = 0,
   code = code,
-  description = "court description",
+  description = DERBY_JUSTICE_CENTRE,
   enabled = enabled,
   notes = null,
   createdBy = "Test",

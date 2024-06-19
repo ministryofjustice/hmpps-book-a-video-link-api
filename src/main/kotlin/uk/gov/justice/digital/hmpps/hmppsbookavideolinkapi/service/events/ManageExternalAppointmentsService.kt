@@ -41,6 +41,7 @@ class ManageExternalAppointmentsService(
             startTime = appointment.startTime,
             endTime = appointment.endTime,
             internalLocationId = appointment.internalLocationId(),
+            extraInformation = appointment.extraInformation(),
           )?.let { appointmentSeries ->
             log.info("EXTERNAL APPOINTMENTS: created activities and appointments series ${appointmentSeries.id} for prison appointment $prisonAppointmentId")
           }
@@ -65,6 +66,9 @@ class ManageExternalAppointmentsService(
       },
     )
   }
+
+  private fun PrisonAppointment.extraInformation() =
+    if (videoBooking.isCourtBooking()) "Video booking for court ${videoBooking.court?.description}" else "Video booking for probation team ${videoBooking.probationTeam?.description}"
 
   // TODO question - this should never happen but what happens if we find no location? An exception here means the event will never clean up.
   private fun PrisonAppointment.internalLocationId() =

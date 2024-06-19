@@ -7,6 +7,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -93,8 +94,8 @@ class VideoLinkBookingsServiceTest {
     )
 
     // Should be present for a court booking
-    assertThat(response.courtCode).isEqualTo("DRBYMC")
-    assertThat(response.courtDescription).isEqualTo("court description")
+    assertThat(response.courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
+    assertThat(response.courtDescription).isEqualTo(DERBY_JUSTICE_CENTRE)
     assertThat(response.courtHearingType).isEqualTo(CourtHearingType.TRIBUNAL)
     assertThat(response.courtHearingTypeDescription).isEqualTo("Tribunal")
     assertThat(response.comments).isEqualTo("Court hearing comments")

@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
@@ -95,7 +96,7 @@ class BookingFacadeTest {
       address isEqualTo "jon@somewhere.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",
-        "court" to "court description",
+        "court" to DERBY_JUSTICE_CENTRE,
         "prison" to "Moorland",
         "offenderNo" to "123456",
         "prisonerName" to "Fred Bloggs",

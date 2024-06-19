@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.Pris
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
@@ -59,6 +60,7 @@ class ManageExternalAppointmentsServiceTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       internalLocationId = 123456,
+      extraInformation = "Video booking for court $DERBY_JUSTICE_CENTRE",
     )
   }
 
@@ -71,7 +73,7 @@ class ManageExternalAppointmentsServiceTest {
 
     service.createAppointment(1)
 
-    verify(activitiesAppointmentsClient, never()).createAppointment(any(), any(), any(), any(), any(), any())
+    verify(activitiesAppointmentsClient, never()).createAppointment(any(), any(), any(), any(), any(), any(), any())
     verify(prisonApiClient).createAppointment(
       bookingId = 1,
       locationId = 123456,
