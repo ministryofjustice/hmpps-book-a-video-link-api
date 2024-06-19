@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Event
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
@@ -37,10 +36,10 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     startTime: LocalTime,
     endTime: LocalTime,
     comments: String? = null,
-  ): Event? =
+  ): ScheduledEvent? =
     prisonApiWebClient
       .post()
-      .uri("/bookings/{bookingId}/appointments", bookingId)
+      .uri("/api/bookings/{bookingId}/appointments", bookingId)
       .header("no-event-propagation", true.toString())
       .bodyValue(
         NewAppointment(
@@ -52,7 +51,9 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
         ),
       )
       .retrieve()
-      .bodyToMono(Event::class.java)
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .bodyToMono(ScheduledEvent::class.java)
       .block()
 }
+
+// Overriding due to deserialisation issues from generated type.
+data class ScheduledEvent(val eventId: Long)
