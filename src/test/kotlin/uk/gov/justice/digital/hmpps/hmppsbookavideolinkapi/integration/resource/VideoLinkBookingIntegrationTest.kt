@@ -564,7 +564,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should amend a Derby court booking and emails sent to Werrington prison`() {
+  fun `should amend a court booking and emails sent to the prison`() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
@@ -583,16 +583,16 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
 
     val amendBookingRequest = amendCourtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = WERRINGTON,
       location = werringtonLocation,
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
+      startTime = LocalTime.of(13, 0),
+      endTime = LocalTime.of(14, 30),
+      comments = "amended court booking comments",
     )
 
     webTestClient.amendBooking(bookingId, amendBookingRequest, TEST_USERNAME)
@@ -604,10 +604,11 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       bookingType isEqualTo "COURT"
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
-      comments isEqualTo "integration test court booking comments"
+      comments isEqualTo "amended court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo TEST_USERNAME
+      createdBy isEqualTo "booking@creator.com"
       createdByPrison isEqualTo false
+      amendedBy isEqualTo TEST_USERNAME
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -617,9 +618,9 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
       prisonLocKey isEqualTo werringtonLocation.key
-      startTime isEqualTo LocalTime.of(12, 0)
-      endTime isEqualTo LocalTime.of(12, 30)
-      comments isEqualTo "integration test court booking comments"
+      startTime isEqualTo LocalTime.of(13, 0)
+      endTime isEqualTo LocalTime.of(14, 30)
+      comments isEqualTo "amended court booking comments"
     }
 
     // TODO: Assert that appropriate emails are sent
@@ -755,11 +756,11 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
-      startTime = LocalTime.of(9, 0),
-      endTime = LocalTime.of(9, 30),
+      startTime = LocalTime.of(10, 0),
+      endTime = LocalTime.of(11, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
+      comments = "amended probation booking comments",
     )
 
     webTestClient.amendBooking(bookingId, amendBookingRequest, TEST_USERNAME)
@@ -771,10 +772,11 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       bookingType isEqualTo "PROBATION"
       probationTeam?.probationTeamId isEqualTo 1
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
-      comments isEqualTo "integration test probation booking comments"
+      comments isEqualTo "amended probation booking comments"
       videoUrl isEqualTo "https://probation.videolink.com"
       createdBy isEqualTo "booking@creator.com"
       createdByPrison isEqualTo false
+      amendedBy isEqualTo TEST_USERNAME
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -784,9 +786,9 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo tomorrow()
       prisonLocKey isEqualTo birminghamLocation.key
-      startTime isEqualTo LocalTime.of(9, 0)
-      endTime isEqualTo LocalTime.of(9, 30)
-      comments isEqualTo "integration test probation booking comments"
+      startTime isEqualTo LocalTime.of(10, 0)
+      endTime isEqualTo LocalTime.of(11, 30)
+      comments isEqualTo "amended probation booking comments"
     }
   }
 
