@@ -34,10 +34,10 @@ class AmendVideoBookingService(
   @Transactional
   fun amend(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: String): Pair<VideoBooking, Prisoner> {
     val booking = videoBookingRepository.findById(videoBookingId)
-      .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
+      .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
       .also {
         require(BookingType.valueOf(it.bookingType) == request.bookingType) {
-          "The booking type ${it.bookingType} does not match the requested type ${request.bookingType}"
+          "The booking type ${it.bookingType} does not match the requested type ${request.bookingType}."
         }
       }
 

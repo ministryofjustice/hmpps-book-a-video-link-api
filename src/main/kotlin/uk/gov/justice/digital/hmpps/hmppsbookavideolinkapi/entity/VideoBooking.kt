@@ -95,7 +95,6 @@ class VideoBooking private constructor(
       createdBy: String,
       createdByPrison: Boolean,
     ): VideoBooking =
-      // TODO check probation team is enabled?
       VideoBooking(
         bookingType = "PROBATION",
         court = null,
