@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
+import java.time.LocalDateTime
 
 @Service
 class CreateVideoBookingService(
@@ -36,13 +38,25 @@ class CreateVideoBookingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  // TODO: Assumes one person per booking, so revisit for co-defendant cases
   @Transactional
   fun create(booking: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> =
     when (booking.bookingType!!) {
       BookingType.COURT -> createCourt(booking, createdBy)
       BookingType.PROBATION -> createProbation(booking, createdBy)
     }
+
+  @Transactional
+  fun amend(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: String): Pair<VideoBooking, Prisoner> {
+    val booking = videoBookingRepository.findById(videoBookingId)
+      .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
+
+    val prisoner = request.prisoner().validate()
+
+    booking.amendedBy = amendedBy
+    booking.amendedTime = LocalDateTime.now()
+
+    return booking to prisoner
+  }
 
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
     val court = courtRepository.findByCode(request.courtCode!!)
@@ -63,6 +77,7 @@ class CreateVideoBookingService(
       .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
   }
 
+  // TODO: Assumes one person per booking, so revisit for co-defendant cases
   private fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, createdBy: String) {
     prisoner.appointments.checkCourtAppointmentTypesOnly()
     prisoner.appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
@@ -202,4 +217,5 @@ class CreateVideoBookingService(
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.
   private fun CreateVideoBookingRequest.prisoner() = prisoners.first()
+  private fun AmendVideoBookingRequest.prisoner() = prisoners.first()
 }
