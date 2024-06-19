@@ -62,7 +62,6 @@ fun appointment(
   endTime: LocalTime = LocalTime.of(10, 0),
   appointmentType: String,
   locationKey: String,
-  createdBy: String = "Test",
 ) = PrisonAppointment.newAppointment(
   videoBooking = booking,
   prisonCode = prisonCode,
@@ -72,5 +71,4 @@ fun appointment(
   startTime = startTime,
   endTime = endTime,
   locationKey = locationKey,
-  createdBy = createdBy,
 )

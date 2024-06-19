@@ -136,8 +136,6 @@ class CreateVideoBookingServiceTest {
       startTime isEqualTo LocalTime.of(9, 0).toMinutePrecision()
       endTime isEqualTo LocalTime.of(9, 30).toMinutePrecision()
       prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
-      createdBy isEqualTo CREATED_BY
-      createdTime isCloseTo LocalDateTime.now()
     }
 
     with(appointmentsCaptor.secondValue) {
@@ -149,7 +147,6 @@ class CreateVideoBookingServiceTest {
       startTime isEqualTo LocalTime.of(9, 30).toMinutePrecision()
       endTime isEqualTo LocalTime.of(10, 0).toMinutePrecision()
       prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
-      createdBy isEqualTo CREATED_BY
     }
 
     with(appointmentsCaptor.thirdValue) {
@@ -161,8 +158,6 @@ class CreateVideoBookingServiceTest {
       startTime isEqualTo LocalTime.of(10, 0).toMinutePrecision()
       endTime isEqualTo LocalTime.of(10, 30).toMinutePrecision()
       prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
-      createdBy isEqualTo CREATED_BY
-      createdTime isCloseTo LocalDateTime.now()
     }
 
     verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
@@ -578,8 +573,6 @@ class CreateVideoBookingServiceTest {
       startTime isEqualTo prisoner.appointments.single().startTime!!.toMinutePrecision()
       endTime isEqualTo prisoner.appointments.single().endTime!!.toMinutePrecision()
       prisonLocKey isEqualTo prisoner.appointments.single().locationKey!!
-      createdBy isEqualTo CREATED_BY
-      createdTime isCloseTo LocalDateTime.now()
     }
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)

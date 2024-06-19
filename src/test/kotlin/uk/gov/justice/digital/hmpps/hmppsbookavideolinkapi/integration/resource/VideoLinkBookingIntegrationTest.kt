@@ -100,7 +100,6 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonLocKey isEqualTo werringtonLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
-      createdBy isEqualTo TEST_USERNAME
       comments isEqualTo "integration test court booking comments"
     }
 
@@ -157,7 +156,6 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonLocKey isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
-      createdBy isEqualTo TEST_USERNAME
       comments isEqualTo "integration test court booking comments"
     }
 
@@ -298,7 +296,6 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       prisonLocKey isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
-      createdBy isEqualTo "booking@creator.com"
       comments isEqualTo "integration test probation booking comments"
     }
   }
