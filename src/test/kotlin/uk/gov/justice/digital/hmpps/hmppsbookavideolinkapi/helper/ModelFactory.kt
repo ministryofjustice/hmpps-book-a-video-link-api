@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.Us
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -140,6 +141,81 @@ fun probationBookingRequest(
   )
 
   return CreateVideoBookingRequest(
+    bookingType = BookingType.PROBATION,
+    probationTeamCode = probationTeamCode,
+    probationMeetingType = probationMeetingType,
+    prisoners = listOf(prisoner),
+    comments = comments,
+    videoLinkUrl = videoLinkUrl,
+  )
+}
+
+fun amendCourtBookingRequest(
+  courtCode: String = "DRBYMC",
+  prisonCode: String = "MDI",
+  prisonerNumber: String = "123456",
+  locationSuffix: String = "A-1-001",
+  location: Location? = null,
+  startTime: LocalTime = LocalTime.now(),
+  endTime: LocalTime = LocalTime.now().plusHours(1),
+  comments: String = "court booking comments",
+  appointments: List<Appointment> = emptyList(),
+): AmendVideoBookingRequest {
+  val prisoner = PrisonerDetails(
+    prisonCode = prisonCode,
+    prisonerNumber = prisonerNumber,
+    appointments = appointments.ifEmpty {
+      listOf(
+        Appointment(
+          type = AppointmentType.VLB_COURT_MAIN,
+          locationKey = location?.key ?: "$prisonCode-$locationSuffix",
+          date = tomorrow(),
+          startTime = startTime,
+          endTime = endTime,
+        ),
+      )
+    },
+  )
+
+  return AmendVideoBookingRequest(
+    bookingType = BookingType.COURT,
+    courtCode = courtCode,
+    courtHearingType = CourtHearingType.TRIBUNAL,
+    prisoners = listOf(prisoner),
+    comments = comments,
+    videoLinkUrl = "https://video.link.com",
+  )
+}
+
+fun amendProbationBookingRequest(
+  probationTeamCode: String = "BLKPPP",
+  probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
+  videoLinkUrl: String = "https://video.link.com",
+  prisonCode: String = "MDI",
+  prisonerNumber: String = "123456",
+  locationSuffix: String = "A-1-001",
+  location: Location? = null,
+  appointmentType: AppointmentType = AppointmentType.VLB_PROBATION,
+  appointmentDate: LocalDate = tomorrow(),
+  startTime: LocalTime = LocalTime.now(),
+  endTime: LocalTime = LocalTime.now().plusHours(1),
+  comments: String = "probation booking comments",
+): AmendVideoBookingRequest {
+  val appointment = Appointment(
+    type = appointmentType,
+    locationKey = location?.key ?: "$prisonCode-$locationSuffix",
+    date = appointmentDate,
+    startTime = startTime,
+    endTime = endTime,
+  )
+
+  val prisoner = PrisonerDetails(
+    prisonCode = prisonCode,
+    prisonerNumber = prisonerNumber,
+    appointments = listOf(appointment),
+  )
+
+  return AmendVideoBookingRequest(
     bookingType = BookingType.PROBATION,
     probationTeamCode = probationTeamCode,
     probationMeetingType = probationMeetingType,

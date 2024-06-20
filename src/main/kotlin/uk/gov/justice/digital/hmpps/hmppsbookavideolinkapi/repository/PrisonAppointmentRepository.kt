@@ -9,4 +9,6 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   fun findByVideoBooking(booking: VideoBooking): List<PrisonAppointment>
 
   fun findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(prisonCode: String, key: String, date: LocalDate): List<PrisonAppointment>
+
+  fun deletePrisonAppointmentsByVideoBooking(booking: VideoBooking)
 }

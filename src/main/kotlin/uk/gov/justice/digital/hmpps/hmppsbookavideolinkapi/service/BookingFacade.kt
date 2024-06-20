@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
@@ -26,6 +27,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Outbou
 @Component
 class BookingFacade(
   private val createVideoBookingService: CreateVideoBookingService,
+  private val amendVideoBookingService: AmendVideoBookingService,
   private val bookingContactsService: BookingContactsService,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val prisonRepository: PrisonRepository,
@@ -46,6 +48,15 @@ class BookingFacade(
       BookingType.COURT -> sendNewCourtBookingEmails(booking, prisoner)
       BookingType.PROBATION -> sendNewProbationBookingEmail(booking, prisoner)
     }
+
+    return booking.videoBookingId
+  }
+
+  fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, username: String): Long {
+    val (booking) = amendVideoBookingService.amend(videoBookingId, bookingRequest, username)
+
+    // TODO: Emit VIDEO_BOOKING_AMENDED domain event
+    // TODO: Send Booking amended emails
 
     return booking.videoBookingId
   }

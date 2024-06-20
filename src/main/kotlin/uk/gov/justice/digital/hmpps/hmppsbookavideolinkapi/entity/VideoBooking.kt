@@ -23,15 +23,15 @@ class VideoBooking private constructor(
 
   @OneToOne
   @JoinColumn(name = "court_id")
-  val court: Court?,
+  var court: Court?,
 
-  val hearingType: String?,
+  var hearingType: String?,
 
   @OneToOne
   @JoinColumn(name = "probation_team_id")
-  val probationTeam: ProbationTeam?,
+  var probationTeam: ProbationTeam?,
 
-  val probationMeetingType: String?,
+  var probationMeetingType: String?,
 
   var comments: String? = null,
 
@@ -77,7 +77,6 @@ class VideoBooking private constructor(
       createdBy: String,
       createdByPrison: Boolean,
     ): VideoBooking =
-      // TODO check court is enabled?
       VideoBooking(
         bookingType = "COURT",
         court = court,
@@ -98,7 +97,6 @@ class VideoBooking private constructor(
       createdBy: String,
       createdByPrison: Boolean,
     ): VideoBooking =
-      // TODO check probation team is enabled?
       VideoBooking(
         bookingType = "PROBATION",
         court = null,
