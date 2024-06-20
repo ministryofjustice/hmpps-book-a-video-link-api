@@ -313,7 +313,7 @@ CREATE TABLE booking_history
 (
     booking_history_id     bigserial  NOT NULL CONSTRAINT booking_history_id_pk PRIMARY KEY,
     video_booking_id       bigint NOT NULL REFERENCES video_booking(video_booking_id),
-    history_type           varchar(40) NOT NULL,  -- CREATED, AMENDED, CANCELLED
+    history_type           varchar(40) NOT NULL,
     court_id               bigint REFERENCES court(court_id), -- Nullable
     hearing_type           varchar(40), -- Nullable
     probation_team_id      bigint REFERENCES probation_team(probation_team_id), -- Nullable
@@ -321,7 +321,7 @@ CREATE TABLE booking_history
     video_url              varchar(120),
     comments               varchar(400),
     created_by             varchar(100) NOT NULL,
-    created_time           timestamp    NOT NULL
+    created_time           timestamp NOT NULL
 );
 
 CREATE INDEX idx_book_hist_video_booking_id ON booking_history(video_booking_id);
@@ -332,12 +332,13 @@ CREATE INDEX idx_book_hist_probation_team_id ON booking_history(probation_team_i
 -- This is the history of changes to the appointments related to a booking.
 -- Recorded whenever a booking is created, amended or cancelled.
 -- This data can be used to find the original appointments in their source system and action the changes.
--- Does not need a comments column - as these are held on booking / booking history parent
--- (separate table for appointment history, to cater for potential co-defendants later)
+-- Does not need a comments column as this is held on the booking history parent
+-- It is a separate table for appointment history to cater for potential co-defendants later.
 ---------------------------------------------------------------------------------------
 
-CREATE TABLE booking_history_appointment (
-    booking_history_appointment_id  bigserial  NOT NULL CONSTRAINT booking_history_appt_id_pk PRIMARY KEY,
+CREATE TABLE booking_history_appointment
+(
+    booking_history_appointment_id  bigserial  NOT NULL CONSTRAINT book_hist_app_id_pk PRIMARY KEY,
     booking_history_id     bigserial  NOT NULL REFERENCES booking_history(booking_history_id),
     prison_code            varchar(5) NOT NULL REFERENCES prison(code),
     prisoner_number        varchar(7) NOT NULL,
@@ -349,10 +350,10 @@ CREATE TABLE booking_history_appointment (
 );
 
 CREATE INDEX idx_book_hist_app_booking_history_id ON booking_history_appointment(booking_history_id);
-CREATE INDEX idx_book_hist_app_prison_code ON booking_history_appintment(prison_code);
-CREATE INDEX idx_book_hist_app_prisoner ON booking_history_appintment(prisoner_number);
-CREATE INDEX idx_book_hist_app_date ON booking_history_appintment(appointment_date);
-CREATE INDEX idx_book_hist_app_loc_key ON booking_history_appintment(prison_loc_key);
+CREATE INDEX idx_book_hist_app_prison_code ON booking_history_appointment(prison_code);
+CREATE INDEX idx_book_hist_app_prisoner ON booking_history_appointment(prisoner_number);
+CREATE INDEX idx_book_hist_app_date ON booking_history_appointment(appointment_date);
+CREATE INDEX idx_book_hist_app_loc_key ON booking_history_appointment(prison_loc_key);
 
 -- NOTES
 -- To follow:
