@@ -41,7 +41,7 @@ class ManageExternalAppointmentsService(
             startTime = appointment.startTime,
             endTime = appointment.endTime,
             internalLocationId = appointment.internalLocationId(),
-            extraInformation = appointment.extraInformation(),
+            comments = appointment.detailedComments(),
           )?.let { appointmentSeries ->
             log.info("EXTERNAL APPOINTMENTS: created activities and appointments series ${appointmentSeries.id} for prison appointment $prisonAppointmentId")
           }
@@ -54,7 +54,7 @@ class ManageExternalAppointmentsService(
             appointmentDate = appointment.appointmentDate,
             startTime = appointment.startTime,
             endTime = appointment.endTime,
-            comments = appointment.comments,
+            comments = appointment.detailedComments(),
           )?.let { event ->
             log.info("EXTERNAL APPOINTMENTS: created prison api event ${event.eventId} for prison appointment $prisonAppointmentId")
           }
@@ -67,15 +67,19 @@ class ManageExternalAppointmentsService(
     )
   }
 
-  private fun PrisonAppointment.extraInformation() =
-    if (videoBooking.isCourtBooking()) "Video booking for court ${videoBooking.court?.description}" else "Video booking for probation team ${videoBooking.probationTeam?.description}"
+  private fun PrisonAppointment.detailedComments() =
+    if (videoBooking.isCourtBooking()) {
+      "Video booking for a ${videoBooking.hearingType?.lowercase()} court hearing at ${videoBooking.court?.description}\n\n$comments"
+    } else {
+      "Video booking for a ${videoBooking.probationMeetingType?.lowercase()} probation meeting at ${videoBooking.probationTeam?.description}\n\n$comments"
+    }
 
-  // TODO question - this should never happen but what happens if we find no location? An exception here means the event will never clean up.
+  // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
   private fun PrisonAppointment.internalLocationId() =
     prisonApiClient.getInternalLocationByKey(prisonLocKey)?.locationId
       ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocKey not found for prison appointment $prisonAppointmentId")
 
-  // TODO question - this should never happen but what happens if we find no booking id? An exception here means the event will never clean up.
+  // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
   private fun PrisonAppointment.bookingId() =
     prisonerSearchClient.getPrisoner(prisonerNumber)?.bookingId?.toLong()
       ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Booking id not found for prisoner $prisonerNumber for prison appointment $prisonAppointmentId")

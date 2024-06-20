@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsServiceImpl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCreatedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingInformation
 import java.time.LocalDate
@@ -26,7 +26,7 @@ class VideoBookingCreatedDomainEventHandlerTest {
 
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
-  private val outboundEventsService: OutboundEventsService = mock()
+  private val outboundSnsEventsService: OutboundEventsServiceImpl = mock()
   private val booking = courtBooking()
   private val appointments = listOf(
     appointment(
@@ -50,7 +50,7 @@ class VideoBookingCreatedDomainEventHandlerTest {
       locationKey = "",
     ),
   )
-  private val handler = VideoBookingCreatedEventHandler(videoBookingRepository, prisonAppointmentRepository, outboundEventsService)
+  private val handler = VideoBookingCreatedEventHandler(videoBookingRepository, prisonAppointmentRepository, outboundSnsEventsService)
 
   @Test
   fun `should publish appointment created event on receipt of video booking`() {
@@ -59,7 +59,7 @@ class VideoBookingCreatedDomainEventHandlerTest {
 
     handler.handle(VideoBookingCreatedEvent(VideoBookingInformation(1)))
 
-    verify(outboundEventsService, times(2)).send(eq(DomainEventType.APPOINTMENT_CREATED), any())
+    verify(outboundSnsEventsService, times(2)).send(eq(DomainEventType.APPOINTMENT_CREATED), any())
   }
 
   @Test
@@ -70,6 +70,6 @@ class VideoBookingCreatedDomainEventHandlerTest {
     handler.handle(VideoBookingCreatedEvent(VideoBookingInformation(1)))
 
     verifyNoInteractions(prisonAppointmentRepository)
-    verifyNoInteractions(outboundEventsService)
+    verifyNoInteractions(outboundSnsEventsService)
   }
 }
