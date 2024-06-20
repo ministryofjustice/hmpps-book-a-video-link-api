@@ -10,7 +10,6 @@ import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Entity
@@ -39,17 +38,7 @@ class PrisonAppointment private constructor(
   val startTime: LocalTime,
 
   val endTime: LocalTime,
-
-  val createdBy: String,
-
-  val createdTime: LocalDateTime = LocalDateTime.now(),
 ) {
-
-  var amendedBy: String? = null
-    private set
-
-  var amendedTime: LocalDateTime? = null
-    private set
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -79,7 +68,6 @@ class PrisonAppointment private constructor(
       startTime: LocalTime,
       endTime: LocalTime,
       locationKey: String,
-      createdBy: String,
     ) = PrisonAppointment(
       videoBooking = videoBooking,
       prisonCode = prisonCode,
@@ -89,7 +77,6 @@ class PrisonAppointment private constructor(
       startTime = startTime.toMinutePrecision(),
       endTime = endTime.toMinutePrecision(),
       prisonLocKey = locationKey,
-      createdBy = createdBy,
       comments = videoBooking.comments,
     )
   }

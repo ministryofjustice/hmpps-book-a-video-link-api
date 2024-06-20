@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
@@ -37,7 +38,8 @@ import java.time.LocalTime
 import java.util.UUID
 
 class BookingFacadeTest {
-  private val bookingService: CreateVideoBookingService = mock()
+  private val createBookingService: CreateVideoBookingService = mock()
+  private val amendBookingService: AmendVideoBookingService = mock()
   private val bookingContactsService: BookingContactsService = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val prisonRepository: PrisonRepository = mock()
@@ -48,7 +50,8 @@ class BookingFacadeTest {
   private val notificationCaptor = argumentCaptor<Notification>()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val facade = BookingFacade(
-    bookingService,
+    createBookingService,
+    amendBookingService,
     bookingContactsService,
     prisonAppointmentRepository,
     prisonRepository,
@@ -73,7 +76,7 @@ class BookingFacadeTest {
       locationKey = moorlandLocation.key,
     )
 
-    whenever(bookingService.create(bookingRequest, "facade court user")) doReturn Pair(booking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
+    whenever(createBookingService.create(bookingRequest, "facade court user")) doReturn Pair(booking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
     whenever(prisonAppointmentRepository.findByVideoBooking(booking)) doReturn listOf(appointment)
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
     whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"))
@@ -85,8 +88,8 @@ class BookingFacadeTest {
 
     facade.create(bookingRequest, "facade court user")
 
-    inOrder(bookingService, outboundEventsService, emailService, notificationRepository) {
-      verify(bookingService).create(bookingRequest, "facade court user")
+    inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
+      verify(createBookingService).create(bookingRequest, "facade court user")
       verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
       verify(emailService).send(emailCaptor.capture())
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
@@ -119,13 +122,24 @@ class BookingFacadeTest {
   }
 
   @Test
-  fun `should delegate probation team booking creation to booking creation service`() {
+  fun `should delegate booking creation to booking creation service`() {
     val booking = probationBookingRequest(prisonCode = BIRMINGHAM, prisonerNumber = "123456")
 
-    whenever(bookingService.create(booking, "facade probation team user")) doReturn Pair(probationBooking(), prisoner(prisonerNumber = "123456", prisonCode = BIRMINGHAM))
+    whenever(createBookingService.create(booking, "facade probation team user")) doReturn Pair(probationBooking(), prisoner(prisonerNumber = "123456", prisonCode = BIRMINGHAM))
 
     facade.create(booking, "facade probation team user")
 
-    verify(bookingService).create(booking, "facade probation team user")
+    verify(createBookingService).create(booking, "facade probation team user")
+  }
+
+  @Test
+  fun `should delegate booking amendment to booking amendment service`() {
+    val booking = amendCourtBookingRequest(prisonCode = BIRMINGHAM, prisonerNumber = "123456")
+
+    whenever(amendBookingService.amend(1, booking, "facade court user")) doReturn Pair(courtBooking(), prisoner(prisonerNumber = "123456", prisonCode = BIRMINGHAM))
+
+    facade.amend(1, booking, "facade court user")
+
+    verify(amendBookingService).amend(1, booking, "facade court user")
   }
 }

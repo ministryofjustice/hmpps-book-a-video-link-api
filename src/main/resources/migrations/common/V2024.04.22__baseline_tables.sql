@@ -213,11 +213,7 @@ CREATE TABLE prison_appointment
     prison_loc_key         varchar(160) NOT NULL,  -- from locations API
     appointment_date       date NOT NULL,
     start_time             time without time zone NOT NULL,
-    end_time               time without time zone NOT NULL,
-    created_by             varchar(100) NOT NULL,
-    created_time           timestamp    NOT NULL,
-    amended_by             varchar(100), 
-    amended_time           timestamp
+    end_time               time without time zone NOT NULL
 );
 
 CREATE INDEX idx_prison_appointment_video_booking_id ON prison_appointment(video_booking_id);
