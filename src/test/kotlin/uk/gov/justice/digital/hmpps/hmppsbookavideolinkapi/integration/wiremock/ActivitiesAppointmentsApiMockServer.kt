@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.VIDEO_LINK_BOOKING
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendee
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
@@ -19,41 +19,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
-
-  fun stubGetAppointment(appointmentId: Long) {
-    stubFor(
-      get("/appointments/$appointmentId")
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              mapper.writeValueAsString(
-                Appointment(
-                  id = appointmentId,
-                  sequenceNumber = 1,
-                  prisonCode = "MDI",
-                  categoryCode = "VIDE",
-                  createdBy = "Fred",
-                  createdTime = LocalDateTime.now(),
-                  inCell = false,
-                  isCancelled = false,
-                  isDeleted = false,
-                  startDate = LocalDate.now(),
-                  startTime = LocalTime.now().toString(),
-                  attendees = listOf(
-                    AppointmentAttendee(
-                      id = 1,
-                      prisonerNumber = "123456",
-                      bookingId = 1,
-                    ),
-                  ),
-                ),
-              ),
-            )
-            .withStatus(200),
-        ),
-    )
-  }
 
   fun stubPostCreateAppointment(
     prisonCode: String,
@@ -121,6 +86,37 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
                       createdBy = "Test",
                       createdTime = LocalDateTime.now(),
                     ),
+                  ),
+                ),
+              ),
+            )
+            .withStatus(201),
+        ),
+    )
+  }
+
+  fun stubGetPrisonersAppointments(prisonCode: String, prisonerNumber: String, date: LocalDate) {
+    val request = AppointmentSearchRequest(
+      appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
+      startDate = date,
+      endDate = date,
+      categoryCode = VIDEO_LINK_BOOKING,
+      prisonerNumbers = listOf(prisonerNumber),
+    )
+
+    stubFor(
+      post("/appointments/$prisonCode/search")
+        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(request)))
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              mapper.writeValueAsString(
+                listOf(
+                  AppointmentSearchRequest(
+                    appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
+                    startDate = date,
+                    endDate = date,
                   ),
                 ),
               ),

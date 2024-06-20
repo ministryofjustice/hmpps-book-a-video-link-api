@@ -35,7 +35,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.Notificati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsServiceImpl
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
@@ -49,7 +49,7 @@ class BookingFacadeTest {
   private val prisonRepository: PrisonRepository = mock()
   private val emailService: EmailService = mock()
   private val notificationRepository: NotificationRepository = mock()
-  private val outboundSnsEventsService: OutboundEventsServiceImpl = mock()
+  private val outboundEventsService: OutboundEventsService = mock()
   private val notificationCaptor = argumentCaptor<Notification>()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val facade = BookingFacade(
@@ -60,7 +60,7 @@ class BookingFacadeTest {
     prisonRepository,
     emailService,
     notificationRepository,
-    outboundSnsEventsService,
+    outboundEventsService,
     locationsInsidePrisonClient,
   )
 
@@ -92,9 +92,9 @@ class BookingFacadeTest {
 
     facade.create(bookingRequest, "facade court user")
 
-    inOrder(createBookingService, outboundSnsEventsService, emailService, notificationRepository) {
+    inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
       verify(createBookingService).create(bookingRequest, "facade court user")
-      verify(outboundSnsEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
       verify(emailService).send(emailCaptor.capture())
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
       verify(emailService).send(emailCaptor.capture())

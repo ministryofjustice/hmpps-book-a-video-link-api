@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiMockServer
 import java.time.LocalDate
 import java.time.LocalTime
@@ -48,6 +49,13 @@ class PrisonApiClientTest {
     )
 
     assertThat(response).isNotNull
+  }
+
+  @Test
+  fun `should get prisoners appointments`() {
+    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow())
+
+    assertThat(client.getPrisonersAppointments(BIRMINGHAM, "123456", tomorrow())).isNotEmpty
   }
 
   @AfterEach
