@@ -9,10 +9,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import java.time.LocalDateTime
 
-class OutboundEventsServiceTest {
+class OutboundEventsServiceImplTest {
 
   private val eventsPublisher: OutboundEventsPublisher = mock()
-  private val service = OutboundEventsService(eventsPublisher)
+  private val service = OutboundEventsServiceImpl(eventsPublisher)
   private val eventCaptor = argumentCaptor<DomainEvent<*>>()
 
   @Test
