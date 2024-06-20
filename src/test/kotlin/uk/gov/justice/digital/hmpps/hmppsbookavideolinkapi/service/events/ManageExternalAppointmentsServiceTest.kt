@@ -14,9 +14,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.mode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import java.time.LocalDate
 import java.time.LocalTime
@@ -29,9 +31,9 @@ class ManageExternalAppointmentsServiceTest {
   private val prisonApiClient: PrisonApiClient = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
   private val prisonLocation: Location = mock { on { locationId } doReturn 123456 }
-  private val booking = courtBooking()
-  private val appointment = appointment(
-    booking = booking,
+  private val courtBooking = courtBooking()
+  private val courtAppointment = appointment(
+    booking = courtBooking,
     prisonCode = BIRMINGHAM,
     prisonerNumber = "123456",
     appointmentType = "VLB_COURT_PRE",
@@ -40,18 +42,29 @@ class ManageExternalAppointmentsServiceTest {
     endTime = LocalTime.of(11, 30),
     locationKey = "ABC",
   )
+  private val probationBooking = probationBooking()
+  private val probationAppointment = appointment(
+    booking = probationBooking,
+    prisonCode = MOORLAND,
+    prisonerNumber = "654321",
+    appointmentType = "VLB_PROBATION",
+    date = LocalDate.of(2100, 1, 1),
+    startTime = LocalTime.of(11, 0),
+    endTime = LocalTime.of(11, 30),
+    locationKey = "DEF",
+  )
   private val service =
     ManageExternalAppointmentsService(prisonAppointmentRepository, activitiesAppointmentsClient, prisonApiClient, prisonerSearchClient)
 
   @Test
-  fun `should call create appointment on activities client when appointments rolled out`() {
-    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(appointment)
+  fun `should create court appointment via activities client when appointments rolled out`() {
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
-    whenever(prisonApiClient.getInternalLocationByKey(appointment.prisonLocKey)) doReturn prisonLocation
+    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn prisonLocation
 
     service.createAppointment(1)
 
-    verify(prisonApiClient).getInternalLocationByKey(appointment.prisonLocKey)
+    verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocKey)
 
     verify(activitiesAppointmentsClient).createAppointment(
       prisonCode = BIRMINGHAM,
@@ -60,16 +73,37 @@ class ManageExternalAppointmentsServiceTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       internalLocationId = 123456,
-      extraInformation = "Video booking for court $DERBY_JUSTICE_CENTRE",
+      comments = "Video booking for a tribunal court hearing at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
     )
   }
 
   @Test
-  fun `should call create appointment on prison api client when appointments not rolled out`() {
-    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(appointment)
+  fun `should create probation appointment via activities client when appointments rolled out`() {
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(probationAppointment)
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(MOORLAND)) doReturn true
+    whenever(prisonApiClient.getInternalLocationByKey(probationAppointment.prisonLocKey)) doReturn prisonLocation
+
+    service.createAppointment(1)
+
+    verify(prisonApiClient).getInternalLocationByKey(probationAppointment.prisonLocKey)
+
+    verify(activitiesAppointmentsClient).createAppointment(
+      prisonCode = MOORLAND,
+      prisonerNumber = "654321",
+      startDate = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      internalLocationId = 123456,
+      comments = "Video booking for a psr probation meeting at probation team description\n\nProbation meeting comments",
+    )
+  }
+
+  @Test
+  fun `should create court appointment via prison api client when appointments not rolled out`() {
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
-    whenever(prisonerSearchClient.getPrisoner(appointment.prisonerNumber)) doReturn prisonerSearchPrisoner(prisonerNumber = appointment.prisonerNumber, prisonCode = appointment.prisonCode, bookingId = 1)
-    whenever(prisonApiClient.getInternalLocationByKey(appointment.prisonLocKey)) doReturn prisonLocation
+    whenever(prisonerSearchClient.getPrisoner(courtAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(prisonerNumber = courtAppointment.prisonerNumber, prisonCode = courtAppointment.prisonCode, bookingId = 1)
+    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn prisonLocation
 
     service.createAppointment(1)
 
@@ -80,7 +114,27 @@ class ManageExternalAppointmentsServiceTest {
       appointmentDate = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "Court hearing comments",
+      comments = "Video booking for a tribunal court hearing at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
+    )
+  }
+
+  @Test
+  fun `should create probation appointment via prison api client when appointments rolled out`() {
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(probationAppointment)
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(MOORLAND)) doReturn false
+    whenever(prisonerSearchClient.getPrisoner(probationAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(prisonerNumber = probationAppointment.prisonerNumber, prisonCode = probationAppointment.prisonCode, bookingId = 1)
+    whenever(prisonApiClient.getInternalLocationByKey(probationAppointment.prisonLocKey)) doReturn prisonLocation
+
+    service.createAppointment(1)
+
+    verify(activitiesAppointmentsClient, never()).createAppointment(any(), any(), any(), any(), any(), any(), any())
+    verify(prisonApiClient).createAppointment(
+      bookingId = 1,
+      locationId = 123456,
+      appointmentDate = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      comments = "Video booking for a psr probation meeting at probation team description\n\nProbation meeting comments",
     )
   }
 

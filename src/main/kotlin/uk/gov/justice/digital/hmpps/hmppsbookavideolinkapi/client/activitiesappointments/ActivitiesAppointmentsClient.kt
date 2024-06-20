@@ -48,7 +48,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     startTime: LocalTime,
     endTime: LocalTime,
     internalLocationId: Long,
-    extraInformation: String,
+    comments: String,
   ): AppointmentSeries? =
     activitiesAppointmentsApiWebClient.post()
       .uri("/appointment-series")
@@ -64,7 +64,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
           startTime = startTime.toHourMinuteStyle(),
           endTime = endTime.toHourMinuteStyle(),
           internalLocationId = internalLocationId,
-          extraInformation = extraInformation,
+          extraInformation = comments,
         ),
       )
       .retrieve()
