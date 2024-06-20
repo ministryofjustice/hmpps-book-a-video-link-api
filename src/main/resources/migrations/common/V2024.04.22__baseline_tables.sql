@@ -307,21 +307,56 @@ CREATE UNIQUE INDEX idx_gov_notify_notification_id ON notification(gov_notify_no
 
 ---------------------------------------------------------------------------------------
 -- This is the history of changes to a booking
--- Create, update, or cancel
+-- It holds the key details of a booking at one point in time.
+-- We record these key details whenever a booking is created, amended or cancelled,
+-- along with the key details of the related appointment(s), which is used to both
+-- find and change these appointments in external systems (NOMIS or A&A).
 ---------------------------------------------------------------------------------------
 
 CREATE TABLE booking_history 
 (
-    booking_history_id  bigserial  NOT NULL CONSTRAINT booking_history_id_pk PRIMARY KEY,
-    video_booking_id    bigint NOT NULL REFERENCES video_booking(video_booking_id),
-    history_type         varchar(40) NOT NULL,
-    change_detail       varchar(100),
-    created_by          varchar(100) NOT NULL,         
-    created_time        timestamp    NOT NULL
+    booking_history_id     bigserial  NOT NULL CONSTRAINT booking_history_id_pk PRIMARY KEY,
+    video_booking_id       bigint NOT NULL REFERENCES video_booking(video_booking_id),
+    history_type           varchar(40) NOT NULL,  -- CREATED, AMENDED, CANCELLED
+    court_id               bigint REFERENCES court(court_id), -- Nullable
+    hearing_type           varchar(40), -- Nullable
+    probation_team_id      bigint REFERENCES probation_team(probation_team_id), -- Nullable
+    probation_meeting_type varchar(40), -- Nullable
+    video_url              varchar(120),
+    comments               varchar(400),
+    created_by             varchar(100) NOT NULL,
+    created_time           timestamp    NOT NULL
 );
 
-CREATE INDEX idx_history_video_booking_id ON booking_history(video_booking_id);
-CREATE INDEX idx_history_type ON booking_history(history_type);
+CREATE INDEX idx_book_hist_video_booking_id ON booking_history(video_booking_id);
+CREATE INDEX idx_book_hist_court_id ON booking_history(court_id);
+CREATE INDEX idx_book_hist_probation_team_id ON booking_history(probation_team_id);
+
+---------------------------------------------------------------------------------------
+-- This is the history of changes to the appointments related to a booking.
+-- Recorded whenever a booking is created, amended or cancelled.
+-- This data can be used to find the original appointments in their source system and action the changes.
+-- Does not need a comments column - as these are held on booking / booking history parent
+-- (separate table for appointment history, to cater for potential co-defendants later)
+---------------------------------------------------------------------------------------
+
+CREATE TABLE booking_history_appointment (
+    booking_history_appointment_id  bigserial  NOT NULL CONSTRAINT booking_history_appt_id_pk PRIMARY KEY,
+    booking_history_id     bigserial  NOT NULL REFERENCES booking_history(booking_history_id),
+    prison_code            varchar(5) NOT NULL REFERENCES prison(code),
+    prisoner_number        varchar(7) NOT NULL,
+    appointment_date       date NOT NULL,
+    appointment_type       varchar(40) NOT NULL,
+    prison_loc_key         varchar(160) NOT NULL,
+    start_time             time without time zone NOT NULL,
+    end_time               time without time zone NOT NULL
+);
+
+CREATE INDEX idx_book_hist_app_booking_history_id ON booking_history_appointment(booking_history_id);
+CREATE INDEX idx_book_hist_app_prison_code ON booking_history_appintment(prison_code);
+CREATE INDEX idx_book_hist_app_prisoner ON booking_history_appintment(prisoner_number);
+CREATE INDEX idx_book_hist_app_date ON booking_history_appintment(appointment_date);
+CREATE INDEX idx_book_hist_app_loc_key ON booking_history_appintment(prison_loc_key);
 
 -- NOTES
 -- To follow:
