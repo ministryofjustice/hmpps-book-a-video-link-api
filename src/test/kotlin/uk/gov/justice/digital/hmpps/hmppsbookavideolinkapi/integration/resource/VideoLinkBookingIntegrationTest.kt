@@ -41,6 +41,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
@@ -106,13 +109,13 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments isEqualTo "integration test court booking comments"
     }
 
-    // There should be 4 notifications one owner email and 3 prisoner emails
+    // There should be 4 notifications - one owner email and 3 prisoner emails
     val notifications = notificationRepository.findAll().also { it hasSize 4 }
 
-    notifications.isPresent("m@m.com", "prison template court email id", persistedBooking)
-    notifications.isPresent("t@t.com", "prison template court email id", persistedBooking)
-    notifications.isPresent("t@t.com", "prison template court email id", persistedBooking)
-    notifications.isPresent(TEST_USER_EMAIL, "owner template id", persistedBooking)
+    notifications.isPresent("m@m.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent(TEST_USER_EMAIL, "new court booking owner template id", persistedBooking)
   }
 
   @Test
@@ -162,11 +165,11 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments isEqualTo "integration test court booking comments"
     }
 
-    // There should be 2 notifications one owner email and 1 prisoner email
+    // There should be 2 - notifications one owner email and 1 prisoner email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("j@j.com", "prison template no court email id", persistedBooking)
-    notifications.isPresent(TEST_USER_EMAIL, "owner template id", persistedBooking)
+    notifications.isPresent("j@j.com", "new court booking prison template id no email address", persistedBooking)
+    notifications.isPresent(TEST_USER_EMAIL, "new court booking owner template id", persistedBooking)
   }
 
   @Test
@@ -564,7 +567,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should amend a court booking and emails sent to the prison`() {
+  fun `should amend a Derby court booking and emails sent to Werrington prison`() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
@@ -595,6 +598,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments = "amended court booking comments",
     )
 
+    notificationRepository.deleteAll()
     webTestClient.amendBooking(bookingId, amendBookingRequest, TEST_USERNAME)
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
@@ -623,7 +627,81 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       comments isEqualTo "amended court booking comments"
     }
 
-    // TODO: Assert that appropriate emails are sent
+    // There should be 4 notifications one owner email and 3 prisoner emails
+    val notifications = notificationRepository.findAll().also { it hasSize 4 }
+
+    notifications.isPresent("m@m.com", "amended court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("t@t.com", "amended court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("t@t.com", "amended court booking prison template id with email address", persistedBooking)
+    notifications.isPresent(TEST_USER_EMAIL, "amended court booking owner template id", persistedBooking)
+  }
+
+  @Test
+  fun `should amend a Chesterfield court booking and emails sent to Birmingham prison`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = CHESTERFIELD_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
+
+    val amendBookingRequest = amendCourtBookingRequest(
+      courtCode = CHESTERFIELD_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      startTime = LocalTime.of(13, 0),
+      endTime = LocalTime.of(14, 30),
+      comments = "amended court booking comments",
+    )
+
+    notificationRepository.deleteAll()
+    webTestClient.amendBooking(bookingId, amendBookingRequest, TEST_USERNAME)
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(persistedBooking) {
+      videoBookingId isEqualTo bookingId
+      bookingType isEqualTo "COURT"
+      court?.code isEqualTo courtBookingRequest.courtCode
+      hearingType isEqualTo courtBookingRequest.courtHearingType?.name
+      comments isEqualTo "amended court booking comments"
+      videoUrl isEqualTo courtBookingRequest.videoLinkUrl
+      createdBy isEqualTo "booking@creator.com"
+      createdByPrison isEqualTo false
+      amendedBy isEqualTo TEST_USERNAME
+    }
+
+    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+      videoBooking isEqualTo persistedBooking
+      prisonCode isEqualTo BIRMINGHAM
+      prisonerNumber isEqualTo "123456"
+      appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
+      appointmentDate isEqualTo tomorrow()
+      prisonLocKey isEqualTo birminghamLocation.key
+      startTime isEqualTo LocalTime.of(13, 0)
+      endTime isEqualTo LocalTime.of(14, 30)
+      comments isEqualTo "amended court booking comments"
+    }
+
+    // There should be 2 notifications - one owner email and 1 prisoner email
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+
+    notifications.isPresent("j@j.com", "amended court booking prison template id no email address", persistedBooking)
+    notifications.isPresent(TEST_USER_EMAIL, "amended court booking owner template id", persistedBooking)
   }
 
   @Test
@@ -988,9 +1066,12 @@ class TestEmailConfiguration {
   fun emailService() =
     EmailService { email ->
       when (email) {
-        is NewCourtBookingEmail -> Result.success(UUID.randomUUID() to "owner template id")
-        is NewCourtBookingPrisonCourtEmail -> Result.success(UUID.randomUUID() to "prison template court email id")
-        is NewCourtBookingPrisonNoCourtEmail -> Result.success(UUID.randomUUID() to "prison template no court email id")
+        is NewCourtBookingEmail -> Result.success(UUID.randomUUID() to "new court booking owner template id")
+        is NewCourtBookingPrisonCourtEmail -> Result.success(UUID.randomUUID() to "new court booking prison template id with email address")
+        is NewCourtBookingPrisonNoCourtEmail -> Result.success(UUID.randomUUID() to "new court booking prison template id no email address")
+        is AmendedCourtBookingEmail -> Result.success(UUID.randomUUID() to "amended court booking owner template id")
+        is AmendedCourtBookingPrisonCourtEmail -> Result.success(UUID.randomUUID() to "amended court booking prison template id with email address")
+        is AmendedCourtBookingPrisonNoCourtEmail -> Result.success(UUID.randomUUID() to "amended court booking prison template id no email address")
         else -> throw RuntimeException("Unsupported email")
       }
     }

@@ -41,8 +41,8 @@ Add the following to a local `.env` file in the root folder of this project (_yo
 N.B. you must escape any '$' characters with '\\$'
 
 ```
-export SYSTEM_CLIENT_ID="<system.client.id>"
-export SYSTEM_CLIENT_SECRET="<system.client.secret>"
+SYSTEM_CLIENT_ID=<system.client.id>
+SYSTEM_CLIENT_SECRET=<system.client.secret>
 ```
 
 Start up the docker dependencies using the docker-compose file in the `hmpps-activities-management-api` service.
@@ -56,4 +56,17 @@ values required.
 
 ```
 ./run-local.sh
+```
+
+## Testing GOV Notify locally
+
+To test Gov Notify emails locally, you just need to add one more variable to your `.env` file.
+
+```
+export NOTIFY_API_KEY=<gov.notify.api.key>
+```
+If you have added it correctly, you will see the log on startup with the following output:
+
+```
+Gov Notify emails are enabled
 ```

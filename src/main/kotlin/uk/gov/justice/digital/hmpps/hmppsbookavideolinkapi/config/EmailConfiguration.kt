@@ -22,6 +22,9 @@ class EmailConfiguration(
   @Value("\${notify.templates.new-court-booking.owner:}") private val newCourtBookingOwner: String,
   @Value("\${notify.templates.new-court-booking.prison-court-email:}") private val newCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.new-court-booking.prison-no-court-email:}") private val newCourtBookingPrisonNoCourtEmail: String,
+  @Value("\${notify.templates.amended-court-booking.owner:}") private val amendedCourtBookingOwner: String,
+  @Value("\${notify.templates.amended-court-booking.prison-court-email:}") private val amendedCourtBookingPrisonCourtEmail: String,
+  @Value("\${notify.templates.amended-court-booking.prison-court-no-email:}") private val amendedCourtBookingPrisonCourtNoEmail: String,
 ) {
 
   companion object {
@@ -40,6 +43,9 @@ class EmailConfiguration(
     newCourtBookingOwner = newCourtBookingOwner,
     newCourtBookingPrisonCourtEmail = newCourtBookingPrisonCourtEmail,
     newCourtBookingPrisonNoCourtEmail = newCourtBookingPrisonNoCourtEmail,
+    amendedCourtBookingOwner = amendedCourtBookingOwner,
+    amendedCourtBookingPrisonCourtEmail = amendedCourtBookingPrisonCourtEmail,
+    amendedCourtBookingPrisonCourtNoEmail = amendedCourtBookingPrisonCourtNoEmail,
   )
 }
 
@@ -79,4 +85,7 @@ data class EmailTemplates(
   val newCourtBookingOwner: String,
   val newCourtBookingPrisonCourtEmail: String,
   val newCourtBookingPrisonNoCourtEmail: String,
+  val amendedCourtBookingOwner: String,
+  val amendedCourtBookingPrisonCourtEmail: String,
+  val amendedCourtBookingPrisonCourtNoEmail: String,
 )
