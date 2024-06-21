@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendee
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendeeSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCategorySummary
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentLocationSummary
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
@@ -99,46 +100,54 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     )
   }
 
-  fun stubGetPrisonersAppointments(prisonCode: String, prisonerNumber: String, date: LocalDate) {
-    val request = AppointmentSearchRequest(
-      appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
-      startDate = date,
-      endDate = date,
-      categoryCode = VIDEO_LINK_BOOKING,
-      prisonerNumbers = listOf(prisonerNumber),
-    )
+  fun stubGetPrisonersAppointments(
+    prisonCode: String,
+    prisonerNumber: String,
+    date: LocalDate,
+    locationIds: Set<Long> = setOf(-1),
+  ) {
+    val appointments = locationIds.map { locationId ->
+      AppointmentSearchResult(
+        appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+        startDate = date,
+        startTime = date.atStartOfDay().toIsoDateTime(),
+        endTime = date.atStartOfDay().plusHours(1).toIsoDateTime(),
+        isCancelled = false,
+        isExpired = false,
+        isEdited = false,
+        appointmentId = 1,
+        appointmentSeriesId = 1,
+        appointmentName = "appointment name",
+        attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
+        category = AppointmentCategorySummary("VLB", "video link booking"),
+        inCell = false,
+        isRepeat = false,
+        maxSequenceNumber = 1,
+        prisonCode = prisonCode,
+        sequenceNumber = 1,
+        internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
+      )
+    }
 
     stubFor(
       post("/appointments/$prisonCode/search")
-        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(request)))
+        .withRequestBody(
+          WireMock.equalToJson(
+            mapper.writeValueAsString(
+              AppointmentSearchRequest(
+                appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
+                startDate = date,
+                endDate = date,
+                categoryCode = VIDEO_LINK_BOOKING,
+                prisonerNumbers = listOf(prisonerNumber),
+              ),
+            ),
+          ),
+        )
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(
-              mapper.writeValueAsString(
-                listOf(
-                  AppointmentSearchResult(
-                    appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
-                    startDate = date,
-                    startTime = date.atStartOfDay().toIsoDateTime(),
-                    endTime = date.atStartOfDay().plusHours(1).toIsoDateTime(),
-                    isCancelled = false,
-                    isExpired = false,
-                    isEdited = false,
-                    appointmentId = 1,
-                    appointmentSeriesId = 1,
-                    appointmentName = "appointment name",
-                    attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
-                    category = AppointmentCategorySummary("VLB", "video link booking"),
-                    inCell = false,
-                    isRepeat = false,
-                    maxSequenceNumber = 1,
-                    prisonCode = prisonCode,
-                    sequenceNumber = 1,
-                  ),
-                ),
-              ),
-            )
+            .withBody(mapper.writeValueAsString(appointments))
             .withStatus(201),
         ),
     )

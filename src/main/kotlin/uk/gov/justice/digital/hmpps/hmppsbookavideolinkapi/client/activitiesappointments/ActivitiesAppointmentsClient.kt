@@ -60,7 +60,14 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .bodyToMono(AppointmentSeries::class.java)
       .block()
 
-  fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<AppointmentSearchResult> =
+  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, locationIds: Set<Long>) =
+    if (locationIds.isNotEmpty()) {
+      getPrisonersAppointments(prisonCode, prisonerNumber, onDate).filter { locationIds.contains(it.internalLocation?.id) }
+    } else {
+      emptyList()
+    }
+
+  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<AppointmentSearchResult> =
     activitiesAppointmentsApiWebClient.post()
       .uri("/appointments/{prisonCode}/search", prisonCode)
       .bodyValue(

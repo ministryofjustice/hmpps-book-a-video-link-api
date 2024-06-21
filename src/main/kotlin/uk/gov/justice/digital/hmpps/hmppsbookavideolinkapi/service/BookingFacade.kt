@@ -73,7 +73,7 @@ class BookingFacade(
       when (contact.contactType) {
         ContactType.OWNER -> createCourtOwnerEmail(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
         ContactType.PRISON -> createCourtPrisonEmail(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
-        else -> log.info("No contacts found for video booking ID ${booking.videoBookingId}").let { null }
+        else -> log.info("BOOKINGS: No contacts found for video booking ID ${booking.videoBookingId}").let { null }
       }
     }.forEach { email ->
       sendEmailAndSaveNotification(email, booking, eventType)
@@ -100,7 +100,7 @@ class BookingFacade(
         ),
       )
     }.onFailure {
-      log.info("BOOKINGS: Failed to send ${reason.lowercase()}.")
+      log.info("BOOKINGS: Failed to send ${reason.lowercase()} email for video booking ID ${booking.videoBookingId}.")
     }
   }
 

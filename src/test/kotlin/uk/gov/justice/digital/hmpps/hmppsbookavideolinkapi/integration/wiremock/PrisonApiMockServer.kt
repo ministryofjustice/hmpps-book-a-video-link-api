@@ -74,7 +74,19 @@ class PrisonApiMockServer : MockServer(8094) {
     )
   }
 
-  fun stubGetPrisonersAppointments(prisonCode: String, prisonerNumber: String, date: LocalDate) {
+  fun stubGetPrisonersAppointments(prisonCode: String, prisonerNumber: String, date: LocalDate, locationIds: Set<Long> = setOf(-1)) {
+    val locations = locationIds.map { locationId ->
+      PrisonerSchedule(
+        offenderNo = "G5662GI",
+        locationId = locationId,
+        firstName = "JOHN",
+        lastName = "DOE",
+        event = "VLB",
+        startTime = date.atStartOfDay(),
+        endTime = date.atStartOfDay().plusHours(1),
+      )
+    }
+
     stubFor(
       post("/api/schedules/$prisonCode/appointments?date=${date.toIsoDate()}")
         .withRequestBody(
@@ -86,19 +98,7 @@ class PrisonApiMockServer : MockServer(8094) {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(
-              mapper.writeValueAsString(
-                listOf(
-                  PrisonerSchedule(
-                    offenderNo = "G5662GI",
-                    locationId = 722209,
-                    firstName = "JOHN",
-                    lastName = "DOE",
-                    event = "VLB",
-                    startTime = date.atStartOfDay(),
-                    endTime = date.atStartOfDay().plusHours(1),
-                  ),
-                ),
-              ),
+              mapper.writeValueAsString(locations),
             )
             .withStatus(200),
         ),
