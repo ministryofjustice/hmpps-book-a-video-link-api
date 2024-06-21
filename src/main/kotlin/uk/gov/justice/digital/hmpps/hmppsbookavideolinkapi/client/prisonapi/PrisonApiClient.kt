@@ -8,10 +8,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 const val VIDEO_LINK_BOOKING = "VLB"
@@ -70,5 +70,16 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .block() ?: emptyList()
 }
 
-// Overriding due to deserialisation issues from generated type.
+// Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
 data class ScheduledEvent(val eventId: Long)
+
+// Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
+data class PrisonerSchedule(
+  val offenderNo: String,
+  val locationId: Long,
+  val firstName: String,
+  val lastName: String,
+  val event: String,
+  val startTime: LocalDateTime,
+  val endTime: LocalDateTime,
+)

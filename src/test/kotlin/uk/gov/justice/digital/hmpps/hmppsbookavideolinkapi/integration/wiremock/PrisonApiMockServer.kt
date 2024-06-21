@@ -7,10 +7,10 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
@@ -94,14 +94,8 @@ class PrisonApiMockServer : MockServer(8094) {
                     firstName = "JOHN",
                     lastName = "DOE",
                     event = "VLB",
-                    eventDescription = "VLB - Test",
-                    eventLocation = "VCC-CROWN-COURT-ROOM-6",
-                    comment = "3 appointment prison api test",
-                    startTime = date.atStartOfDay().toIsoDateTime(),
-                    endTime = date.atStartOfDay().plusHours(1).toIsoDateTime(),
-                    cellLocation = "cell location ",
-                    eventStatus = "event status",
-                    eventType = "event type",
+                    startTime = date.atStartOfDay(),
+                    endTime = date.atStartOfDay().plusHours(1),
                   ),
                 ),
               ),
