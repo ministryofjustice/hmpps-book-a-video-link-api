@@ -6,6 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
@@ -59,7 +60,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .bodyToMono(AppointmentSeries::class.java)
       .block()
 
-  fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<AppointmentSearchRequest> =
+  fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<AppointmentSearchResult> =
     activitiesAppointmentsApiWebClient.post()
       .uri("/appointments/{prisonCode}/search", prisonCode)
       .bodyValue(
@@ -72,7 +73,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
         ),
       )
       .retrieve()
-      .bodyToMono(typeReference<List<AppointmentSearchRequest>>())
+      .bodyToMono(typeReference<List<AppointmentSearchResult>>())
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block() ?: emptyList()
 }

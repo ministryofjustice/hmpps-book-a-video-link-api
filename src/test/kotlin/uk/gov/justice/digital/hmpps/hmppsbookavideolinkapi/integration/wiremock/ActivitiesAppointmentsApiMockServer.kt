@@ -10,10 +10,14 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.VIDEO_LINK_BOOKING
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendee
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendeeSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCategorySummary
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -113,10 +117,24 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
             .withBody(
               mapper.writeValueAsString(
                 listOf(
-                  AppointmentSearchRequest(
-                    appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
+                  AppointmentSearchResult(
+                    appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
                     startDate = date,
-                    endDate = date,
+                    startTime = date.atStartOfDay().toIsoDateTime(),
+                    endTime = date.atStartOfDay().plusHours(1).toIsoDateTime(),
+                    isCancelled = false,
+                    isExpired = false,
+                    isEdited = false,
+                    appointmentId = 1,
+                    appointmentSeriesId = 1,
+                    appointmentName = "appointment name",
+                    attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
+                    category = AppointmentCategorySummary("VLB", "video link booking"),
+                    inCell = false,
+                    isRepeat = false,
+                    maxSequenceNumber = 1,
+                    prisonCode = prisonCode,
+                    sequenceNumber = 1,
                   ),
                 ),
               ),
