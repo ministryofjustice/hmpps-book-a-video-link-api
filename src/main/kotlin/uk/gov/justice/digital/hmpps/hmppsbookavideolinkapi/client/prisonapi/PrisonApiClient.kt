@@ -1,17 +1,22 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi
 
 import org.slf4j.LoggerFactory
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 const val VIDEO_LINK_BOOKING = "VLB"
+
+inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 @Component
 class PrisonApiClient(private val prisonApiWebClient: WebClient) {
@@ -53,7 +58,28 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .retrieve()
       .bodyToMono(ScheduledEvent::class.java)
       .block()
+
+  fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<PrisonerSchedule> =
+    prisonApiWebClient
+      .post()
+      .uri("/api/schedules/{prisonCode}/appointments?date={date}", prisonCode, onDate.toIsoDate())
+      .bodyValue(listOf(prisonerNumber))
+      .retrieve()
+      .bodyToMono(typeReference<List<PrisonerSchedule>>())
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block() ?: emptyList()
 }
 
-// Overriding due to deserialisation issues from generated type.
+// Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
 data class ScheduledEvent(val eventId: Long)
+
+// Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
+data class PrisonerSchedule(
+  val offenderNo: String,
+  val locationId: Long,
+  val firstName: String,
+  val lastName: String,
+  val event: String,
+  val startTime: LocalDateTime,
+  val endTime: LocalDateTime,
+)

@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.Appointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
@@ -16,21 +16,10 @@ import java.time.LocalTime
 
 const val VIDEO_LINK_BOOKING = "VLB"
 
+inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
+
 @Component
 class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClient: WebClient) {
-
-  companion object {
-    private val log: Logger = LoggerFactory.getLogger(this::class.java)
-  }
-
-  fun getAppointment(appointmentId: Long): Appointment? =
-    activitiesAppointmentsApiWebClient
-      .get()
-      .uri("/appointments/{appointmentId}", appointmentId)
-      .retrieve()
-      .bodyToMono(Appointment::class.java)
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()
 
   fun isAppointmentsRolledOutAt(prisonCode: String) =
     activitiesAppointmentsApiWebClient
@@ -70,4 +59,21 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .retrieve()
       .bodyToMono(AppointmentSeries::class.java)
       .block()
+
+  fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<AppointmentSearchResult> =
+    activitiesAppointmentsApiWebClient.post()
+      .uri("/appointments/{prisonCode}/search", prisonCode)
+      .bodyValue(
+        AppointmentSearchRequest(
+          appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
+          startDate = onDate,
+          endDate = onDate,
+          categoryCode = VIDEO_LINK_BOOKING,
+          prisonerNumbers = listOf(prisonerNumber),
+        ),
+      )
+      .retrieve()
+      .bodyToMono(typeReference<List<AppointmentSearchResult>>())
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block() ?: emptyList()
 }

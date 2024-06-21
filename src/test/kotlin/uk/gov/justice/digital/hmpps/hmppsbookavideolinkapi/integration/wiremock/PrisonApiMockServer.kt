@@ -7,9 +7,11 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
 import java.time.LocalTime
@@ -66,6 +68,37 @@ class PrisonApiMockServer : MockServer(8094) {
             .withHeader("Content-Type", "application/json")
             .withBody(
               mapper.writeValueAsString(ScheduledEvent(eventId = 1)),
+            )
+            .withStatus(200),
+        ),
+    )
+  }
+
+  fun stubGetPrisonersAppointments(prisonCode: String, prisonerNumber: String, date: LocalDate) {
+    stubFor(
+      post("/api/schedules/$prisonCode/appointments?date=${date.toIsoDate()}")
+        .withRequestBody(
+          WireMock.equalToJson(
+            mapper.writeValueAsString(listOf(prisonerNumber)),
+          ),
+        )
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              mapper.writeValueAsString(
+                listOf(
+                  PrisonerSchedule(
+                    offenderNo = "G5662GI",
+                    locationId = 722209,
+                    firstName = "JOHN",
+                    lastName = "DOE",
+                    event = "VLB",
+                    startTime = date.atStartOfDay(),
+                    endTime = date.atStartOfDay().plusHours(1),
+                  ),
+                ),
+              ),
             )
             .withStatus(200),
         ),
