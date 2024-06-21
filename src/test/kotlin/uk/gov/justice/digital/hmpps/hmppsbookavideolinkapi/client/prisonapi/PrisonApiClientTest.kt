@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiMockServer
@@ -52,10 +54,29 @@ class PrisonApiClientTest {
   }
 
   @Test
-  fun `should get prisoners appointments`() {
-    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow())
+  fun `should get single prisoner appointment at location`() {
+    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
 
-    assertThat(client.getPrisonersAppointments(BIRMINGHAM, "123456", tomorrow())).isNotEmpty
+    val appointment = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(2000)).single()
+
+    appointment.locationId isEqualTo 2000
+  }
+
+  @Test
+  fun `should get multiple prisoner appointments at locations`() {
+    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
+
+    val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(2000, 3000))
+
+    appointments hasSize 2
+    appointments.map { it.locationId } containsExactlyInAnyOrder setOf(2000, 3000)
+  }
+
+  @Test
+  fun `should get no prisoner appointments at locations`() {
+    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
+
+    client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(4000)) hasSize 0
   }
 
   @AfterEach

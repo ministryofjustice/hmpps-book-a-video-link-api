@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
@@ -16,10 +15,6 @@ class VideoLinkBookingsService(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val referenceCodeRepository: ReferenceCodeRepository,
 ) {
-
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 
   fun getVideoLinkBookingById(videoBookingId: Long): VideoLinkBooking {
     val booking = videoBookingRepository.findById(videoBookingId)

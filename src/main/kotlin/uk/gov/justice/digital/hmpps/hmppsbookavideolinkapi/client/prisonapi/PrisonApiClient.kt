@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi
 
-import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -20,10 +19,6 @@ inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>(
 
 @Component
 class PrisonApiClient(private val prisonApiWebClient: WebClient) {
-
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 
   fun getInternalLocationByKey(key: String): Location? =
     prisonApiWebClient
@@ -59,7 +54,14 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .bodyToMono(ScheduledEvent::class.java)
       .block()
 
-  fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<PrisonerSchedule> =
+  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, locationIds: Set<Long>): List<PrisonerSchedule> =
+    if (locationIds.isNotEmpty()) {
+      getPrisonersAppointments(prisonCode, prisonerNumber, onDate).filter { locationIds.contains(it.locationId) }
+    } else {
+      emptyList()
+    }
+
+  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<PrisonerSchedule> =
     prisonApiWebClient
       .post()
       .uri("/api/schedules/{prisonCode}/appointments?date={date}", prisonCode, onDate.toIsoDate())
