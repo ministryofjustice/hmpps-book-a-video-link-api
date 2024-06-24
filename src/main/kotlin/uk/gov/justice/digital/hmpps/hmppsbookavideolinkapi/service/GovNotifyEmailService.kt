@@ -26,6 +26,9 @@ class GovNotifyEmailService(
       is AmendedCourtBookingEmail -> send(email, emailTemplates.amendedCourtBookingOwner)
       is AmendedCourtBookingPrisonCourtEmail -> send(email, emailTemplates.amendedCourtBookingPrisonCourtEmail)
       is AmendedCourtBookingPrisonNoCourtEmail -> send(email, emailTemplates.amendedCourtBookingPrisonCourtNoEmail)
+      is CancelledCourtBookingEmail -> send(email, emailTemplates.cancelledCourtBookingOwner)
+      is CancelledCourtBookingPrisonCourtEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonCourtEmail)
+      is CancelledCourtBookingPrisonNoCourtEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonCourtNoEmail)
       else -> throw RuntimeException("Unsupported email type ${email.javaClass.simpleName}.")
     }
 
@@ -154,6 +157,76 @@ class AmendedCourtBookingPrisonCourtEmail(
 }
 
 class AmendedCourtBookingPrisonNoCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  court: String,
+  prison: String,
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, prisonerNumber, date, comments) {
+  init {
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class CancelledCourtBookingEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  userName: String,
+  court: String,
+  prison: String,
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, prisonerNumber, date, comments) {
+  init {
+    addPersonalisation("userName", userName)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class CancelledCourtBookingPrisonCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  court: String,
+  courtEmailAddress: String,
+  prison: String,
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, prisonerNumber, date, comments) {
+  init {
+    addPersonalisation("court", court)
+    addPersonalisation("courtEmailAddress", courtEmailAddress)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class CancelledCourtBookingPrisonNoCourtEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
