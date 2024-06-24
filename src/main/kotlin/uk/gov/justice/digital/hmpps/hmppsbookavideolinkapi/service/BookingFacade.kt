@@ -88,6 +88,7 @@ class BookingFacade(
     val reason = when (action) {
       BookingAction.CREATE -> "New court booking request"
       BookingAction.AMEND -> "Amended court booking request"
+      BookingAction.CANCEL -> "Cancelled court booking request"
     }
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(
@@ -143,6 +144,20 @@ class BookingFacade(
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
       )
+      BookingAction.CANCEL -> CancelledCourtBookingEmail(
+          address = contact.email!!,
+          userName = contact.name ?: "Book Video",
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          prisonerNumber = prisoner.prisonerNumber,
+          court = booking.court!!.description,
+          prison = prison.name,
+          date = main.appointmentDate,
+          preAppointmentInfo = pre?.appointmentInformation(locations),
+          mainAppointmentInfo = main.appointmentInformation(locations),
+          postAppointmentInfo = post?.appointmentInformation(locations),
+          comments = booking.comments,
+        )
     }
   }
 
@@ -224,6 +239,38 @@ class BookingFacade(
           )
         }
       }
+      BookingAction.CANCEL -> {
+        if (primaryCourtContact != null) {
+          CancelledCourtBookingPrisonCourtEmail(
+            address = contact.email!!,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            prisonerNumber = prisoner.prisonerNumber,
+            court = booking.court!!.description,
+            courtEmailAddress = primaryCourtContact.email!!,
+            prison = prison.name,
+            date = main.appointmentDate,
+            preAppointmentInfo = pre?.appointmentInformation(locations),
+            mainAppointmentInfo = main.appointmentInformation(locations),
+            postAppointmentInfo = post?.appointmentInformation(locations),
+            comments = booking.comments,
+          )
+        } else {
+          CancelledCourtBookingPrisonNoCourtEmail(
+            address = contact.email!!,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            prisonerNumber = prisoner.prisonerNumber,
+            court = booking.court!!.description,
+            prison = prison.name,
+            date = main.appointmentDate,
+            preAppointmentInfo = pre?.appointmentInformation(locations),
+            mainAppointmentInfo = main.appointmentInformation(locations),
+            postAppointmentInfo = post?.appointmentInformation(locations),
+            comments = booking.comments,
+          )
+        }
+      }
     }
   }
 
@@ -252,4 +299,5 @@ class BookingFacade(
 enum class BookingAction {
   CREATE,
   AMEND,
+  CANCEL,
 }
