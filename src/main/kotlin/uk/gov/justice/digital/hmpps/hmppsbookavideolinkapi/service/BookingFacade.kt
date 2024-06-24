@@ -145,19 +145,19 @@ class BookingFacade(
         comments = booking.comments,
       )
       BookingAction.CANCEL -> CancelledCourtBookingEmail(
-          address = contact.email!!,
-          userName = contact.name ?: "Book Video",
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          prisonerNumber = prisoner.prisonerNumber,
-          court = booking.court!!.description,
-          prison = prison.name,
-          date = main.appointmentDate,
-          preAppointmentInfo = pre?.appointmentInformation(locations),
-          mainAppointmentInfo = main.appointmentInformation(locations),
-          postAppointmentInfo = post?.appointmentInformation(locations),
-          comments = booking.comments,
-        )
+        address = contact.email!!,
+        userName = contact.name ?: "Book Video",
+        prisonerFirstName = prisoner.firstName,
+        prisonerLastName = prisoner.lastName,
+        prisonerNumber = prisoner.prisonerNumber,
+        court = booking.court!!.description,
+        prison = prison.name,
+        date = main.appointmentDate,
+        preAppointmentInfo = pre?.appointmentInformation(locations),
+        mainAppointmentInfo = main.appointmentInformation(locations),
+        postAppointmentInfo = post?.appointmentInformation(locations),
+        comments = booking.comments,
+      )
     }
   }
 
