@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Prisone
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import kotlin.reflect.jvm.internal.impl.load.kotlin.AbstractBinaryClassAnnotationLoader.Companion
 
 /**
  * This entity represents the history of a booking at a point in time, and is created/saved
