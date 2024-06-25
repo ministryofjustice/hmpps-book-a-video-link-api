@@ -15,18 +15,28 @@ abstract class DomainEvent<T : AdditionalInformation>(
 
   fun toEventType() = DomainEventType.valueOf(eventType)
 
-  override fun toString() = this::class.simpleName + "(eventType = $eventType, additionalInformation = $additionalInformation)"
+  override fun toString() =
+    this::class.simpleName + "(eventType = $eventType, additionalInformation = $additionalInformation)"
 }
 
 interface AdditionalInformation
 
 class AppointmentCreatedEvent(additionalInformation: AppointmentInformation) :
-  DomainEvent<AppointmentInformation>(DomainEventType.APPOINTMENT_CREATED, additionalInformation)
+  DomainEvent<AppointmentInformation>(DomainEventType.APPOINTMENT_CREATED, additionalInformation) {
+  constructor(id: Long) : this(AppointmentInformation(id))
+}
 
 data class AppointmentInformation(val appointmentId: Long) : AdditionalInformation
 
 class VideoBookingCreatedEvent(additionalInformation: VideoBookingInformation) :
-  DomainEvent<VideoBookingInformation>(DomainEventType.VIDEO_BOOKING_CREATED, additionalInformation)
+  DomainEvent<VideoBookingInformation>(DomainEventType.VIDEO_BOOKING_CREATED, additionalInformation) {
+  constructor(id: Long) : this(VideoBookingInformation(id))
+}
+
+class VideoBookingCancelledEvent(additionalInformation: VideoBookingInformation) :
+  DomainEvent<VideoBookingInformation>(DomainEventType.VIDEO_BOOKING_CANCELLED, additionalInformation) {
+  constructor(id: Long) : this(VideoBookingInformation(id))
+}
 
 data class VideoBookingInformation(val videoBookingId: Long) : AdditionalInformation
 
@@ -44,6 +54,13 @@ enum class DomainEventType(val eventType: String, val description: String) {
   ) {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =
       mapper.readValue<AppointmentCreatedEvent>(message)
+  },
+  VIDEO_BOOKING_CANCELLED(
+    "book-a-video-link.video-booking.cancelled",
+    "A video booking has been cancelled in the book a video link service",
+  ) {
+    override fun toInboundEvent(mapper: ObjectMapper, message: String) =
+      mapper.readValue<VideoBookingCreatedEvent>(message)
   },
   ;
 

@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoB
 @Component
 class VideoBookingCreatedEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
-  private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val outboundEventsService: OutboundEventsService,
 ) : DomainEventHandler<VideoBookingCreatedEvent> {
 
@@ -23,10 +22,11 @@ class VideoBookingCreatedEventHandler(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  @Transactional
   override fun handle(event: VideoBookingCreatedEvent) {
     videoBookingRepository.findById(event.additionalInformation.videoBookingId).ifPresentOrElse(
       { booking ->
-        prisonAppointmentRepository.findByVideoBooking(booking).forEach {
+        booking.appointments().forEach {
           outboundEventsService.send(DomainEventType.APPOINTMENT_CREATED, it.prisonAppointmentId)
         }
       },
