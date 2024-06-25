@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -9,6 +10,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
@@ -17,7 +20,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -38,7 +40,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Domain
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.UUID
+import java.util.*
 
 class BookingFacadeTest {
   private val emailCaptor = argumentCaptor<Email>()
@@ -53,6 +55,7 @@ class BookingFacadeTest {
   private val outboundEventsService: OutboundEventsService = mock()
   private val notificationCaptor = argumentCaptor<Notification>()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val prisonerSearchClient: PrisonerSearchClient = mock()
   private val facade = BookingFacade(
     createBookingService,
     amendBookingService,
@@ -64,14 +67,10 @@ class BookingFacadeTest {
     notificationRepository,
     outboundEventsService,
     locationsInsidePrisonClient,
+    prisonerSearchClient,
   )
-
-  @Test
-  fun `should send court booking emails and booking created event on creation of court booking`() {
-    val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = "123456")
-    val booking = courtBooking()
-    val appointment = appointment(
-      booking = booking,
+  private val courtBooking = courtBooking()
+    .addAppointment(
       prisonCode = MOORLAND,
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
@@ -81,11 +80,93 @@ class BookingFacadeTest {
       locationKey = moorlandLocation.key,
     )
 
-    whenever(createBookingService.create(bookingRequest, "facade court user")) doReturn Pair(booking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
-    whenever(prisonAppointmentRepository.findByVideoBooking(booking)) doReturn listOf(appointment)
+  @BeforeEach
+  fun before() {
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
-    whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"), bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"))
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
+    whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(
+      bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"),
+      bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
+    )
+    whenever(prisonAppointmentRepository.findByVideoBooking(courtBooking)) doReturn courtBooking.appointments()
+  }
+
+  @Test
+  fun `should send cancellation court booking emails and booking cancellation event on cancellation of court booking`() {
+    val prisoner = Prisoner(courtBooking.prisoner(), MOORLAND, "Bob", "Builder")
+
+    whenever(cancelVideoBookingService.cancel(1, "facade court user")) doReturn courtBooking
+    whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(any<CancelledCourtBookingEmail>())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any<CancelledCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
+
+    facade.cancel(1, "facade court user")
+
+    inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      verify(cancelVideoBookingService).cancel(1, "facade court user")
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
+
+    emailCaptor.allValues hasSize 2
+    with(emailCaptor.firstValue) {
+      this isInstanceOf CancelledCourtBookingEmail::class.java
+      address isEqualTo "jon@somewhere.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "userName" to "Jon",
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Bob Builder",
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+    with(emailCaptor.secondValue) {
+      this isInstanceOf CancelledCourtBookingPrisonNoCourtEmail::class.java
+      address isEqualTo "jon@prison.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Bob Builder",
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 2
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@somewhere.com"
+      templateName isEqualTo "court template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo courtBooking
+    }
+    with(notificationCaptor.secondValue) {
+      email isEqualTo "jon@prison.com"
+      templateName isEqualTo "prison template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo courtBooking
+    }
+  }
+
+  @Test
+  fun `should send court booking emails and booking created event on creation of court booking`() {
+    val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = courtBooking.prisoner())
+
+    whenever(createBookingService.create(bookingRequest, "facade court user")) doReturn Pair(courtBooking, prisoner(prisonerNumber = courtBooking.prisoner(), prisonCode = MOORLAND))
 
     val notificationId = UUID.randomUUID()
 
@@ -96,7 +177,7 @@ class BookingFacadeTest {
 
     inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
       verify(createBookingService).create(bookingRequest, "facade court user")
-      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, courtBooking.videoBookingId)
       verify(emailService).send(emailCaptor.capture())
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
       verify(emailService).send(emailCaptor.capture())
@@ -141,36 +222,21 @@ class BookingFacadeTest {
       email isEqualTo "jon@somewhere.com"
       templateName isEqualTo "court template id"
       govNotifyNotificationId isEqualTo notificationId
-      videoBooking isEqualTo booking
+      videoBooking isEqualTo courtBooking
     }
     with(notificationCaptor.secondValue) {
       email isEqualTo "jon@prison.com"
       templateName isEqualTo "prison template id"
       govNotifyNotificationId isEqualTo notificationId
-      videoBooking isEqualTo booking
+      videoBooking isEqualTo courtBooking
     }
   }
 
   @Test
   fun `should send court booking emails on amendment of court booking`() {
     val bookingRequest = amendCourtBookingRequest(prisonCode = MOORLAND, prisonerNumber = "123456")
-    val booking = courtBooking()
-    val appointment = appointment(
-      booking = booking,
-      prisonCode = MOORLAND,
-      prisonerNumber = "123456",
-      appointmentType = "VLB_COURT_MAIN",
-      date = LocalDate.of(2100, 1, 1),
-      startTime = LocalTime.of(11, 0),
-      endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
-    )
 
-    whenever(amendBookingService.amend(1, bookingRequest, "facade court user")) doReturn Pair(booking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
-    whenever(prisonAppointmentRepository.findByVideoBooking(booking)) doReturn listOf(appointment)
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
-    whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"), bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"))
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
+    whenever(amendBookingService.amend(1, bookingRequest, "facade court user")) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
 
     val notificationId = UUID.randomUUID()
 
@@ -224,13 +290,13 @@ class BookingFacadeTest {
       email isEqualTo "jon@somewhere.com"
       templateName isEqualTo "court template id"
       govNotifyNotificationId isEqualTo notificationId
-      videoBooking isEqualTo booking
+      videoBooking isEqualTo courtBooking
     }
     with(notificationCaptor.secondValue) {
       email isEqualTo "jon@prison.com"
       templateName isEqualTo "prison template id"
       govNotifyNotificationId isEqualTo notificationId
-      videoBooking isEqualTo booking
+      videoBooking isEqualTo courtBooking
     }
   }
 

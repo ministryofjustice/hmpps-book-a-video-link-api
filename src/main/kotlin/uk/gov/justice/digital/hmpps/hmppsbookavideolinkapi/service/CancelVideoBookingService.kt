@@ -12,9 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
  * [VideoBooking]'s which have already taken place cannot be cancelled.
  */
 @Service
-class CancelVideoBookingService(
-  private val videoBookingRepository: VideoBookingRepository,
-) {
+class CancelVideoBookingService(private val videoBookingRepository: VideoBookingRepository) {
   @Transactional
   fun cancel(videoBookingId: Long, cancelledBy: String): VideoBooking {
     val booking = videoBookingRepository
