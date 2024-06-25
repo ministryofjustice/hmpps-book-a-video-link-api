@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
@@ -38,6 +39,7 @@ class BookingFacade(
   private val notificationRepository: NotificationRepository,
   private val outboundEventsService: OutboundEventsService,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
+  private val prisonerSearchClient: PrisonerSearchClient,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -46,28 +48,31 @@ class BookingFacade(
   fun create(bookingRequest: CreateVideoBookingRequest, username: String): Long {
     val (booking, prisoner) = createVideoBookingService.create(bookingRequest, username)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
-    sendBookingEmails(BookingAction.CREATE, bookingRequest.bookingType!!, booking, prisoner)
+    sendBookingEmails(BookingAction.CREATE, booking, prisoner)
     return booking.videoBookingId
   }
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, username: String): Long {
     val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, username)
     // TODO: Emit VIDEO_BOOKING_AMENDED domain event
-    sendBookingEmails(BookingAction.AMEND, bookingRequest.bookingType!!, booking, prisoner)
+    sendBookingEmails(BookingAction.AMEND, booking, prisoner)
     return booking.videoBookingId
   }
 
   fun cancel(videoBookingId: Long, cancelledBy: String) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
-
     log.info("Video booking ${booking.videoBookingId} cancelled")
-
-    // TODO: emit cancellation domain event
-    // TODO: send cancellation emails
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
+    sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()))
   }
 
-  private fun sendBookingEmails(action: BookingAction, bookingType: BookingType, booking: VideoBooking, prisoner: Prisoner) {
-    when (bookingType) {
+  private fun getPrisoner(prisonerNumber: String) =
+    prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName) }
+
+  private fun VideoBooking.bookingType() = if (isCourtBooking()) BookingType.COURT else BookingType.PROBATION
+
+  private fun sendBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner) {
+    when (booking.bookingType()) {
       BookingType.COURT -> sendCourtBookingEmails(action, booking, prisoner)
       BookingType.PROBATION -> sendProbationBookingEmails(action, booking, prisoner)
     }
