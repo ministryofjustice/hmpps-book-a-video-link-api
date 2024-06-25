@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -11,49 +10,20 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.VIDEO_LINK_BOOKING
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendee
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendeeSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCategorySummary
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentLocationSummary
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
 class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
-
-  fun stubGetAppointment(appointmentId: Long) {
-    stubFor(
-      get("/appointments/$appointmentId")
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              mapper.writeValueAsString(
-                Appointment(
-                  id = appointmentId,
-                  sequenceNumber = 1,
-                  prisonCode = "MDI",
-                  categoryCode = "VIDE",
-                  createdBy = "Fred",
-                  createdTime = LocalDateTime.now(),
-                  inCell = false,
-                  isCancelled = false,
-                  isDeleted = false,
-                  startDate = LocalDate.now(),
-                  startTime = LocalTime.now().toString(),
-                  attendees = listOf(
-                    AppointmentAttendee(
-                      id = 1,
-                      prisonerNumber = "123456",
-                      bookingId = 1,
-                    ),
-                  ),
-                ),
-              ),
-            )
-            .withStatus(200),
-        ),
-    )
-  }
 
   fun stubPostCreateAppointment(
     prisonCode: String,
@@ -125,6 +95,59 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
                 ),
               ),
             )
+            .withStatus(201),
+        ),
+    )
+  }
+
+  fun stubGetPrisonersAppointments(
+    prisonCode: String,
+    prisonerNumber: String,
+    date: LocalDate,
+    locationIds: Set<Long> = setOf(-1),
+  ) {
+    val appointments = locationIds.map { locationId ->
+      AppointmentSearchResult(
+        appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+        startDate = date,
+        startTime = date.atStartOfDay().toIsoDateTime(),
+        endTime = date.atStartOfDay().plusHours(1).toIsoDateTime(),
+        isCancelled = false,
+        isExpired = false,
+        isEdited = false,
+        appointmentId = 1,
+        appointmentSeriesId = 1,
+        appointmentName = "appointment name",
+        attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
+        category = AppointmentCategorySummary("VLB", "video link booking"),
+        inCell = false,
+        isRepeat = false,
+        maxSequenceNumber = 1,
+        prisonCode = prisonCode,
+        sequenceNumber = 1,
+        internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
+      )
+    }
+
+    stubFor(
+      post("/appointments/$prisonCode/search")
+        .withRequestBody(
+          WireMock.equalToJson(
+            mapper.writeValueAsString(
+              AppointmentSearchRequest(
+                appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
+                startDate = date,
+                endDate = date,
+                categoryCode = VIDEO_LINK_BOOKING,
+                prisonerNumbers = listOf(prisonerNumber),
+              ),
+            ),
+          ),
+        )
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(appointments))
             .withStatus(201),
         ),
     )

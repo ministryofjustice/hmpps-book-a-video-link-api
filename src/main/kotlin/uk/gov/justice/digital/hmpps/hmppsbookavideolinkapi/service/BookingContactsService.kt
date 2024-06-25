@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.ManageUsersClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isEmail
@@ -17,10 +16,6 @@ class BookingContactsService(
   private val videoBookingRepository: VideoBookingRepository,
   private val manageUsersClient: ManageUsersClient,
 ) {
-
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 
   fun getBookingContacts(videoBookingId: Long): List<BookingContact> {
     // Get the contact details of people set up as contacts for the prison, court or probation team

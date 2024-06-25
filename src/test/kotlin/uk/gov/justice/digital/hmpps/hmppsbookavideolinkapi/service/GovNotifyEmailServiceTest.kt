@@ -30,6 +30,12 @@ class GovNotifyEmailServiceTest {
     newCourtBookingOwner = "template 1",
     newCourtBookingPrisonCourtEmail = "template 2",
     newCourtBookingPrisonNoCourtEmail = "template 3",
+    amendedCourtBookingOwner = "template 4",
+    amendedCourtBookingPrisonCourtEmail = "template 5",
+    amendedCourtBookingPrisonCourtNoEmail = "template 6",
+    cancelledCourtBookingOwner = "template 7",
+    cancelledCourtBookingPrisonCourtEmail = "template 8",
+    cancelledCourtBookingPrisonCourtNoEmail = "template 9",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)
@@ -176,6 +182,240 @@ class GovNotifyEmailServiceTest {
 
     verify(client).sendEmail(
       "template 3",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send court amended booking email and return a notification ID`() {
+    val result = service.send(
+      AmendedCourtBookingEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        userName = "username",
+        date = today,
+        comments = "comments for bob",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 4")
+
+    verify(client).sendEmail(
+      "template 4",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "userName" to "username",
+        "court" to "the court",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison amended booking from court with email and return a notification ID`() {
+    val result = service.send(
+      AmendedCourtBookingPrisonCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        date = today,
+        comments = "comments for bob",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        courtEmailAddress = "court@emailaddress.com",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 5")
+
+    verify(client).sendEmail(
+      "template 5",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "courtEmailAddress" to "court@emailaddress.com",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison amended booking from court with no email and return a notification ID`() {
+    val result = service.send(
+      AmendedCourtBookingPrisonNoCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        date = today,
+        comments = "comments for bob",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 6")
+
+    verify(client).sendEmail(
+      "template 6",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send court cancelled booking email and return a notification ID`() {
+    val result = service.send(
+      CancelledCourtBookingEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        userName = "username",
+        date = today,
+        comments = "comments for bob",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 7")
+
+    verify(client).sendEmail(
+      "template 7",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "userName" to "username",
+        "court" to "the court",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison cancelled booking from court with email and return a notification ID`() {
+    val result = service.send(
+      CancelledCourtBookingPrisonCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        date = today,
+        comments = "comments for bob",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        courtEmailAddress = "court@emailaddress.com",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 8")
+
+    verify(client).sendEmail(
+      "template 8",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "courtEmailAddress" to "court@emailaddress.com",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison cancelled booking from court with no email and return a notification ID`() {
+    val result = service.send(
+      CancelledCourtBookingPrisonNoCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        date = today,
+        comments = "comments for bob",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 9")
+
+    verify(client).sendEmail(
+      "template 9",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),

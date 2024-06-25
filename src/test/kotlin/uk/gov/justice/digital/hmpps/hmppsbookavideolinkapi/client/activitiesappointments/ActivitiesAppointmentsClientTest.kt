@@ -4,6 +4,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiMockServer
@@ -13,13 +15,6 @@ class ActivitiesAppointmentsClientTest {
 
   private val server = ActivitiesAppointmentsApiMockServer().also { it.start() }
   private val client = ActivitiesAppointmentsClient(WebClient.create("http://localhost:${server.port()}"))
-
-  @Test
-  fun `should get matching appointment`() {
-    server.stubGetAppointment(1L)
-
-    client.getAppointment(1L)?.id isEqualTo 1L
-  }
 
   @Test
   fun `should post new appointment`() {
@@ -42,6 +37,32 @@ class ActivitiesAppointmentsClientTest {
       internalLocationId = 1,
       comments = "extra info",
     )
+  }
+
+  @Test
+  fun `should get single prisoners appointment`() {
+    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000))
+
+    val appointment = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(1000)).single()
+
+    appointment.internalLocation?.id isEqualTo 1000
+  }
+
+  @Test
+  fun `should get multiple prisoner appointments at locations`() {
+    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
+
+    val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(2000, 3000))
+
+    appointments hasSize 2
+    appointments.map { it.internalLocation?.id } containsExactlyInAnyOrder setOf(2000, 3000)
+  }
+
+  @Test
+  fun `should get no prisoner appointments at locations`() {
+    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
+
+    client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(4000)) hasSize 0
   }
 
   @AfterEach

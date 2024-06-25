@@ -108,6 +108,14 @@ notify:
       owner: "c8d61c0f-1fa0-4281-9597-a45780e345d4"
       prison-court-email: "bf2c340e-31a4-45db-bc70-e902ee499ec5"
       prison-no-court-email: "d555929e-c8a5-4771-911b-4538ba259eba"
+    amended-court-booking:
+      owner: "443760a3-e644-4228-8c60-ecb76fb39664"
+      prison-court-email: "9edef9a6-df69-462a-995c-010c2b4f2cbf"
+      prison-court-no-email: "d756d798-bf1b-4651-85e5-6f42c741e33b"
+    cancelled-court-booking:
+      owner: "946a129a-ed09-40ca-b0ac-a39ec6c1bc2b"
+      prison-court-email: "9c80bb57-abed-4316-8404-cbdcd48b8f25"
+      prison-court-no-email: "602981eb-cc7f-4a85-aba3-577167f1ee83"
 
 
 springdoc:
