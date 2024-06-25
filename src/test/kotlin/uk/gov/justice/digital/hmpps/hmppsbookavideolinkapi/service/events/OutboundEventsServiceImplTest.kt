@@ -37,6 +37,17 @@ class OutboundEventsServiceImplTest {
     )
   }
 
+  @Test
+  fun `should publish video booking cancelled outbound event`() {
+    service.send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
+
+    verify(
+      expectedEventType = DomainEventType.VIDEO_BOOKING_CANCELLED,
+      expectedAdditionalInformation = VideoBookingInformation(1),
+      expectedDescription = "A video booking has been cancelled in the book a video link service",
+    )
+  }
+
   private fun verify(
     expectedEventType: DomainEventType,
     expectedAdditionalInformation: AdditionalInformation,
