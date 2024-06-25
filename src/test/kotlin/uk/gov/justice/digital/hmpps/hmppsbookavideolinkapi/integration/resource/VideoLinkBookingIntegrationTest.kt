@@ -1022,6 +1022,10 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     val bookingId = webTestClient.createBooking(courtBookingRequest)
 
+    val activeBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    activeBooking.statusCode isEqualTo StatusCode.ACTIVE
+
     webTestClient.cancelBooking(bookingId)
 
     val cancelledBooking = videoBookingRepository.findById(bookingId).orElseThrow()
