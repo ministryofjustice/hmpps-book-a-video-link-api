@@ -11,6 +11,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
@@ -1002,6 +1003,32 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     assertThat(errorResponse.status).isEqualTo(404)
   }
 
+  @Test
+  fun `should cancel a Chesterfield court booking`() {
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = CHESTERFIELD_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
+
+    webTestClient.cancelBooking(bookingId)
+
+    val cancelledBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    cancelledBooking.statusCode isEqualTo StatusCode.CANCELLED
+  }
+
   private fun WebTestClient.createBooking(request: CreateVideoBookingRequest, username: String = "booking@creator.com") =
     this
       .post()
@@ -1027,6 +1054,15 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
       .returnResult().responseBody!!
+
+  private fun WebTestClient.cancelBooking(videoBookingId: Long, username: String = "booking@cancel.com") =
+    this
+      .delete()
+      .uri("/video-link-booking/id/$videoBookingId")
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().isNoContent
 
   private fun WebTestClient.getBookingByIdRequest(videoBookingId: Long, username: String = "booking@creator.com") =
     this

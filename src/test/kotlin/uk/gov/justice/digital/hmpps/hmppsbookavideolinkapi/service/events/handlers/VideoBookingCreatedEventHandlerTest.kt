@@ -10,27 +10,21 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCreatedEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingInformation
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.Optional
+import java.util.*
 
-class VideoBookingCreatedDomainEventHandlerTest {
+class VideoBookingCreatedEventHandlerTest {
 
   private val videoBookingRepository: VideoBookingRepository = mock()
-  private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val outboundEventsService: OutboundEventsService = mock()
   private val booking = courtBooking()
-  private val appointments = listOf(
-    appointment(
-      booking = booking,
+    .addAppointment(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_PRE",
@@ -38,9 +32,8 @@ class VideoBookingCreatedDomainEventHandlerTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       locationKey = "",
-    ),
-    appointment(
-      booking = booking,
+    )
+    .addAppointment(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
@@ -48,16 +41,15 @@ class VideoBookingCreatedDomainEventHandlerTest {
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 30),
       locationKey = "",
-    ),
-  )
-  private val handler = VideoBookingCreatedEventHandler(videoBookingRepository, prisonAppointmentRepository, outboundEventsService)
+    )
+
+  private val handler = VideoBookingCreatedEventHandler(videoBookingRepository, outboundEventsService)
 
   @Test
   fun `should publish appointment created event on receipt of video booking`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(booking)
-    whenever(prisonAppointmentRepository.findByVideoBooking(booking)) doReturn appointments
 
-    handler.handle(VideoBookingCreatedEvent(VideoBookingInformation(1)))
+    handler.handle(VideoBookingCreatedEvent(1))
 
     verify(outboundEventsService, times(2)).send(eq(DomainEventType.APPOINTMENT_CREATED), any())
   }
@@ -65,11 +57,9 @@ class VideoBookingCreatedDomainEventHandlerTest {
   @Test
   fun `should no-op receipt of unknown video booking`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.empty()
-    whenever(prisonAppointmentRepository.findByVideoBooking(booking)) doReturn appointments
 
-    handler.handle(VideoBookingCreatedEvent(VideoBookingInformation(1)))
+    handler.handle(VideoBookingCreatedEvent(1))
 
-    verifyNoInteractions(prisonAppointmentRepository)
     verifyNoInteractions(outboundEventsService)
   }
 }

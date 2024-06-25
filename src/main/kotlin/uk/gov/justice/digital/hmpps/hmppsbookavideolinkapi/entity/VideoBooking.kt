@@ -73,20 +73,21 @@ class VideoBooking private constructor(
     startTime: LocalTime,
     endTime: LocalTime,
     locationKey: String,
-  ) {
-    prisonAppointments.add(
-      PrisonAppointment.newAppointment(
-        videoBooking = this,
-        prisonCode = prisonCode,
-        prisonerNumber = prisonerNumber,
-        appointmentType = appointmentType,
-        appointmentDate = date,
-        startTime = startTime,
-        endTime = endTime,
-        locationKey = locationKey,
-      ),
-    )
-  }
+  ) =
+    apply {
+      prisonAppointments.add(
+        PrisonAppointment.newAppointment(
+          videoBooking = this,
+          prisonCode = prisonCode,
+          prisonerNumber = prisonerNumber,
+          appointmentType = appointmentType,
+          appointmentDate = date,
+          startTime = startTime,
+          endTime = endTime,
+          locationKey = locationKey,
+        ),
+      )
+    }
 
   fun cancel(cancelledBy: String) =
     apply {
