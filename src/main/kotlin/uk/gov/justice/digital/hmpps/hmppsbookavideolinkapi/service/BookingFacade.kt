@@ -30,6 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Outbou
 class BookingFacade(
   private val createVideoBookingService: CreateVideoBookingService,
   private val amendVideoBookingService: AmendVideoBookingService,
+  private val cancelVideoBookingService: CancelVideoBookingService,
   private val bookingContactsService: BookingContactsService,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val prisonRepository: PrisonRepository,
@@ -54,6 +55,15 @@ class BookingFacade(
     // TODO: Emit VIDEO_BOOKING_AMENDED domain event
     sendBookingEmails(BookingAction.AMEND, bookingRequest.bookingType!!, booking, prisoner)
     return booking.videoBookingId
+  }
+
+  fun cancel(videoBookingId: Long, cancelledBy: String) {
+    val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
+
+    log.info("Video booking ${booking.videoBookingId} cancelled")
+
+    // TODO: emit cancellation domain event
+    // TODO: send cancellation emails
   }
 
   private fun sendBookingEmails(action: BookingAction, bookingType: BookingType, booking: VideoBooking, prisoner: Prisoner) {

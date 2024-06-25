@@ -18,7 +18,7 @@ fun VideoBookingEntity.toModel(
 ) = VideoLinkBooking(
   videoLinkBookingId = videoBookingId,
   bookingType = BookingType.valueOf(bookingType),
-  statusCode = BookingStatus.valueOf(statusCode),
+  statusCode = BookingStatus.valueOf(statusCode.name),
   prisonAppointments = prisonAppointments.toModel(),
   courtCode = court?.code,
   courtDescription = court?.code?.let { courtDescription },

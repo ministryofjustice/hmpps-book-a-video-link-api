@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitche
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.APPOINTMENT_CREATED
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.VIDEO_BOOKING_CANCELLED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.VIDEO_BOOKING_CREATED
 
 fun interface OutboundEventsService {
@@ -30,8 +31,9 @@ class OutboundEventsServiceImpl(
 
   override fun send(domainEventType: DomainEventType, identifier: Long) {
     when (domainEventType) {
-      APPOINTMENT_CREATED -> send(AppointmentCreatedEvent(AppointmentInformation(identifier)))
-      VIDEO_BOOKING_CREATED -> send(VideoBookingCreatedEvent(VideoBookingInformation(identifier)))
+      APPOINTMENT_CREATED -> send(AppointmentCreatedEvent(identifier))
+      VIDEO_BOOKING_CREATED -> send(VideoBookingCreatedEvent(identifier))
+      VIDEO_BOOKING_CANCELLED -> send(VideoBookingCancelledEvent(identifier))
     }
   }
 

@@ -44,6 +44,7 @@ class BookingFacadeTest {
   private val emailCaptor = argumentCaptor<Email>()
   private val createBookingService: CreateVideoBookingService = mock()
   private val amendBookingService: AmendVideoBookingService = mock()
+  private val cancelVideoBookingService: CancelVideoBookingService = mock()
   private val bookingContactsService: BookingContactsService = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val prisonRepository: PrisonRepository = mock()
@@ -55,6 +56,7 @@ class BookingFacadeTest {
   private val facade = BookingFacade(
     createBookingService,
     amendBookingService,
+    cancelVideoBookingService,
     bookingContactsService,
     prisonAppointmentRepository,
     prisonRepository,

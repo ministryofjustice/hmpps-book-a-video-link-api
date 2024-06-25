@@ -10,6 +10,7 @@ import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Entity
@@ -39,6 +40,8 @@ class PrisonAppointment private constructor(
 
   val endTime: LocalTime,
 ) {
+
+  fun isStartsAfter(dateTime: LocalDateTime) = appointmentDate.atTime(startTime).isAfter(dateTime)
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
