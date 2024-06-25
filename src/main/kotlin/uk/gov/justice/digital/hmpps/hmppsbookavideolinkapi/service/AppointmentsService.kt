@@ -1,34 +1,30 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
-import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
 
 @Service
-abstract class CreateVideoAppointmentService(
-  private val prisonRepository: PrisonRepository,
+class AppointmentsService(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val locationValidator: LocationValidator,
-  private val prisonerValidator: PrisonerValidator,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
-  protected fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
+  // TODO: Can do a similar thing as done in the history tables for appointments - a follow-on PR.
+  @Transactional
+  fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
     prisoner.appointments.checkCourtAppointmentTypesOnly()
     prisoner.appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
     prisoner.appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisoner.prisonCode!!)
@@ -94,14 +90,8 @@ abstract class CreateVideoAppointmentService(
   private fun Appointment.isBefore(other: Appointment): Boolean =
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
-  protected fun PrisonerDetails.validate(): Prisoner {
-    // We are not checking if the prison is enabled here as we need to support prison users also. Our UI should not be sending disabled prisons though.
-    prisonRepository.findByCode(prisonCode!!) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
-
-    return prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode).toPrisonerDetails()
-  }
-
-  protected fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
+  @Transactional
+  fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
     val appointment = with(prisoner.appointments.single()) {
       require(type!!.isProbation) {
         "Appointment type $type is not valid for probation appointments"
@@ -125,7 +115,8 @@ abstract class CreateVideoAppointmentService(
     prisonAppointmentRepository.saveAndFlush(appointment)
   }
 
-  protected fun deletePrisonAppointments(videoBooking: VideoBooking) = prisonAppointmentRepository.deletePrisonAppointmentsByVideoBooking(videoBooking)
+  @Transactional
+  fun deletePrisonAppointments(videoBooking: VideoBooking) = prisonAppointmentRepository.deletePrisonAppointmentsByVideoBooking(videoBooking)
 
   private fun Appointment.checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
     prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(

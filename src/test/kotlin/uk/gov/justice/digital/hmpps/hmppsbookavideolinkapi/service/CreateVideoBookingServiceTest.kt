@@ -44,21 +44,26 @@ const val CREATED_BY = "TEST USER"
 class CreateVideoBookingServiceTest {
 
   private val courtRepository: CourtRepository = mock()
-  private val prisonerValidator: PrisonerValidator = mock()
   private val probationTeamRepository: ProbationTeamRepository = mock()
-  private val prisonRepository: PrisonRepository = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
+
+  private val bookingHistoryService: BookingHistoryService = mock()
+  private val prisonRepository: PrisonRepository = mock()
+  private val prisonerValidator: PrisonerValidator = mock()
+
   private val persistedVideoBooking: VideoBooking = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val locationValidator: LocationValidator = mock()
+
+  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, locationValidator)
 
   private val service = CreateVideoBookingService(
     courtRepository,
     probationTeamRepository,
     videoBookingRepository,
-    prisonAppointmentRepository,
+    appointmentsService,
+    bookingHistoryService,
     prisonRepository,
-    locationValidator,
     prisonerValidator,
   )
 
@@ -563,16 +568,16 @@ class CreateVideoBookingServiceTest {
     appointmentsCaptor.allValues.size isEqualTo 1
 
     with(appointmentsCaptor.firstValue) {
-      val prisoner = probationBookingRequest.prisoners.single()
+      val onePrisoner = probationBookingRequest.prisoners.single()
 
       videoBooking isEqualTo persistedVideoBooking
-      this.prisonCode isEqualTo prisoner.prisonCode!!
-      this.prisonerNumber isEqualTo prisoner.prisonerNumber!!
-      appointmentType isEqualTo prisoner.appointments.single().type?.name
-      appointmentDate isEqualTo prisoner.appointments.single().date!!
-      startTime isEqualTo prisoner.appointments.single().startTime!!.toMinutePrecision()
-      endTime isEqualTo prisoner.appointments.single().endTime!!.toMinutePrecision()
-      prisonLocKey isEqualTo prisoner.appointments.single().locationKey!!
+      this.prisonCode isEqualTo onePrisoner.prisonCode!!
+      this.prisonerNumber isEqualTo onePrisoner.prisonerNumber!!
+      appointmentType isEqualTo onePrisoner.appointments.single().type?.name
+      appointmentDate isEqualTo onePrisoner.appointments.single().date!!
+      startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
+      endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
+      prisonLocKey isEqualTo onePrisoner.appointments.single().locationKey!!
     }
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
