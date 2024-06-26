@@ -2,9 +2,13 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 
@@ -66,6 +70,54 @@ class ManageExternalAppointmentsService(
       },
     )
   }
+
+  @Transactional
+  fun cancelAppointment(prisonAppointmentId: Long) {
+    log.info("EXTERNAL APPOINTMENTS: deleting appointment for prison appointment ID $prisonAppointmentId")
+
+    prisonAppointmentRepository.findById(prisonAppointmentId).ifPresentOrElse(
+      { appointment ->
+        if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode)) {
+          activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+            appointment.prisonCode,
+            appointment.prisonerNumber,
+            appointment.appointmentDate,
+            appointment.internalLocationId(),
+          ).findMatching(appointment)?.let { matchingAppointment ->
+            log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from activities and appointments")
+            activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
+            log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
+          } ?: log.info("EXTERNAL APPOINTMENTS: matching activities api appointment not found for prison appointment $prisonAppointmentId")
+        } else {
+          prisonApiClient.getPrisonersAppointmentsAtLocations(
+            appointment.prisonCode,
+            appointment.prisonerNumber,
+            appointment.appointmentDate,
+            appointment.internalLocationId(),
+          ).findMatching(appointment)?.let { matchingAppointment ->
+            log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from prison-api")
+            prisonApiClient.cancelAppointment(matchingAppointment.eventId)
+            log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.eventId} from prison-api")
+          } ?: log.info("EXTERNAL APPOINTMENTS: matching prison-api appointment not found for prison appointment $prisonAppointmentId")
+        }
+      },
+      {
+        // Ignore, there is nothing we can do if we do not find the prison appointment
+        log.warn("EXTERNAL APPOINTMENTS: Prison appointment with ID $prisonAppointmentId not found")
+      },
+    )
+  }
+
+  private fun Collection<AppointmentSearchResult>.findMatching(appointment: PrisonAppointment) =
+    singleOrNull {
+      appointment.startTime.toHourMinuteStyle() == it.startTime && appointment.endTime.toHourMinuteStyle() == it.endTime
+    }
+
+  private fun Collection<PrisonerSchedule>.findMatching(appointment: PrisonAppointment) =
+    singleOrNull {
+      it.startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
+        it.endTime == appointment.appointmentDate.atTime(appointment.endTime)
+    }
 
   private fun PrisonAppointment.detailedComments() =
     if (videoBooking.isCourtBooking()) {

@@ -76,6 +76,18 @@ class LocalOutboundEventsService(
             },
           )
         }
+        VIDEO_BOOKING_CANCELLED -> {
+          videoBookingRepository.findById(identifier).ifPresentOrElse(
+            { vb ->
+              vb.appointments().forEach { appointment ->
+                manageExternalAppointmentsService.cancelAppointment(appointment.prisonAppointmentId)
+              }
+            },
+            {
+              log.info("Video booking with ID $identifier not found")
+            },
+          )
+        }
         else -> log.info("Ignoring domain event $domainEventType")
       }
     } else {
