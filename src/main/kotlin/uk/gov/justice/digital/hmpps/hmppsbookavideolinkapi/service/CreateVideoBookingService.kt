@@ -4,28 +4,29 @@ import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
 
 @Service
 class CreateVideoBookingService(
   private val courtRepository: CourtRepository,
   private val probationTeamRepository: ProbationTeamRepository,
   private val videoBookingRepository: VideoBookingRepository,
-  prisonAppointmentRepository: PrisonAppointmentRepository,
-  prisonRepository: PrisonRepository,
-  locationValidator: LocationValidator,
-  prisonerValidator: PrisonerValidator,
-) : CreateVideoAppointmentService(prisonRepository, prisonAppointmentRepository, locationValidator, prisonerValidator) {
+  private val appointmentsService: AppointmentsService,
+  private val bookingHistoryService: BookingHistoryService,
+  private val prisonRepository: PrisonRepository,
+  private val prisonerValidator: PrisonerValidator,
+) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -51,8 +52,11 @@ class CreateVideoBookingService(
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
       createdByPrison = request.createdByPrison!!,
-    ).let(videoBookingRepository::saveAndFlush)
-      .also { booking -> createAppointmentsForCourt(booking, request.prisoner()) }
+    )
+      .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
+      // Note - save and flush AFTER the appointments have been added to the booking - JPA save appointments
+      .also { booking -> videoBookingRepository.saveAndFlush(booking) }
+      .also { booking -> bookingHistoryService.createBookingHistoryForCourt(HistoryType.CREATE, booking) }
       .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
   }
 
@@ -70,11 +74,21 @@ class CreateVideoBookingService(
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
       createdByPrison = request.createdByPrison!!,
-    ).let(videoBookingRepository::saveAndFlush)
-      .also { booking -> createAppointmentForProbation(booking, request.prisoner()) }
+    )
+      .also { booking -> appointmentsService.createAppointmentForProbation(booking, request.prisoner()) }
+      // Note - save and flush AFTER the appointments have been added to the booking - JPA save appointments
+      .also { booking -> videoBookingRepository.saveAndFlush(booking) }
+      .also { booking -> bookingHistoryService.createBookingHistoryForProbation(HistoryType.CREATE, booking) }
       .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} created") } to prisoner
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.
   private fun CreateVideoBookingRequest.prisoner() = prisoners.first()
+
+  private fun PrisonerDetails.validate(): Prisoner {
+    // We are not checking if the prison is enabled here as we need to support prison users also.
+    // Our UI should not be sending disabled prisons though.
+    prisonRepository.findByCode(prisonCode!!) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
+    return prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode).toPrisonerDetails()
+  }
 }

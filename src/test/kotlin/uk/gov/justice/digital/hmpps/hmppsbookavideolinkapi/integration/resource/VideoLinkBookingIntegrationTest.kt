@@ -10,6 +10,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -39,6 +40,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -65,6 +67,9 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var notificationRepository: NotificationRepository
+
+  @Autowired
+  private lateinit var bookingHistoryRepository: BookingHistoryRepository
 
   @Test
   fun `should create a Derby court booking and emails sent to Werrington prison`() {
@@ -111,6 +116,15 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
+    }
+
+    val history = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
+    with(history.first()) {
+      historyType isEqualTo HistoryType.CREATE
+      videoBookingId isEqualTo persistedBooking.videoBookingId
+      hearingType isEqualTo persistedBooking.hearingType
+      courtId isEqualTo persistedBooking.court?.courtId
+      appointments() hasSize 1
     }
 
     // There should be 4 notifications - one owner email and 3 prisoner emails
@@ -300,6 +314,15 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
       comments isEqualTo "integration test probation booking comments"
+    }
+
+    val history = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
+    with(history.first()) {
+      historyType isEqualTo HistoryType.CREATE
+      videoBookingId isEqualTo persistedBooking.videoBookingId
+      probationMeetingType isEqualTo persistedBooking.probationMeetingType
+      probationTeamId isEqualTo persistedBooking.probationTeam?.probationTeamId
+      appointments() hasSize 1
     }
   }
 

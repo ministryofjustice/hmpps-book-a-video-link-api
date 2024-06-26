@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -13,6 +14,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
@@ -22,6 +24,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
@@ -46,27 +49,29 @@ const val AMENDED_BY = "TEST USER"
 class AmendVideoBookingServiceTest {
 
   private val courtRepository: CourtRepository = mock()
-  private val prisonerValidator: PrisonerValidator = mock()
   private val probationTeamRepository: ProbationTeamRepository = mock()
-  private val prisonRepository: PrisonRepository = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
+  private val prisonRepository: PrisonRepository = mock()
+  private val bookingHistoryService: BookingHistoryService = mock()
+
   private val persistedVideoBooking: VideoBooking = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val locationValidator: LocationValidator = mock()
+  private val prisonerValidator: PrisonerValidator = mock()
+
+  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, locationValidator)
 
   private val service = AmendVideoBookingService(
     courtRepository,
     probationTeamRepository,
     videoBookingRepository,
-    prisonAppointmentRepository,
     prisonRepository,
-    locationValidator,
+    appointmentsService,
+    bookingHistoryService,
     prisonerValidator,
   )
 
   private var amendedBookingCaptor = argumentCaptor<VideoBooking>()
-
-  private var appointmentsCaptor = argumentCaptor<PrisonAppointment>()
 
   @Test
   fun `should amend an existing court video booking`() {
@@ -115,6 +120,7 @@ class AmendVideoBookingServiceTest {
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
 
+    verify(bookingHistoryService).createBookingHistoryForCourt(HistoryType.AMEND, courtBooking)
     verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
 
     with(amendedBookingCaptor.firstValue) {
@@ -125,48 +131,42 @@ class AmendVideoBookingServiceTest {
       videoUrl isEqualTo amendCourtBookingRequest.videoLinkUrl
       amendedBy isEqualTo AMENDED_BY
       amendedTime isCloseTo LocalDateTime.now()
+
+      appointments() hasSize 3
+
+      with(appointments()) {
+        assertThat(this).extracting("prisonCode").containsOnly(prisonCode)
+        assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
+        assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
+        assertThat(this).extracting("prisonLocKey").containsOnly("$BIRMINGHAM-ABCEDFG")
+        assertThat(this).extracting("startTime").containsAll(
+          listOf(
+            LocalTime.of(9, 0),
+            LocalTime.of(9, 30),
+            LocalTime.of(10, 0),
+          ),
+        )
+        assertThat(this).extracting("endTime").containsAll(
+          listOf(
+            LocalTime.of(9, 30),
+            LocalTime.of(10, 0),
+            LocalTime.of(10, 30),
+          ),
+        )
+        assertThat(this).extracting("appointmentType").containsAll(
+          listOf(
+            AppointmentType.VLB_COURT_PRE.name,
+            AppointmentType.VLB_COURT_MAIN.name,
+            AppointmentType.VLB_COURT_POST.name,
+          ),
+        )
+      }
     }
 
     verify(prisonAppointmentRepository, times(1)).deletePrisonAppointmentsByVideoBooking(courtBooking)
-    verify(prisonAppointmentRepository, times(3)).saveAndFlush(appointmentsCaptor.capture())
-
-    appointmentsCaptor.allValues.size isEqualTo 3
-
-    with(appointmentsCaptor.firstValue) {
-      videoBooking isEqualTo persistedVideoBooking
-      this.prisonCode isEqualTo prisonCode
-      this.prisonerNumber isEqualTo prisonerNumber
-      appointmentType isEqualTo AppointmentType.VLB_COURT_PRE.name
-      appointmentDate isEqualTo tomorrow()
-      startTime isEqualTo LocalTime.of(9, 0).toMinutePrecision()
-      endTime isEqualTo LocalTime.of(9, 30).toMinutePrecision()
-      prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
-    }
-
-    with(appointmentsCaptor.secondValue) {
-      videoBooking isEqualTo persistedVideoBooking
-      this.prisonCode isEqualTo prisonCode
-      this.prisonerNumber isEqualTo prisonerNumber
-      appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
-      appointmentDate isEqualTo tomorrow()
-      startTime isEqualTo LocalTime.of(9, 30).toMinutePrecision()
-      endTime isEqualTo LocalTime.of(10, 0).toMinutePrecision()
-      prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
-    }
-
-    with(appointmentsCaptor.thirdValue) {
-      videoBooking isEqualTo persistedVideoBooking
-      this.prisonCode isEqualTo prisonCode
-      this.prisonerNumber isEqualTo prisonerNumber
-      appointmentType isEqualTo AppointmentType.VLB_COURT_POST.name
-      appointmentDate isEqualTo tomorrow()
-      startTime isEqualTo LocalTime.of(10, 0).toMinutePrecision()
-      endTime isEqualTo LocalTime.of(10, 30).toMinutePrecision()
-      prisonLocKey isEqualTo "$BIRMINGHAM-ABCEDFG"
-    }
-
     verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
+    verify(bookingHistoryService).createBookingHistoryForCourt(any(), any())
   }
 
   @Test
@@ -603,6 +603,7 @@ class AmendVideoBookingServiceTest {
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
 
+    verify(bookingHistoryService).createBookingHistoryForProbation(HistoryType.AMEND, probationBooking)
     verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
 
     with(amendedBookingCaptor.firstValue) {
@@ -613,27 +614,25 @@ class AmendVideoBookingServiceTest {
       videoUrl isEqualTo probationBookingRequest.videoLinkUrl
       amendedBy isEqualTo AMENDED_BY
       amendedTime isCloseTo LocalDateTime.now()
-    }
 
-    verify(prisonAppointmentRepository).saveAndFlush(appointmentsCaptor.capture())
+      appointments() hasSize 1
 
-    appointmentsCaptor.allValues.size isEqualTo 1
+      with(appointments().single()) {
+        val onePrisoner = probationBookingRequest.prisoners.single()
 
-    with(appointmentsCaptor.firstValue) {
-      val prisoner = probationBookingRequest.prisoners.single()
-
-      videoBooking isEqualTo persistedVideoBooking
-      this.prisonCode isEqualTo prisoner.prisonCode!!
-      this.prisonerNumber isEqualTo prisoner.prisonerNumber!!
-      appointmentType isEqualTo prisoner.appointments.single().type?.name
-      appointmentDate isEqualTo prisoner.appointments.single().date!!
-      startTime isEqualTo prisoner.appointments.single().startTime!!.toMinutePrecision()
-      endTime isEqualTo prisoner.appointments.single().endTime!!.toMinutePrecision()
-      prisonLocKey isEqualTo prisoner.appointments.single().locationKey!!
+        prisonCode isEqualTo onePrisoner.prisonCode
+        prisonerNumber isEqualTo onePrisoner.prisonerNumber
+        appointmentType isEqualTo onePrisoner.appointments.single().type?.name
+        appointmentDate isEqualTo onePrisoner.appointments.single().date!!
+        startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
+        endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
+        prisonLocKey isEqualTo onePrisoner.appointments.single().locationKey!!
+      }
     }
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
+    verify(bookingHistoryService).createBookingHistoryForProbation(any(), any())
   }
 
   @Test
