@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity
 
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -29,7 +31,8 @@ class BookingHistory(
 
   val videoBookingId: Long,
 
-  val historyType: String,
+  @Enumerated(EnumType.STRING)
+  val historyType: HistoryType,
 
   val courtId: Long? = null,
 
@@ -46,12 +49,14 @@ class BookingHistory(
   val createdBy: String,
 
   val createdTime: LocalDateTime = LocalDateTime.now(),
-
-  @OneToMany(mappedBy = "bookingHistory", fetch = FetchType.EAGER, cascade = [CascadeType.ALL], orphanRemoval = true)
-  val appointments: MutableList<BookingHistoryAppointment> = mutableListOf(),
 ) {
+  @OneToMany(mappedBy = "bookingHistory", fetch = FetchType.EAGER, cascade = [CascadeType.ALL], orphanRemoval = true)
+  private val appointments: MutableList<BookingHistoryAppointment> = mutableListOf()
+
   fun addBookingHistoryAppointments(bookingHistoryAppointments: List<BookingHistoryAppointment>) =
     this.appointments.addAll(bookingHistoryAppointments)
+
+  fun appointments() = appointments.toList()
 }
 
 /**
@@ -85,3 +90,8 @@ data class BookingHistoryAppointment(
 
   val endTime: LocalTime,
 )
+
+enum class HistoryType {
+  CREATE,
+  AMEND,
+}

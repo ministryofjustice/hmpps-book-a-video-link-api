@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -53,7 +54,7 @@ class CreateVideoBookingService(
       createdByPrison = request.createdByPrison!!,
     ).let(videoBookingRepository::saveAndFlush)
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
-      .also { booking -> bookingHistoryService.createBookingHistoryForCourt("CREATE", booking, request.prisoners) }
+      .also { booking -> bookingHistoryService.createBookingHistoryForCourt(HistoryType.CREATE, booking) }
       .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
   }
 
@@ -73,7 +74,7 @@ class CreateVideoBookingService(
       createdByPrison = request.createdByPrison!!,
     ).let(videoBookingRepository::saveAndFlush)
       .also { booking -> appointmentsService.createAppointmentForProbation(booking, request.prisoner()) }
-      .also { booking -> bookingHistoryService.createBookingHistoryForProbation("CREATE", booking, request.prisoners) }
+      .also { booking -> bookingHistoryService.createBookingHistoryForProbation(HistoryType.CREATE, booking) }
       .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} created") } to prisoner
   }
 

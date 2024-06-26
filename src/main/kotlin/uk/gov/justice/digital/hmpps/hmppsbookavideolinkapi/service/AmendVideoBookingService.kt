@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
@@ -66,7 +67,7 @@ class AmendVideoBookingService(
     return booking.let(videoBookingRepository::saveAndFlush)
       .also { appointmentsService.deletePrisonAppointments(it) }
       .also { appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
-      .also { bookingHistoryService.createBookingHistoryForCourt("AMEND", booking, request.prisoners) }
+      .also { bookingHistoryService.createBookingHistoryForCourt(HistoryType.AMEND, booking) }
       .also { log.info("BOOKINGS: court booking ${it.videoBookingId} amended") } to prisoner
   }
 
@@ -89,7 +90,7 @@ class AmendVideoBookingService(
     return booking.let(videoBookingRepository::saveAndFlush)
       .also { appointmentsService.deletePrisonAppointments(it) }
       .also { appointmentsService.createAppointmentForProbation(booking, request.prisoner()) }
-      .also { bookingHistoryService.createBookingHistoryForProbation("AMEND", booking, request.prisoners) }
+      .also { bookingHistoryService.createBookingHistoryForProbation(HistoryType.AMEND, booking) }
       .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} amended") } to prisoner
   }
 
