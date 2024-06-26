@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -135,25 +135,25 @@ class AmendVideoBookingServiceTest {
       appointments() hasSize 3
 
       with(appointments()) {
-        Assertions.assertThat(this).extracting("prisonCode").containsOnly(prisonCode)
-        Assertions.assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
-        Assertions.assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
-        Assertions.assertThat(this).extracting("prisonLocKey").containsOnly("$BIRMINGHAM-ABCEDFG")
-        Assertions.assertThat(this).extracting("startTime").containsAll(
+        assertThat(this).extracting("prisonCode").containsOnly(prisonCode)
+        assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
+        assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
+        assertThat(this).extracting("prisonLocKey").containsOnly("$BIRMINGHAM-ABCEDFG")
+        assertThat(this).extracting("startTime").containsAll(
           listOf(
             LocalTime.of(9, 0),
             LocalTime.of(9, 30),
             LocalTime.of(10, 0),
           ),
         )
-        Assertions.assertThat(this).extracting("endTime").containsAll(
+        assertThat(this).extracting("endTime").containsAll(
           listOf(
             LocalTime.of(9, 30),
             LocalTime.of(10, 0),
             LocalTime.of(10, 30),
           ),
         )
-        Assertions.assertThat(this).extracting("appointmentType").containsAll(
+        assertThat(this).extracting("appointmentType").containsAll(
           listOf(
             AppointmentType.VLB_COURT_PRE.name,
             AppointmentType.VLB_COURT_MAIN.name,
