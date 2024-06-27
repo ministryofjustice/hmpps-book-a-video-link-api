@@ -66,7 +66,7 @@ class AmendVideoBookingService(
       .also { thisBooking -> thisBooking.removeAllAppointments() }
       .also { thisBooking -> appointmentsService.createAppointmentsForCourt(thisBooking, request.prisoner()) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
-      .also { thisBooking -> bookingHistoryService.createBookingHistoryForCourt(HistoryType.AMEND, thisBooking) }
+      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking) }
       .also { thisBooking -> log.info("BOOKINGS: court booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 
@@ -88,7 +88,7 @@ class AmendVideoBookingService(
       .also { thisBooking -> thisBooking.removeAllAppointments() }
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner()) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
-      .also { thisBooking -> bookingHistoryService.createBookingHistoryForProbation(HistoryType.AMEND, thisBooking) }
+      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking) }
       .also { thisBooking -> log.info("BOOKINGS: probation team booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 

@@ -158,7 +158,7 @@ class CreateVideoBookingServiceTest {
 
     verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
-    verify(bookingHistoryService).createBookingHistoryForCourt(any(), any())
+    verify(bookingHistoryService).createBookingHistory(any(), any())
   }
 
   @Test
@@ -571,7 +571,7 @@ class CreateVideoBookingServiceTest {
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
-    verify(bookingHistoryService).createBookingHistoryForProbation(any(), any())
+    verify(bookingHistoryService).createBookingHistory(any(), any())
   }
 
   @Test

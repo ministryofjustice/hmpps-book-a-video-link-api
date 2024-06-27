@@ -51,7 +51,7 @@ class BookingHistoryServiceTest {
         locationKey = moorlandLocation.key,
       )
 
-    service.createBookingHistoryForCourt(HistoryType.CREATE, courtBooking)
+    service.createBookingHistory(HistoryType.CREATE, courtBooking)
 
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
@@ -88,7 +88,7 @@ class BookingHistoryServiceTest {
         locationKey = moorlandLocation.key,
       )
 
-    service.createBookingHistoryForProbation(HistoryType.CREATE, probationBooking)
+    service.createBookingHistory(HistoryType.CREATE, probationBooking)
 
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
@@ -125,7 +125,7 @@ class BookingHistoryServiceTest {
         locationKey = moorlandLocation.key,
       )
 
-    service.createBookingHistoryForCourt(HistoryType.AMEND, courtBooking)
+    service.createBookingHistory(HistoryType.AMEND, courtBooking)
 
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
@@ -148,7 +148,7 @@ class BookingHistoryServiceTest {
         locationKey = moorlandLocation.key,
       )
 
-    service.createBookingHistoryForProbation(HistoryType.AMEND, probationBooking)
+    service.createBookingHistory(HistoryType.AMEND, probationBooking)
 
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
@@ -189,7 +189,7 @@ class BookingHistoryServiceTest {
         locationKey = birminghamLocation.key,
       )
 
-    service.createBookingHistoryForCourt(HistoryType.CREATE, courtBooking)
+    service.createBookingHistory(HistoryType.CREATE, courtBooking)
 
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
