@@ -60,7 +60,7 @@ enum class DomainEventType(val eventType: String, val description: String) {
     "A video booking has been cancelled in the book a video link service",
   ) {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =
-      mapper.readValue<VideoBookingCreatedEvent>(message)
+      mapper.readValue<VideoBookingCancelledEvent>(message)
   },
   ;
 
