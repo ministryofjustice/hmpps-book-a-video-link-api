@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -103,10 +102,6 @@ class AppointmentsService(
       )
     }
   }
-
-  // TODO: Can be done via the VideoBooking entity now that the appointments are linked there?
-  @Transactional
-  fun deletePrisonAppointments(videoBooking: VideoBooking) = prisonAppointmentRepository.deletePrisonAppointmentsByVideoBooking(videoBooking)
 
   private fun Appointment.checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
     prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(

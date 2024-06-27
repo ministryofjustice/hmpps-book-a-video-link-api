@@ -54,7 +54,6 @@ class CreateVideoBookingService(
       createdByPrison = request.createdByPrison!!,
     )
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
-      // Note - save and flush AFTER the appointments have been added to the booking - JPA save appointments
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
       .also { booking -> bookingHistoryService.createBookingHistoryForCourt(HistoryType.CREATE, booking) }
       .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
@@ -76,7 +75,6 @@ class CreateVideoBookingService(
       createdByPrison = request.createdByPrison!!,
     )
       .also { booking -> appointmentsService.createAppointmentForProbation(booking, request.prisoner()) }
-      // Note - save and flush AFTER the appointments have been added to the booking - JPA save appointments
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
       .also { booking -> bookingHistoryService.createBookingHistoryForProbation(HistoryType.CREATE, booking) }
       .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} created") } to prisoner

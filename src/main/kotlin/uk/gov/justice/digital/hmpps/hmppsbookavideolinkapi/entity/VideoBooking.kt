@@ -92,6 +92,8 @@ class VideoBooking private constructor(
       )
     }
 
+  fun removeAllAppointments() = prisonAppointments.clear()
+
   fun cancel(cancelledBy: String) =
     apply {
       require(statusCode != StatusCode.CANCELLED) {
