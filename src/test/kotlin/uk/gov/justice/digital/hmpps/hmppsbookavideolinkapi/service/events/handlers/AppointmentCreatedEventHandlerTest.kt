@@ -5,6 +5,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentCreatedEvent
@@ -23,6 +24,7 @@ class AppointmentCreatedEventHandlerTest {
     handler.handle(AppointmentCreatedEvent(1))
 
     verify(manageExternalAppointmentsService).createAppointment(1)
+    verifyNoMoreInteractions(manageExternalAppointmentsService)
   }
 
   @Test
