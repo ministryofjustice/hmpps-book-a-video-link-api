@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCancelRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
@@ -17,6 +18,8 @@ import java.time.LocalTime
 const val VIDEO_LINK_BOOKING = "VLB"
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
+
+const val CANCELLED_BY_EXTERNAL_SERVICE = 4L
 
 @Component
 class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClient: WebClient) {
@@ -60,9 +63,9 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .bodyToMono(AppointmentSeries::class.java)
       .block()
 
-  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, locationIds: Set<Long>) =
+  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long) =
     if (locationIds.isNotEmpty()) {
-      getPrisonersAppointments(prisonCode, prisonerNumber, onDate).filter { locationIds.contains(it.internalLocation?.id) }
+      getPrisonersAppointments(prisonCode, prisonerNumber, onDate).filter { locationIds.toList().contains(it.internalLocation?.id) }
     } else {
       emptyList()
     }
@@ -83,4 +86,22 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .bodyToMono(typeReference<List<AppointmentSearchResult>>())
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block() ?: emptyList()
+
+  /**
+   * @param appointmentId refers the appointment identifier held in Activities and Appointments, not BVLS.
+   */
+  fun cancelAppointment(appointmentId: Long) {
+    activitiesAppointmentsApiWebClient.put()
+      .uri("/appointments/{appointmentId}/cancel", appointmentId)
+      .bodyValue(
+        AppointmentCancelRequest(
+          cancellationReasonId = CANCELLED_BY_EXTERNAL_SERVICE,
+          applyTo = AppointmentCancelRequest.ApplyTo.THIS_APPOINTMENT,
+        ),
+      )
+      .retrieve()
+      .bodyToMono(AppointmentSeries::class.java)
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()
+  }
 }

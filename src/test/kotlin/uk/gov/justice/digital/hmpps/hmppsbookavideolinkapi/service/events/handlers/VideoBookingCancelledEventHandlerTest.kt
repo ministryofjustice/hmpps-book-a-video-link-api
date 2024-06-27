@@ -1,10 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers
 
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.mock
-import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -13,17 +12,13 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCreatedEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCancelledEvent
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
 
-class VideoBookingCreatedEventHandlerTest {
-
-  private val videoBookingRepository: VideoBookingRepository = mock()
-  private val outboundEventsService: OutboundEventsService = mock()
+class VideoBookingCancelledEventHandlerTest {
   private val booking = courtBooking()
     .addAppointment(
       prisonCode = BIRMINGHAM,
@@ -44,24 +39,26 @@ class VideoBookingCreatedEventHandlerTest {
       locationKey = "",
     )
 
-  private val handler = VideoBookingCreatedEventHandler(videoBookingRepository, outboundEventsService)
+  private val videoBookingRepository: VideoBookingRepository = mock()
+  private val manageExternalAppointmentsService: ManageExternalAppointmentsService = mock()
+  private val handler = VideoBookingCancelledEventHandler(videoBookingRepository, manageExternalAppointmentsService)
 
   @Test
-  fun `should publish appointment created event on receipt of video booking`() {
+  fun `should cancel external appointment on receipt of video booking`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(booking)
 
-    handler.handle(VideoBookingCreatedEvent(1))
+    handler.handle(VideoBookingCancelledEvent(1))
 
-    verify(outboundEventsService, times(2)).send(eq(DomainEventType.APPOINTMENT_CREATED), any())
-    verifyNoMoreInteractions(outboundEventsService)
+    verify(manageExternalAppointmentsService, times(2)).cancelAppointment(anyLong())
+    verifyNoMoreInteractions(manageExternalAppointmentsService)
   }
 
   @Test
   fun `should no-op receipt of unknown video booking`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.empty()
 
-    handler.handle(VideoBookingCreatedEvent(1))
+    handler.handle(VideoBookingCancelledEvent(1))
 
-    verifyNoInteractions(outboundEventsService)
+    verifyNoInteractions(manageExternalAppointmentsService)
   }
 }

@@ -84,6 +84,7 @@ class PrisonApiMockServer : MockServer(8094) {
         event = "VLB",
         startTime = date.atStartOfDay(),
         endTime = date.atStartOfDay().plusHours(1),
+        eventId = 1,
       )
     }
 

@@ -4,11 +4,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCancelledEvent
 
 @Component
 class VideoBookingCancelledEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
+  private val manageExternalAppointmentsService: ManageExternalAppointmentsService,
 ) : DomainEventHandler<VideoBookingCancelledEvent> {
 
   companion object {
@@ -20,7 +22,7 @@ class VideoBookingCancelledEventHandler(
     videoBookingRepository.findById(event.additionalInformation.videoBookingId).ifPresentOrElse(
       { booking ->
         booking.appointments().forEach {
-          // TODO - raise delete event or just call the manage external appointments service directly here?
+          manageExternalAppointmentsService.cancelAppointment(it.prisonAppointmentId)
         }
       },
       {
@@ -28,6 +30,5 @@ class VideoBookingCancelledEventHandler(
         log.warn("Video booking with ID ${event.additionalInformation.videoBookingId} not found")
       },
     )
-    log.info("TODO raise appointment delete events???? delete external appointments.")
   }
 }

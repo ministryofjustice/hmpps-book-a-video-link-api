@@ -2,8 +2,12 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
@@ -53,11 +57,18 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCour
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsPublisher
 import java.time.LocalTime
-import java.util.UUID
+import java.util.*
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
+
+  @MockBean
+  private lateinit var outboundEventsPublisher: OutboundEventsPublisher
+
+  private val domainEventCaptor = argumentCaptor<DomainEvent<*>>()
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
@@ -92,6 +103,15 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+
+    verify(outboundEventsPublisher, times(1)).send(domainEventCaptor.capture())
+
+    with(domainEventCaptor.firstValue) {
+      eventType isEqualTo "book-a-video-link.video-booking.created"
+      description isEqualTo "A new video booking has been created in the book a video link service"
+    }
+
+    // NOTE: we do not get the appointment created event as this is spawned from the booking created event which doesn't really fire as we are not using local stack containers.
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -1053,6 +1073,18 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     activeBooking.statusCode isEqualTo StatusCode.ACTIVE
 
     webTestClient.cancelBooking(bookingId)
+
+    verify(outboundEventsPublisher, times(2)).send(domainEventCaptor.capture())
+
+    with(domainEventCaptor.firstValue) {
+      eventType isEqualTo "book-a-video-link.video-booking.created"
+      description isEqualTo "A new video booking has been created in the book a video link service"
+    }
+
+    with(domainEventCaptor.secondValue) {
+      eventType isEqualTo "book-a-video-link.video-booking.cancelled"
+      description isEqualTo "A video booking has been cancelled in the book a video link service"
+    }
 
     val cancelledBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 

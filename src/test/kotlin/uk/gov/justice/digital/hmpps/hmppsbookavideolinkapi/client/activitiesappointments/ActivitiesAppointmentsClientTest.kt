@@ -43,7 +43,7 @@ class ActivitiesAppointmentsClientTest {
   fun `should get single prisoners appointment`() {
     server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000))
 
-    val appointment = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(1000)).single()
+    val appointment = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 1000).single()
 
     appointment.internalLocation?.id isEqualTo 1000
   }
@@ -52,7 +52,7 @@ class ActivitiesAppointmentsClientTest {
   fun `should get multiple prisoner appointments at locations`() {
     server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
 
-    val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(2000, 3000))
+    val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 2000, 3000)
 
     appointments hasSize 2
     appointments.map { it.internalLocation?.id } containsExactlyInAnyOrder setOf(2000, 3000)
@@ -62,7 +62,7 @@ class ActivitiesAppointmentsClientTest {
   fun `should get no prisoner appointments at locations`() {
     server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
 
-    client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), setOf(4000)) hasSize 0
+    client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 4000) hasSize 0
   }
 
   @AfterEach

@@ -54,7 +54,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .bodyToMono(ScheduledEvent::class.java)
       .block()
 
-  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, locationIds: Set<Long>): List<PrisonerSchedule> =
+  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long): List<PrisonerSchedule> =
     if (locationIds.isNotEmpty()) {
       getPrisonersAppointments(prisonCode, prisonerNumber, onDate).filter { locationIds.contains(it.locationId) }
     } else {
@@ -70,6 +70,18 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .bodyToMono(typeReference<List<PrisonerSchedule>>())
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block() ?: emptyList()
+
+  /**
+   * @param appointmentId refers the appointment identifier held in NOMIS, not BVLS.
+   */
+  fun cancelAppointment(appointmentId: Long) {
+    prisonApiWebClient.delete()
+      .uri("/api/appointments/{appointmentId}", appointmentId)
+      .retrieve()
+      .bodyToMono(Void::class.java)
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()
+  }
 }
 
 // Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
@@ -81,6 +93,7 @@ data class PrisonerSchedule(
   val locationId: Long,
   val firstName: String,
   val lastName: String,
+  val eventId: Long,
   val event: String,
   val startTime: LocalDateTime,
   val endTime: LocalDateTime,
