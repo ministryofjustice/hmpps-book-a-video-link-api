@@ -94,4 +94,5 @@ data class BookingHistoryAppointment(
 enum class HistoryType {
   CREATE,
   AMEND,
+  CANCEL,
 }

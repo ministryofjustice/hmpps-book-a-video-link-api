@@ -55,7 +55,7 @@ class CreateVideoBookingService(
     )
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
-      .also { booking -> bookingHistoryService.createBookingHistoryForCourt(HistoryType.CREATE, booking) }
+      .also { booking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, booking) }
       .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
   }
 
@@ -74,10 +74,10 @@ class CreateVideoBookingService(
       createdBy = createdBy,
       createdByPrison = request.createdByPrison!!,
     )
-      .also { booking -> appointmentsService.createAppointmentForProbation(booking, request.prisoner()) }
-      .also { booking -> videoBookingRepository.saveAndFlush(booking) }
-      .also { booking -> bookingHistoryService.createBookingHistoryForProbation(HistoryType.CREATE, booking) }
-      .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} created") } to prisoner
+      .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner()) }
+      .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
+      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, thisBooking) }
+      .also { thisBooking -> log.info("BOOKINGS: probation team booking ${thisBooking.videoBookingId} created") } to prisoner
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.

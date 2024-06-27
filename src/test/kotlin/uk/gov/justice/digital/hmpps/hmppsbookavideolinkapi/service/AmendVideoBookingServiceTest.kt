@@ -119,7 +119,7 @@ class AmendVideoBookingServiceTest {
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
 
-    verify(bookingHistoryService).createBookingHistoryForCourt(HistoryType.AMEND, courtBooking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
     verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
 
     with(amendedBookingCaptor.firstValue) {
@@ -164,7 +164,7 @@ class AmendVideoBookingServiceTest {
 
     verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
-    verify(bookingHistoryService).createBookingHistoryForCourt(any(), any())
+    verify(bookingHistoryService).createBookingHistory(any(), any())
   }
 
   @Test
@@ -601,7 +601,7 @@ class AmendVideoBookingServiceTest {
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
 
-    verify(bookingHistoryService).createBookingHistoryForProbation(HistoryType.AMEND, probationBooking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking)
     verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
 
     with(amendedBookingCaptor.firstValue) {
@@ -630,7 +630,7 @@ class AmendVideoBookingServiceTest {
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
-    verify(bookingHistoryService).createBookingHistoryForProbation(any(), any())
+    verify(bookingHistoryService).createBookingHistory(any(), any())
   }
 
   @Test

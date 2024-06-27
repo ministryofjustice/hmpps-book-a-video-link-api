@@ -22,28 +22,14 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
       .orElseThrow { EntityNotFoundException("Video booking history with ID $bookingHistoryId not found") }
 
   @Transactional
-  fun createBookingHistoryForCourt(historyType: HistoryType, booking: VideoBooking) =
+  fun createBookingHistory(historyType: HistoryType, booking: VideoBooking) =
     BookingHistory(
       videoBookingId = booking.videoBookingId,
       historyType = historyType,
-      courtId = booking.court?.courtId,
-      hearingType = booking.hearingType,
-      videoUrl = booking.videoUrl,
-      comments = booking.comments,
-      createdBy = booking.createdBy,
-    ).apply {
-      addBookingHistoryAppointments(getAppointmentsForHistory(this, booking))
-    }.apply {
-      bookingHistoryRepository.saveAndFlush(this)
-    }
-
-  @Transactional
-  fun createBookingHistoryForProbation(historyType: HistoryType, booking: VideoBooking) =
-    BookingHistory(
-      videoBookingId = booking.videoBookingId,
-      historyType = historyType,
-      probationTeamId = booking.probationTeam?.probationTeamId,
-      probationMeetingType = booking.probationMeetingType,
+      courtId = booking.court?.courtId.takeIf { booking.isCourtBooking() },
+      hearingType = booking.hearingType.takeIf { booking.isCourtBooking() },
+      probationTeamId = booking.probationTeam?.probationTeamId.takeUnless { booking.isCourtBooking() },
+      probationMeetingType = booking.probationMeetingType.takeUnless { booking.isCourtBooking() },
       videoUrl = booking.videoUrl,
       comments = booking.comments,
       createdBy = booking.createdBy,
