@@ -8,9 +8,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import java.time.LocalTime
 
 /**
  * This service is responsible for the creation/updating/cancelling of appointments outside of BVLS to ensure
@@ -110,7 +110,7 @@ class ManageExternalAppointmentsService(
 
   private fun Collection<AppointmentSearchResult>.findMatching(appointment: PrisonAppointment) =
     singleOrNull {
-      appointment.startTime.toHourMinuteStyle() == it.startTime && appointment.endTime.toHourMinuteStyle() == it.endTime
+      appointment.startTime == LocalTime.parse(it.startTime) && appointment.endTime == LocalTime.parse(it.endTime)
     }
 
   private fun Collection<PrisonerSchedule>.findMatching(appointment: PrisonAppointment) =
