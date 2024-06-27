@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments
 
+import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -23,6 +24,10 @@ const val CANCELLED_BY_EXTERNAL_SERVICE = 4L
 
 @Component
 class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClient: WebClient) {
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   fun isAppointmentsRolledOutAt(prisonCode: String) =
     activitiesAppointmentsApiWebClient
@@ -65,7 +70,11 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
 
   fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long) =
     if (locationIds.isNotEmpty()) {
-      getPrisonersAppointments(prisonCode, prisonerNumber, onDate).filter { locationIds.toList().contains(it.internalLocation?.id) }
+      log.info("A&A CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
+      getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
+        .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
+        .filter { locationIds.toList().contains(it.internalLocation?.id) }
+        .also { log.info("A&A CLIENT: matches post-location filter: $it") }
     } else {
       emptyList()
     }

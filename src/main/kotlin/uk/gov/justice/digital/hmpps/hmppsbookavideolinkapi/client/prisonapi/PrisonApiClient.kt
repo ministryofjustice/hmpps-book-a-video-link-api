@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi
 
+import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -19,6 +20,10 @@ inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>(
 
 @Component
 class PrisonApiClient(private val prisonApiWebClient: WebClient) {
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   fun getInternalLocationByKey(key: String): Location? =
     prisonApiWebClient
@@ -56,7 +61,11 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
 
   fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long): List<PrisonerSchedule> =
     if (locationIds.isNotEmpty()) {
-      getPrisonersAppointments(prisonCode, prisonerNumber, onDate).filter { locationIds.contains(it.locationId) }
+      log.info("PRISON-API CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
+      getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
+        .also { log.info("PRISON-API CLIENT: matches pre-location filter: $it") }
+        .filter { locationIds.contains(it.locationId) }
+        .also { log.info("PRISON-API CLIENT matches post-location filter: $it") }
     } else {
       emptyList()
     }
