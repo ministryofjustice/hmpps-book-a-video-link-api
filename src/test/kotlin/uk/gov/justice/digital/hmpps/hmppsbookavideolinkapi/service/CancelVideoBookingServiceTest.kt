@@ -4,11 +4,11 @@ import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
-import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
@@ -34,7 +34,7 @@ class CancelVideoBookingServiceTest {
     booking.statusCode isEqualTo StatusCode.CANCELLED
 
     verify(videoBookingRepository).saveAndFlush(booking)
-    verify(bookingHistoryService).createBookingHistory(any(), any())
+    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking)
   }
 
   @Test

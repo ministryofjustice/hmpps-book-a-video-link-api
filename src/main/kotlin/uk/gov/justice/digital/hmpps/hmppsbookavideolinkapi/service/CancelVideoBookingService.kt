@@ -28,8 +28,6 @@ class CancelVideoBookingService(
       .findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
 
-    // TODO: Need to raise event to deal with cancelled or removing the remote appointments in A&A or NOMIS
-
     return booking.cancel(cancelledBy)
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
       .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.CANCEL, thisBooking) }
