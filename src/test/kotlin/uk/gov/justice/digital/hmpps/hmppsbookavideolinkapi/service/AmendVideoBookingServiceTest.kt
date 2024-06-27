@@ -8,7 +8,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
@@ -163,7 +162,6 @@ class AmendVideoBookingServiceTest {
       }
     }
 
-    verify(prisonAppointmentRepository, times(1)).deletePrisonAppointmentsByVideoBooking(courtBooking)
     verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
     verify(bookingHistoryService).createBookingHistoryForCourt(any(), any())

@@ -55,7 +55,7 @@ class AmendVideoBookingService(
 
     val prisoner = request.prisoner().validate()
 
-    booking.apply {
+    return booking.apply {
       this.court = court
       hearingType = request.courtHearingType!!.name
       comments = request.comments
@@ -63,12 +63,11 @@ class AmendVideoBookingService(
       this.amendedBy = amendedBy
       amendedTime = LocalDateTime.now()
     }
-
-    return booking.let(videoBookingRepository::saveAndFlush)
-      .also { appointmentsService.deletePrisonAppointments(it) }
-      .also { appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
-      .also { bookingHistoryService.createBookingHistoryForCourt(HistoryType.AMEND, booking) }
-      .also { log.info("BOOKINGS: court booking ${it.videoBookingId} amended") } to prisoner
+      .also { thisBooking -> thisBooking.removeAllAppointments() }
+      .also { thisBooking -> appointmentsService.createAppointmentsForCourt(thisBooking, request.prisoner()) }
+      .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
+      .also { thisBooking -> bookingHistoryService.createBookingHistoryForCourt(HistoryType.AMEND, thisBooking) }
+      .also { thisBooking -> log.info("BOOKINGS: court booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 
   private fun amendProbation(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: String): Pair<VideoBooking, Prisoner> {
@@ -78,7 +77,7 @@ class AmendVideoBookingService(
 
     val prisoner = request.prisoner().validate()
 
-    booking.apply {
+    return booking.apply {
       this.probationTeam = probationTeam
       probationMeetingType = request.probationMeetingType!!.name
       comments = request.comments
@@ -86,12 +85,11 @@ class AmendVideoBookingService(
       this.amendedBy = amendedBy
       amendedTime = LocalDateTime.now()
     }
-
-    return booking.let(videoBookingRepository::saveAndFlush)
-      .also { appointmentsService.deletePrisonAppointments(it) }
-      .also { appointmentsService.createAppointmentForProbation(booking, request.prisoner()) }
-      .also { bookingHistoryService.createBookingHistoryForProbation(HistoryType.AMEND, booking) }
-      .also { log.info("BOOKINGS: probation team booking ${it.videoBookingId} amended") } to prisoner
+      .also { thisBooking -> thisBooking.removeAllAppointments() }
+      .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner()) }
+      .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
+      .also { thisBooking -> bookingHistoryService.createBookingHistoryForProbation(HistoryType.AMEND, thisBooking) }
+      .also { thisBooking -> log.info("BOOKINGS: probation team booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.
