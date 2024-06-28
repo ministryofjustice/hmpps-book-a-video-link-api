@@ -73,7 +73,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       log.info("A&A CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
       getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
         .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
-        .filter { locationIds.toList().contains(it.internalLocation?.id) }
+        .filter { locationIds.toList().contains(it.internalLocation?.id) && it.category.code == VIDEO_LINK_BOOKING }
         .also { log.info("A&A CLIENT: matches post-location filter: $it") }
     } else {
       emptyList()

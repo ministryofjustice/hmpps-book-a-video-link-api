@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.VIDEO_LINK_BOOKING
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
@@ -74,14 +75,20 @@ class PrisonApiMockServer : MockServer(8094) {
     )
   }
 
-  fun stubGetPrisonersAppointments(prisonCode: String, prisonerNumber: String, date: LocalDate, locationIds: Set<Long> = setOf(-1)) {
+  fun stubGetPrisonersAppointments(
+    prisonCode: String,
+    prisonerNumber: String,
+    date: LocalDate,
+    locationType: String = VIDEO_LINK_BOOKING,
+    locationIds: Set<Long> = setOf(-1),
+  ) {
     val locations = locationIds.map { locationId ->
       PrisonerSchedule(
         offenderNo = "G5662GI",
         locationId = locationId,
         firstName = "JOHN",
         lastName = "DOE",
-        event = "VLB",
+        event = locationType,
         startTime = date.atStartOfDay(),
         endTime = date.atStartOfDay().plusHours(1),
         eventId = 1,

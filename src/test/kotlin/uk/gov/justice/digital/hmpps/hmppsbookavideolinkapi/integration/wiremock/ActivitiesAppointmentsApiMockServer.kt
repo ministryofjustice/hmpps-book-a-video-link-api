@@ -104,6 +104,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     prisonCode: String,
     prisonerNumber: String,
     date: LocalDate,
+    locationType: String = VIDEO_LINK_BOOKING,
     locationIds: Set<Long> = setOf(-1),
   ) {
     val appointments = locationIds.map { locationId ->
@@ -119,7 +120,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         appointmentSeriesId = 1,
         appointmentName = "appointment name",
         attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
-        category = AppointmentCategorySummary("VLB", "video link booking"),
+        category = AppointmentCategorySummary(locationType, "video link booking"),
         inCell = false,
         isRepeat = false,
         maxSequenceNumber = 1,
