@@ -55,7 +55,7 @@ class PrisonApiClientTest {
 
   @Test
   fun `should get single prisoner appointment at location`() {
-    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
+    server.stubGetPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "123456", date = tomorrow(), locationIds = setOf(1000, 2000, 3000))
 
     val appointment = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 2000).single()
 
@@ -64,7 +64,7 @@ class PrisonApiClientTest {
 
   @Test
   fun `should get multiple prisoner appointments at locations`() {
-    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
+    server.stubGetPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "123456", date = tomorrow(), locationIds = setOf(1000, 2000, 3000))
 
     val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 2000, 3000)
 
@@ -73,8 +73,17 @@ class PrisonApiClientTest {
   }
 
   @Test
+  fun `should get no prisoner appointments at locations when not video link locations`() {
+    server.stubGetPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "123456", date = tomorrow(), locationType = "NOT_VLB", locationIds = setOf(1000, 2000, 3000))
+
+    val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 1000, 2000, 3000)
+
+    appointments hasSize 0
+  }
+
+  @Test
   fun `should get no prisoner appointments at locations`() {
-    server.stubGetPrisonersAppointments(BIRMINGHAM, "123456", tomorrow(), setOf(1000, 2000, 3000))
+    server.stubGetPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "123456", date = tomorrow(), locationIds = setOf(1000, 2000, 3000))
 
     client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 4000) hasSize 0
   }

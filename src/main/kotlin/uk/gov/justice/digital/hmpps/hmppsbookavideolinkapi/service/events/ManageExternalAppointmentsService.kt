@@ -83,22 +83,24 @@ class ManageExternalAppointmentsService(
             appointment.prisonerNumber,
             appointment.appointmentDate,
             appointment.internalLocationId(),
-          ).findMatching(appointment)?.let { matchingAppointment ->
-            log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from activities and appointments")
-            activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
-            log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
-          } ?: log.info("EXTERNAL APPOINTMENTS: matching activities api appointment not found for prison appointment $prisonAppointmentId")
+          ).findMatchingActivitiesAndAppointments(appointment)
+            .forEach { matchingAppointment ->
+              log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from activities and appointments")
+              activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
+              log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
+            }
         } else {
           prisonApiClient.getPrisonersAppointmentsAtLocations(
             appointment.prisonCode,
             appointment.prisonerNumber,
             appointment.appointmentDate,
             appointment.internalLocationId(),
-          ).findMatching(appointment)?.let { matchingAppointment ->
-            log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from prison-api")
-            prisonApiClient.cancelAppointment(matchingAppointment.eventId)
-            log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.eventId} from prison-api")
-          } ?: log.info("EXTERNAL APPOINTMENTS: matching prison-api appointment not found for prison appointment $prisonAppointmentId")
+          ).findMatchingPrisonApi(appointment)
+            .forEach { matchingAppointment ->
+              log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from prison-api")
+              prisonApiClient.cancelAppointment(matchingAppointment.eventId)
+              log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.eventId} from prison-api")
+            }
         }
       },
       {
@@ -108,15 +110,21 @@ class ManageExternalAppointmentsService(
     )
   }
 
-  private fun Collection<AppointmentSearchResult>.findMatching(appointment: PrisonAppointment) =
-    singleOrNull {
+  private fun Collection<AppointmentSearchResult>.findMatchingActivitiesAndAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> =
+    filter {
       appointment.startTime == LocalTime.parse(it.startTime) && appointment.endTime == LocalTime.parse(it.endTime)
+    }.ifEmpty {
+      emptyList<AppointmentSearchResult>()
+        .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
     }
 
-  private fun Collection<PrisonerSchedule>.findMatching(appointment: PrisonAppointment) =
-    singleOrNull {
+  private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(appointment: PrisonAppointment): List<PrisonerSchedule> =
+    filter {
       it.startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
         it.endTime == appointment.appointmentDate.atTime(appointment.endTime)
+    }.ifEmpty {
+      emptyList<PrisonerSchedule>()
+        .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
     }
 
   private fun PrisonAppointment.detailedComments() =

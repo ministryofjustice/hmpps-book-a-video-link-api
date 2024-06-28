@@ -64,7 +64,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       log.info("PRISON-API CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
       getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
         .also { log.info("PRISON-API CLIENT: matches pre-location filter: $it") }
-        .filter { locationIds.contains(it.locationId) }
+        .filter { locationIds.contains(it.locationId) && it.event == VIDEO_LINK_BOOKING }
         .also { log.info("PRISON-API CLIENT matches post-location filter: $it") }
     } else {
       emptyList()
