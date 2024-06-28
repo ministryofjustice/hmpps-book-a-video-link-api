@@ -38,29 +38,53 @@ class ManageExternalAppointmentsService(
         if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode)) {
           log.info("EXTERNAL APPOINTMENTS: appointments rolled out at ${appointment.prisonCode} creating via activities and appointments")
 
-          activitiesAppointmentsClient.createAppointment(
+          val internalLocationId = appointment.internalLocationId()
+
+          // Attempt to check appointment does not already exist before creating. This is here because have seen
+          // network timeouts even though the transaction has actually complete in the external API.
+          activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
             prisonCode = appointment.prisonCode,
             prisonerNumber = appointment.prisonerNumber,
-            startDate = appointment.appointmentDate,
-            startTime = appointment.startTime,
-            endTime = appointment.endTime,
-            internalLocationId = appointment.internalLocationId(),
-            comments = appointment.detailedComments(),
-          )?.let { appointmentSeries ->
-            log.info("EXTERNAL APPOINTMENTS: created activities and appointments series ${appointmentSeries.id} for prison appointment $prisonAppointmentId")
+            onDate = appointment.appointmentDate,
+            internalLocationId,
+          ).findMatchingActivitiesAndAppointments(appointment).ifEmpty {
+            // Only create if no existing matches found
+            activitiesAppointmentsClient.createAppointment(
+              prisonCode = appointment.prisonCode,
+              prisonerNumber = appointment.prisonerNumber,
+              startDate = appointment.appointmentDate,
+              startTime = appointment.startTime,
+              endTime = appointment.endTime,
+              internalLocationId = internalLocationId,
+              comments = appointment.detailedComments(),
+            )?.let { appointmentSeries ->
+              log.info("EXTERNAL APPOINTMENTS: created activities and appointments series ${appointmentSeries.id} for prison appointment $prisonAppointmentId")
+            }
           }
         } else {
           log.info("EXTERNAL APPOINTMENTS: appointments not rolled out at ${appointment.prisonCode} creating via prison api")
 
-          prisonApiClient.createAppointment(
-            bookingId = appointment.bookingId(),
-            locationId = appointment.internalLocationId(),
-            appointmentDate = appointment.appointmentDate,
-            startTime = appointment.startTime,
-            endTime = appointment.endTime,
-            comments = appointment.detailedComments(),
-          )?.let { event ->
-            log.info("EXTERNAL APPOINTMENTS: created prison api event ${event.eventId} for prison appointment $prisonAppointmentId")
+          val internalLocationId = appointment.internalLocationId()
+
+          // Attempt to check appointment does not already exist before creating. This is here because have seen
+          // network timeouts even though the transaction has actually complete in the external API.
+          prisonApiClient.getPrisonersAppointmentsAtLocations(
+            prisonCode = appointment.prisonCode,
+            prisonerNumber = appointment.prisonerNumber,
+            onDate = appointment.appointmentDate,
+            internalLocationId,
+          ).findMatchingPrisonApi(appointment).ifEmpty {
+            // Only create if no existing matches found
+            prisonApiClient.createAppointment(
+              bookingId = appointment.bookingId(),
+              locationId = internalLocationId,
+              appointmentDate = appointment.appointmentDate,
+              startTime = appointment.startTime,
+              endTime = appointment.endTime,
+              comments = appointment.detailedComments(),
+            )?.let { event ->
+              log.info("EXTERNAL APPOINTMENTS: created prison api event ${event.eventId} for prison appointment $prisonAppointmentId")
+            }
           }
         }
       },
@@ -79,9 +103,9 @@ class ManageExternalAppointmentsService(
       { appointment ->
         if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode)) {
           activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-            appointment.prisonCode,
-            appointment.prisonerNumber,
-            appointment.appointmentDate,
+            prisonCode = appointment.prisonCode,
+            prisonerNumber = appointment.prisonerNumber,
+            onDate = appointment.appointmentDate,
             appointment.internalLocationId(),
           ).findMatchingActivitiesAndAppointments(appointment)
             .forEach { matchingAppointment ->
@@ -91,9 +115,9 @@ class ManageExternalAppointmentsService(
             }
         } else {
           prisonApiClient.getPrisonersAppointmentsAtLocations(
-            appointment.prisonCode,
-            appointment.prisonerNumber,
-            appointment.appointmentDate,
+            prisonCode = appointment.prisonCode,
+            prisonerNumber = appointment.prisonerNumber,
+            onDate = appointment.appointmentDate,
             appointment.internalLocationId(),
           ).findMatchingPrisonApi(appointment)
             .forEach { matchingAppointment ->
