@@ -18,7 +18,7 @@ class WebClientConfiguration(
   @Value("\${api.base.url.prison-api}") val prisonApiBaseUri: String,
   @Value("\${api.base.url.prisoner-search}") val prisonerSearchBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
-  @Value("\${api.timeout:30s}") val timeout: Duration,
+  @Value("\${api.timeout:60s}") val timeout: Duration,
 ) {
   @Bean
   fun activitiesAppointmentsApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(activitiesAppointmentsApiBaseUri, healthTimeout)
