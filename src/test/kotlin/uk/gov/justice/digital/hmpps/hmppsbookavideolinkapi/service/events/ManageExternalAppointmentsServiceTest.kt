@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -96,6 +97,60 @@ class ManageExternalAppointmentsServiceTest {
   }
 
   @Test
+  fun `should not create court appointment via activities client when appointment already exists`() {
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
+    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
+    whenever(
+      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        prisonCode = courtAppointment.prisonCode,
+        prisonerNumber = courtAppointment.prisonerNumber,
+        onDate = courtAppointment.appointmentDate,
+        birminghamLocation.locationId,
+      ),
+    ) doReturn listOf(
+      AppointmentSearchResult(
+        appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+        startDate = courtAppointment.appointmentDate,
+        startTime = courtAppointment.startTime.toHourMinuteStyle(),
+        endTime = courtAppointment.endTime.toHourMinuteStyle(),
+        isCancelled = false,
+        isExpired = false,
+        isEdited = false,
+        appointmentId = 99,
+        appointmentSeriesId = 1,
+        appointmentName = "appointment name",
+        attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
+        category = AppointmentCategorySummary("VLB", "video link booking"),
+        inCell = false,
+        isRepeat = false,
+        maxSequenceNumber = 1,
+        prisonCode = courtAppointment.prisonCode,
+        sequenceNumber = 1,
+        internalLocation = AppointmentLocationSummary(
+          birminghamLocation.locationId,
+          courtAppointment.prisonCode,
+          "VIDEO LINK",
+        ),
+      ),
+    )
+
+    service.createAppointment(1)
+
+    inOrder(prisonApiClient, activitiesAppointmentsClient) {
+      verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocKey)
+      verify(activitiesAppointmentsClient).getPrisonersAppointmentsAtLocations(
+        prisonCode = courtAppointment.prisonCode,
+        prisonerNumber = courtAppointment.prisonerNumber,
+        onDate = courtAppointment.appointmentDate,
+        birminghamLocation.locationId,
+      )
+    }
+
+    verify(activitiesAppointmentsClient, never()).createAppointment(any(), any(), any(), any(), any(), any(), any())
+  }
+
+  @Test
   fun `should create probation appointment via activities client when appointments rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(probationAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(MOORLAND)) doReturn true
@@ -138,6 +193,51 @@ class ManageExternalAppointmentsServiceTest {
       endTime = LocalTime.of(11, 30),
       comments = "Video booking for court hearing type TRIBUNAL at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
     )
+  }
+
+  @Test
+  fun `should not create court appointment via prison api client when appointment already exists`() {
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
+    whenever(prisonerSearchClient.getPrisoner(courtAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(
+      prisonerNumber = courtAppointment.prisonerNumber,
+      prisonCode = courtAppointment.prisonCode,
+      bookingId = 1,
+    )
+    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
+    whenever(
+      prisonApiClient.getPrisonersAppointmentsAtLocations(
+        courtAppointment.prisonCode,
+        courtAppointment.prisonerNumber,
+        courtAppointment.appointmentDate,
+        birminghamLocation.locationId,
+      ),
+    ) doReturn listOf(
+      PrisonerSchedule(
+        offenderNo = courtAppointment.prisonerNumber,
+        locationId = 99,
+        firstName = "Bob",
+        lastName = "Builder",
+        eventId = 99,
+        event = "VLB",
+        startTime = courtAppointment.appointmentDate.atTime(courtAppointment.startTime),
+        endTime = courtAppointment.appointmentDate.atTime(courtAppointment.endTime),
+      ),
+    )
+
+    service.createAppointment(1)
+
+    inOrder(prisonApiClient) {
+      verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocKey)
+      verify(prisonApiClient).getPrisonersAppointmentsAtLocations(
+        prisonCode = courtAppointment.prisonCode,
+        prisonerNumber = courtAppointment.prisonerNumber,
+        onDate = courtAppointment.appointmentDate,
+        birminghamLocation.locationId,
+      )
+    }
+
+    verify(prisonApiClient, never()).createAppointment(any(), any(), any(), any(), any(), any())
   }
 
   @Test
