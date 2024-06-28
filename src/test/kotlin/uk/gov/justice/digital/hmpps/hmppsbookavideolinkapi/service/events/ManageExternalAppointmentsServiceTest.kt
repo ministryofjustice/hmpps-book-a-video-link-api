@@ -91,7 +91,7 @@ class ManageExternalAppointmentsServiceTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       internalLocationId = 123456,
-      comments = "Video booking for a tribunal court hearing at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
+      comments = "Video booking for court hearing type TRIBUNAL at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
     )
   }
 
@@ -112,7 +112,7 @@ class ManageExternalAppointmentsServiceTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       internalLocationId = 123456,
-      comments = "Video booking for a psr probation meeting at probation team description\n\nProbation meeting comments",
+      comments = "Video booking for probation meeting type PSR at probation team description\n\nProbation meeting comments",
     )
   }
 
@@ -136,7 +136,7 @@ class ManageExternalAppointmentsServiceTest {
       appointmentDate = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "Video booking for a tribunal court hearing at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
+      comments = "Video booking for court hearing type TRIBUNAL at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
     )
   }
 
@@ -160,7 +160,7 @@ class ManageExternalAppointmentsServiceTest {
       appointmentDate = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "Video booking for a psr probation meeting at probation team description\n\nProbation meeting comments",
+      comments = "Video booking for probation meeting type PSR at probation team description\n\nProbation meeting comments",
     )
   }
 

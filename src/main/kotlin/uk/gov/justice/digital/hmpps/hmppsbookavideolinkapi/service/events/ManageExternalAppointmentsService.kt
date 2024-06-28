@@ -129,9 +129,9 @@ class ManageExternalAppointmentsService(
 
   private fun PrisonAppointment.detailedComments() =
     if (videoBooking.isCourtBooking()) {
-      "Video booking for a ${videoBooking.hearingType?.lowercase()} court hearing at ${videoBooking.court?.description}\n\n$comments"
+      "Video booking for court hearing type ${videoBooking.hearingType} at ${videoBooking.court?.description}\n\n$comments"
     } else {
-      "Video booking for a ${videoBooking.probationMeetingType?.lowercase()} probation meeting at ${videoBooking.probationTeam?.description}\n\n$comments"
+      "Video booking for probation meeting type ${videoBooking.probationMeetingType} at ${videoBooking.probationTeam?.description}\n\n$comments"
     }
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
