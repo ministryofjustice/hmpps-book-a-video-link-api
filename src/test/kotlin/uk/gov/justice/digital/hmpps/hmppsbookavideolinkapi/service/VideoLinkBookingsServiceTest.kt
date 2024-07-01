@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
-import org.assertj.core.api.AssertionsForClassTypes.assertThat
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
@@ -86,7 +86,7 @@ class VideoLinkBookingsServiceTest {
     val response = service.getVideoLinkBookingById(1L)
 
     assertThat(response).isNotNull()
-    assertThat(response.prisonAppointments).asList().hasSize(3)
+    assertThat(response.prisonAppointments).hasSize(3)
     assertThat(response.prisonAppointments.first().appointmentType).isIn(
       AppointmentType.VLB_COURT_PRE.name,
       AppointmentType.VLB_COURT_MAIN.name,
@@ -147,7 +147,7 @@ class VideoLinkBookingsServiceTest {
     val response = service.getVideoLinkBookingById(1L)
 
     assertThat(response).isNotNull()
-    assertThat(response.prisonAppointments).asList().hasSize(1)
+    assertThat(response.prisonAppointments).hasSize(1)
     assertThat(response.prisonAppointments.first().appointmentType).isEqualTo(AppointmentType.VLB_PROBATION.name)
 
     // Should be present for a probation booking
