@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
-import org.assertj.core.api.AssertionsForClassTypes.assertThat
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
@@ -519,7 +519,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
 
       // Verify that there is a single appointment
-      assertThat(prisonAppointments).asList().hasSize(1)
+      assertThat(prisonAppointments).hasSize(1)
       with(prisonAppointments.first()) {
         assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
         assertThat(comments).contains("integration test")
@@ -574,7 +574,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
 
       // Verify that there is a single appointment
-      assertThat(prisonAppointments).asList().hasSize(1)
+      assertThat(prisonAppointments).hasSize(1)
       with(prisonAppointments.first()) {
         assertThat(appointmentType).isEqualTo("VLB_PROBATION")
         assertThat(comments).contains("integration test")
