@@ -49,7 +49,7 @@ class VideoBookingCancelledEventHandlerTest {
 
     handler.handle(VideoBookingCancelledEvent(1))
 
-    verify(manageExternalAppointmentsService, times(2)).cancelAppointment(anyLong())
+    verify(manageExternalAppointmentsService, times(2)).cancelCurrentAppointment(anyLong())
     verifyNoMoreInteractions(manageExternalAppointmentsService)
   }
 

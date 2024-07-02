@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import org.hibernate.Hibernate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -57,6 +58,24 @@ class BookingHistory(
     this.appointments.addAll(bookingHistoryAppointments)
 
   fun appointments() = appointments.toList()
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
+
+    other as BookingHistory
+
+    return bookingHistoryId == other.bookingHistoryId
+  }
+
+  override fun hashCode(): Int {
+    return bookingHistoryId.hashCode()
+  }
+
+  @Override
+  override fun toString(): String {
+    return this::class.simpleName + "(bookingHistoryId = $bookingHistoryId)"
+  }
 }
 
 /**
@@ -89,7 +108,25 @@ data class BookingHistoryAppointment(
   val startTime: LocalTime,
 
   val endTime: LocalTime,
-)
+) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
+
+    other as BookingHistoryAppointment
+
+    return bookingHistoryAppointmentId == other.bookingHistoryAppointmentId
+  }
+
+  override fun hashCode(): Int {
+    return bookingHistoryAppointmentId.hashCode()
+  }
+
+  @Override
+  override fun toString(): String {
+    return this::class.simpleName + "(bookingHistoryAppointmentId = $bookingHistoryAppointmentId)"
+  }
+}
 
 enum class HistoryType {
   CREATE,

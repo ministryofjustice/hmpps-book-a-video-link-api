@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.VIDEO_BOOKING_AMENDED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.APPOINTMENT_CREATED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.VIDEO_BOOKING_CANCELLED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.VIDEO_BOOKING_CREATED
@@ -34,6 +35,7 @@ class OutboundEventsServiceImpl(
       APPOINTMENT_CREATED -> send(AppointmentCreatedEvent(identifier))
       VIDEO_BOOKING_CREATED -> send(VideoBookingCreatedEvent(identifier))
       VIDEO_BOOKING_CANCELLED -> send(VideoBookingCancelledEvent(identifier))
+      VIDEO_BOOKING_AMENDED -> send(VideoBookingAmendedEvent(identifier))
     }
   }
 
@@ -80,7 +82,7 @@ class LocalOutboundEventsService(
           videoBookingRepository.findById(identifier).ifPresentOrElse(
             { vb ->
               vb.appointments().forEach { appointment ->
-                manageExternalAppointmentsService.cancelAppointment(appointment.prisonAppointmentId)
+                manageExternalAppointmentsService.cancelCurrentAppointment(appointment.prisonAppointmentId)
               }
             },
             {

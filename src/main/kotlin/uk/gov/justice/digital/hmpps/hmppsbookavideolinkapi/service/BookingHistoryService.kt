@@ -12,12 +12,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHis
 @Service
 class BookingHistoryService(private val bookingHistoryRepository: BookingHistoryRepository) {
 
-  // TODO: For an endpoint to retrieve the full history for a booking - coming soon
-  fun getHistoryByVideoBookingId(videoBookingId: Long): List<BookingHistory> =
+  fun getByVideoBookingId(videoBookingId: Long): List<BookingHistory> =
     bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(videoBookingId)
 
   // TODO: For use in retrieving a specific history row - coming soon
-  fun getHistoryByBookingHistoryId(bookingHistoryId: Long): BookingHistory =
+  fun getByBookingHistoryId(bookingHistoryId: Long): BookingHistory =
     bookingHistoryRepository.findById(bookingHistoryId)
       .orElseThrow { EntityNotFoundException("Video booking history with ID $bookingHistoryId not found") }
 
