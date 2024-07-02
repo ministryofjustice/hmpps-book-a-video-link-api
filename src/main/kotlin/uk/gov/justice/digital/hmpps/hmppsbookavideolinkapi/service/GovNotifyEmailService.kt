@@ -30,9 +30,9 @@ class GovNotifyEmailService(
       is CancelledCourtBookingOwnerEmail -> send(email, emailTemplates.cancelledCourtBookingOwner)
       is CancelledCourtBookingPrisonCourtEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonCourtEmail)
       is CancelledCourtBookingPrisonNoCourtEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonNoCourtEmail)
-      is CourtBookingRequestOwnerEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonNoCourtEmail)
-      is CourtBookingRequestPrisonCourtEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonNoCourtEmail)
-      is CourtBookingRequestPrisonNoCourtEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonNoCourtEmail)
+      is CourtBookingRequestOwnerEmail -> send(email, emailTemplates.courtBookingRequestOwner)
+      is CourtBookingRequestPrisonCourtEmail -> send(email, emailTemplates.courtBookingRequestPrisonCourtEmail)
+      is CourtBookingRequestPrisonNoCourtEmail -> send(email, emailTemplates.courtBookingRequestPrisonNoCourtEmail)
       else -> throw RuntimeException("Unsupported email type ${email.javaClass.simpleName}.")
     }
 
