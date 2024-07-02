@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -46,6 +48,17 @@ class OutboundEventsServiceImplTest {
       expectedAdditionalInformation = VideoBookingInformation(1),
       expectedDescription = "A video booking has been cancelled in the book a video link service",
     )
+  }
+
+  @Test
+  fun `should not be able to publish prisoner released event`() {
+    val error = assertThrows<IllegalArgumentException> {
+      service.send(DomainEventType.PRISONER_RELEASED, 1)
+    }
+
+    error.message isEqualTo "Unsupported domain event ${DomainEventType.PRISONER_RELEASED}"
+
+    verifyNoInteractions(eventsPublisher)
   }
 
   private fun verify(

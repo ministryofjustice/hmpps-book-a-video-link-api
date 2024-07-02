@@ -1,14 +1,17 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
+import java.time.LocalTime
 
 interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   fun findByVideoBooking(booking: VideoBooking): List<PrisonAppointment>
 
   fun findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(prisonCode: String, key: String, date: LocalDate): List<PrisonAppointment>
 
-  fun deletePrisonAppointmentsByVideoBooking(booking: VideoBooking)
+  @Query(value = "SELECT pa FROM PrisonAppointment pa WHERE pa.appointmentDate >= :date AND pa.startTime > :time")
+  fun findPrisonAppointmentsAfter(date: LocalDate, time: LocalTime): List<PrisonAppointment>
 }
