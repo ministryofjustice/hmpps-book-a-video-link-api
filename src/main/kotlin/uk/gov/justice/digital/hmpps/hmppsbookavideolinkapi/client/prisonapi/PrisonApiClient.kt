@@ -18,6 +18,8 @@ const val VIDEO_LINK_BOOKING = "VLB"
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
+const val DO_NOT_PROPAGATE = true.toString()
+
 @Component
 class PrisonApiClient(private val prisonApiWebClient: WebClient) {
 
@@ -45,7 +47,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     prisonApiWebClient
       .post()
       .uri("/api/bookings/{bookingId}/appointments", bookingId)
-      .header("no-event-propagation", true.toString())
+      .header("no-event-propagation", DO_NOT_PROPAGATE)
       .bodyValue(
         NewAppointment(
           appointmentType = VIDEO_LINK_BOOKING,
@@ -86,6 +88,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
   fun cancelAppointment(appointmentId: Long) {
     prisonApiWebClient.delete()
       .uri("/api/appointments/{appointmentId}", appointmentId)
+      .header("no-event-propagation", DO_NOT_PROPAGATE)
       .retrieve()
       .bodyToMono(Void::class.java)
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }

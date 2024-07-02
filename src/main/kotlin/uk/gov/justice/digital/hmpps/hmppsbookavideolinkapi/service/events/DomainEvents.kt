@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
@@ -45,6 +46,21 @@ class VideoBookingAmendedEvent(additionalInformation: VideoBookingInformation) :
 
 data class VideoBookingInformation(val videoBookingId: Long) : AdditionalInformation
 
+class PrisonerReleasedEvent(additionalInformation: ReleaseInformation) :
+  DomainEvent<ReleaseInformation>(DomainEventType.PRISONER_RELEASED, additionalInformation) {
+
+  @JsonIgnore
+  fun prisonerNumber() = additionalInformation.nomsNumber
+
+  @JsonIgnore
+  fun isTemporary() = listOf("TEMPORARY_ABSENCE_RELEASE", "SENT_TO_COURT").contains(additionalInformation.reason)
+
+  @JsonIgnore
+  fun isPermanent() = listOf("RELEASED", "RELEASED_TO_HOSPITAL").contains(additionalInformation.reason)
+}
+
+data class ReleaseInformation(val nomsNumber: String, val reason: String, val prisonId: String) : AdditionalInformation
+
 enum class DomainEventType(val eventType: String, val description: String) {
   VIDEO_BOOKING_CREATED(
     "book-a-video-link.video-booking.created",
@@ -73,6 +89,10 @@ enum class DomainEventType(val eventType: String, val description: String) {
   ) {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =
       mapper.readValue<VideoBookingAmendedEvent>(message)
+  },
+  PRISONER_RELEASED("prisoner-offender-search.prisoner.released", "") {
+    override fun toInboundEvent(mapper: ObjectMapper, message: String) =
+      mapper.readValue<PrisonerReleasedEvent>(message)
   },
   ;
 

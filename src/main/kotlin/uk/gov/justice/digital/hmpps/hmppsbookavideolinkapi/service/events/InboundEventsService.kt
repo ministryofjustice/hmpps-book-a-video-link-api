@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.AppointmentCreatedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingAmendedEventHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCreatedEventHandler
 
@@ -14,6 +15,7 @@ class InboundEventsService(
   private val videoBookingCreatedEventHandler: VideoBookingCreatedEventHandler,
   private val videoBookingCancelledEventHandler: VideoBookingCancelledEventHandler,
   private val videoBookingAmendedEventHandler: VideoBookingAmendedEventHandler,
+  private val prisonerReleasedEventHandler: PrisonerReleasedEventHandler,
 ) {
   companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -25,6 +27,7 @@ class InboundEventsService(
       is AppointmentCreatedEvent -> appointmentCreatedEventHandler.handle(event)
       is VideoBookingCancelledEvent -> videoBookingCancelledEventHandler.handle(event)
       is VideoBookingAmendedEvent -> videoBookingAmendedEventHandler.handle(event)
+      is PrisonerReleasedEvent -> prisonerReleasedEventHandler.handle(event)
       else -> log.warn("Unsupported domain event ${event.javaClass.name}")
     }
   }
