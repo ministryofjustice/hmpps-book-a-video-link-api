@@ -32,10 +32,13 @@ class GovNotifyEmailServiceTest {
     newCourtBookingPrisonNoCourtEmail = "template 3",
     amendedCourtBookingOwner = "template 4",
     amendedCourtBookingPrisonCourtEmail = "template 5",
-    amendedCourtBookingPrisonCourtNoEmail = "template 6",
+    amendedCourtBookingPrisonNoCourtEmail = "template 6",
     cancelledCourtBookingOwner = "template 7",
     cancelledCourtBookingPrisonCourtEmail = "template 8",
-    cancelledCourtBookingPrisonCourtNoEmail = "template 9",
+    cancelledCourtBookingPrisonNoCourtEmail = "template 9",
+    courtBookingRequestOwner = "template 10",
+    courtBookingRequestPrisonCourtEmail = "template 11",
+    courtBookingRequestPrisonNoCourtEmail = "template 12",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)
@@ -439,7 +442,7 @@ class GovNotifyEmailServiceTest {
     error.message isEqualTo "Unsupported email type UnsupportedEmail."
   }
 
-  private object UnsupportedEmail : Email("", "", "", "", LocalDate.now())
+  private object UnsupportedEmail : Email("", "", "", LocalDate.now())
 
   @Test
   fun `should propagate client error when client fails to send email`() {

@@ -13,8 +13,11 @@ class NewCourtBookingOwnerEmailTest {
       prisonerFirstName = "builder",
       prisonerLastName = "bob",
       prisonerNumber = "123456",
-      date = LocalDate.of(2200,
-        12, 12),
+      date = LocalDate.of(
+        2200,
+        12,
+        12,
+      ),
       userName = "username",
       comments = "comments for bob",
       preAppointmentInfo = "bobs pre-appointment info",
