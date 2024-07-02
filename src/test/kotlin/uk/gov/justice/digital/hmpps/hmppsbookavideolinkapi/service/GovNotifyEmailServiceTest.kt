@@ -43,7 +43,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court new booking email and return a notification ID`() {
     val result = service.send(
-      NewCourtBookingEmail(
+      NewCourtBookingOwnerEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -83,7 +83,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court new booking email with no pre and post appoint or no comments, and return a notification ID`() {
     val result = service.send(
-      NewCourtBookingEmail(
+      NewCourtBookingOwnerEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -201,7 +201,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court amended booking email and return a notification ID`() {
     val result = service.send(
-      AmendedCourtBookingEmail(
+      AmendedCourtBookingOwnerEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -317,7 +317,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court cancelled booking email and return a notification ID`() {
     val result = service.send(
-      CancelledCourtBookingEmail(
+      CancelledCourtBookingOwnerEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -448,7 +448,7 @@ class GovNotifyEmailServiceTest {
     whenever(client.sendEmail(any(), any(), any(), anyOrNull())) doThrow exception
 
     val result = service.send(
-      NewCourtBookingEmail(
+      NewCourtBookingOwnerEmail(
         address = "address 1",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
