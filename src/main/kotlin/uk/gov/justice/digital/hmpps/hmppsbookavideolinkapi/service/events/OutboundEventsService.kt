@@ -34,6 +34,7 @@ class OutboundEventsServiceImpl(
       APPOINTMENT_CREATED -> send(AppointmentCreatedEvent(identifier))
       VIDEO_BOOKING_CREATED -> send(VideoBookingCreatedEvent(identifier))
       VIDEO_BOOKING_CANCELLED -> send(VideoBookingCancelledEvent(identifier))
+      else -> throw IllegalArgumentException("Unsupported domain event $domainEventType")
     }
   }
 
