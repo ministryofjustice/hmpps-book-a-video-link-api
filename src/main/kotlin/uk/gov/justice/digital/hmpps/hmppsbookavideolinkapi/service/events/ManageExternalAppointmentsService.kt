@@ -146,20 +146,18 @@ class ManageExternalAppointmentsService(
         prisonerNumber = bha.prisonerNumber,
         onDate = bha.appointmentDate,
         bha.internalLocationId(),
-      ).findMatchingAppointments(bha)
-       .forEach { matchingAppointment ->
-          log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $bha from activities and appointments")
-          activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
-          log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
-       }
+      ).findMatchingAppointments(bha).forEach { matchingAppointment ->
+        log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $bha from activities and appointments")
+        activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
+        log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
+      }
     } else {
       prisonApiClient.getPrisonersAppointmentsAtLocations(
         prisonCode = bha.prisonCode,
         prisonerNumber = bha.prisonerNumber,
         onDate = bha.appointmentDate,
         bha.internalLocationId(),
-     ).findMatchingPrisonApi(bha)
-      .forEach { matchingAppointment ->
+      ).findMatchingPrisonApi(bha).forEach { matchingAppointment ->
         log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $bha from prison-api")
         prisonApiClient.cancelAppointment(matchingAppointment.eventId)
         log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.eventId} from prison-api")
