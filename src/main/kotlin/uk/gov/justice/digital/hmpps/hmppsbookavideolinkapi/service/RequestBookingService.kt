@@ -67,7 +67,7 @@ class RequestBookingService(
         else -> null
       }
     }.forEach { email ->
-      sendEmailAndSaveNotification(email, request.prisoner())
+      sendEmailAndSaveNotification(email)
     }
   }
 
@@ -75,7 +75,7 @@ class RequestBookingService(
     return prisoner.appointments.appointmentsForCourtHearing()
   }
 
-  private fun sendEmailAndSaveNotification(email: Email, prisoner: UnknownPrisonerDetails) {
+  private fun sendEmailAndSaveNotification(email: Email) {
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(
         Notification(
@@ -86,7 +86,7 @@ class RequestBookingService(
         ),
       )
     }.onFailure {
-      log.info("BOOKINGS: Failed to send booking request email for ${prisoner.firstName.plus(" " + prisoner.lastName)}.")
+      log.info("BOOKINGS: Failed to send booking request email for prisoner.")
     }
   }
 

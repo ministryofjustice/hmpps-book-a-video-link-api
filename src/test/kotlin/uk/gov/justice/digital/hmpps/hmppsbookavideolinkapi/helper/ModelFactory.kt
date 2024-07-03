@@ -5,8 +5,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.Em
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.UserDetailsDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactDetails
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -230,13 +228,3 @@ fun amendProbationBookingRequest(
     videoLinkUrl = videoLinkUrl,
   )
 }
-
-fun bookingContact(contactType: ContactType, email: String?, name: String? = null) = BookingContact(
-  videoBookingId = 0,
-  contactType = contactType,
-  name = name,
-  position = null,
-  email = email,
-  telephone = null,
-  primaryContact = true,
-)

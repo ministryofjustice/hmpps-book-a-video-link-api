@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -71,4 +73,14 @@ fun appointment(
   startTime = startTime,
   endTime = endTime,
   locationKey = locationKey,
+)
+
+fun bookingContact(contactType: ContactType, email: String?, name: String? = null) = BookingContact(
+  videoBookingId = 0,
+  contactType = contactType,
+  name = name,
+  position = null,
+  email = email,
+  telephone = null,
+  primaryContact = true,
 )

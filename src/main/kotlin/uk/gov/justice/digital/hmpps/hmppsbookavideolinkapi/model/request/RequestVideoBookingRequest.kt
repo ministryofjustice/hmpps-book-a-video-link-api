@@ -65,12 +65,10 @@ data class UnknownPrisonerDetails(
   val prisonCode: String?,
 
   @field:NotBlank(message = "The prisoner's first name is mandatory")
-  @field:Size(max = 7, message = "Prisoner number must not exceed {max} characters")
   @Schema(description = "The prisoner's first name", example = "Joe")
   val firstName: String?,
 
   @field:NotBlank(message = "The prisoner's last name is mandatory")
-  @field:Size(max = 7, message = "Prisoner number must not exceed {max} characters")
   @Schema(description = "The prisoner's last name", example = "Bloggs")
   val lastName: String?,
 

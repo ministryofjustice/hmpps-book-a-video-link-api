@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ContactsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 
 @Tag(name = "Booking Contacts Controller")
 @RestController
@@ -70,5 +71,5 @@ class BookingContactsController(val contactsService: ContactsService) {
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun getContactsForBooking(
     @PathVariable("videoBookingId") videoBookingId: Long,
-  ): List<BookingContact> = contactsService.getBookingContacts(videoBookingId)
+  ): List<BookingContact> = contactsService.getBookingContacts(videoBookingId).toModel()
 }
