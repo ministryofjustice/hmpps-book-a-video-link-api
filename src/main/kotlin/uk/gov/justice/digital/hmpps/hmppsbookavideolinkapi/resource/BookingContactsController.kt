@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingContactsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ContactsService
 
 @Tag(name = "Booking Contacts Controller")
 @RestController
 @RequestMapping(value = ["booking-contacts"], produces = [MediaType.APPLICATION_JSON_VALUE])
-class BookingContactsController(val bookingContactsService: BookingContactsService) {
+class BookingContactsController(val contactsService: ContactsService) {
   @Operation(summary = "Endpoint to return a list of contacts associated with a booking")
   @ApiResponses(
     value = [
@@ -70,5 +70,5 @@ class BookingContactsController(val bookingContactsService: BookingContactsServi
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun getContactsForBooking(
     @PathVariable("videoBookingId") videoBookingId: Long,
-  ): List<BookingContact> = bookingContactsService.getBookingContacts(videoBookingId)
+  ): List<BookingContact> = contactsService.getBookingContacts(videoBookingId)
 }

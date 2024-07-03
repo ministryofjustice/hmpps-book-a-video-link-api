@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 
 @Schema(description = "Describes the details of a booking contact")
 data class BookingContact(
@@ -35,11 +36,3 @@ data class BookingContact(
   )
   val primaryContact: Boolean,
 )
-
-enum class ContactType {
-  OWNER,
-  COURT,
-  PROBATION,
-  PRISON,
-  THIRD_PARTY,
-}

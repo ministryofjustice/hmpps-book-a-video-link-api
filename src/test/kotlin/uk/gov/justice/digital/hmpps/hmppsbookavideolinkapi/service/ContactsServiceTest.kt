@@ -11,27 +11,29 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.Ma
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userContactDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.util.Optional
 
-class BookingContactsServiceTest {
+class ContactsServiceTest {
   private val bookingContactsRepository: BookingContactsRepository = mock()
+  private val contactsRepository: ContactsRepository = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
-  private val manageUsersClient: ManageUsersClient = mock()
+  private val userService: UserService = mock()
 
-  private val service = BookingContactsService(bookingContactsRepository, videoBookingRepository, manageUsersClient)
+  private val service = ContactsService(bookingContactsRepository, contactsRepository, videoBookingRepository, userService)
 
   @Test
   fun `should get created by contact using username`() {
     val booking = courtBooking(createdBy = "test_user")
 
     whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
-    whenever(bookingContactsRepository.findContactsForBooking(booking.videoBookingId)) doReturn emptyList()
-    whenever(manageUsersClient.getUsersDetails("test_user")) doReturn userDetails("test_user", "Test User Name")
-    whenever(manageUsersClient.getUsersEmail("test_user")) doReturn userEmail("test_user", "test_user@email.com")
+    whenever(bookingContactsRepository.findContactsByVideoBookingId(booking.videoBookingId)) doReturn emptyList()
+    whenever(userService.getContactDetails("test_user")) doReturn userContactDetails("Test User Name", "test_user@email.com")
 
     val contact = service.getBookingContacts(booking.videoBookingId)
 
@@ -46,11 +48,8 @@ class BookingContactsServiceTest {
     val booking = courtBooking(createdBy = "test_user@email.com")
 
     whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
-    whenever(bookingContactsRepository.findContactsForBooking(booking.videoBookingId)) doReturn emptyList()
-    whenever(manageUsersClient.getUsersDetails("test_user@email.com")) doReturn userDetails(
-      "test_user",
-      "Test User Name",
-    )
+    whenever(bookingContactsRepository.findContactsByVideoBookingId(booking.videoBookingId)) doReturn emptyList()
+    whenever(userService.getContactDetails("test_user")) doReturn userContactDetails("Test User Name", "test_user@email.com")
 
     val contact = service.getBookingContacts(booking.videoBookingId)
 
@@ -58,8 +57,6 @@ class BookingContactsServiceTest {
       name isEqualTo "Test User Name"
       email isEqualTo "test_user@email.com"
     }
-
-    verify(manageUsersClient, never()).getUsersEmail(any())
   }
 
   @Test
@@ -67,11 +64,9 @@ class BookingContactsServiceTest {
     val booking = courtBooking(createdBy = "create_user").apply { amendedBy = "amend_user" }
 
     whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
-    whenever(bookingContactsRepository.findContactsForBooking(booking.videoBookingId)) doReturn emptyList()
-    whenever(manageUsersClient.getUsersDetails("create_user")) doReturn userDetails("create_user", "Create User Name")
-    whenever(manageUsersClient.getUsersEmail("create_user")) doReturn userEmail("create_user", "create_user@email.com")
-    whenever(manageUsersClient.getUsersDetails("amend_user")) doReturn userDetails("amend_user", "Amend User Name")
-    whenever(manageUsersClient.getUsersEmail("amend_user")) doReturn userEmail("amend_user", "amend_user@email.com")
+    whenever(bookingContactsRepository.findContactsByVideoBookingId(booking.videoBookingId)) doReturn emptyList()
+    whenever(userService.getContactDetails("create_user")) doReturn userContactDetails("Create User Name", "create_user@email.com")
+    whenever(userService.getContactDetails("amend_user")) doReturn userContactDetails("Amend User Name", "amend_user@email.com")
 
     val contacts = service.getBookingContacts(booking.videoBookingId)
 
@@ -93,15 +88,9 @@ class BookingContactsServiceTest {
     val booking = courtBooking(createdBy = "create_user@email.com").apply { amendedBy = "amend_user@email.com" }
 
     whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
-    whenever(bookingContactsRepository.findContactsForBooking(booking.videoBookingId)) doReturn emptyList()
-    whenever(manageUsersClient.getUsersDetails("create_user@email.com")) doReturn userDetails(
-      "create_user",
-      "Create User Name",
-    )
-    whenever(manageUsersClient.getUsersDetails("amend_user@email.com")) doReturn userDetails(
-      "amend_user",
-      "Amend User Name",
-    )
+    whenever(bookingContactsRepository.findContactsByVideoBookingId(booking.videoBookingId)) doReturn emptyList()
+    whenever(userService.getContactDetails("create_user")) doReturn userContactDetails("Create User Name", "create_user@email.com")
+    whenever(userService.getContactDetails("amend_user")) doReturn userContactDetails("Amend User Name", "amend_user@email.com")
 
     val contacts = service.getBookingContacts(booking.videoBookingId)
 
@@ -116,7 +105,5 @@ class BookingContactsServiceTest {
       name isEqualTo "Amend User Name"
       email isEqualTo "amend_user@email.com"
     }
-
-    verify(manageUsersClient, never()).getUsersEmail(any())
   }
 }
