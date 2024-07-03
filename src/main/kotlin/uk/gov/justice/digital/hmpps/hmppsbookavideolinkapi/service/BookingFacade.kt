@@ -132,7 +132,7 @@ class BookingFacade(
     action: BookingAction,
   ): Email {
     return when (action) {
-      BookingAction.CREATE -> NewCourtBookingEmail(
+      BookingAction.CREATE -> NewCourtBookingOwnerEmail(
         address = contact.email!!,
         userName = contact.name ?: "Book Video",
         prisonerFirstName = prisoner.firstName,
@@ -146,7 +146,7 @@ class BookingFacade(
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
       )
-      BookingAction.AMEND -> AmendedCourtBookingEmail(
+      BookingAction.AMEND -> AmendedCourtBookingOwnerEmail(
         address = contact.email!!,
         userName = contact.name ?: "Book Video",
         prisonerFirstName = prisoner.firstName,
@@ -159,7 +159,7 @@ class BookingFacade(
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
       )
-      BookingAction.CANCEL -> CancelledCourtBookingEmail(
+      BookingAction.CANCEL -> CancelledCourtBookingOwnerEmail(
         address = contact.email!!,
         userName = contact.name ?: "Book Video",
         prisonerFirstName = prisoner.firstName,
