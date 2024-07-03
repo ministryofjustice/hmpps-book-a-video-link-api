@@ -36,12 +36,12 @@ class VideoBookingAmendedEventHandler(
               it[1]
             }
 
-          // Cancel the appointments related to the previous state
+          // Cancel the appointments related to the previous state from history rows
           history.appointments().forEach {
             manageExternalAppointmentsService.cancelPreviousAppointment(it)
           }
 
-          // Recreate appointments for the current state
+          // Recreate appointments for the current state by sending APPOINTMENT_CREATED for each ID.
           booking.appointments().forEach {
             outboundEventsService.send(DomainEventType.APPOINTMENT_CREATED, it.prisonAppointmentId)
           }

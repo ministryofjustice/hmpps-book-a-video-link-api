@@ -14,11 +14,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppo
 import java.time.LocalTime
 
 /**
- * This service is responsible for the creation/updating/cancelling of appointments outside BVLS to ensure
- * appointments are kept in sync with other areas e.g. Activities and Appointments and/or Prison API (NOMIS)
+ * This service is responsible for create/update/cancel of appointments relating to BVLS bookings in
+ * downstream services, to ensure that appointments are kept in sync e.g. in Activities and Appointments
+ * or Prison API (NOMIS)
  *
  * Any errors raised by this service can be caught and logged but must be re-thrown up the stack so that they
- * get propagated up to the queue listeners and cause a retry.
+ * cause the queue listener to fail, and cause a retry.
  */
 @Service
 class ManageExternalAppointmentsService(
