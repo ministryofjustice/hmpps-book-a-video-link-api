@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceC
 class RequestBookingService(
   private val emailService: EmailService,
   private val contactsService: ContactsService,
+  private val appointmentsService: AppointmentsService,
   private val courtRepository: CourtRepository,
   private val prisonRepository: PrisonRepository,
   private val referenceCodeRepository: ReferenceCodeRepository,
@@ -46,6 +47,8 @@ class RequestBookingService(
   }
 
   private fun sendCourtRequestEmails(request: RequestVideoBookingRequest, username: String) {
+    appointmentsService.checkCourtAppointments(request.prisoner().appointments, request.prisoner().prisonCode!!)
+
     val (pre, main, post) = getCourtAppointments(request.prisoner())
 
     val prison = prisonRepository.findByCode(request.prisoner().prisonCode!!)

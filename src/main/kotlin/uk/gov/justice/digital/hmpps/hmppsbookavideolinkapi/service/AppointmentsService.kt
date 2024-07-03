@@ -16,10 +16,7 @@ class AppointmentsService(
 ) {
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
   fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
-    prisoner.appointments.checkCourtAppointmentTypesOnly()
-    prisoner.appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
-    prisoner.appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisoner.prisonCode!!)
-    locationValidator.validatePrisonLocations(prisoner.prisonCode, prisoner.appointments.mapNotNull { it.locationKey }.toSet())
+    checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!)
 
     // Add all appointments to the booking - they will be saved when the booking is saved
     prisoner.appointments.forEach {
@@ -33,6 +30,13 @@ class AppointmentsService(
         locationKey = it.locationKey!!,
       )
     }
+  }
+
+  fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String) {
+    appointments.checkCourtAppointmentTypesOnly()
+    appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
+    appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode)
+    locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
   }
 
   private fun List<Appointment>.checkCourtAppointmentTypesOnly() {
@@ -82,24 +86,25 @@ class AppointmentsService(
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
   fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
+    checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!)
+
     with(prisoner.appointments.single()) {
-      require(type!!.isProbation) {
-        "Appointment type $type is not valid for probation appointments"
-      }
-
-      checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisoner.prisonCode!!)
-      locationValidator.validatePrisonLocation(prisoner.prisonCode, this.locationKey!!)
-
-      // Add the appointment to the booking - it will be saved when the booking is saved
       videoBooking.addAppointment(
         prisonCode = prisoner.prisonCode,
         prisonerNumber = prisoner.prisonerNumber!!,
-        appointmentType = this.type.name,
+        appointmentType = this.type!!.name,
         date = this.date!!,
         startTime = this.startTime!!,
         endTime = this.endTime!!,
-        locationKey = this.locationKey,
+        locationKey = this.locationKey!!,
       )
+    }
+  }
+
+  fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String) {
+    with(appointments.single()) {
+      checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode)
+      locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
     }
   }
 
