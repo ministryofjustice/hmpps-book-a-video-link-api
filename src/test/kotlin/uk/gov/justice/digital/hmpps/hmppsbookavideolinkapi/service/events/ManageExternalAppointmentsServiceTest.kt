@@ -30,7 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.*
+import java.util.Optional
 
 class ManageExternalAppointmentsServiceTest {
 
@@ -313,7 +313,7 @@ class ManageExternalAppointmentsServiceTest {
       ),
     )
 
-    service.cancelAppointment(1)
+    service.cancelCurrentAppointment(1)
 
     verify(activitiesAppointmentsClient).cancelAppointment(99)
   }
@@ -358,7 +358,7 @@ class ManageExternalAppointmentsServiceTest {
       ),
     )
 
-    service.cancelAppointment(1)
+    service.cancelCurrentAppointment(1)
 
     verify(activitiesAppointmentsClient, never()).cancelAppointment(anyLong())
   }
@@ -388,7 +388,7 @@ class ManageExternalAppointmentsServiceTest {
       ),
     )
 
-    service.cancelAppointment(1)
+    service.cancelCurrentAppointment(1)
 
     verify(prisonApiClient).cancelAppointment(99)
   }
@@ -419,7 +419,7 @@ class ManageExternalAppointmentsServiceTest {
       ),
     )
 
-    service.cancelAppointment(1)
+    service.cancelCurrentAppointment(1)
 
     verify(prisonApiClient, never()).cancelAppointment(anyLong())
   }
@@ -428,7 +428,7 @@ class ManageExternalAppointmentsServiceTest {
   fun `should not cancel appointment appointment not found`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.empty()
 
-    service.cancelAppointment(1)
+    service.cancelCurrentAppointment(1)
 
     verifyNoInteractions(activitiesAppointmentsClient)
     verifyNoInteractions(prisonApiClient)
