@@ -289,7 +289,7 @@ CREATE INDEX idx_user_probation_username ON user_probation(username);
 CREATE TABLE notification
 (
     notification_id            bigserial  NOT NULL CONSTRAINT notification_id_pk PRIMARY KEY,
-    video_booking_id           bigint NOT NULL REFERENCES video_booking(video_booking_id),
+    video_booking_id           bigint REFERENCES video_booking(video_booking_id),
     template_name              varchar(100),
     email                      varchar(100),
     reason                     varchar(40) NOT NULL,

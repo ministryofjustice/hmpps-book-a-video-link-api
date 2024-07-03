@@ -20,7 +20,7 @@ class Notification(
 
   @ManyToOne
   @JoinColumn(name = "video_booking_id")
-  val videoBooking: VideoBooking,
+  val videoBooking: VideoBooking? = null,
 
   val templateName: String,
 

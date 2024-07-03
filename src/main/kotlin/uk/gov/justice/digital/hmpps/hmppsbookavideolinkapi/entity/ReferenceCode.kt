@@ -19,7 +19,7 @@ class ReferenceCode(
 
   val code: String,
 
-  val description: String?,
+  val description: String,
 
   val createdBy: String,
 
