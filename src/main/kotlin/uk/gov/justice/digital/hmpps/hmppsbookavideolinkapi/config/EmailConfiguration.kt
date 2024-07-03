@@ -24,10 +24,13 @@ class EmailConfiguration(
   @Value("\${notify.templates.new-court-booking.prison-no-court-email:}") private val newCourtBookingPrisonNoCourtEmail: String,
   @Value("\${notify.templates.amended-court-booking.owner:}") private val amendedCourtBookingOwner: String,
   @Value("\${notify.templates.amended-court-booking.prison-court-email:}") private val amendedCourtBookingPrisonCourtEmail: String,
-  @Value("\${notify.templates.amended-court-booking.prison-court-no-email:}") private val amendedCourtBookingPrisonCourtNoEmail: String,
+  @Value("\${notify.templates.amended-court-booking.prison-no-court-email:}") private val amendedCourtBookingPrisonNoCourtEmail: String,
   @Value("\${notify.templates.cancelled-court-booking.owner:}") private val cancelledCourtBookingOwner: String,
   @Value("\${notify.templates.cancelled-court-booking.prison-court-email:}") private val cancelledCourtBookingPrisonCourtEmail: String,
-  @Value("\${notify.templates.cancelled-court-booking.prison-court-no-email:}") private val cancelledCourtBookingPrisonCourtNoEmail: String,
+  @Value("\${notify.templates.cancelled-court-booking.prison-no-court-email:}") private val cancelledCourtBookingPrisonNoCourtEmail: String,
+  @Value("\${notify.templates.court-booking-request.owner:}") private val courtBookingRequestOwner: String,
+  @Value("\${notify.templates.court-booking-request.prison-court-email:}") private val courtBookingRequestPrisonCourtEmail: String,
+  @Value("\${notify.templates.court-booking-request.prison-no-court-email:}") private val courtBookingRequestPrisonNoCourtEmail: String,
 ) {
 
   companion object {
@@ -48,10 +51,13 @@ class EmailConfiguration(
     newCourtBookingPrisonNoCourtEmail = newCourtBookingPrisonNoCourtEmail,
     amendedCourtBookingOwner = amendedCourtBookingOwner,
     amendedCourtBookingPrisonCourtEmail = amendedCourtBookingPrisonCourtEmail,
-    amendedCourtBookingPrisonCourtNoEmail = amendedCourtBookingPrisonCourtNoEmail,
+    amendedCourtBookingPrisonNoCourtEmail = amendedCourtBookingPrisonNoCourtEmail,
     cancelledCourtBookingOwner = cancelledCourtBookingOwner,
     cancelledCourtBookingPrisonCourtEmail = cancelledCourtBookingPrisonCourtEmail,
-    cancelledCourtBookingPrisonCourtNoEmail = cancelledCourtBookingPrisonCourtNoEmail,
+    cancelledCourtBookingPrisonNoCourtEmail = cancelledCourtBookingPrisonNoCourtEmail,
+    courtBookingRequestOwner = courtBookingRequestOwner,
+    courtBookingRequestPrisonCourtEmail = courtBookingRequestPrisonCourtEmail,
+    courtBookingRequestPrisonNoCourtEmail = courtBookingRequestPrisonNoCourtEmail,
   )
 }
 
@@ -68,14 +74,12 @@ abstract class Email(
   val address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
-  prisonerNumber: String,
   date: LocalDate = LocalDate.now(),
   comments: String? = null,
 ) {
   private val common = mapOf(
     "date" to date.toMediumFormatStyle(),
     "prisonerName" to prisonerFirstName.plus(" $prisonerLastName"),
-    "offenderNo" to prisonerNumber,
     "comments" to (comments ?: "None entered"),
   )
   private val personalisation: MutableMap<String, String?> = mutableMapOf()
@@ -93,8 +97,11 @@ data class EmailTemplates(
   val newCourtBookingPrisonNoCourtEmail: String,
   val amendedCourtBookingOwner: String,
   val amendedCourtBookingPrisonCourtEmail: String,
-  val amendedCourtBookingPrisonCourtNoEmail: String,
+  val amendedCourtBookingPrisonNoCourtEmail: String,
   val cancelledCourtBookingOwner: String,
   val cancelledCourtBookingPrisonCourtEmail: String,
-  val cancelledCourtBookingPrisonCourtNoEmail: String,
+  val cancelledCourtBookingPrisonNoCourtEmail: String,
+  val courtBookingRequestOwner: String,
+  val courtBookingRequestPrisonCourtEmail: String,
+  val courtBookingRequestPrisonNoCourtEmail: String,
 )

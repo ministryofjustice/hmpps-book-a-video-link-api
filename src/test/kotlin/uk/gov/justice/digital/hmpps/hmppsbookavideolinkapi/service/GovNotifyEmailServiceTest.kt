@@ -32,10 +32,13 @@ class GovNotifyEmailServiceTest {
     newCourtBookingPrisonNoCourtEmail = "template 3",
     amendedCourtBookingOwner = "template 4",
     amendedCourtBookingPrisonCourtEmail = "template 5",
-    amendedCourtBookingPrisonCourtNoEmail = "template 6",
+    amendedCourtBookingPrisonNoCourtEmail = "template 6",
     cancelledCourtBookingOwner = "template 7",
     cancelledCourtBookingPrisonCourtEmail = "template 8",
-    cancelledCourtBookingPrisonCourtNoEmail = "template 9",
+    cancelledCourtBookingPrisonNoCourtEmail = "template 9",
+    courtBookingRequestOwner = "template 10",
+    courtBookingRequestPrisonCourtEmail = "template 11",
+    courtBookingRequestPrisonNoCourtEmail = "template 12",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)
@@ -43,7 +46,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court new booking email and return a notification ID`() {
     val result = service.send(
-      NewCourtBookingEmail(
+      NewCourtBookingOwnerEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -83,7 +86,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court new booking email with no pre and post appoint or no comments, and return a notification ID`() {
     val result = service.send(
-      NewCourtBookingEmail(
+      NewCourtBookingOwnerEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -201,7 +204,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court amended booking email and return a notification ID`() {
     val result = service.send(
-      AmendedCourtBookingEmail(
+      AmendedCourtBookingOwnerEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -317,7 +320,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court cancelled booking email and return a notification ID`() {
     val result = service.send(
-      CancelledCourtBookingEmail(
+      CancelledCourtBookingOwnerEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -433,13 +436,137 @@ class GovNotifyEmailServiceTest {
   }
 
   @Test
+  fun `should send court booking request owner email and return a notification ID`() {
+    val result = service.send(
+      CourtBookingRequestOwnerEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        dateOfBirth = LocalDate.of(1970, 1, 1),
+        userName = "username",
+        date = today,
+        comments = "comments for bob",
+        hearingType = "Appeal",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 10")
+
+    verify(client).sendEmail(
+      "template 10",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "dateOfBirth" to "1 Jan 1970",
+        "comments" to "comments for bob",
+        "userName" to "username",
+        "court" to "the court",
+        "prison" to "the prison",
+        "hearingType" to "Appeal",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison booking request from court with email and return a notification ID`() {
+    val result = service.send(
+      CourtBookingRequestPrisonCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        dateOfBirth = LocalDate.of(1970, 1, 1),
+        date = today,
+        comments = "comments for bob",
+        hearingType = "Appeal",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        courtEmailAddress = "court@emailaddress.com",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 11")
+
+    verify(client).sendEmail(
+      "template 11",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "dateOfBirth" to "1 Jan 1970",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "courtEmailAddress" to "court@emailaddress.com",
+        "prison" to "the prison",
+        "hearingType" to "Appeal",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison booking request from court with no email and return a notification ID`() {
+    val result = service.send(
+      CourtBookingRequestPrisonNoCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        dateOfBirth = LocalDate.of(1970, 1, 1),
+        date = today,
+        comments = "comments for bob",
+        hearingType = "Appeal",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 12")
+
+    verify(client).sendEmail(
+      "template 12",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "dateOfBirth" to "1 Jan 1970",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "prison" to "the prison",
+        "hearingType" to "Appeal",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
   fun `should throw error for unsupported email type`() {
     val error = assertThrows<RuntimeException> { service.send(UnsupportedEmail) }
 
     error.message isEqualTo "Unsupported email type UnsupportedEmail."
   }
 
-  private object UnsupportedEmail : Email("", "", "", "", LocalDate.now())
+  private object UnsupportedEmail : Email("", "", "", LocalDate.now())
 
   @Test
   fun `should propagate client error when client fails to send email`() {
@@ -448,7 +575,7 @@ class GovNotifyEmailServiceTest {
     whenever(client.sendEmail(any(), any(), any(), anyOrNull())) doThrow exception
 
     val result = service.send(
-      NewCourtBookingEmail(
+      NewCourtBookingOwnerEmail(
         address = "address 1",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
