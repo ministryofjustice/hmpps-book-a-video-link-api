@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
@@ -94,4 +95,12 @@ fun contact(contactType: ContactType, email: String?, name: String? = null) = Co
   email = email,
   telephone = null,
   primaryContact = true,
+)
+
+fun courtHearingType(description: String) = ReferenceCode(
+  referenceCodeId = 0,
+  groupCode = "COURT_HEARING_TYPE",
+  code = "code",
+  description = description,
+  createdBy = "Test User",
 )
