@@ -103,6 +103,10 @@ class AppointmentsService(
 
   fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String) {
     with(appointments.single()) {
+      require(type!!.isProbation) {
+        "Appointment type $type is not valid for probation appointments"
+      }
+
       checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode)
       locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
     }
