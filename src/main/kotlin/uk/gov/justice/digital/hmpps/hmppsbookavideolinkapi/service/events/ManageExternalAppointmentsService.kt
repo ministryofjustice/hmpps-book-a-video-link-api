@@ -8,15 +8,18 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import java.time.LocalTime
 
 /**
- * This service is responsible for the creation/updating/cancelling of appointments outside of BVLS to ensure
- * appointments are kept in sync with other areas e.g. Activities and Appointments and/or Prison API (NOMIS)
+ * This service is responsible for create/update/cancel of appointments relating to BVLS bookings in
+ * downstream services, to ensure that appointments are kept in sync e.g. in Activities and Appointments
+ * or Prison API (NOMIS)
  *
- * Any errors raised by this service can be caught and logged but must be re-thrown up the stack, so they get propagated.
+ * Any errors raised by this service can be caught and logged but must be re-thrown up the stack so that they
+ * cause the queue listener to fail, and cause a retry.
  */
 @Service
 class ManageExternalAppointmentsService(
@@ -40,14 +43,14 @@ class ManageExternalAppointmentsService(
 
           val internalLocationId = appointment.internalLocationId()
 
-          // Attempt to check appointment does not already exist before creating. This is here because have seen
-          // network timeouts even though the transaction has actually complete in the external API.
+          // Attempt to check that an appointment does not already exist before creating.
+          // This is here because have seen network timeouts even though the transaction has completed in the external API.
           activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
             prisonCode = appointment.prisonCode,
             prisonerNumber = appointment.prisonerNumber,
             onDate = appointment.appointmentDate,
             internalLocationId,
-          ).findMatchingActivitiesAndAppointments(appointment).ifEmpty {
+          ).findMatchingAppointments(appointment).ifEmpty {
             // Only create if no existing matches found
             activitiesAppointmentsClient.createAppointment(
               prisonCode = appointment.prisonCode,
@@ -66,8 +69,8 @@ class ManageExternalAppointmentsService(
 
           val internalLocationId = appointment.internalLocationId()
 
-          // Attempt to check appointment does not already exist before creating. This is here because have seen
-          // network timeouts even though the transaction has actually complete in the external API.
+          // Attempt to check if an appointment does not already exist before creating.
+          // This is here because have seen network timeouts even though the transaction has completed in the external API.
           prisonApiClient.getPrisonersAppointmentsAtLocations(
             prisonCode = appointment.prisonCode,
             prisonerNumber = appointment.prisonerNumber,
@@ -96,7 +99,7 @@ class ManageExternalAppointmentsService(
   }
 
   @Transactional
-  fun cancelAppointment(prisonAppointmentId: Long) {
+  fun cancelCurrentAppointment(prisonAppointmentId: Long) {
     log.info("EXTERNAL APPOINTMENTS: deleting appointment for prison appointment ID $prisonAppointmentId")
 
     prisonAppointmentRepository.findById(prisonAppointmentId).ifPresentOrElse(
@@ -107,7 +110,7 @@ class ManageExternalAppointmentsService(
             prisonerNumber = appointment.prisonerNumber,
             onDate = appointment.appointmentDate,
             appointment.internalLocationId(),
-          ).findMatchingActivitiesAndAppointments(appointment)
+          ).findMatchingAppointments(appointment)
             .forEach { matchingAppointment ->
               log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from activities and appointments")
               activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
@@ -134,12 +137,49 @@ class ManageExternalAppointmentsService(
     )
   }
 
-  private fun Collection<AppointmentSearchResult>.findMatchingActivitiesAndAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> =
+  @Transactional
+  fun cancelPreviousAppointment(bha: BookingHistoryAppointment) {
+    log.info("EXTERNAL APPOINTMENTS: deleting previous appointment for booking history appointment ID ${bha.bookingHistoryAppointmentId}")
+
+    if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(bha.prisonCode)) {
+      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        prisonCode = bha.prisonCode,
+        prisonerNumber = bha.prisonerNumber,
+        onDate = bha.appointmentDate,
+        bha.internalLocationId(),
+      ).findMatchingAppointments(bha).forEach { matchingAppointment ->
+        log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $bha from activities and appointments")
+        activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
+        log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
+      }
+    } else {
+      prisonApiClient.getPrisonersAppointmentsAtLocations(
+        prisonCode = bha.prisonCode,
+        prisonerNumber = bha.prisonerNumber,
+        onDate = bha.appointmentDate,
+        bha.internalLocationId(),
+      ).findMatchingPrisonApi(bha).forEach { matchingAppointment ->
+        log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $bha from prison-api")
+        prisonApiClient.cancelAppointment(matchingAppointment.eventId)
+        log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.eventId} from prison-api")
+      }
+    }
+  }
+
+  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> =
     filter {
       appointment.startTime == LocalTime.parse(it.startTime) && appointment.endTime == LocalTime.parse(it.endTime)
     }.ifEmpty {
       emptyList<AppointmentSearchResult>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
+    }
+
+  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(bha: BookingHistoryAppointment): List<AppointmentSearchResult> =
+    filter {
+      bha.startTime == LocalTime.parse(it.startTime) && bha.endTime == LocalTime.parse(it.endTime)
+    }.ifEmpty {
+      emptyList<AppointmentSearchResult>()
+        .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for booking history appointment ${bha.bookingHistoryAppointmentId}") }
     }
 
   private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(appointment: PrisonAppointment): List<PrisonerSchedule> =
@@ -149,6 +189,15 @@ class ManageExternalAppointmentsService(
     }.ifEmpty {
       emptyList<PrisonerSchedule>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
+    }
+
+  private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(bha: BookingHistoryAppointment): List<PrisonerSchedule> =
+    filter {
+      it.startTime == bha.appointmentDate.atTime(bha.startTime) &&
+        it.endTime == bha.appointmentDate.atTime(bha.endTime)
+    }.ifEmpty {
+      emptyList<PrisonerSchedule>()
+        .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
     }
 
   private fun PrisonAppointment.detailedComments() =
@@ -167,4 +216,8 @@ class ManageExternalAppointmentsService(
   private fun PrisonAppointment.bookingId() =
     prisonerSearchClient.getPrisoner(prisonerNumber)?.bookingId?.toLong()
       ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Booking id not found for prisoner $prisonerNumber for prison appointment $prisonAppointmentId")
+
+  private fun BookingHistoryAppointment.internalLocationId() =
+    prisonApiClient.getInternalLocationByKey(prisonLocKey)?.locationId
+      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocKey not found for prison appointment ${bookingHistoryAppointmentId}Id")
 }

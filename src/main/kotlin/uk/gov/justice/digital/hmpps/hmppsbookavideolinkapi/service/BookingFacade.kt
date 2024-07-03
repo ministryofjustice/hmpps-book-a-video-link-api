@@ -54,7 +54,7 @@ class BookingFacade(
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, username: String): Long {
     val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, username)
-    // TODO: Emit VIDEO_BOOKING_AMENDED domain event
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, booking.videoBookingId)
     sendBookingEmails(BookingAction.AMEND, booking, prisoner)
     return booking.videoBookingId
   }

@@ -39,6 +39,11 @@ class VideoBookingCancelledEvent(additionalInformation: VideoBookingInformation)
   constructor(id: Long) : this(VideoBookingInformation(id))
 }
 
+class VideoBookingAmendedEvent(additionalInformation: VideoBookingInformation) :
+  DomainEvent<VideoBookingInformation>(DomainEventType.VIDEO_BOOKING_AMENDED, additionalInformation) {
+  constructor(id: Long) : this(VideoBookingInformation(id))
+}
+
 data class VideoBookingInformation(val videoBookingId: Long) : AdditionalInformation
 
 class PrisonerReleasedEvent(additionalInformation: ReleaseInformation) :
@@ -77,6 +82,13 @@ enum class DomainEventType(val eventType: String, val description: String) {
   ) {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =
       mapper.readValue<VideoBookingCancelledEvent>(message)
+  },
+  VIDEO_BOOKING_AMENDED(
+    "book-a-video-link.video-booking.amended",
+    "A video booking has been amended in the book a video link service",
+  ) {
+    override fun toInboundEvent(mapper: ObjectMapper, message: String) =
+      mapper.readValue<VideoBookingAmendedEvent>(message)
   },
   PRISONER_RELEASED("prisoner-offender-search.prisoner.released", "") {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =

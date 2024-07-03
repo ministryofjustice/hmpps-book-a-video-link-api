@@ -6,6 +6,7 @@ import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.AppointmentCreatedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingAmendedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCreatedEventHandler
 
@@ -14,11 +15,14 @@ class InboundEventsServiceTest {
   private val appointmentCreatedEventHandler: AppointmentCreatedEventHandler = mock()
   private val videoBookingCreatedEventHandler: VideoBookingCreatedEventHandler = mock()
   private val videoBookingCancelledEventHandler: VideoBookingCancelledEventHandler = mock()
+  private val videoBookingAmendedEventHandler: VideoBookingAmendedEventHandler = mock()
   private val prisonerReleasedEventHandler: PrisonerReleasedEventHandler = mock()
+
   private val service = InboundEventsService(
     appointmentCreatedEventHandler,
     videoBookingCreatedEventHandler,
     videoBookingCancelledEventHandler,
+    videoBookingAmendedEventHandler,
     prisonerReleasedEventHandler,
   )
 
