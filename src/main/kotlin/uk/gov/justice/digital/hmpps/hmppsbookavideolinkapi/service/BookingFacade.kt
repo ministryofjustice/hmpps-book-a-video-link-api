@@ -101,9 +101,9 @@ class BookingFacade(
 
   private fun sendEmailAndSaveNotification(email: Email, booking: VideoBooking, action: BookingAction) {
     val reason = when (action) {
-      BookingAction.CREATE -> "New court booking request"
-      BookingAction.AMEND -> "Amended court booking request"
-      BookingAction.CANCEL -> "Cancelled court booking request"
+      BookingAction.CREATE -> "New court booking"
+      BookingAction.AMEND -> "Amended court booking"
+      BookingAction.CANCEL -> "Cancelled court booking"
     }
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(

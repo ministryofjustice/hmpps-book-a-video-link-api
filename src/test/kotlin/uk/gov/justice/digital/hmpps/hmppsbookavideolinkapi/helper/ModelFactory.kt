@@ -66,7 +66,7 @@ fun userDetails(username: String, name: String) = UserDetailsDto(
 
 fun userContactDetails(name: String, email: String) = ContactDetails(
   name = name,
-  email = email
+  email = email,
 )
 
 fun prisoner(

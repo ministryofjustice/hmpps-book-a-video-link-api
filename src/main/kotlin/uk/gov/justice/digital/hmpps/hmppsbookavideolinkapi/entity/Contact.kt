@@ -32,7 +32,9 @@ data class Contact(
   val primaryContact: Boolean,
 )
 
-data class UniquePropertyId(val contactType: ContactType, val email: String?) : Serializable {
+data class UniquePropertyId(val contactType: ContactType?, val email: String?) : Serializable {
+  constructor() : this(null, null)
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
