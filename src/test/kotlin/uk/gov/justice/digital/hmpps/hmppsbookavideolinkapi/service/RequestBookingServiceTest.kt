@@ -35,6 +35,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import java.time.LocalTime
 import java.util.UUID
@@ -46,6 +47,7 @@ class RequestBookingServiceTest {
   private val contactsService: ContactsService = mock()
   private val appointmentsService: AppointmentsService = mock()
   private val courtRepository: CourtRepository = mock()
+  private val probationTeamRepository: ProbationTeamRepository = mock()
   private val prisonRepository: PrisonRepository = mock()
   private val referenceCodeRepository: ReferenceCodeRepository = mock()
   private val notificationRepository: NotificationRepository = mock()
@@ -55,6 +57,7 @@ class RequestBookingServiceTest {
     contactsService,
     appointmentsService,
     courtRepository,
+    probationTeamRepository,
     prisonRepository,
     referenceCodeRepository,
     notificationRepository,

@@ -39,6 +39,9 @@ class GovNotifyEmailServiceTest {
     courtBookingRequestOwner = "template 10",
     courtBookingRequestPrisonCourtEmail = "template 11",
     courtBookingRequestPrisonNoCourtEmail = "template 12",
+    probationBookingRequestOwner = "template 13",
+    probationBookingRequestPrisonProbationTeamEmail = "template 14",
+    probationBookingRequestPrisonNoProbationTeamEmail = "template 15",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)
@@ -554,6 +557,118 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send probation booking request owner email and return a notification ID`() {
+    val result = service.send(
+      ProbationBookingRequestOwnerEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        dateOfBirth = LocalDate.of(1970, 1, 1),
+        userName = "username",
+        date = today,
+        comments = "comments for bob",
+        meetingType = "Recall report",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 13")
+
+    verify(client).sendEmail(
+      "template 13",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "dateOfBirth" to "1 Jan 1970",
+        "comments" to "comments for bob",
+        "userName" to "username",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "meetingType" to "Recall report",
+        "appointmentInfo" to "bobs appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison booking request from probation team with email and return a notification ID`() {
+    val result = service.send(
+      ProbationBookingRequestPrisonProbationTeamEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        dateOfBirth = LocalDate.of(1970, 1, 1),
+        date = today,
+        comments = "comments for bob",
+        meetingType = "Recall report",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        probationTeamEmailAddress = "probationteam@emailaddress.com",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 14")
+
+    verify(client).sendEmail(
+      "template 14",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "dateOfBirth" to "1 Jan 1970",
+        "comments" to "comments for bob",
+        "probationTeam" to "the probation team",
+        "probationTeamEmailAddress" to "probationteam@emailaddress.com",
+        "prison" to "the prison",
+        "meetingType" to "Recall report",
+        "appointmentInfo" to "bobs appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison booking request from probation team with no email and return a notification ID`() {
+    val result = service.send(
+      ProbationBookingRequestPrisonNoProbationTeamEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        dateOfBirth = LocalDate.of(1970, 1, 1),
+        date = today,
+        comments = "comments for bob",
+        meetingType = "Recall report",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "template 15")
+
+    verify(client).sendEmail(
+      "template 15",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "dateOfBirth" to "1 Jan 1970",
+        "comments" to "comments for bob",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "meetingType" to "Recall report",
+        "appointmentInfo" to "bobs appointment info",
       ),
       null,
     )
