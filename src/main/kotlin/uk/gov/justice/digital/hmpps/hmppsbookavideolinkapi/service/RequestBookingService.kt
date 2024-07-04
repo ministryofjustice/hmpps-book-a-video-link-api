@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Unknown
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 
 @Service
@@ -30,6 +32,7 @@ class RequestBookingService(
   private val contactsService: ContactsService,
   private val appointmentsService: AppointmentsService,
   private val courtRepository: CourtRepository,
+  private val probationTeamRepository: ProbationTeamRepository,
   private val prisonRepository: PrisonRepository,
   private val referenceCodeRepository: ReferenceCodeRepository,
   private val notificationRepository: NotificationRepository,
@@ -42,7 +45,7 @@ class RequestBookingService(
   fun request(request: RequestVideoBookingRequest, username: String) {
     when (request.bookingType!!) {
       BookingType.COURT -> sendCourtRequestEmails(request, username)
-      BookingType.PROBATION -> log.info("TODO - send probation request emails.")
+      BookingType.PROBATION -> sendProbationRequestEmails(request, username)
     }
   }
 
@@ -69,6 +72,36 @@ class RequestBookingService(
       when (contact.contactType) {
         ContactType.OWNER -> createCourtOwnerEmail(contact, request, court, prison, hearingType, main, pre, post, locations)
         ContactType.PRISON -> createCourtPrisonEmail(contact, request, court, prison, contacts, hearingType, main, pre, post, locations)
+        else -> null
+      }
+    }.forEach { email ->
+      sendEmailAndSaveNotification(email)
+    }
+  }
+
+  private fun sendProbationRequestEmails(request: RequestVideoBookingRequest, username: String) {
+    appointmentsService.checkProbationAppointments(request.prisoner().appointments, request.prisoner().prisonCode!!)
+
+    val appointment = request.prisoner().appointments.single()
+
+    val prison = prisonRepository.findByCode(request.prisoner().prisonCode!!)
+      ?.also { require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Prison with code ${request.prisoner().prisonCode} not found")
+
+    val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
+      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
+
+    val meetingType = referenceCodeRepository.findByGroupCodeAndCode("PROBATION_MEETING_TYPE", request.probationMeetingType!!.toString())
+      ?: throw EntityNotFoundException("Probation meeting type with code ${request.probationMeetingType} not found")
+
+    val locations = locationsInsidePrisonClient.getLocationsByKeys(setOf(appointment.locationKey!!)).associateBy { it.key }
+    val contacts = contactsService.getContactsForProbationBookingRequest(probationTeam, prison, username).allContactsWithAnEmailAddress()
+
+    contacts.mapNotNull { contact ->
+      when (contact.contactType) {
+        ContactType.OWNER -> createProbationOwnerEmail(contact, request, probationTeam, prison, meetingType, appointment, locations)
+        ContactType.PRISON -> createProbationPrisonEmail(contact, request, probationTeam, prison, contacts, meetingType, appointment, locations)
         else -> null
       }
     }.forEach { email ->
@@ -168,7 +201,72 @@ class RequestBookingService(
     }
   }
 
+  private fun createProbationOwnerEmail(
+    contact: Contact,
+    request: RequestVideoBookingRequest,
+    probationTeam: ProbationTeam,
+    prison: Prison,
+    meetingType: ReferenceCode,
+    appointment: Appointment,
+    locations: Map<String, Location>,
+  ) = ProbationBookingRequestOwnerEmail(
+    address = contact.email!!,
+    userName = contact.name ?: "Book Video",
+    prisonerFirstName = request.prisoner().firstName!!,
+    prisonerLastName = request.prisoner().lastName!!,
+    dateOfBirth = request.prisoner().dateOfBirth!!,
+    probationTeam = probationTeam.description,
+    prison = prison.name,
+    date = appointment.date!!,
+    meetingType = meetingType.description,
+    appointmentInfo = appointment.appointmentInformation(locations),
+    comments = request.comments,
+  )
+
+  private fun createProbationPrisonEmail(
+    contact: Contact,
+    request: RequestVideoBookingRequest,
+    probationTeam: ProbationTeam,
+    prison: Prison,
+    contacts: Collection<Contact>,
+    meetingType: ReferenceCode,
+    appointment: Appointment,
+    locations: Map<String, Location>,
+  ): Email {
+    val primaryProbationTeamContact = contacts.primaryProbationTeamContact()
+    if (primaryProbationTeamContact != null) {
+      return ProbationBookingRequestPrisonProbationTeamEmail(
+        address = contact.email!!,
+        prisonerFirstName = request.prisoner().firstName!!,
+        prisonerLastName = request.prisoner().lastName!!,
+        dateOfBirth = request.prisoner().dateOfBirth!!,
+        probationTeam = probationTeam.description,
+        probationTeamEmailAddress = primaryProbationTeamContact.email!!,
+        prison = prison.name,
+        date = appointment.date!!,
+        meetingType = meetingType.description,
+        appointmentInfo = appointment.appointmentInformation(locations),
+        comments = request.comments,
+      )
+    } else {
+      return ProbationBookingRequestPrisonNoProbationTeamEmail(
+        address = contact.email!!,
+        prisonerFirstName = request.prisoner().firstName!!,
+        prisonerLastName = request.prisoner().lastName!!,
+        dateOfBirth = request.prisoner().dateOfBirth!!,
+        probationTeam = probationTeam.description,
+        prison = prison.name,
+        date = appointment.date!!,
+        meetingType = meetingType.description,
+        appointmentInfo = appointment.appointmentInformation(locations),
+        comments = request.comments,
+      )
+    }
+  }
+
   private fun Collection<Contact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
+
+  private fun Collection<Contact>.primaryProbationTeamContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
 
   private fun Collection<Contact>.allContactsWithAnEmailAddress() = filter { it.email != null }
 
