@@ -2,12 +2,13 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
@@ -32,6 +33,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
@@ -64,8 +66,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingR
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingOwnerEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentCreatedEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsPublisher
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCancelledEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCreatedEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingInformation
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
@@ -73,10 +81,13 @@ import java.util.*
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
-  @MockBean
+  @SpyBean
   private lateinit var outboundEventsPublisher: OutboundEventsPublisher
 
   private val domainEventCaptor = argumentCaptor<DomainEvent<*>>()
+
+  @MockBean
+  private lateinit var manageExternalAppointmentsService: ManageExternalAppointmentsService
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
@@ -112,15 +123,6 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
 
-    verify(outboundEventsPublisher, times(1)).send(domainEventCaptor.capture())
-
-    with(domainEventCaptor.firstValue) {
-      eventType isEqualTo "book-a-video-link.video-booking.created"
-      description isEqualTo "A new video booking has been created in the book a video link service"
-    }
-
-    // NOTE: we do not get the appointment created event as this is spawned from the booking created event which doesn't really fire as we are not using local stack containers.
-
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
     with(persistedBooking) {
@@ -134,7 +136,9 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       createdByPrison isEqualTo false
     }
 
-    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+    val persistedAppointment = prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()
+
+    with(persistedAppointment) {
       videoBooking isEqualTo persistedBooking
       prisonCode isEqualTo WERRINGTON
       prisonerNumber isEqualTo "123456"
@@ -162,6 +166,16 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
     notifications.isPresent(TEST_USER_EMAIL, "new court booking owner template id", persistedBooking)
+
+    thereShouldBe {
+      2.publishedMessages {
+        firstValue isInstanceOf VideoBookingCreatedEvent::class.java
+        firstValue.additionalInformation isEqualTo VideoBookingInformation(persistedBooking.videoBookingId)
+
+        secondValue isInstanceOf AppointmentCreatedEvent::class.java
+        secondValue.additionalInformation isEqualTo AppointmentInformation(persistedAppointment.prisonAppointmentId)
+      }
+    }
   }
 
   @Test
@@ -1060,6 +1074,7 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
   @Test
   fun `should cancel a Chesterfield court booking`() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+    prisonerApi().stubGetInternalLocationByKey(birminghamLocation.key, BIRMINGHAM)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
     manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
     manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
@@ -1082,16 +1097,12 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
     webTestClient.cancelBooking(bookingId)
 
-    verify(outboundEventsPublisher, times(2)).send(domainEventCaptor.capture())
-
-    with(domainEventCaptor.firstValue) {
-      eventType isEqualTo "book-a-video-link.video-booking.created"
-      description isEqualTo "A new video booking has been created in the book a video link service"
-    }
-
-    with(domainEventCaptor.secondValue) {
-      eventType isEqualTo "book-a-video-link.video-booking.cancelled"
-      description isEqualTo "A video booking has been cancelled in the book a video link service"
+    thereShouldBe {
+      3.publishedMessages {
+        firstValue isInstanceOf VideoBookingCreatedEvent::class.java
+        secondValue isInstanceOf AppointmentCreatedEvent::class.java
+        thirdValue isInstanceOf VideoBookingCancelledEvent::class.java
+      }
     }
 
     val cancelledBooking = videoBookingRepository.findById(bookingId).orElseThrow()
@@ -1203,6 +1214,17 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
       userMessage isEqualTo "Exception: One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
       developerMessage isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
     }
+  }
+
+  // This is to just aid readability
+  private fun thereShouldBe(f: () -> Unit) {
+    f()
+  }
+
+  private fun Int.publishedMessages(f: KArgumentCaptor<DomainEvent<*>>.() -> Unit) {
+    waitForMessagesOnQueue(this)
+    verify(outboundEventsPublisher, org.mockito.kotlin.times(this)).send(domainEventCaptor.capture())
+    domainEventCaptor.apply(f)
   }
 
   private fun WebTestClient.createBooking(request: CreateVideoBookingRequest, username: String = "booking@creator.com") =

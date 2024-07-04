@@ -44,15 +44,17 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
 
   // Test dependencies
+  testImplementation("com.h2database:h2")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
-  testImplementation("com.h2database:h2")
-  testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit:3.3.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.3.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-json-path:3.3.0")
-  testImplementation("org.springframework.security:spring-security-test")
+  testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
+  testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.springframework.security:spring-security-test")
+  testImplementation("org.testcontainers:localstack:1.19.8")
   testImplementation("org.wiremock:wiremock-standalone:3.8.0")
 }
 

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 
-@Profile("!test && !local")
+@Profile("!local")
 @Component
 class InboundEventsListener(
   private val features: FeatureSwitches,
