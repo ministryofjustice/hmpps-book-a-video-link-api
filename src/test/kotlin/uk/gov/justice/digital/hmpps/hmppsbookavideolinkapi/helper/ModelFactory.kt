@@ -220,7 +220,7 @@ fun requestProbationVideoLinkRequest(
     appointments = appointments.ifEmpty {
       listOf(
         Appointment(
-          type = AppointmentType.VLB_COURT_MAIN,
+          type = AppointmentType.VLB_PROBATION,
           locationKey = location?.key ?: "$prisonCode-$locationSuffix",
           date = tomorrow(),
           startTime = startTime,
