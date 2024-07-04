@@ -259,12 +259,6 @@ class VideoLinkBookingController(
       ApiResponse(
         responseCode = "200",
         description = "The video link booking has been requested",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = Long::class),
-          ),
-        ],
       ),
       ApiResponse(
         responseCode = "401",

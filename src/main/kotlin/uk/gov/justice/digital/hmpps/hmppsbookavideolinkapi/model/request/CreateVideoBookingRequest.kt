@@ -103,7 +103,7 @@ enum class ProbationMeetingType {
 
 data class PrisonerDetails(
 
-  @field:NotEmpty(message = "Prison code is mandatory")
+  @field:NotBlank(message = "Prison code is mandatory")
   @field:Size(max = 3, message = "Prison code should not exceed {max} characters")
   @Schema(description = "The prison code for the prisoner", example = "PVI")
   val prisonCode: String?,
@@ -136,7 +136,7 @@ data class Appointment(
   @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
   val type: AppointmentType?,
 
-  @field:NotEmpty(message = "The location key for the appointment is mandatory")
+  @field:NotBlank(message = "The location key for the appointment is mandatory")
   @field:Size(max = 160, message = "The location key should not exceed {max} characters")
   @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
   val locationKey: String?,

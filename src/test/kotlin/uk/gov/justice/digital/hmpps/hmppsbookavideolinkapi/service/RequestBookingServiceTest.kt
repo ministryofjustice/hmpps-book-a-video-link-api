@@ -220,4 +220,23 @@ class RequestBookingServiceTest {
     verify(emailService, never()).send(any())
     verify(notificationRepository, never()).saveAndFlush(any())
   }
+
+  @Test
+  fun `should throw error if the requested court hearing type is not found`() {
+    whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("COURT_HEARING_TYPE"), any())) doReturn null
+
+    val bookingRequest = requestCourtVideoLinkRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonCode = MOORLAND,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      location = moorlandLocation,
+    )
+
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "court user") }
+    error.message isEqualTo "Court hearing type with code TRIBUNAL not found"
+
+    verify(emailService, never()).send(any())
+    verify(notificationRepository, never()).saveAndFlush(any())
+  }
 }

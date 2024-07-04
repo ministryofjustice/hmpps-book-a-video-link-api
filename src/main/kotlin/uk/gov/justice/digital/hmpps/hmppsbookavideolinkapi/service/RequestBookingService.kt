@@ -59,7 +59,9 @@ class RequestBookingService(
       ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
 
-    val hearingType = referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", request.courtHearingType!!.toString())!!
+    val hearingType = referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", request.courtHearingType!!.toString())
+      ?: throw EntityNotFoundException("Court hearing type with code ${request.courtHearingType} not found")
+
     val locations = locationsInsidePrisonClient.getLocationsByKeys(setOfNotNull(pre?.locationKey, main.locationKey, post?.locationKey)).associateBy { it.key }
     val contacts = contactsService.getContactsForCourtBookingRequest(court, prison, username).allContactsWithAnEmailAddress()
 

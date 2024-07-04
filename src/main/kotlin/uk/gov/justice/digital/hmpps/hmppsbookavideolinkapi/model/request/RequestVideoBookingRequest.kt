@@ -59,7 +59,7 @@ data class RequestVideoBookingRequest(
 
 data class UnknownPrisonerDetails(
 
-  @field:NotEmpty(message = "Prison code is mandatory")
+  @field:NotBlank(message = "Prison code is mandatory")
   @field:Size(max = 3, message = "Prison code should not exceed {max} characters")
   @Schema(description = "The prison code for the prison which the prisoner is due to arrive", example = "PVI")
   val prisonCode: String?,

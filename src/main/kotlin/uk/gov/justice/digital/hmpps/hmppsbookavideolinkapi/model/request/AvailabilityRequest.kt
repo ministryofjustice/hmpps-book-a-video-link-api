@@ -7,7 +7,7 @@ import jakarta.validation.Constraint
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 import jakarta.validation.Payload
-import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.time.Duration
 import java.time.LocalDate
@@ -24,7 +24,7 @@ data class AvailabilityRequest(
   )
   val bookingType: BookingType?,
 
-  @field:NotEmpty(message = "Court or probation team code is mandatory")
+  @field:NotBlank(message = "Court or probation team code is mandatory")
   @Schema(
     description = "The court code or probation team code",
     example = "DRBYMC",
@@ -32,7 +32,7 @@ data class AvailabilityRequest(
   )
   val courtOrProbationCode: String?,
 
-  @field:NotEmpty(message = "The prison code must be present")
+  @field:NotBlank(message = "The prison code must be present")
   @Schema(
     description = "The prison code where these appointment will take place",
     example = "MDI",
@@ -77,7 +77,7 @@ data class AvailabilityRequest(
 @Schema(description = "The prison location key and start/end interval for an appointment slot")
 data class LocationAndInterval(
 
-  @field:NotEmpty(message = "The prison location key must be present")
+  @field:NotBlank(message = "The prison location key must be present")
   @Schema(
     description = "The location of the appointment at the prison",
     example = "VCC-ROOM-1",
