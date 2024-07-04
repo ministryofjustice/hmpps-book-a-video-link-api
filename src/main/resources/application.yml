@@ -122,8 +122,8 @@ notify:
       prison-no-court-email: "a82f319b-1a44-4d0f-aed5-a7b28857cc42"
     probation-booking-request:
       owner: "d401c074-6914-4910-b29c-92b328951925"
-      prison-probation-team-email: "2326fa9d-1627-4c04-8c8d-a6e1ae19a6cb"
-      prison-no-probation-team-email: "a8f74eda-c327-4dde-88db-354843292c6c"
+      prison-probation-team-email: "a8f74eda-c327-4dde-88db-354843292c6c"
+      prison-no-probation-team-email: "2326fa9d-1627-4c04-8c8d-a6e1ae19a6cb"
 
 
 springdoc:
