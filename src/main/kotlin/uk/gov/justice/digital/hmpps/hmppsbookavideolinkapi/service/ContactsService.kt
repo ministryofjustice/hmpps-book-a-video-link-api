@@ -2,7 +2,12 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.*
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -54,18 +59,18 @@ class ContactsService(
   }
 
   fun getContactsForCourtBookingRequest(court: Court, prison: Prison, username: String) = buildContactsListForBookingRequest(
-      contactType = ContactType.COURT,
-      agencyCode =  court.code,
-      prisonCode = prison.code,
-      username = username,
-    )
+    contactType = ContactType.COURT,
+    agencyCode = court.code,
+    prisonCode = prison.code,
+    username = username,
+  )
 
   fun getContactsForProbationBookingRequest(probationTeam: ProbationTeam, prison: Prison, username: String) = buildContactsListForBookingRequest(
-      contactType = ContactType.PROBATION,
-      agencyCode =  probationTeam.code,
-      prisonCode = prison.code,
-      username = username,
-    )
+    contactType = ContactType.PROBATION,
+    agencyCode = probationTeam.code,
+    prisonCode = prison.code,
+    username = username,
+  )
 
   private fun buildContactsListForBookingRequest(
     contactType: ContactType,
@@ -82,7 +87,7 @@ class ContactsService(
         code = "USER",
         name = it.name,
         email = it.email,
-        primaryContact = true
+        primaryContact = true,
       )
     }
     return primaryContacts + prisonContacts + listOfNotNull(userContact)

@@ -198,6 +198,48 @@ fun probationBookingRequest(
   )
 }
 
+fun requestProbationVideoLinkRequest(
+  probationTeamCode: String = "BLKPPP",
+  probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
+  prisonCode: String = "MDI",
+  firstName: String = "John",
+  lastName: String = "Smith",
+  dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
+  locationSuffix: String = "A-1-001",
+  location: Location? = null,
+  startTime: LocalTime = LocalTime.now(),
+  endTime: LocalTime = LocalTime.now().plusHours(1),
+  comments: String = "probation booking comments",
+  appointments: List<Appointment> = emptyList(),
+): RequestVideoBookingRequest {
+  val prisoner = UnknownPrisonerDetails(
+    prisonCode = prisonCode,
+    firstName = firstName,
+    lastName = lastName,
+    dateOfBirth = dateOfBirth,
+    appointments = appointments.ifEmpty {
+      listOf(
+        Appointment(
+          type = AppointmentType.VLB_COURT_MAIN,
+          locationKey = location?.key ?: "$prisonCode-$locationSuffix",
+          date = tomorrow(),
+          startTime = startTime,
+          endTime = endTime,
+        ),
+      )
+    },
+  )
+
+  return RequestVideoBookingRequest(
+    bookingType = BookingType.PROBATION,
+    probationTeamCode = probationTeamCode,
+    probationMeetingType = probationMeetingType,
+    prisoners = listOf(prisoner),
+    comments = comments,
+    videoLinkUrl = "https://video.link.com",
+  )
+}
+
 fun amendCourtBookingRequest(
   courtCode: String = "DRBYMC",
   prisonCode: String = "MDI",

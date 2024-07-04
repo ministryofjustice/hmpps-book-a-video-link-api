@@ -39,92 +39,99 @@ class RequestBookingService(
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
 ) {
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(RequestBookingService::class.java)
   }
 
   fun request(request: RequestVideoBookingRequest, username: String) {
     when (request.bookingType!!) {
-      BookingType.COURT -> sendCourtRequestEmails(request, username)
-      BookingType.PROBATION -> sendProbationRequestEmails(request, username)
+      BookingType.COURT -> processCourtBookingRequest(request, username)
+      BookingType.PROBATION -> processProbationBookingRequest(request, username)
     }
   }
 
-  private fun sendCourtRequestEmails(request: RequestVideoBookingRequest, username: String) {
-    appointmentsService.checkCourtAppointments(request.prisoner().appointments, request.prisoner().prisonCode!!)
+  private fun processCourtBookingRequest(request: RequestVideoBookingRequest, username: String) {
+    val prisoner = request.prisoner()
+    appointmentsService.checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!)
 
-    val (pre, main, post) = getCourtAppointments(request.prisoner())
+    val (pre, main, post) = getCourtAppointments(prisoner)
 
-    val prison = prisonRepository.findByCode(request.prisoner().prisonCode!!)
-      ?.also { require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Prison with code ${request.prisoner().prisonCode} not found")
+    val prison = fetchPrison(prisoner.prisonCode)
+    val court = fetchCourt(request.courtCode!!)
+    val hearingType = fetchReferenceCode("COURT_HEARING_TYPE", request.courtHearingType!!.toString())
 
-    val court = courtRepository.findByCode(request.courtCode!!)
-      ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
-
-    val hearingType = referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", request.courtHearingType!!.toString())
-      ?: throw EntityNotFoundException("Court hearing type with code ${request.courtHearingType} not found")
-
-    val locations = locationsInsidePrisonClient.getLocationsByKeys(setOfNotNull(pre?.locationKey, main.locationKey, post?.locationKey)).associateBy { it.key }
+    val locations = fetchLocations(setOfNotNull(pre?.locationKey, main.locationKey, post?.locationKey))
     val contacts = contactsService.getContactsForCourtBookingRequest(court, prison, username).allContactsWithAnEmailAddress()
 
-    contacts.mapNotNull { contact ->
+    sendEmails(contacts) { contact ->
       when (contact.contactType) {
         ContactType.OWNER -> createCourtOwnerEmail(contact, request, court, prison, hearingType, main, pre, post, locations)
         ContactType.PRISON -> createCourtPrisonEmail(contact, request, court, prison, contacts, hearingType, main, pre, post, locations)
         else -> null
       }
-    }.forEach { email ->
-      sendEmailAndSaveNotification(email)
     }
   }
 
-  private fun sendProbationRequestEmails(request: RequestVideoBookingRequest, username: String) {
-    appointmentsService.checkProbationAppointments(request.prisoner().appointments, request.prisoner().prisonCode!!)
+  private fun processProbationBookingRequest(request: RequestVideoBookingRequest, username: String) {
+    val prisoner = request.prisoner()
+    appointmentsService.checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!)
 
-    val appointment = request.prisoner().appointments.single()
+    val appointment = prisoner.appointments.single()
+    val prison = fetchPrison(prisoner.prisonCode)
+    val probationTeam = fetchProbationTeam(request.probationTeamCode!!)
+    val meetingType = fetchReferenceCode("PROBATION_MEETING_TYPE", request.probationMeetingType!!.toString())
 
-    val prison = prisonRepository.findByCode(request.prisoner().prisonCode!!)
-      ?.also { require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Prison with code ${request.prisoner().prisonCode} not found")
-
-    val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
-      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
-
-    val meetingType = referenceCodeRepository.findByGroupCodeAndCode("PROBATION_MEETING_TYPE", request.probationMeetingType!!.toString())
-      ?: throw EntityNotFoundException("Probation meeting type with code ${request.probationMeetingType} not found")
-
-    val locations = locationsInsidePrisonClient.getLocationsByKeys(setOf(appointment.locationKey!!)).associateBy { it.key }
+    val locations = fetchLocations(setOf(appointment.locationKey!!))
     val contacts = contactsService.getContactsForProbationBookingRequest(probationTeam, prison, username).allContactsWithAnEmailAddress()
 
-    contacts.mapNotNull { contact ->
+    sendEmails(contacts) { contact ->
       when (contact.contactType) {
         ContactType.OWNER -> createProbationOwnerEmail(contact, request, probationTeam, prison, meetingType, appointment, locations)
         ContactType.PRISON -> createProbationPrisonEmail(contact, request, probationTeam, prison, contacts, meetingType, appointment, locations)
         else -> null
       }
-    }.forEach { email ->
-      sendEmailAndSaveNotification(email)
     }
   }
+
+  private fun fetchPrison(prisonCode: String): Prison =
+    prisonRepository.findByCode(prisonCode)
+      ?.also { require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
+
+  private fun fetchCourt(courtCode: String): Court =
+    courtRepository.findByCode(courtCode)
+      ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Court with code $courtCode not found")
+
+  private fun fetchProbationTeam(probationTeamCode: String): ProbationTeam =
+    probationTeamRepository.findByCode(probationTeamCode)
+      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Probation team with code $probationTeamCode not found")
+
+  private fun fetchReferenceCode(groupCode: String, code: String): ReferenceCode =
+    referenceCodeRepository.findByGroupCodeAndCode(groupCode, code)
+      ?: throw EntityNotFoundException("$groupCode with code $code not found")
+
+  private fun fetchLocations(keys: Set<String>): Map<String, Location> =
+    locationsInsidePrisonClient.getLocationsByKeys(keys).associateBy { it.key }
 
   private fun getCourtAppointments(prisoner: UnknownPrisonerDetails): Triple<Appointment?, Appointment, Appointment?> {
     return prisoner.appointments.appointmentsForCourtHearing()
   }
 
-  private fun sendEmailAndSaveNotification(email: Email) {
-    emailService.send(email).onSuccess { (govNotifyId, templateId) ->
-      notificationRepository.saveAndFlush(
-        Notification(
-          email = email.address,
-          govNotifyNotificationId = govNotifyId,
-          templateName = templateId,
-          reason = "Booking request",
-        ),
-      )
-    }.onFailure {
-      log.info("BOOKINGS: Failed to send booking request email for prisoner.")
+  private fun sendEmails(contacts: List<Contact>, emailGenerator: (Contact) -> Email?) {
+    contacts.mapNotNull(emailGenerator).forEach { email ->
+      emailService.send(email).onSuccess { (govNotifyId, templateId) ->
+        notificationRepository.saveAndFlush(
+          Notification(
+            email = email.address,
+            govNotifyNotificationId = govNotifyId,
+            templateName = templateId,
+            reason = "Booking request",
+          ),
+        )
+      }.onFailure {
+        log.info("BOOKINGS: Failed to send booking request email for prisoner.")
+      }
     }
   }
 
@@ -166,9 +173,9 @@ class RequestBookingService(
     post: Appointment?,
     locations: Map<String, Location>,
   ): Email {
-    val primaryCourtContact = contacts.primaryCourtContact()
-    if (primaryCourtContact != null) {
-      return CourtBookingRequestPrisonCourtEmail(
+    val primaryCourtContact = contacts.primaryContact(ContactType.COURT)
+    return if (primaryCourtContact != null) {
+      CourtBookingRequestPrisonCourtEmail(
         address = contact.email!!,
         prisonerFirstName = request.prisoner().firstName!!,
         prisonerLastName = request.prisoner().lastName!!,
@@ -184,7 +191,7 @@ class RequestBookingService(
         comments = request.comments,
       )
     } else {
-      return CourtBookingRequestPrisonNoCourtEmail(
+      CourtBookingRequestPrisonNoCourtEmail(
         address = contact.email!!,
         prisonerFirstName = request.prisoner().firstName!!,
         prisonerLastName = request.prisoner().lastName!!,
@@ -233,9 +240,9 @@ class RequestBookingService(
     appointment: Appointment,
     locations: Map<String, Location>,
   ): Email {
-    val primaryProbationTeamContact = contacts.primaryProbationTeamContact()
-    if (primaryProbationTeamContact != null) {
-      return ProbationBookingRequestPrisonProbationTeamEmail(
+    val primaryProbationTeamContact = contacts.primaryContact(ContactType.PROBATION)
+    return if (primaryProbationTeamContact != null) {
+      ProbationBookingRequestPrisonProbationTeamEmail(
         address = contact.email!!,
         prisonerFirstName = request.prisoner().firstName!!,
         prisonerLastName = request.prisoner().lastName!!,
@@ -249,7 +256,7 @@ class RequestBookingService(
         comments = request.comments,
       )
     } else {
-      return ProbationBookingRequestPrisonNoProbationTeamEmail(
+      ProbationBookingRequestPrisonNoProbationTeamEmail(
         address = contact.email!!,
         prisonerFirstName = request.prisoner().firstName!!,
         prisonerLastName = request.prisoner().lastName!!,
@@ -264,9 +271,7 @@ class RequestBookingService(
     }
   }
 
-  private fun Collection<Contact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
-
-  private fun Collection<Contact>.primaryProbationTeamContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
+  private fun Collection<Contact>.primaryContact(type: ContactType) = singleOrNull { it.contactType == type && it.primaryContact }
 
   private fun Collection<Contact>.allContactsWithAnEmailAddress() = filter { it.email != null }
 
@@ -279,9 +284,7 @@ class RequestBookingService(
   private fun Collection<Appointment>.post() = singleOrNull { it.type == AppointmentType.VLB_COURT_POST }
 
   private fun Appointment.appointmentInformation(locations: Map<String, Location>) =
-    "${locations.room(locationKey!!)} - ${startTime!!.toHourMinuteStyle()} to ${endTime!!.toHourMinuteStyle()}"
-
-  private fun Map<String, Location>.room(key: String) = this[key]?.localName ?: ""
+    "${locations[locationKey]?.localName ?: ""} - ${startTime!!.toHourMinuteStyle()} to ${endTime!!.toHourMinuteStyle()}"
 
   // We will only be requesting appointments for one single prisoner as part of the initial rollout.
   private fun RequestVideoBookingRequest.prisoner() = prisoners.first()

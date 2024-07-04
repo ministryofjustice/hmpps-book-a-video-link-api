@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contact
@@ -30,7 +31,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
@@ -67,17 +70,23 @@ class RequestBookingServiceTest {
   @BeforeEach
   fun before() {
     whenever(courtRepository.findByCode(DERBY_JUSTICE_CENTRE)) doReturn court(DERBY_JUSTICE_CENTRE)
+    whenever(probationTeamRepository.findByCode(BLACKPOOL_MC_PPOC)) doReturn probationTeam(BLACKPOOL_MC_PPOC)
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
     whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("COURT_HEARING_TYPE"), any())) doReturn courtHearingType("Tribunal")
+    whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("PROBATION_MEETING_TYPE"), any())) doReturn courtHearingType("Pre-sentence report")
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
     whenever(contactsService.getContactsForCourtBookingRequest(any(), any(), any())) doReturn listOf(
+      contact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"),
+      contact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
+    )
+    whenever(contactsService.getContactsForProbationBookingRequest(any(), any(), any())) doReturn listOf(
       contact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"),
       contact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
     )
   }
 
   @Test
-  fun `should send emails to the requester and to the prison on a booking request`() {
+  fun `should send emails to the requester and to the prison on a court booking request`() {
     val bookingRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonCode = MOORLAND,
@@ -187,7 +196,7 @@ class RequestBookingServiceTest {
   }
 
   @Test
-  fun `should throw error if the requested prison is not enabled`() {
+  fun `should throw error if the requested prison is not enabled during court booking request`() {
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND, enabled = false)
 
     val bookingRequest = requestCourtVideoLinkRequest(
@@ -206,7 +215,7 @@ class RequestBookingServiceTest {
   }
 
   @Test
-  fun `should throw error if the requested prison is not found`() {
+  fun `should throw error if the requested prison is not found during court booking request`() {
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn null
 
     val bookingRequest = requestCourtVideoLinkRequest(
@@ -237,7 +246,170 @@ class RequestBookingServiceTest {
     )
 
     val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "court user") }
-    error.message isEqualTo "Court hearing type with code TRIBUNAL not found"
+    error.message isEqualTo "COURT_HEARING_TYPE with code TRIBUNAL not found"
+
+    verify(emailService, never()).send(any())
+    verify(notificationRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
+  fun `should send emails to the requester and to the prison on a probation booking request`() {
+    val bookingRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonCode = MOORLAND,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      location = moorlandLocation,
+    )
+
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(any<ProbationBookingRequestOwnerEmail>())) doReturn Result.success(notificationId to "probation template id")
+    whenever(emailService.send(any<ProbationBookingRequestPrisonNoProbationTeamEmail>())) doReturn Result.success(notificationId to "prison template id")
+
+    service.request(bookingRequest, "probation user")
+
+    inOrder(emailService, notificationRepository) {
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
+
+    emailCaptor.allValues hasSize 2
+    with(emailCaptor.firstValue) {
+      this isInstanceOf ProbationBookingRequestOwnerEmail::class.java
+      address isEqualTo "jon@somewhere.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "userName" to "Jon",
+        "probationTeam" to "probation team description",
+        "prison" to "Moorland",
+        "prisonerName" to "John Smith",
+        "dateOfBirth" to "1 Jan 1970",
+        "date" to tomorrow().toMediumFormatStyle(),
+        "meetingType" to "Pre-sentence report",
+        "appointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "comments" to "probation booking comments",
+      )
+    }
+    with(emailCaptor.secondValue) {
+      this isInstanceOf ProbationBookingRequestPrisonNoProbationTeamEmail::class.java
+      address isEqualTo "jon@prison.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "probationTeam" to "probation team description",
+        "prison" to "Moorland",
+        "prisonerName" to "John Smith",
+        "dateOfBirth" to "1 Jan 1970",
+        "date" to tomorrow().toMediumFormatStyle(),
+        "meetingType" to "Pre-sentence report",
+        "appointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "comments" to "probation booking comments",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 2
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@somewhere.com"
+      templateName isEqualTo "probation template id"
+      govNotifyNotificationId isEqualTo notificationId
+    }
+    with(notificationCaptor.secondValue) {
+      email isEqualTo "jon@prison.com"
+      templateName isEqualTo "prison template id"
+      govNotifyNotificationId isEqualTo notificationId
+    }
+  }
+
+  @Test
+  fun `should throw error if the requested probation team is not enabled`() {
+    whenever(probationTeamRepository.findByCode(BLACKPOOL_MC_PPOC)) doReturn probationTeam(BLACKPOOL_MC_PPOC, enabled = false)
+
+    val bookingRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonCode = MOORLAND,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      location = moorlandLocation,
+    )
+
+    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, "probation user") }
+    error.message isEqualTo "Probation team with code $BLACKPOOL_MC_PPOC is not enabled"
+
+    verify(emailService, never()).send(any())
+    verify(notificationRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
+  fun `should throw error if the requested probation team is not found`() {
+    whenever(probationTeamRepository.findByCode(BLACKPOOL_MC_PPOC)) doReturn null
+
+    val bookingRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonCode = MOORLAND,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      location = moorlandLocation,
+    )
+
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "probation user") }
+    error.message isEqualTo "Probation team with code $BLACKPOOL_MC_PPOC not found"
+
+    verify(emailService, never()).send(any())
+    verify(notificationRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
+  fun `should throw error if the requested prison is not enabled during probation booking request`() {
+    whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND, enabled = false)
+
+    val bookingRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonCode = MOORLAND,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      location = moorlandLocation,
+    )
+
+    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, "probation user") }
+    error.message isEqualTo "Prison with code $MOORLAND is not enabled"
+
+    verify(emailService, never()).send(any())
+    verify(notificationRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
+  fun `should throw error if the requested prison is not found during probation booking request`() {
+    whenever(prisonRepository.findByCode(MOORLAND)) doReturn null
+
+    val bookingRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonCode = MOORLAND,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      location = moorlandLocation,
+    )
+
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "probation user") }
+    error.message isEqualTo "Prison with code $MOORLAND not found"
+
+    verify(emailService, never()).send(any())
+    verify(notificationRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
+  fun `should throw error if the requested probation meeting type is not found`() {
+    whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("PROBATION_MEETING_TYPE"), any())) doReturn null
+
+    val bookingRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonCode = MOORLAND,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      location = moorlandLocation,
+    )
+
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "probation user") }
+    error.message isEqualTo "PROBATION_MEETING_TYPE with code PSR not found"
 
     verify(emailService, never()).send(any())
     verify(notificationRepository, never()).saveAndFlush(any())
