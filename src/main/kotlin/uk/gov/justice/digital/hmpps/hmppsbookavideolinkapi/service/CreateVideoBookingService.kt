@@ -56,7 +56,7 @@ class CreateVideoBookingService(
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
       .also { booking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, booking) }
-      .also { log.info("BOOKINGS: court booking ${it.videoBookingId} created") } to prisoner
+      .also { log.info("BOOKINGS: court booking with id ${it.videoBookingId} created") } to prisoner
   }
 
   private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {

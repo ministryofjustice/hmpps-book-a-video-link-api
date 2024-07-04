@@ -3,20 +3,17 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.validation.GroupSequence
 import jakarta.validation.Valid
 import jakarta.validation.constraints.AssertTrue
-import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Past
 import jakarta.validation.constraints.Size
 import java.net.URI
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 
-data class CreateVideoBookingRequest(
+data class RequestVideoBookingRequest(
 
   @field:NotNull(message = "The video link booking type is mandatory")
   @Schema(description = "The booking type", example = "COURT")
@@ -25,7 +22,7 @@ data class CreateVideoBookingRequest(
   @field:Valid
   @field:NotEmpty(message = "At least one prisoner must be supplied for a video link booking")
   @Schema(description = "The prisoner or prisoners associated with the video link booking")
-  val prisoners: List<PrisonerDetails>,
+  val prisoners: List<UnknownPrisonerDetails>,
 
   @Schema(description = "The court code is needed if booking type is COURT, otherwise null", example = "DRBYMC")
   val courtCode: String? = null,
@@ -46,9 +43,6 @@ data class CreateVideoBookingRequest(
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
   @Schema(description = "The video link for the appointment. Must be a valid URL", example = "https://video.here.com")
   val videoLinkUrl: String?,
-
-  @Schema(description = "Set to true when called by a prison request. Will default to false.", example = "false")
-  val createdByPrison: Boolean? = false,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The court code and court hearing type are mandatory for court bookings")
@@ -63,55 +57,26 @@ data class CreateVideoBookingRequest(
   private fun isInvalidUrl() = videoLinkUrl == null || runCatching { URI(videoLinkUrl!!).toURL() }.isSuccess
 }
 
-enum class BookingType {
-  COURT,
-  PROBATION,
-}
-
-enum class CourtHearingType {
-  APPEAL,
-  APPLICATION,
-  BACKER,
-  BAIL,
-  CIVIL,
-  CSE,
-  CTA,
-  IMMIGRATION_DEPORTATION,
-  FAMILY,
-  TRIAL,
-  FCMH,
-  FTR,
-  GRH,
-  MDA,
-  MEF,
-  NEWTON,
-  PLE,
-  PTPH,
-  PTR,
-  POCA,
-  REMAND,
-  SECTION_28,
-  SEN,
-  TRIBUNAL,
-  OTHER,
-}
-
-enum class ProbationMeetingType {
-  PSR,
-  RR,
-}
-
-data class PrisonerDetails(
+data class UnknownPrisonerDetails(
 
   @field:NotBlank(message = "Prison code is mandatory")
   @field:Size(max = 3, message = "Prison code should not exceed {max} characters")
-  @Schema(description = "The prison code for the prisoner", example = "PVI")
+  @Schema(description = "The prison code for the prison which the prisoner is due to arrive", example = "PVI")
   val prisonCode: String?,
 
-  @field:NotBlank(message = "Prisoner number is mandatory")
-  @field:Size(max = 7, message = "Prisoner number must not exceed {max} characters")
-  @Schema(description = "The prisoner number (NOMIS ID)", example = "A1234AA")
-  val prisonerNumber: String?,
+  @field:NotBlank(message = "The prisoner's first name is mandatory")
+  @Schema(description = "The prisoner's first name", example = "Joe")
+  val firstName: String?,
+
+  @field:NotBlank(message = "The prisoner's last name is mandatory")
+  @Schema(description = "The prisoner's last name", example = "Bloggs")
+  val lastName: String?,
+
+  @field:NotNull(message = "The prisoner's date of birth is mandatory")
+  @field:Past(message = "The date of birth must be in the past")
+  @Schema(description = "The prisoner's date of birth", example = "1970-01-01")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "uuuu-MM-dd")
+  val dateOfBirth: LocalDate?,
 
   @field:Valid
   @field:NotEmpty(message = "At least one appointment must be supplied for the prisoner")
@@ -129,51 +94,3 @@ data class PrisonerDetails(
   )
   val appointments: List<Appointment>,
 )
-
-@GroupSequence(Appointment::class, DateValidationExtension::class)
-data class Appointment(
-  @field:NotNull(message = "The appointment type for the appointment is mandatory")
-  @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
-  val type: AppointmentType?,
-
-  @field:NotBlank(message = "The location key for the appointment is mandatory")
-  @field:Size(max = 160, message = "The location key should not exceed {max} characters")
-  @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
-  val locationKey: String?,
-
-  @field:NotNull(message = "The date for the appointment is mandatory")
-  @field:FutureOrPresent(message = "The combination of date and start time for the appointment must be in the future")
-  @Schema(description = "The future date for which the appointment will start", example = "2022-12-23")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "uuuu-MM-dd")
-  val date: LocalDate?,
-
-  @field:NotNull(message = "The start time for the appointment is mandatory")
-  @Schema(description = "Start time for the appointment on the day", example = "10:45")
-  @JsonFormat(pattern = "HH:mm")
-  val startTime: LocalTime?,
-
-  @field:NotNull(message = "The end time for the appointment is mandatory")
-  @Schema(description = "End time for the appointment on the day", example = "11:45")
-  @JsonFormat(pattern = "HH:mm")
-  val endTime: LocalTime?,
-) {
-  @JsonIgnore
-  @AssertTrue(message = "The end time must be after the start time for the appointment", groups = [DateValidationExtension::class])
-  private fun isInvalidTime() = (startTime == null || endTime == null) || startTime.isBefore(endTime)
-
-  @JsonIgnore
-  @AssertTrue(message = "The combination of date and start time for the appointment must be in the future", groups = [DateValidationExtension::class])
-  private fun isInvalidStart() = (date == null || startTime == null) || date.atTime(startTime).isAfter(LocalDateTime.now())
-}
-
-private interface DateValidationExtension
-
-enum class AppointmentType(val isProbation: Boolean, val isCourt: Boolean) {
-  // Probation types
-  VLB_PROBATION(true, false),
-
-  // Court types
-  VLB_COURT_PRE(false, true),
-  VLB_COURT_MAIN(false, true),
-  VLB_COURT_POST(false, true),
-}

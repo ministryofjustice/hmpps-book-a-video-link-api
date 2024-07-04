@@ -8,12 +8,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -32,7 +32,7 @@ class BookingFacade(
   private val createVideoBookingService: CreateVideoBookingService,
   private val amendVideoBookingService: AmendVideoBookingService,
   private val cancelVideoBookingService: CancelVideoBookingService,
-  private val bookingContactsService: BookingContactsService,
+  private val contactsService: ContactsService,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val prisonRepository: PrisonRepository,
   private val emailService: EmailService,
@@ -81,14 +81,14 @@ class BookingFacade(
   private fun sendCourtBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner) {
     val (pre, main, post) = getCourtAppointments(booking)
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
-    val contacts = bookingContactsService.getBookingContacts(booking.videoBookingId).allContactsWithAnEmailAddress()
+    val contacts = contactsService.getBookingContacts(booking.videoBookingId).allContactsWithAnEmailAddress()
     val locations = locationsInsidePrisonClient.getLocationsByKeys(setOfNotNull(pre?.prisonLocKey, main.prisonLocKey, post?.prisonLocKey)).associateBy { it.key }
 
     contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.OWNER -> createCourtOwnerEmail(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
         ContactType.PRISON -> createCourtPrisonEmail(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
-        else -> log.info("BOOKINGS: No contacts found for video booking ID ${booking.videoBookingId}").let { null }
+        else -> null
       }
     }.forEach { email ->
       sendEmailAndSaveNotification(email, booking, eventType)
@@ -101,9 +101,9 @@ class BookingFacade(
 
   private fun sendEmailAndSaveNotification(email: Email, booking: VideoBooking, action: BookingAction) {
     val reason = when (action) {
-      BookingAction.CREATE -> "New court booking request"
-      BookingAction.AMEND -> "Amended court booking request"
-      BookingAction.CANCEL -> "Cancelled court booking request"
+      BookingAction.CREATE -> "New court booking"
+      BookingAction.AMEND -> "Amended court booking"
+      BookingAction.CANCEL -> "Cancelled court booking"
     }
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(

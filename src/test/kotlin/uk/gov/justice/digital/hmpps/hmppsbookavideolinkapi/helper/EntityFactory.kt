@@ -1,9 +1,13 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
@@ -17,7 +21,7 @@ fun court(code: String = DERBY_JUSTICE_CENTRE, enabled: Boolean = true) = Court(
   createdBy = "Test",
 )
 
-fun prison(prisonCode: String, enabled: Boolean = true) = Prison(
+fun prison(prisonCode: String = BIRMINGHAM, enabled: Boolean = true) = Prison(
   prisonId = 0,
   code = prisonCode,
   name = prisonNames[prisonCode] ?: "Unknown prison",
@@ -71,4 +75,32 @@ fun appointment(
   startTime = startTime,
   endTime = endTime,
   locationKey = locationKey,
+)
+
+fun bookingContact(contactType: ContactType, email: String?, name: String? = null) = BookingContact(
+  videoBookingId = 0,
+  contactType = contactType,
+  name = name,
+  position = null,
+  email = email,
+  telephone = null,
+  primaryContact = true,
+)
+
+fun contact(contactType: ContactType, email: String?, name: String? = null) = Contact(
+  contactType = contactType,
+  code = "code",
+  name = name,
+  position = null,
+  email = email,
+  telephone = null,
+  primaryContact = true,
+)
+
+fun courtHearingType(description: String) = ReferenceCode(
+  referenceCodeId = 0,
+  groupCode = "COURT_HEARING_TYPE",
+  code = "code",
+  description = description,
+  createdBy = "Test User",
 )

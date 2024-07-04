@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -32,7 +33,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -47,7 +47,7 @@ class BookingFacadeTest {
   private val createBookingService: CreateVideoBookingService = mock()
   private val amendBookingService: AmendVideoBookingService = mock()
   private val cancelVideoBookingService: CancelVideoBookingService = mock()
-  private val bookingContactsService: BookingContactsService = mock()
+  private val contactsService: ContactsService = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val prisonRepository: PrisonRepository = mock()
   private val emailService: EmailService = mock()
@@ -60,7 +60,7 @@ class BookingFacadeTest {
     createBookingService,
     amendBookingService,
     cancelVideoBookingService,
-    bookingContactsService,
+    contactsService,
     prisonAppointmentRepository,
     prisonRepository,
     emailService,
@@ -84,7 +84,7 @@ class BookingFacadeTest {
   fun before() {
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
-    whenever(bookingContactsService.getBookingContacts(any())) doReturn listOf(
+    whenever(contactsService.getBookingContacts(any())) doReturn listOf(
       bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"),
       bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
     )

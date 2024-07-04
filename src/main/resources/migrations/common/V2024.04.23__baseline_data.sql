@@ -566,6 +566,7 @@ insert into prison_contact (prison_contact_id, prison_id, name, email, telephone
 values (1, 1, 'Tim Hopkins', 't@t.com', '0117 282442', 'Video Admin', true, '', true, 'TIM', current_timestamp),
        (2, 1, 'Matt Hopkins', 'm@m.com', '0117 282443', 'Video Admin', true, '', false, 'TIM', current_timestamp),
        (3, 1, 'Steve Hopkins', 's@s.com', '0117 282444', 'Video Admin', true, '', false, 'TIM', current_timestamp),
-       (4, 33, 'Jane Hopkins', 'j@j.com', '0117 282445', 'Video Admin', true, '', true, 'TIM', current_timestamp);
+       (4, 33, 'Jane Hopkins', 'j@j.com', '0117 282445', 'Video Admin', true, '', true, 'TIM', current_timestamp),
+       (5, 16, 'Robbie Hopkins', 'r@r.com', '0117 282446', 'Video Admin', true, '', true, 'TIM', current_timestamp);
 
-alter sequence if exists prison_contact_prison_contact_id_seq restart with 5;
+alter sequence if exists prison_contact_prison_contact_id_seq restart with 6;
