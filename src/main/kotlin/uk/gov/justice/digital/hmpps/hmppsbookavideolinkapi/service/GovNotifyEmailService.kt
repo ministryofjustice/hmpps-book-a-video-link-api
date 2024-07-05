@@ -33,6 +33,9 @@ class GovNotifyEmailService(
       is CourtBookingRequestOwnerEmail -> send(email, emailTemplates.courtBookingRequestOwner)
       is CourtBookingRequestPrisonCourtEmail -> send(email, emailTemplates.courtBookingRequestPrisonCourtEmail)
       is CourtBookingRequestPrisonNoCourtEmail -> send(email, emailTemplates.courtBookingRequestPrisonNoCourtEmail)
+      is ProbationBookingRequestOwnerEmail -> send(email, emailTemplates.probationBookingRequestOwner)
+      is ProbationBookingRequestPrisonProbationTeamEmail -> send(email, emailTemplates.probationBookingRequestPrisonProbationTeamEmail)
+      is ProbationBookingRequestPrisonNoProbationTeamEmail -> send(email, emailTemplates.probationBookingRequestPrisonNoProbationTeamEmail)
       else -> throw RuntimeException("Unsupported email type ${email.javaClass.simpleName}.")
     }
 
@@ -337,5 +340,72 @@ class CourtBookingRequestPrisonNoCourtEmail(
     addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
     addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
     addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class ProbationBookingRequestOwnerEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  date: LocalDate = LocalDate.now(),
+  userName: String,
+  probationTeam: String,
+  prison: String,
+  meetingType: String,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("userName", userName)
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("prison", prison)
+    addPersonalisation("meetingType", meetingType)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}
+
+class ProbationBookingRequestPrisonProbationTeamEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  date: LocalDate = LocalDate.now(),
+  probationTeam: String,
+  probationTeamEmailAddress: String,
+  prison: String,
+  meetingType: String,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("probationTeamEmailAddress", probationTeamEmailAddress)
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("prison", prison)
+    addPersonalisation("meetingType", meetingType)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}
+
+class ProbationBookingRequestPrisonNoProbationTeamEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  date: LocalDate = LocalDate.now(),
+  probationTeam: String,
+  prison: String,
+  meetingType: String,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("prison", prison)
+    addPersonalisation("meetingType", meetingType)
+    addPersonalisation("appointmentInfo", appointmentInfo)
   }
 }

@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -57,9 +58,29 @@ class ContactsService(
     return listOfContacts.toList()
   }
 
-  fun getContactsForCourtBookingRequest(court: Court, prison: Prison, username: String): List<Contact> {
-    val courtContacts = contactsRepository.findContactsByContactTypeAndCode(ContactType.COURT, court.code)
-    val prisonContacts = contactsRepository.findContactsByContactTypeAndCode(ContactType.PRISON, prison.code)
+  fun getContactsForCourtBookingRequest(court: Court, prison: Prison, username: String) = buildContactsListForBookingRequest(
+    contactType = ContactType.COURT,
+    agencyCode = court.code,
+    prisonCode = prison.code,
+    username = username,
+  )
+
+  fun getContactsForProbationBookingRequest(probationTeam: ProbationTeam, prison: Prison, username: String) = buildContactsListForBookingRequest(
+    contactType = ContactType.PROBATION,
+    agencyCode = probationTeam.code,
+    prisonCode = prison.code,
+    username = username,
+  )
+
+  private fun buildContactsListForBookingRequest(
+    contactType: ContactType,
+    agencyCode: String,
+    prisonCode: String,
+    username: String,
+  ): List<Contact> {
+    val primaryContacts = contactsRepository.findContactsByContactTypeAndCode(contactType, agencyCode)
+    val prisonContacts = contactsRepository.findContactsByContactTypeAndCode(ContactType.PRISON, prisonCode)
+
     val userContact = userService.getContactDetails(username)?.let {
       Contact(
         contactType = ContactType.OWNER,
@@ -69,7 +90,6 @@ class ContactsService(
         primaryContact = true,
       )
     }
-
-    return courtContacts + prisonContacts + listOfNotNull(userContact)
+    return primaryContacts + prisonContacts + listOfNotNull(userContact)
   }
 }

@@ -31,6 +31,9 @@ class EmailConfiguration(
   @Value("\${notify.templates.court-booking-request.owner:}") private val courtBookingRequestOwner: String,
   @Value("\${notify.templates.court-booking-request.prison-court-email:}") private val courtBookingRequestPrisonCourtEmail: String,
   @Value("\${notify.templates.court-booking-request.prison-no-court-email:}") private val courtBookingRequestPrisonNoCourtEmail: String,
+  @Value("\${notify.templates.probation-booking-request.owner:}") private val probationBookingRequestOwner: String,
+  @Value("\${notify.templates.probation-booking-request.prison-probation-team-email:}") private val probationBookingRequestPrisonProbationTeamEmail: String,
+  @Value("\${notify.templates.probation-booking-request.prison-no-probation-team-email:}") private val probationBookingRequestPrisonNoProbationTeamEmail: String,
 ) {
 
   companion object {
@@ -58,6 +61,9 @@ class EmailConfiguration(
     courtBookingRequestOwner = courtBookingRequestOwner,
     courtBookingRequestPrisonCourtEmail = courtBookingRequestPrisonCourtEmail,
     courtBookingRequestPrisonNoCourtEmail = courtBookingRequestPrisonNoCourtEmail,
+    probationBookingRequestOwner = probationBookingRequestOwner,
+    probationBookingRequestPrisonProbationTeamEmail = probationBookingRequestPrisonProbationTeamEmail,
+    probationBookingRequestPrisonNoProbationTeamEmail = probationBookingRequestPrisonNoProbationTeamEmail,
   )
 }
 
@@ -104,4 +110,7 @@ data class EmailTemplates(
   val courtBookingRequestOwner: String,
   val courtBookingRequestPrisonCourtEmail: String,
   val courtBookingRequestPrisonNoCourtEmail: String,
+  val probationBookingRequestOwner: String,
+  val probationBookingRequestPrisonProbationTeamEmail: String,
+  val probationBookingRequestPrisonNoProbationTeamEmail: String,
 )

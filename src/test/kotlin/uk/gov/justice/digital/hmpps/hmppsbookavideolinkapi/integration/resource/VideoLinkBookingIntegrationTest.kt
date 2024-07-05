@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
@@ -36,6 +37,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
@@ -64,6 +66,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingR
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingOwnerEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestOwnerEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonNoProbationTeamEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsPublisher
 import java.time.LocalDate
@@ -1205,6 +1210,112 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
     }
   }
 
+  @Test
+  fun `should request a Blackpool probation team booking and emails sent to Norwich prison`() {
+    notificationRepository.findAll() hasSize 0
+
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(norwichLocation.key), NORWICH)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val probationRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      firstName = "John",
+      lastName = "Smith",
+      dateOfBirth = LocalDate.of(1970, 1, 1),
+      prisonCode = NORWICH,
+      location = norwichLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test probation request comments",
+    )
+
+    webTestClient.requestVideoLink(probationRequest, TEST_USERNAME)
+
+    // There should be 2 notifications - one owner email and 1 prison email
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+
+    notifications.isPresent("r@r.com", "requested probation booking prison template id with email address")
+    notifications.isPresent(TEST_USER_EMAIL, "requested probation booking owner template id")
+  }
+
+  @Test
+  fun `should request a Harrow probation booking and emails sent to Birmingham prison`() {
+    notificationRepository.findAll() hasSize 0
+
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val probationRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = HARROW,
+      firstName = "John",
+      lastName = "Smith",
+      dateOfBirth = LocalDate.of(1970, 1, 1),
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test probation request comments",
+    )
+
+    webTestClient.requestVideoLink(probationRequest, TEST_USERNAME)
+
+    // There should be 2 notifications - one owner email and 1 prison email
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+
+    notifications.isPresent("j@j.com", "requested probation booking prison template id with no email address")
+    notifications.isPresent(TEST_USER_EMAIL, "requested probation booking owner template id")
+  }
+
+  @Test
+  fun `should fail to request a clashing probation booking`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+    )
+
+    webTestClient.createBooking(probationBookingRequest)
+
+    val probationRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      firstName = "John",
+      lastName = "Smith",
+      dateOfBirth = LocalDate.of(1970, 1, 1),
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court request comments",
+    )
+
+    val error = webTestClient.post()
+      .uri("/video-link-booking/request")
+      .bodyValue(probationRequest)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 400
+      userMessage isEqualTo "Exception: Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.key}"
+      developerMessage isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.key}"
+    }
+  }
+
   private fun WebTestClient.createBooking(request: CreateVideoBookingRequest, username: String = "booking@creator.com") =
     this
       .post()
@@ -1300,6 +1411,9 @@ class TestEmailConfiguration {
         is CourtBookingRequestOwnerEmail -> Result.success(UUID.randomUUID() to "requested court booking owner template id")
         is CourtBookingRequestPrisonCourtEmail -> Result.success(UUID.randomUUID() to "requested court booking prison template id with email address")
         is CourtBookingRequestPrisonNoCourtEmail -> Result.success(UUID.randomUUID() to "requested court booking prison template id with no email address")
+        is ProbationBookingRequestOwnerEmail -> Result.success(UUID.randomUUID() to "requested probation booking owner template id")
+        is ProbationBookingRequestPrisonProbationTeamEmail -> Result.success(UUID.randomUUID() to "requested probation booking prison template id with email address")
+        is ProbationBookingRequestPrisonNoProbationTeamEmail -> Result.success(UUID.randomUUID() to "requested probation booking prison template id with no email address")
         else -> throw RuntimeException("Unsupported email")
       }
     }
