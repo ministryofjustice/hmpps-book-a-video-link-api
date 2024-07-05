@@ -9,7 +9,6 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -29,7 +28,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("test-localstack", inheritProfiles = false)
-@DisabledIfEnvironmentVariable(named = "CIRCLE_CI", matches = "true", disabledReason = "Do not run in CI pipeline due to potential timing issues with events processing in tests.")
 abstract class TestContainersIntegrationTestBase : IntegrationTestBase() {
 
   private val mapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
