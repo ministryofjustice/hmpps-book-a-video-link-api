@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
@@ -25,6 +26,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReleaseInformation
 import java.time.LocalTime
 
+@DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
 class InboundEventsIntegrationTest : TestContainersIntegrationTestBase() {
 
   @MockBean

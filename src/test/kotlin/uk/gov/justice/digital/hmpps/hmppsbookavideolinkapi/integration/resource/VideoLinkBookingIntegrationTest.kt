@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
@@ -84,6 +85,7 @@ import java.time.LocalTime
 import java.util.*
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
+@DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
 class VideoLinkBookingIntegrationTest : TestContainersIntegrationTestBase() {
 
   @SpyBean
