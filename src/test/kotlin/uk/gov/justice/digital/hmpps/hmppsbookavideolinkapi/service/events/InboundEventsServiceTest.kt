@@ -49,6 +49,17 @@ class InboundEventsServiceTest {
   }
 
   @Test
+  fun `should call video booking amended handler for a video booking amended event`() {
+    val event1 = VideoBookingAmendedEvent(1)
+    service.process(event1)
+    verify(videoBookingAmendedEventHandler).handle(event1)
+
+    val event2 = VideoBookingAmendedEvent(2)
+    service.process(event2)
+    verify(videoBookingAmendedEventHandler).handle(event2)
+  }
+
+  @Test
   fun `should call video booking cancelled handler when for video booking cancelled event`() {
     val event1 = VideoBookingCancelledEvent(1)
     service.process(event1)

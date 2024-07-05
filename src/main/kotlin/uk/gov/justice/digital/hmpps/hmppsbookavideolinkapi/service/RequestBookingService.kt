@@ -39,7 +39,7 @@ class RequestBookingService(
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
 ) {
   companion object {
-    private val log = LoggerFactory.getLogger(RequestBookingService::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   fun request(request: RequestVideoBookingRequest, username: String) {

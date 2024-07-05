@@ -7,6 +7,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -20,6 +21,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.Pris
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
@@ -241,7 +245,7 @@ class ManageExternalAppointmentsServiceTest {
   }
 
   @Test
-  fun `should create probation appointment via prison api client when appointments rolled out`() {
+  fun `should create probation appointment via prison api client when appointments not rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(probationAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(MOORLAND)) doReturn false
     whenever(prisonerSearchClient.getPrisoner(probationAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(
@@ -432,5 +436,114 @@ class ManageExternalAppointmentsServiceTest {
 
     verifyNoInteractions(activitiesAppointmentsClient)
     verifyNoInteractions(prisonApiClient)
+  }
+
+  @Test
+  fun `Cancel previous - should cancel previous appointment via A&A API when A&A is rolled out`() {
+    val bookingHistory = buildFakeBookingHistory()
+
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode)) doReturn true
+
+    whenever(
+      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        courtAppointment.prisonCode,
+        courtAppointment.prisonerNumber,
+        courtAppointment.appointmentDate,
+        birminghamLocation.locationId,
+      ),
+    ) doReturn listOf(
+      AppointmentSearchResult(
+        appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+        startDate = courtAppointment.appointmentDate,
+        startTime = courtAppointment.startTime.toHourMinuteStyle(),
+        endTime = courtAppointment.endTime.toHourMinuteStyle(),
+        isCancelled = false,
+        isExpired = false,
+        isEdited = false,
+        appointmentId = 99,
+        appointmentSeriesId = 1,
+        appointmentName = "appointment name",
+        attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
+        category = AppointmentCategorySummary("VLB", "video link booking"),
+        inCell = false,
+        isRepeat = false,
+        maxSequenceNumber = 1,
+        prisonCode = courtAppointment.prisonCode,
+        sequenceNumber = 1,
+        internalLocation = AppointmentLocationSummary(
+          birminghamLocation.locationId,
+          courtAppointment.prisonCode,
+          "VIDEO LINK",
+        ),
+      ),
+    )
+
+    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
+
+    service.cancelPreviousAppointment(bookingHistory.appointments().first())
+
+    verify(activitiesAppointmentsClient).cancelAppointment(99)
+    verify(prisonApiClient, times(0)).cancelAppointment(anyLong())
+  }
+
+  @Test
+  fun `Cancel previous - should cancel previous appointment via Prison API when A&A is not rolled out`() {
+    val bookingHistory = buildFakeBookingHistory()
+
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode)) doReturn false
+
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
+    whenever(
+      prisonApiClient.getPrisonersAppointmentsAtLocations(
+        courtAppointment.prisonCode,
+        courtAppointment.prisonerNumber,
+        courtAppointment.appointmentDate,
+        birminghamLocation.locationId,
+      ),
+    ) doReturn listOf(
+      PrisonerSchedule(
+        offenderNo = courtAppointment.prisonerNumber,
+        locationId = 99,
+        firstName = "Bob",
+        lastName = "Builder",
+        eventId = 99,
+        event = "VLB",
+        startTime = courtAppointment.appointmentDate.atTime(courtAppointment.startTime),
+        endTime = courtAppointment.appointmentDate.atTime(courtAppointment.endTime),
+      ),
+    )
+
+    service.cancelPreviousAppointment(bookingHistory.appointments().first())
+
+    verify(activitiesAppointmentsClient, times(0)).cancelAppointment(anyLong())
+    verify(prisonApiClient).cancelAppointment(99)
+  }
+
+  private fun buildFakeBookingHistory(): BookingHistory {
+    val bookingHistory = BookingHistory(
+      bookingHistoryId = 1L,
+      videoBookingId = courtBooking.videoBookingId,
+      historyType = HistoryType.CREATE,
+      courtId = courtBooking.court?.courtId,
+      hearingType = courtBooking.hearingType,
+      createdBy = courtBooking.createdBy,
+    )
+
+    val bookingHistoryAppointment = BookingHistoryAppointment(
+      bookingHistoryAppointmentId = 1L,
+      prisonCode = courtAppointment.prisonCode,
+      prisonerNumber = courtAppointment.prisonerNumber,
+      appointmentDate = courtAppointment.appointmentDate,
+      appointmentType = courtAppointment.appointmentType,
+      prisonLocKey = courtAppointment.prisonLocKey,
+      startTime = courtAppointment.startTime,
+      endTime = courtAppointment.endTime,
+      bookingHistory = bookingHistory,
+    )
+
+    bookingHistory.addBookingHistoryAppointments(listOf(bookingHistoryAppointment))
+
+    return bookingHistory
   }
 }
