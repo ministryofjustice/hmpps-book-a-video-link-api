@@ -1,5 +1,10 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.awaitility.Awaitility
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -16,6 +21,7 @@ import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.container.LocalStackContainer
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiExtension
@@ -24,9 +30,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.EventType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Message
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.MessageAttributes
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -44,6 +56,8 @@ import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 @TestPropertySource(properties = ["feature.events.sns.enabled=true"])
 abstract class IntegrationTestBase {
 
+  private val mapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
+
   @Autowired
   protected lateinit var webTestClient: WebTestClient
 
@@ -59,15 +73,32 @@ abstract class IntegrationTestBase {
 
   @BeforeEach
   fun `clear queue`() {
+    Awaitility.setDefaultPollDelay(1, TimeUnit.MILLISECONDS)
+    Awaitility.setDefaultPollInterval(10, TimeUnit.MILLISECONDS)
     eventsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(eventsQueue.queueUrl).build()).get()
     await untilCallTo { countAllMessagesOnQueue() } matches { it == 0 }
+    Awaitility.setDefaultPollInterval(50, TimeUnit.MILLISECONDS)
   }
 
   protected fun waitForMessagesOnQueue(numberOfMessages: Int) {
-    await untilCallTo { countAllMessagesOnQueue() } matches { it == numberOfMessages }
+    await untilCallTo { countAllMessagesOnQueue().also { println("number messages a q $it") } } matches { it == numberOfMessages }
   }
 
-  private fun countAllMessagesOnQueue(): Int = eventsClient.countAllMessagesOnQueue(eventsQueue.queueUrl).get()
+  protected fun countAllMessagesOnQueue(): Int = eventsClient.countAllMessagesOnQueue(eventsQueue.queueUrl).get()
+
+  protected fun receiveEvent(message: DomainEvent<*>) {
+    eventsClient.sendMessage(SendMessageRequest.builder().queueUrl(eventsQueue.queueUrl).messageBody(raw(message)).build()).get()
+  }
+
+  private fun raw(event: DomainEvent<*>) =
+    mapper.writeValueAsString(
+      Message(
+        "Notification",
+        mapper.writeValueAsString(event),
+        UUID.randomUUID().toString(),
+        MessageAttributes(EventType(Type = "String", Value = event.eventType)),
+      ),
+    )
 
   protected fun setAuthorisation(
     user: String = "AUTH_ADM",

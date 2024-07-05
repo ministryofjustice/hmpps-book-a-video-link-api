@@ -88,6 +88,7 @@ fun courtBookingRequest(
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
   location: Location? = null,
+  date: LocalDate = tomorrow(),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "court booking comments",
@@ -101,7 +102,7 @@ fun courtBookingRequest(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = location?.key ?: "$prisonCode-$locationSuffix",
-          date = tomorrow(),
+          date = date,
           startTime = startTime,
           endTime = endTime,
         ),

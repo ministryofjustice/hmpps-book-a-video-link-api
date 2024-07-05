@@ -10,8 +10,23 @@ import java.time.LocalTime
 interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   fun findByVideoBooking(booking: VideoBooking): List<PrisonAppointment>
 
-  fun findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(prisonCode: String, key: String, date: LocalDate): List<PrisonAppointment>
+  fun findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(
+    prisonCode: String,
+    key: String,
+    date: LocalDate,
+  ): List<PrisonAppointment>
 
-  @Query(value = "SELECT pa FROM PrisonAppointment pa WHERE pa.prisonerNumber = :prisonerNumber AND pa.appointmentDate >= :date AND pa.startTime > :time")
-  fun findPrisonerPrisonAppointmentsAfter(prisonerNumber: String, date: LocalDate, time: LocalTime): List<PrisonAppointment>
+  @Query(
+    value = """
+    SELECT pa FROM PrisonAppointment pa 
+     WHERE pa.prisonerNumber = :prisonerNumber
+       AND (pa.appointmentDate = :date AND pa.startTime > :time)
+        OR (pa.appointmentDate > :date)
+  """,
+  )
+  fun findPrisonerPrisonAppointmentsAfter(
+    prisonerNumber: String,
+    date: LocalDate,
+    time: LocalTime,
+  ): List<PrisonAppointment>
 }

@@ -84,8 +84,6 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
   @SpyBean
   private lateinit var outboundEventsPublisher: OutboundEventsPublisher
 
-  private val domainEventCaptor = argumentCaptor<DomainEvent<*>>()
-
   @MockBean
   private lateinit var manageExternalAppointmentsService: ManageExternalAppointmentsService
 
@@ -1223,8 +1221,13 @@ class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
 
   private fun Int.publishedMessages(f: KArgumentCaptor<DomainEvent<*>>.() -> Unit) {
     waitForMessagesOnQueue(this)
-    verify(outboundEventsPublisher, org.mockito.kotlin.times(this)).send(domainEventCaptor.capture())
-    domainEventCaptor.apply(f)
+
+    val times = this
+
+    argumentCaptor<DomainEvent<*>> {
+      verify(outboundEventsPublisher, org.mockito.kotlin.times(times)).send(capture())
+      this.apply(f)
+    }
   }
 
   private fun WebTestClient.createBooking(request: CreateVideoBookingRequest, username: String = "booking@creator.com") =
