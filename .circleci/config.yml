@@ -31,6 +31,8 @@ jobs:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
+          environment:
+            CIRCLE_CI: "true"
           command: ./gradlew check
       - save_cache:
           paths:

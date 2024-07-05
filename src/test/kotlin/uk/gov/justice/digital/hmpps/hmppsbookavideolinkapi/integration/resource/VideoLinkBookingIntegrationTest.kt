@@ -42,7 +42,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.TestContainersIntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
@@ -84,7 +84,7 @@ import java.time.LocalTime
 import java.util.*
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
-class VideoLinkBookingIntegrationTest : IntegrationTestBase() {
+class VideoLinkBookingIntegrationTest : TestContainersIntegrationTestBase() {
 
   @SpyBean
   private lateinit var outboundEventsPublisher: OutboundEventsPublisher

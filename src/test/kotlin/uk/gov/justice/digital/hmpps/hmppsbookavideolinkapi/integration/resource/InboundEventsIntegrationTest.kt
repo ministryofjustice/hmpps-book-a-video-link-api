@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.TestContainersIntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReleaseInformation
 import java.time.LocalTime
 
-class InboundEventsIntegrationTest : IntegrationTestBase() {
+class InboundEventsIntegrationTest : TestContainersIntegrationTestBase() {
 
   @MockBean
   private lateinit var manageExternalAppointmentsService: ManageExternalAppointmentsService

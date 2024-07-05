@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 
-@Profile("!local")
+@Profile("!test && !local")
 @Component
 class InboundEventsListener(
   private val features: FeatureSwitches,
@@ -24,6 +24,10 @@ class InboundEventsListener(
 ) {
   companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
+
+  init {
+    log.info("LISTENER: SNS enabled = ${features.isEnabled(Feature.SNS_ENABLED)}")
   }
 
   @SqsListener("bvls", factory = "hmppsQueueContainerFactoryProxy")
