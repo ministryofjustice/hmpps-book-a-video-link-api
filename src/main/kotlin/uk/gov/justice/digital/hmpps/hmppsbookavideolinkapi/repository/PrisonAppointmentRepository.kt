@@ -21,8 +21,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
     SELECT pa FROM PrisonAppointment pa 
      WHERE pa.prisonerNumber = :prisonerNumber
        AND pa.videoBooking.statusCode = 'ACTIVE'
-       AND (pa.appointmentDate = :date AND pa.startTime > :time)
-        OR (pa.appointmentDate > :date)
+       AND ((pa.appointmentDate = :date AND pa.startTime > :time) OR (pa.appointmentDate > :date))
   """,
   )
   fun findActivePrisonerPrisonAppointmentsAfter(

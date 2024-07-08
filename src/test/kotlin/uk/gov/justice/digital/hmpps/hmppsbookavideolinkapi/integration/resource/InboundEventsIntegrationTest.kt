@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -21,13 +23,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.InboundEventsListener
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReleasedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReleaseInformation
 import java.time.LocalTime
 
-@DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
 class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
+
+  @SpyBean
+  private lateinit var inboundEventsListener: InboundEventsListener
 
   @MockBean
   private lateinit var manageExternalAppointmentsService: ManageExternalAppointmentsService
@@ -35,6 +40,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
 
+  @DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
   @Test
   fun `should cancel a video booking on receipt of a permanent release event`() {
     videoBookingRepository.findAll() hasSize 0
@@ -74,6 +80,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.CANCELLED
   }
 
+  @DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
   @Test
   fun `should not cancel a video booking on receipt of a temporary release event`() {
     videoBookingRepository.findAll() hasSize 0
@@ -113,6 +120,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
   }
 
+  @DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
   @Sql("classpath:integration-test-data/seed-historic-booking.sql")
   @Test
   fun `should not cancel historic video booking on receipt of a permanent release event`() {
@@ -136,6 +144,55 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     waitForMessagesOnQueue(1)
 
     videoBookingRepository.findById(historicBooking.videoBookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
+  }
+
+  @Test
+  fun `should not attempt to cancel an already cancelled future booking`() {
+    prisonSearchApi().stubGetPrisoner("YD1234", WERRINGTON)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "YD1234",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      date = tomorrow(),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+
+    inboundEventsListener.onMessage(
+      raw(
+        PrisonerReleasedEvent(
+          ReleaseInformation(
+            nomsNumber = "YD1234",
+            prisonId = WERRINGTON,
+            reason = "RELEASED",
+          ),
+        ),
+      ),
+    )
+
+    videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.CANCELLED
+
+    assertDoesNotThrow {
+      inboundEventsListener.onMessage(
+        raw(
+          PrisonerReleasedEvent(
+            ReleaseInformation(
+              nomsNumber = "YD1234",
+              prisonId = WERRINGTON,
+              reason = "RELEASED",
+            ),
+          ),
+        ),
+      )
+    }
   }
 
   private fun WebTestClient.createBooking(

@@ -21,7 +21,6 @@ class PrisonerReleasedEventHandler(
 
   override fun handle(event: PrisonerReleasedEvent) {
     when {
-      // Doing the temporary check first to avoid potentially unnecessary database calls.
       event.isTemporary() -> log.info("RELEASE EVENT HANDLER: Ignoring temporary release event $event")
       event.isPermanent() -> cancelFutureBookingsFor(event.prisonerNumber())
       else -> log.warn("RELEASE EVENT HANDLER: Ignoring unknown release event $event")
