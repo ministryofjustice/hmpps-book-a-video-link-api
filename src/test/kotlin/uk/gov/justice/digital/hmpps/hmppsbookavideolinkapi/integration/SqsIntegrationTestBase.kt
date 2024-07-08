@@ -28,7 +28,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("test-localstack", inheritProfiles = false)
-abstract class TestContainersIntegrationTestBase : IntegrationTestBase() {
+abstract class SqsIntegrationTestBase : IntegrationTestBase() {
 
   private val mapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
 
