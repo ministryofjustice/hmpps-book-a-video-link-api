@@ -7,6 +7,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toOffsetDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import java.time.LocalDateTime
@@ -72,7 +73,7 @@ class OutboundEventsServiceImplTest {
     with(eventCaptor.firstValue) {
       eventType isEqualTo expectedEventType.eventType
       additionalInformation isEqualTo expectedAdditionalInformation
-      occurredAt isCloseTo expectedOccurredAt
+      occurredAt.toOffsetDateTime().toLocalDateTime() isCloseTo expectedOccurredAt
       description isEqualTo expectedDescription
     }
 

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toOffsetString
 import java.time.LocalDateTime
 
 abstract class DomainEvent<T : AdditionalInformation>(
@@ -12,7 +13,7 @@ abstract class DomainEvent<T : AdditionalInformation>(
   val eventType = eventType.eventType
   val description = eventType.description
   val version: String = "1"
-  val occurredAt: LocalDateTime = LocalDateTime.now()
+  val occurredAt: String = LocalDateTime.now().toOffsetString()
 
   fun toEventType() = DomainEventType.valueOf(eventType)
 
