@@ -58,7 +58,7 @@ abstract class SqsIntegrationTestBase : IntegrationTestBase() {
     eventsClient.sendMessage(SendMessageRequest.builder().queueUrl(eventsQueue.queueUrl).messageBody(raw(message)).build()).get()
   }
 
-  private fun raw(event: DomainEvent<*>) =
+  protected fun raw(event: DomainEvent<*>): String =
     mapper.writeValueAsString(
       Message(
         "Notification",
