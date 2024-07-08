@@ -29,8 +29,7 @@ class PrisonerReleasedEventHandler(
   }
 
   private fun cancelFutureBookingsFor(prisonerNumber: String) {
-//    prisonAppointmentRepository.findByPrisonerNumber(prisonerNumber)
-    prisonAppointmentRepository.findPrisonerPrisonAppointmentsAfter(prisonerNumber, LocalDate.now(), LocalTime.now())
+    prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(prisonerNumber, LocalDate.now(), LocalTime.now())
       .ifEmpty {
         log.info("No future bookings currently exists for prisoner $prisonerNumber")
         emptyList()
