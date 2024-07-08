@@ -47,7 +47,7 @@ class PrisonerReleasedEventHandlerTest {
   @Test
   fun `should cancel single video booking on permanent release of prisoner`() {
     whenever(
-      prisonAppointmentRepository.findPrisonerPrisonAppointmentsAfter(
+      prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(
         eq("123456"),
         eq(LocalDate.now()),
         argThat { time -> time.isOnOrAfter(timeNow) },
@@ -55,7 +55,7 @@ class PrisonerReleasedEventHandlerTest {
     ) doReturn listOf(courtAppointment1)
     handler.handle(PrisonerReleasedEvent(ReleaseInformation("123456", "RELEASED", BIRMINGHAM)))
 
-    verify(prisonAppointmentRepository).findPrisonerPrisonAppointmentsAfter(eq("123456"), dateCaptor.capture(), timeCaptor.capture())
+    verify(prisonAppointmentRepository).findActivePrisonerPrisonAppointmentsAfter(eq("123456"), dateCaptor.capture(), timeCaptor.capture())
 
     dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
 
@@ -65,7 +65,7 @@ class PrisonerReleasedEventHandlerTest {
   @Test
   fun `should cancel multiple video bookings on permanent release of prisoner`() {
     whenever(
-      prisonAppointmentRepository.findPrisonerPrisonAppointmentsAfter(
+      prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(
         eq("123456"),
         eq(LocalDate.now()),
         argThat { time -> time.isOnOrAfter(timeNow) },
@@ -74,7 +74,7 @@ class PrisonerReleasedEventHandlerTest {
 
     handler.handle(PrisonerReleasedEvent(ReleaseInformation("123456", "RELEASED", BIRMINGHAM)))
 
-    verify(prisonAppointmentRepository).findPrisonerPrisonAppointmentsAfter(eq("123456"), dateCaptor.capture(), timeCaptor.capture())
+    verify(prisonAppointmentRepository).findActivePrisonerPrisonAppointmentsAfter(eq("123456"), dateCaptor.capture(), timeCaptor.capture())
 
     dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
 
