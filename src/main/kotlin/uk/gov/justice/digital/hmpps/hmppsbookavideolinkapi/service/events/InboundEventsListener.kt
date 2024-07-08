@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
@@ -23,6 +24,10 @@ class InboundEventsListener(
 ) {
   companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
+
+  init {
+    log.info("LISTENER: SNS enabled = ${features.isEnabled(Feature.SNS_ENABLED)}")
   }
 
   @SqsListener("bvls", factory = "hmppsQueueContainerFactoryProxy")
@@ -53,6 +58,7 @@ data class EventType(val Value: String, val Type: String)
 
 data class MessageAttributes(val eventType: EventType)
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(value = PropertyNamingStrategies.UpperCamelCaseStrategy::class)
 data class Message(
   val Type: String,

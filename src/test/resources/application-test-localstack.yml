@@ -1,0 +1,52 @@
+spring:
+
+  main:
+    allow-bean-definition-overriding: true
+
+  jpa:
+    show-sql: true
+
+  datasource:
+    url: 'jdbc:h2:mem:book-a-video-link-db;MODE=PostgreSQL'
+    username: bookavideolink
+    password: dummy
+
+  flyway:
+    locations: classpath:/migrations/common
+
+  h2:
+    console:
+      enabled: true
+
+server:
+  shutdown: immediate
+
+management.endpoint:
+  health.cache.time-to-live: 0
+  info.cache.time-to-live: 0
+
+api:
+  base:
+    url:
+      activities-appointments: http://localhost:8089
+      hmpps-auth: http://localhost:8090/auth
+      locations-inside-prison: http://localhost:8091
+      prisoner-search: http://localhost:8092
+      manage-users: http://localhost:8093
+      prison-api:  http://localhost:8094
+
+hmpps.sqs:
+  provider: localstack
+  queues:
+    bvls:
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
+      subscribeTopicId: domainevents
+  topics:
+    domainevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+
+feature:
+  events:
+    sns:
+      enabled: true

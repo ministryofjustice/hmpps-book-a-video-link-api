@@ -19,7 +19,7 @@ import java.time.LocalTime
 
 class PrisonApiMockServer : MockServer(8094) {
 
-  fun stubGetInternalLocationByKey(key: String, prisonCode: String, description: String) {
+  fun stubGetInternalLocationByKey(key: String, prisonCode: String, description: String = "location description") {
     stubFor(
       get("/api/locations/code/$key")
         .willReturn(

@@ -31,12 +31,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 abstract class IntegrationTestBase {
 
   @Autowired
-  lateinit var webTestClient: WebTestClient
+  protected lateinit var webTestClient: WebTestClient
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthHelper
 
-  internal fun setAuthorisation(
+  protected fun setAuthorisation(
     user: String = "AUTH_ADM",
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
@@ -47,10 +47,11 @@ abstract class IntegrationTestBase {
     HmppsAuthApiExtension.server.stubHealthPing(status)
     locationsInsidePrisonApi().stubHealthPing(status)
     manageUsersApi().stubHealthPing(status)
-    PrisonApiExtension.server.stubHealthPing(status)
+    prisonerApi().stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
   }
 
+  protected fun prisonerApi() = PrisonApiExtension.server
   protected fun prisonSearchApi() = PrisonerSearchApiExtension.server
 
   protected fun locationsInsidePrisonApi() = LocationsInsidePrisonApiExtension.server
