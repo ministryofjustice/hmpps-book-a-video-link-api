@@ -10,5 +10,5 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
  */
 @Repository
 interface ContactsRepository : JpaRepository<Contact, Long> {
-  fun findContactsByContactTypeAndCode(contactType: ContactType, code: String): List<Contact>
+  fun findContactsByContactTypeAndCodeAndPrimaryContactTrue(contactType: ContactType, code: String): List<Contact>
 }

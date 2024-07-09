@@ -9,20 +9,20 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingOwnerEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingOwnerEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonNoCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingOwnerEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
 
 object CourtEmailFactory {
 
-  fun owner(
+  fun user(
     contact: BookingContact,
     prisoner: Prisoner,
     booking: VideoBooking,
@@ -34,7 +34,7 @@ object CourtEmailFactory {
     action: BookingAction,
   ): Email {
     return when (action) {
-      BookingAction.CREATE -> NewCourtBookingOwnerEmail(
+      BookingAction.CREATE -> NewCourtBookingUserEmail(
         address = contact.email!!,
         userName = contact.name ?: "Book Video",
         prisonerFirstName = prisoner.firstName,
@@ -48,7 +48,7 @@ object CourtEmailFactory {
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
       )
-      BookingAction.AMEND -> AmendedCourtBookingOwnerEmail(
+      BookingAction.AMEND -> AmendedCourtBookingUserEmail(
         address = contact.email!!,
         userName = contact.name ?: "Book Video",
         prisonerFirstName = prisoner.firstName,
@@ -61,7 +61,7 @@ object CourtEmailFactory {
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
       )
-      BookingAction.CANCEL -> CancelledCourtBookingOwnerEmail(
+      BookingAction.CANCEL -> CancelledCourtBookingUserEmail(
         address = contact.email!!,
         userName = contact.name ?: "Book Video",
         prisonerFirstName = prisoner.firstName,

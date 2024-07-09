@@ -40,7 +40,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Domain
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.*
+import java.util.UUID
 
 class BookingFacadeTest {
   private val emailCaptor = argumentCaptor<Email>()
@@ -84,8 +84,8 @@ class BookingFacadeTest {
   fun before() {
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
-    whenever(contactsService.getBookingContacts(any())) doReturn listOf(
-      bookingContact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"),
+    whenever(contactsService.getPrimaryBookingContacts(any(), any())) doReturn listOf(
+      bookingContact(contactType = ContactType.USER, email = "jon@somewhere.com", name = "Jon"),
       bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
     )
     whenever(prisonAppointmentRepository.findByVideoBooking(courtBooking)) doReturn courtBooking.appointments()
@@ -100,7 +100,7 @@ class BookingFacadeTest {
 
     val notificationId = UUID.randomUUID()
 
-    whenever(emailService.send(any<CancelledCourtBookingOwnerEmail>())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any<CancelledCourtBookingUserEmail>())) doReturn Result.success(notificationId to "court template id")
     whenever(emailService.send(any<CancelledCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
 
     facade.cancel(1, "facade court user")
@@ -116,7 +116,7 @@ class BookingFacadeTest {
 
     emailCaptor.allValues hasSize 2
     with(emailCaptor.firstValue) {
-      this isInstanceOf CancelledCourtBookingOwnerEmail::class.java
+      this isInstanceOf CancelledCourtBookingUserEmail::class.java
       address isEqualTo "jon@somewhere.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",
@@ -170,7 +170,7 @@ class BookingFacadeTest {
 
     val notificationId = UUID.randomUUID()
 
-    whenever(emailService.send(any<NewCourtBookingOwnerEmail>())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any<NewCourtBookingUserEmail>())) doReturn Result.success(notificationId to "court template id")
     whenever(emailService.send(any<NewCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
 
     facade.create(bookingRequest, "facade court user")
@@ -186,7 +186,7 @@ class BookingFacadeTest {
 
     emailCaptor.allValues hasSize 2
     with(emailCaptor.firstValue) {
-      this isInstanceOf NewCourtBookingOwnerEmail::class.java
+      this isInstanceOf NewCourtBookingUserEmail::class.java
       address isEqualTo "jon@somewhere.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",
@@ -240,7 +240,7 @@ class BookingFacadeTest {
 
     val notificationId = UUID.randomUUID()
 
-    whenever(emailService.send(any<AmendedCourtBookingOwnerEmail>())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(notificationId to "court template id")
     whenever(emailService.send(any<AmendedCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
 
     facade.amend(1, bookingRequest, "facade court user")
@@ -255,7 +255,7 @@ class BookingFacadeTest {
 
     emailCaptor.allValues hasSize 2
     with(emailCaptor.firstValue) {
-      this isInstanceOf AmendedCourtBookingOwnerEmail::class.java
+      this isInstanceOf AmendedCourtBookingUserEmail::class.java
       address isEqualTo "jon@somewhere.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",

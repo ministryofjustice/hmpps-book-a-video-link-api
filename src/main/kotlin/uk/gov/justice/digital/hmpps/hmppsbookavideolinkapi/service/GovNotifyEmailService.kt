@@ -21,19 +21,19 @@ class GovNotifyEmailService(
 
   override fun send(email: Email): Result<Pair<UUID, TemplateId>> =
     when (email) {
-      is NewCourtBookingOwnerEmail -> send(email, emailTemplates.newCourtBookingOwner)
+      is NewCourtBookingUserEmail -> send(email, emailTemplates.newCourtBookingUser)
       is NewCourtBookingPrisonCourtEmail -> send(email, emailTemplates.newCourtBookingPrisonCourtEmail)
       is NewCourtBookingPrisonNoCourtEmail -> send(email, emailTemplates.newCourtBookingPrisonNoCourtEmail)
-      is AmendedCourtBookingOwnerEmail -> send(email, emailTemplates.amendedCourtBookingOwner)
+      is AmendedCourtBookingUserEmail -> send(email, emailTemplates.amendedCourtBookingUser)
       is AmendedCourtBookingPrisonCourtEmail -> send(email, emailTemplates.amendedCourtBookingPrisonCourtEmail)
       is AmendedCourtBookingPrisonNoCourtEmail -> send(email, emailTemplates.amendedCourtBookingPrisonNoCourtEmail)
-      is CancelledCourtBookingOwnerEmail -> send(email, emailTemplates.cancelledCourtBookingOwner)
+      is CancelledCourtBookingUserEmail -> send(email, emailTemplates.cancelledCourtBookingUser)
       is CancelledCourtBookingPrisonCourtEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonCourtEmail)
       is CancelledCourtBookingPrisonNoCourtEmail -> send(email, emailTemplates.cancelledCourtBookingPrisonNoCourtEmail)
-      is CourtBookingRequestOwnerEmail -> send(email, emailTemplates.courtBookingRequestOwner)
+      is CourtBookingRequestUserEmail -> send(email, emailTemplates.courtBookingRequestUser)
       is CourtBookingRequestPrisonCourtEmail -> send(email, emailTemplates.courtBookingRequestPrisonCourtEmail)
       is CourtBookingRequestPrisonNoCourtEmail -> send(email, emailTemplates.courtBookingRequestPrisonNoCourtEmail)
-      is ProbationBookingRequestOwnerEmail -> send(email, emailTemplates.probationBookingRequestOwner)
+      is ProbationBookingRequestUserEmail -> send(email, emailTemplates.probationBookingRequestUser)
       is ProbationBookingRequestPrisonProbationTeamEmail -> send(email, emailTemplates.probationBookingRequestPrisonProbationTeamEmail)
       is ProbationBookingRequestPrisonNoProbationTeamEmail -> send(email, emailTemplates.probationBookingRequestPrisonNoProbationTeamEmail)
       else -> throw RuntimeException("Unsupported email type ${email.javaClass.simpleName}.")
@@ -47,7 +47,7 @@ class GovNotifyEmailService(
       .onFailure { exception -> log.info("EMAIL: failed to send ${email.javaClass.simpleName} email.", exception) }
 }
 
-class NewCourtBookingOwnerEmail(
+class NewCourtBookingUserEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
@@ -120,7 +120,7 @@ class NewCourtBookingPrisonNoCourtEmail(
   }
 }
 
-class AmendedCourtBookingOwnerEmail(
+class AmendedCourtBookingUserEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
@@ -191,7 +191,7 @@ class AmendedCourtBookingPrisonNoCourtEmail(
   }
 }
 
-class CancelledCourtBookingOwnerEmail(
+class CancelledCourtBookingUserEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
@@ -264,7 +264,7 @@ class CancelledCourtBookingPrisonNoCourtEmail(
   }
 }
 
-class CourtBookingRequestOwnerEmail(
+class CourtBookingRequestUserEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
@@ -343,7 +343,7 @@ class CourtBookingRequestPrisonNoCourtEmail(
   }
 }
 
-class ProbationBookingRequestOwnerEmail(
+class ProbationBookingRequestUserEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,

@@ -49,7 +49,7 @@ values ( 1, 'COURT_HEARING_TYPE', 'APPEAL', 'Appeal', 'TIM', current_timestamp),
        (44, 'NOTIFY_REASON', 'NOTIFY_COURT', 'Notify court contact', 'TIM', current_timestamp),
        (45, 'NOTIFY_REASON', 'NOTIFY_PROBATION', 'Notify probation contact', 'TIM', current_timestamp),
        (46, 'NOTIFY_REASON', 'NOTIFY_PRISON', 'Notify prison contact', 'TIM', current_timestamp),
-       (47, 'NOTIFY_REASON', 'NOTIFY_OWNER', 'Notify owner', 'TIM', current_timestamp),
+       (47, 'NOTIFY_REASON', 'NOTIFY_USER', 'Notify user', 'TIM', current_timestamp),
        (48, 'HISTORY_TYPE', 'HIST_CREATED', 'Created', 'TIM', current_timestamp),
        (49, 'HISTORY_TYPE', 'HIST_AMENDED', 'Amended', 'TIM', current_timestamp),
        (50, 'HISTORY_TYPE', 'HIST_CANCELLED', 'Cancelled', 'TIM', current_timestamp);

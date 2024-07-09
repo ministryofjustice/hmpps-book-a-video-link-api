@@ -64,7 +64,7 @@ class RequestBookingService(
 
     sendEmails(contacts) { contact ->
       when (contact.contactType) {
-        ContactType.OWNER -> createCourtOwnerEmail(contact, request, court, prison, hearingType, main, pre, post, locations)
+        ContactType.USER -> createCourtUserEmail(contact, request, court, prison, hearingType, main, pre, post, locations)
         ContactType.PRISON -> createCourtPrisonEmail(contact, request, court, prison, contacts, hearingType, main, pre, post, locations)
         else -> null
       }
@@ -85,7 +85,7 @@ class RequestBookingService(
 
     sendEmails(contacts) { contact ->
       when (contact.contactType) {
-        ContactType.OWNER -> createProbationOwnerEmail(contact, request, probationTeam, prison, meetingType, appointment, locations)
+        ContactType.USER -> createProbationUserEmail(contact, request, probationTeam, prison, meetingType, appointment, locations)
         ContactType.PRISON -> createProbationPrisonEmail(contact, request, probationTeam, prison, contacts, meetingType, appointment, locations)
         else -> null
       }
@@ -135,7 +135,7 @@ class RequestBookingService(
     }
   }
 
-  private fun createCourtOwnerEmail(
+  private fun createCourtUserEmail(
     contact: Contact,
     request: RequestVideoBookingRequest,
     court: Court,
@@ -145,7 +145,7 @@ class RequestBookingService(
     pre: Appointment?,
     post: Appointment?,
     locations: Map<String, Location>,
-  ) = CourtBookingRequestOwnerEmail(
+  ) = CourtBookingRequestUserEmail(
     address = contact.email!!,
     userName = contact.name ?: "Book Video",
     prisonerFirstName = request.prisoner().firstName!!,
@@ -208,7 +208,7 @@ class RequestBookingService(
     }
   }
 
-  private fun createProbationOwnerEmail(
+  private fun createProbationUserEmail(
     contact: Contact,
     request: RequestVideoBookingRequest,
     probationTeam: ProbationTeam,
@@ -216,7 +216,7 @@ class RequestBookingService(
     meetingType: ReferenceCode,
     appointment: Appointment,
     locations: Map<String, Location>,
-  ) = ProbationBookingRequestOwnerEmail(
+  ) = ProbationBookingRequestUserEmail(
     address = contact.email!!,
     userName = contact.name ?: "Book Video",
     prisonerFirstName = request.prisoner().firstName!!,

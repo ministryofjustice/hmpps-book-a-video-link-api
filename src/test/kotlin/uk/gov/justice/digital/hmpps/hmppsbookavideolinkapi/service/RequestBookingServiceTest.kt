@@ -76,11 +76,11 @@ class RequestBookingServiceTest {
     whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("PROBATION_MEETING_TYPE"), any())) doReturn courtHearingType("Pre-sentence report")
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
     whenever(contactsService.getContactsForCourtBookingRequest(any(), any(), any())) doReturn listOf(
-      contact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"),
+      contact(contactType = ContactType.USER, email = "jon@somewhere.com", name = "Jon"),
       contact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
     )
     whenever(contactsService.getContactsForProbationBookingRequest(any(), any(), any())) doReturn listOf(
-      contact(contactType = ContactType.OWNER, email = "jon@somewhere.com", name = "Jon"),
+      contact(contactType = ContactType.USER, email = "jon@somewhere.com", name = "Jon"),
       contact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
     )
   }
@@ -97,7 +97,7 @@ class RequestBookingServiceTest {
 
     val notificationId = UUID.randomUUID()
 
-    whenever(emailService.send(any<CourtBookingRequestOwnerEmail>())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any<CourtBookingRequestUserEmail>())) doReturn Result.success(notificationId to "court template id")
     whenever(emailService.send(any<CourtBookingRequestPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
 
     service.request(bookingRequest, "court user")
@@ -111,7 +111,7 @@ class RequestBookingServiceTest {
 
     emailCaptor.allValues hasSize 2
     with(emailCaptor.firstValue) {
-      this isInstanceOf CourtBookingRequestOwnerEmail::class.java
+      this isInstanceOf CourtBookingRequestUserEmail::class.java
       address isEqualTo "jon@somewhere.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",
@@ -264,7 +264,7 @@ class RequestBookingServiceTest {
 
     val notificationId = UUID.randomUUID()
 
-    whenever(emailService.send(any<ProbationBookingRequestOwnerEmail>())) doReturn Result.success(notificationId to "probation template id")
+    whenever(emailService.send(any<ProbationBookingRequestUserEmail>())) doReturn Result.success(notificationId to "probation template id")
     whenever(emailService.send(any<ProbationBookingRequestPrisonNoProbationTeamEmail>())) doReturn Result.success(notificationId to "prison template id")
 
     service.request(bookingRequest, "probation user")
@@ -278,7 +278,7 @@ class RequestBookingServiceTest {
 
     emailCaptor.allValues hasSize 2
     with(emailCaptor.firstValue) {
-      this isInstanceOf ProbationBookingRequestOwnerEmail::class.java
+      this isInstanceOf ProbationBookingRequestUserEmail::class.java
       address isEqualTo "jon@somewhere.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",
