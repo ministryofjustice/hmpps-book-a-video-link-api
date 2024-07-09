@@ -42,6 +42,12 @@ class GovNotifyEmailServiceTest {
     probationBookingRequestUser = "template 13",
     probationBookingRequestPrisonProbationTeamEmail = "template 14",
     probationBookingRequestPrisonNoProbationTeamEmail = "template 15",
+    transferCourtBookingUser = "template 16",
+    transferCourtBookingPrisonCourtEmail = "template 17",
+    transferCourtBookingPrisonNoCourtEmail = "template 18",
+    releaseCourtBookingUser = "template 19",
+    releaseCourtBookingPrisonCourtEmail = "template 20",
+    releaseCourtBookingPrisonNoCourtEmail = "template 21",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)

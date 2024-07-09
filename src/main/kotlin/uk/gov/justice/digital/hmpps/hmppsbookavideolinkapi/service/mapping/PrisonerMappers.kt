@@ -8,4 +8,5 @@ fun Prisoner.toPrisonerDetails() = ModelPrisoner(
   prisonCode = this.prisonId!!,
   firstName = this.firstName,
   lastName = this.lastName,
+  dateOfBirth = this.dateOfBirth,
 )

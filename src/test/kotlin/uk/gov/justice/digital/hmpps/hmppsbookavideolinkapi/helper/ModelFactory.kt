@@ -53,6 +53,7 @@ fun prisonerSearchPrisoner(
   firstName = firstName,
   lastName = lastName,
   bookingId = bookingId.toString(),
+  dateOfBirth = LocalDate.of(2000, 1, 1),
 )
 
 fun userEmail(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, email, verified)
@@ -80,6 +81,7 @@ fun prisoner(
   prisonCode = prisonCode,
   firstName = firstName,
   lastName = lastName,
+  dateOfBirth = LocalDate.of(2000, 1, 1),
 )
 
 fun courtBookingRequest(

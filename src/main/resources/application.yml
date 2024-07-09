@@ -124,6 +124,14 @@ notify:
       user: "d401c074-6914-4910-b29c-92b328951925"
       prison-probation-team-email: "a8f74eda-c327-4dde-88db-354843292c6c"
       prison-no-probation-team-email: "2326fa9d-1627-4c04-8c8d-a6e1ae19a6cb"
+    transfer-court-booking:
+      user: "3fe1e9d5-3319-496c-90df-0115087cd31b"
+      prison-court-email: "6fdf202b-01f9-48e7-b216-35c695f84df3"
+      prison-no-court-email: "0498e8d9-a2ea-4e00-9e5c-96d1d3cd6cb9"
+    release-court-booking:
+      user: "55817f53-211c-442d-ac6f-f3fda3adee84"
+      prison-court-email: "e5bbd8a8-f59c-4670-9ba3-fd4cda922a21"
+      prison-no-court-email: "da59e795-aef6-4cb9-be68-54435df8c8b1"
 
 
 springdoc:

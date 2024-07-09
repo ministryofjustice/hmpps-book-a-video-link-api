@@ -22,22 +22,29 @@ class PrisonerReleasedEventHandler(
   override fun handle(event: PrisonerReleasedEvent) {
     when {
       event.isTemporary() -> log.info("RELEASE EVENT HANDLER: Ignoring temporary release event $event")
-      event.isPermanent() -> cancelFutureBookingsFor(event.prisonerNumber())
+      event.isTransferred() || event.isPermanent() -> processRelease(event)
       else -> log.warn("RELEASE EVENT HANDLER: Ignoring unknown release event $event")
     }
   }
 
-  private fun cancelFutureBookingsFor(prisonerNumber: String) {
-    prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(prisonerNumber, LocalDate.now(), LocalTime.now())
+  private fun processRelease(event: PrisonerReleasedEvent) {
+    prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(event.prisonerNumber(), LocalDate.now(), LocalTime.now())
       .ifEmpty {
-        log.info("No future bookings currently exists for prisoner $prisonerNumber")
+        log.info("RELEASE EVENT HANDLER: no bookings affected for release event $event")
         emptyList()
       }
       .map { it.videoBooking.videoBookingId }
       .distinct()
       .forEach { booking ->
-        log.info("RELEASE EVENT HANDLER: cancelling video booking $booking for prisoner number $prisonerNumber")
-        bookingFacade.cancel(booking, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+        if (event.isTransferred()) {
+          log.info("RELEASE EVENT HANDLER: processing transfer event $event")
+          bookingFacade.prisonerTransferred(booking, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+        } else if (event.isPermanent()) {
+          log.info("RELEASE EVENT HANDLER: processing release event $event")
+          bookingFacade.prisonerReleased(booking, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+        } else {
+          log.info("RELEASE EVENT HANDLER: no action taken for release event $event")
+        }
       }
   }
 }

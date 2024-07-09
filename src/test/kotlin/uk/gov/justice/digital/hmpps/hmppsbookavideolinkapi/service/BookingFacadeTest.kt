@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -93,7 +94,7 @@ class BookingFacadeTest {
 
   @Test
   fun `should send cancellation court booking emails and booking cancellation event on cancellation of court booking`() {
-    val prisoner = Prisoner(courtBooking.prisoner(), MOORLAND, "Bob", "Builder")
+    val prisoner = Prisoner(courtBooking.prisoner(), MOORLAND, "Bob", "Builder", yesterday())
 
     whenever(cancelVideoBookingService.cancel(1, "facade court user")) doReturn courtBooking
     whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner

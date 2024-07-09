@@ -45,7 +45,7 @@ class PrisonerReleasedEventHandlerTest {
   }
 
   @Test
-  fun `should cancel single video booking on permanent release of prisoner`() {
+  fun `should release single video booking on permanent release of prisoner`() {
     whenever(
       prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(
         eq("123456"),
@@ -59,11 +59,11 @@ class PrisonerReleasedEventHandlerTest {
 
     dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
 
-    verify(bookingFacade).cancel(courtBooking.videoBookingId, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+    verify(bookingFacade).prisonerReleased(courtBooking.videoBookingId, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
   }
 
   @Test
-  fun `should cancel multiple video bookings on permanent release of prisoner`() {
+  fun `should release multiple video bookings on permanent release of prisoner`() {
     whenever(
       prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(
         eq("123456"),
@@ -72,13 +72,51 @@ class PrisonerReleasedEventHandlerTest {
       ),
     ) doReturn listOf(courtAppointment1, courtAppointment2, probationAppointment)
 
-    handler.handle(PrisonerReleasedEvent(ReleaseInformation("123456", "RELEASED", BIRMINGHAM)))
+    handler.handle(PrisonerReleasedEvent(ReleaseInformation("123456", "RELEASED_TO_HOSPITAL", BIRMINGHAM)))
 
     verify(prisonAppointmentRepository).findActivePrisonerPrisonAppointmentsAfter(eq("123456"), dateCaptor.capture(), timeCaptor.capture())
 
     dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
 
-    verify(bookingFacade).cancel(1, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
-    verify(bookingFacade).cancel(2, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+    verify(bookingFacade).prisonerReleased(1, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+    verify(bookingFacade).prisonerReleased(2, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+  }
+
+  @Test
+  fun `should transfer single video booking on permanent release of prisoner`() {
+    whenever(
+      prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(
+        eq("123456"),
+        eq(LocalDate.now()),
+        argThat { time -> time.isOnOrAfter(timeNow) },
+      ),
+    ) doReturn listOf(courtAppointment1)
+    handler.handle(PrisonerReleasedEvent(ReleaseInformation("123456", "TRANSFERRED", BIRMINGHAM)))
+
+    verify(prisonAppointmentRepository).findActivePrisonerPrisonAppointmentsAfter(eq("123456"), dateCaptor.capture(), timeCaptor.capture())
+
+    dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
+
+    verify(bookingFacade).prisonerTransferred(courtBooking.videoBookingId, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+  }
+
+  @Test
+  fun `should transfer multiple video bookings on permanent release of prisoner`() {
+    whenever(
+      prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(
+        eq("123456"),
+        eq(LocalDate.now()),
+        argThat { time -> time.isOnOrAfter(timeNow) },
+      ),
+    ) doReturn listOf(courtAppointment1, courtAppointment2, probationAppointment)
+
+    handler.handle(PrisonerReleasedEvent(ReleaseInformation("123456", "TRANSFERRED", BIRMINGHAM)))
+
+    verify(prisonAppointmentRepository).findActivePrisonerPrisonAppointmentsAfter(eq("123456"), dateCaptor.capture(), timeCaptor.capture())
+
+    dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
+
+    verify(bookingFacade).prisonerTransferred(1, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+    verify(bookingFacade).prisonerTransferred(2, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
   }
 }

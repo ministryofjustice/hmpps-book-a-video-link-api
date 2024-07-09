@@ -34,6 +34,12 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation-booking-request.user:}") private val probationBookingRequestUser: String,
   @Value("\${notify.templates.probation-booking-request.prison-probation-team-email:}") private val probationBookingRequestPrisonProbationTeamEmail: String,
   @Value("\${notify.templates.probation-booking-request.prison-no-probation-team-email:}") private val probationBookingRequestPrisonNoProbationTeamEmail: String,
+  @Value("\${notify.templates.transfer-court-booking.user:}") private val transferCourtBookingUser: String,
+  @Value("\${notify.templates.transfer-court-booking.prison-court-email:}") private val transferCourtBookingPrisonCourtEmail: String,
+  @Value("\${notify.templates.transfer-court-booking.prison-no-court-email:}") private val transferCourtBookingPrisonNoCourtEmail: String,
+  @Value("\${notify.templates.release-court-booking.user:}") private val releaseCourtBookingUser: String,
+  @Value("\${notify.templates.release-court-booking.prison-court-email:}") private val releaseCourtBookingPrisonCourtEmail: String,
+  @Value("\${notify.templates.release-court-booking.prison-no-court-email:}") private val releaseCourtBookingPrisonNoCourtEmail: String,
 ) {
 
   companion object {
@@ -64,6 +70,12 @@ class EmailConfiguration(
     probationBookingRequestUser = probationBookingRequestUser,
     probationBookingRequestPrisonProbationTeamEmail = probationBookingRequestPrisonProbationTeamEmail,
     probationBookingRequestPrisonNoProbationTeamEmail = probationBookingRequestPrisonNoProbationTeamEmail,
+    transferCourtBookingUser = transferCourtBookingUser,
+    transferCourtBookingPrisonCourtEmail = transferCourtBookingPrisonCourtEmail,
+    transferCourtBookingPrisonNoCourtEmail = transferCourtBookingPrisonNoCourtEmail,
+    releaseCourtBookingUser = releaseCourtBookingUser,
+    releaseCourtBookingPrisonCourtEmail = releaseCourtBookingPrisonCourtEmail,
+    releaseCourtBookingPrisonNoCourtEmail = releaseCourtBookingPrisonNoCourtEmail,
   )
 }
 
@@ -113,4 +125,10 @@ data class EmailTemplates(
   val probationBookingRequestUser: String,
   val probationBookingRequestPrisonProbationTeamEmail: String,
   val probationBookingRequestPrisonNoProbationTeamEmail: String,
+  val transferCourtBookingUser: String,
+  val transferCourtBookingPrisonCourtEmail: String,
+  val transferCourtBookingPrisonNoCourtEmail: String,
+  val releaseCourtBookingUser: String,
+  val releaseCourtBookingPrisonCourtEmail: String,
+  val releaseCourtBookingPrisonNoCourtEmail: String,
 )

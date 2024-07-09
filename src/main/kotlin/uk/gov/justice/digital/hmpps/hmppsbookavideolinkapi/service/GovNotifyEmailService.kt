@@ -409,3 +409,153 @@ class ProbationBookingRequestPrisonNoProbationTeamEmail(
     addPersonalisation("appointmentInfo", appointmentInfo)
   }
 }
+
+class TransferredCourtBookingUserEmail(
+  address: String,
+  court: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class ReleasedCourtBookingUserEmail(
+  address: String,
+  court: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class ReleasedCourtBookingPrisonCourtEmail(
+  address: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  court: String,
+  date: LocalDate = LocalDate.now(),
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class ReleasedCourtBookingPrisonNoCourtEmail(
+  address: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  court: String,
+  date: LocalDate = LocalDate.now(),
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class TransferredCourtBookingPrisonCourtEmail(
+  address: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  court: String,
+  date: LocalDate = LocalDate.now(),
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
+class TransferredCourtBookingPrisonNoCourtEmail(
+  address: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  court: String,
+  date: LocalDate = LocalDate.now(),
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
