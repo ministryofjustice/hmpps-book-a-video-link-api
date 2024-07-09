@@ -51,7 +51,7 @@ data class UniquePropertyId(val contactType: ContactType?, val email: String?) :
 data class ContactDetails(val name: String, val email: String?)
 
 enum class ContactType {
-  OWNER,
+  USER,
   COURT,
   PROBATION,
   PRISON,

@@ -31,7 +31,7 @@ class ContactsServiceTest {
   private val service = ContactsService(bookingContactsRepository, contactsRepository, videoBookingRepository, userService)
 
   @Test
-  fun `getBookingContacts should return contacts`() {
+  fun `getAllBookingContacts should return contacts`() {
     val videoBookingId = 1L
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
     val booking = courtBooking("createdByUser").apply { amendedBy = "amendedByUser" }
@@ -41,7 +41,7 @@ class ContactsServiceTest {
     whenever(userService.getContactDetails("createdByUser")) doReturn ContactDetails("Created User", "created@example.com")
     whenever(userService.getContactDetails("amendedByUser")) doReturn ContactDetails("Amended User", "amended@example.com")
 
-    val result = service.getBookingContacts(videoBookingId)
+    val result = service.getAllBookingContacts(videoBookingId)
 
     result hasSize 3
     result.any { it.name == "Created User" && it.primaryContact } isBool true
@@ -49,11 +49,11 @@ class ContactsServiceTest {
   }
 
   @Test
-  fun `getBookingContacts should throw EntityNotFoundException when no booking found`() {
+  fun `getAllBookingContacts should throw EntityNotFoundException when no booking found`() {
     val videoBookingId = 1L
     whenever(videoBookingRepository.findById(videoBookingId)) doReturn Optional.empty()
 
-    val exception = assertThrows<EntityNotFoundException> { service.getBookingContacts(videoBookingId) }
+    val exception = assertThrows<EntityNotFoundException> { service.getAllBookingContacts(videoBookingId) }
 
     exception.message isEqualTo "Video booking with ID $videoBookingId not found"
   }
@@ -68,8 +68,8 @@ class ContactsServiceTest {
     val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
     val userContactDetails = ContactDetails("User Name", "user@example.com")
 
-    whenever(contactsRepository.findContactsByContactTypeAndCode(ContactType.COURT, court.code)) doReturn listOf(courtContact)
-    whenever(contactsRepository.findContactsByContactTypeAndCode(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.COURT, court.code)) doReturn listOf(courtContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
     whenever(userService.getContactDetails(username)) doReturn userContactDetails
 
     val result = service.getContactsForCourtBookingRequest(court, prison, username)
@@ -88,8 +88,8 @@ class ContactsServiceTest {
     val courtContact = contact(ContactType.COURT, "court.contact@example.com", "Court contact")
     val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
 
-    whenever(contactsRepository.findContactsByContactTypeAndCode(ContactType.COURT, court.code)) doReturn listOf(courtContact)
-    whenever(contactsRepository.findContactsByContactTypeAndCode(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.COURT, court.code)) doReturn listOf(courtContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
     whenever(userService.getContactDetails(username)) doReturn null
 
     val result = service.getContactsForCourtBookingRequest(court, prison, username)
@@ -108,8 +108,8 @@ class ContactsServiceTest {
     val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
     val userContactDetails = ContactDetails("User Name", "user@example.com")
 
-    whenever(contactsRepository.findContactsByContactTypeAndCode(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
-    whenever(contactsRepository.findContactsByContactTypeAndCode(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
     whenever(userService.getContactDetails(username)) doReturn userContactDetails
 
     val result = service.getContactsForProbationBookingRequest(probationTeam, prison, username)
@@ -128,8 +128,8 @@ class ContactsServiceTest {
     val probationContact = contact(ContactType.PROBATION, "probation.contact@example.com", "Probation contact")
     val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
 
-    whenever(contactsRepository.findContactsByContactTypeAndCode(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
-    whenever(contactsRepository.findContactsByContactTypeAndCode(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
     whenever(userService.getContactDetails(username)) doReturn null
 
     val result = service.getContactsForProbationBookingRequest(probationTeam, prison, username)

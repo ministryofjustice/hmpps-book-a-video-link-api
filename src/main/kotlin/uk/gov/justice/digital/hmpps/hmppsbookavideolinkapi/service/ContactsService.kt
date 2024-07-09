@@ -19,8 +19,7 @@ class ContactsService(
   private val videoBookingRepository: VideoBookingRepository,
   private val userService: UserService,
 ) {
-
-  fun getBookingContacts(videoBookingId: Long): List<BookingContact> {
+  fun getAllBookingContacts(videoBookingId: Long): List<BookingContact> {
     // Get the contact details of people set up as contacts for the prison, court or probation team
     val listOfContacts = bookingContactsRepository.findContactsByVideoBookingId(videoBookingId).toMutableList()
 
@@ -32,7 +31,7 @@ class ContactsService(
       listOfContacts.add(
         BookingContact(
           videoBookingId = videoBookingId,
-          contactType = ContactType.OWNER,
+          contactType = ContactType.USER,
           name = it.name,
           email = it.email,
           primaryContact = true,
@@ -40,13 +39,13 @@ class ContactsService(
       )
     }
 
-    // Include the person who amended this booking as a second owner, if different
+    // Include the person who amended this booking as a second user, if different
     if (booking.amendedBy != null && booking.amendedBy != booking.createdBy) {
       userService.getContactDetails(booking.amendedBy!!)?.also {
         listOfContacts.add(
           BookingContact(
             videoBookingId = videoBookingId,
-            contactType = ContactType.OWNER,
+            contactType = ContactType.USER,
             name = it.name,
             email = it.email,
             primaryContact = true,
@@ -56,6 +55,24 @@ class ContactsService(
     }
 
     return listOfContacts.toList()
+  }
+
+  fun getPrimaryBookingContacts(videoBookingId: Long, username: String?): List<BookingContact> {
+    videoBookingRepository.findById(videoBookingId).orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
+
+    val userContact = username?.let {
+      userService.getContactDetails(username)?.let {
+        BookingContact(
+          videoBookingId = videoBookingId,
+          contactType = ContactType.USER,
+          name = it.name,
+          email = it.email,
+          primaryContact = true,
+        )
+      }
+    }
+
+    return bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(videoBookingId).filter { it.email != userContact?.email } + listOfNotNull(userContact)
   }
 
   fun getContactsForCourtBookingRequest(court: Court, prison: Prison, username: String) = buildContactsListForBookingRequest(
@@ -78,18 +95,20 @@ class ContactsService(
     prisonCode: String,
     username: String,
   ): List<Contact> {
-    val primaryContacts = contactsRepository.findContactsByContactTypeAndCode(contactType, agencyCode)
-    val prisonContacts = contactsRepository.findContactsByContactTypeAndCode(ContactType.PRISON, prisonCode)
+    val contacts = contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(contactType, agencyCode)
+    val prisonContacts = contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prisonCode)
 
-    val userContact = userService.getContactDetails(username)?.let {
-      Contact(
-        contactType = ContactType.OWNER,
-        code = "USER",
-        name = it.name,
-        email = it.email,
-        primaryContact = true,
-      )
+    val userContact = username.let {
+      userService.getContactDetails(username)?.let {
+        Contact(
+          contactType = ContactType.USER,
+          code = "USER",
+          name = it.name,
+          email = it.email,
+          primaryContact = true,
+        )
+      }
     }
-    return primaryContacts + prisonContacts + listOfNotNull(userContact)
+    return contacts.filter { it.email != userContact?.email } + prisonContacts + listOfNotNull(userContact)
   }
 }

@@ -10,4 +10,5 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 @Repository
 interface BookingContactsRepository : JpaRepository<BookingContact, Long> {
   fun findContactsByVideoBookingId(videoBookingId: Long): List<BookingContact>
+  fun findContactsByVideoBookingIdAndPrimaryContactTrue(videoBookingId: Long): List<BookingContact>
 }

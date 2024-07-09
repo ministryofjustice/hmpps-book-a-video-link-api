@@ -161,7 +161,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return the owner contact details for a created booking`() {
+  fun `should return the user contact details for a created booking`() {
     // If the creating username is an email address, this will be returned as the OWNER name and contact
     val bookingCreator = TEST_USERNAME
 
@@ -195,7 +195,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfContacts).extracting("contactType").containsOnly(
       ContactType.PRISON,
       ContactType.COURT,
-      ContactType.OWNER,
+      ContactType.USER,
     )
 
     // Check that the contact addresses are present
@@ -203,14 +203,14 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       listOf("m@m.com", "t@t.com", "s@s.com", TEST_USER_EMAIL),
     )
 
-    // Check the owner email and name are as expected
-    val ownerObject = listOfContacts?.find { it.contactType == ContactType.OWNER }
-    assertThat(ownerObject?.email).isEqualTo(TEST_USER_EMAIL)
-    assertThat(ownerObject?.name).isEqualTo("Test Users Name")
+    // Check the user email and name are as expected
+    val userObject = listOfContacts?.find { it.contactType == ContactType.USER }
+    assertThat(userObject?.email).isEqualTo(TEST_USER_EMAIL)
+    assertThat(userObject?.name).isEqualTo("Test Users Name")
   }
 
   @Test
-  fun `should return two owner contact details for an amended booking`() {
+  fun `should return two user contact details for an amended booking`() {
     // TODO: Not implemented yet - no way to set the amendedBy value yet
     // If the createdBy and amendedBy usernames are both email addresses, and different, they are returned as joint OWNERS
   }

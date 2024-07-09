@@ -71,5 +71,5 @@ class BookingContactsController(val contactsService: ContactsService) {
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun getContactsForBooking(
     @PathVariable("videoBookingId") videoBookingId: Long,
-  ): List<BookingContact> = contactsService.getBookingContacts(videoBookingId).toModel()
+  ): List<BookingContact> = contactsService.getAllBookingContacts(videoBookingId).toModel()
 }

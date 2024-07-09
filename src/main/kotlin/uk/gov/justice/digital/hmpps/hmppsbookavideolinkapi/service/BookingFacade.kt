@@ -46,14 +46,14 @@ class BookingFacade(
   fun create(bookingRequest: CreateVideoBookingRequest, username: String): Long {
     val (booking, prisoner) = createVideoBookingService.create(bookingRequest, username)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
-    sendBookingEmails(BookingAction.CREATE, booking, prisoner)
+    sendBookingEmails(BookingAction.CREATE, booking, prisoner, username)
     return booking.videoBookingId
   }
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, username: String): Long {
     val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, username)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, booking.videoBookingId)
-    sendBookingEmails(BookingAction.AMEND, booking, prisoner)
+    sendBookingEmails(BookingAction.AMEND, booking, prisoner, username)
     return booking.videoBookingId
   }
 
@@ -61,7 +61,7 @@ class BookingFacade(
     val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
     log.info("Video booking ${booking.videoBookingId} cancelled")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
-    sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()))
+    sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
   }
 
   fun prisonerTransferred(videoBookingId: Long, username: String) {
@@ -83,22 +83,22 @@ class BookingFacade(
 
   private fun VideoBooking.bookingType() = if (isCourtBooking()) BookingType.COURT else BookingType.PROBATION
 
-  private fun sendBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner) {
+  private fun sendBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner, username: String? = null) {
     when (booking.bookingType()) {
-      BookingType.COURT -> sendCourtBookingEmails(action, booking, prisoner)
-      BookingType.PROBATION -> sendProbationBookingEmails(action, booking, prisoner)
+      BookingType.COURT -> sendCourtBookingEmails(action, booking, prisoner, username)
+      BookingType.PROBATION -> sendProbationBookingEmails(action, booking, prisoner, username)
     }
   }
 
-  private fun sendCourtBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner) {
+  private fun sendCourtBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, username: String?) {
     val (pre, main, post) = getCourtAppointments(booking)
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
-    val contacts = contactsService.getBookingContacts(booking.videoBookingId).allContactsWithAnEmailAddress()
+    val contacts = contactsService.getPrimaryBookingContacts(booking.videoBookingId, username).allContactsWithAnEmailAddress()
     val locations = locationsInsidePrisonClient.getLocationsByKeys(setOfNotNull(pre?.prisonLocKey, main.prisonLocKey, post?.prisonLocKey)).associateBy { it.key }
 
     contacts.mapNotNull { contact ->
       when (contact.contactType) {
-        ContactType.OWNER -> CourtEmailFactory.owner(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
+        ContactType.USER -> CourtEmailFactory.user(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
         ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
         else -> null
       }
@@ -107,7 +107,7 @@ class BookingFacade(
     }
   }
 
-  private fun sendProbationBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner) {
+  private fun sendProbationBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner, username: String?) {
     log.info("TODO - send probation booking emails.")
   }
 

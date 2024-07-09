@@ -27,19 +27,19 @@ class GovNotifyEmailServiceTest {
   private val client: NotificationClient =
     mock { on { sendEmail(any(), any(), any(), anyOrNull()) } doReturn sendEmailResponse }
   private val emailTemplates = EmailTemplates(
-    newCourtBookingOwner = "template 1",
+    newCourtBookingUser = "template 1",
     newCourtBookingPrisonCourtEmail = "template 2",
     newCourtBookingPrisonNoCourtEmail = "template 3",
-    amendedCourtBookingOwner = "template 4",
+    amendedCourtBookingUser = "template 4",
     amendedCourtBookingPrisonCourtEmail = "template 5",
     amendedCourtBookingPrisonNoCourtEmail = "template 6",
-    cancelledCourtBookingOwner = "template 7",
+    cancelledCourtBookingUser = "template 7",
     cancelledCourtBookingPrisonCourtEmail = "template 8",
     cancelledCourtBookingPrisonNoCourtEmail = "template 9",
-    courtBookingRequestOwner = "template 10",
+    courtBookingRequestUser = "template 10",
     courtBookingRequestPrisonCourtEmail = "template 11",
     courtBookingRequestPrisonNoCourtEmail = "template 12",
-    probationBookingRequestOwner = "template 13",
+    probationBookingRequestUser = "template 13",
     probationBookingRequestPrisonProbationTeamEmail = "template 14",
     probationBookingRequestPrisonNoProbationTeamEmail = "template 15",
   )
@@ -49,7 +49,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court new booking email and return a notification ID`() {
     val result = service.send(
-      NewCourtBookingOwnerEmail(
+      NewCourtBookingUserEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -89,7 +89,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court new booking email with no pre and post appoint or no comments, and return a notification ID`() {
     val result = service.send(
-      NewCourtBookingOwnerEmail(
+      NewCourtBookingUserEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -207,7 +207,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court amended booking email and return a notification ID`() {
     val result = service.send(
-      AmendedCourtBookingOwnerEmail(
+      AmendedCourtBookingUserEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -323,7 +323,7 @@ class GovNotifyEmailServiceTest {
   @Test
   fun `should send court cancelled booking email and return a notification ID`() {
     val result = service.send(
-      CancelledCourtBookingOwnerEmail(
+      CancelledCourtBookingUserEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -439,9 +439,9 @@ class GovNotifyEmailServiceTest {
   }
 
   @Test
-  fun `should send court booking request owner email and return a notification ID`() {
+  fun `should send court booking request user email and return a notification ID`() {
     val result = service.send(
-      CourtBookingRequestOwnerEmail(
+      CourtBookingRequestUserEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -563,9 +563,9 @@ class GovNotifyEmailServiceTest {
   }
 
   @Test
-  fun `should send probation booking request owner email and return a notification ID`() {
+  fun `should send probation booking request user email and return a notification ID`() {
     val result = service.send(
-      ProbationBookingRequestOwnerEmail(
+      ProbationBookingRequestUserEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -690,7 +690,7 @@ class GovNotifyEmailServiceTest {
     whenever(client.sendEmail(any(), any(), any(), anyOrNull())) doThrow exception
 
     val result = service.send(
-      NewCourtBookingOwnerEmail(
+      NewCourtBookingUserEmail(
         address = "address 1",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
