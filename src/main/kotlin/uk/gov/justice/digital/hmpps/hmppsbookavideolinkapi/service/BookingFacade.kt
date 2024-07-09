@@ -3,15 +3,12 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
@@ -21,6 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.CourtEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 
@@ -66,6 +64,20 @@ class BookingFacade(
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()))
   }
 
+  fun prisonerTransferred(videoBookingId: Long, username: String) {
+    val booking = cancelVideoBookingService.cancel(videoBookingId, username)
+    log.info("Video booking ${booking.videoBookingId} cancelled")
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
+    sendBookingEmails(BookingAction.TRANSFERRED, booking, getPrisoner(booking.prisoner()))
+  }
+
+  fun prisonerReleased(videoBookingId: Long, username: String) {
+    val booking = cancelVideoBookingService.cancel(videoBookingId, username)
+    log.info("Video booking ${booking.videoBookingId} cancelled")
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
+    sendBookingEmails(BookingAction.RELEASED, booking, getPrisoner(booking.prisoner()))
+  }
+
   private fun getPrisoner(prisonerNumber: String) =
     prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName) }
 
@@ -86,8 +98,8 @@ class BookingFacade(
 
     contacts.mapNotNull { contact ->
       when (contact.contactType) {
-        ContactType.OWNER -> createCourtOwnerEmail(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
-        ContactType.PRISON -> createCourtPrisonEmail(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
+        ContactType.OWNER -> CourtEmailFactory.owner(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
+        ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
         else -> null
       }
     }.forEach { email ->
@@ -104,6 +116,8 @@ class BookingFacade(
       BookingAction.CREATE -> "New court booking"
       BookingAction.AMEND -> "Amended court booking"
       BookingAction.CANCEL -> "Cancelled court booking"
+      BookingAction.RELEASED -> "Cancelled court booking due to release"
+      BookingAction.TRANSFERRED -> "Cancelled court booking due to transfer"
     }
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(
@@ -120,180 +134,9 @@ class BookingFacade(
     }
   }
 
-  private fun createCourtOwnerEmail(
-    contact: BookingContact,
-    prisoner: Prisoner,
-    booking: VideoBooking,
-    prison: Prison,
-    main: PrisonAppointment,
-    pre: PrisonAppointment?,
-    post: PrisonAppointment?,
-    locations: Map<String, Location>,
-    action: BookingAction,
-  ): Email {
-    return when (action) {
-      BookingAction.CREATE -> NewCourtBookingOwnerEmail(
-        address = contact.email!!,
-        userName = contact.name ?: "Book Video",
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        court = booking.court!!.description,
-        prison = prison.name,
-        date = main.appointmentDate,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
-        comments = booking.comments,
-      )
-      BookingAction.AMEND -> AmendedCourtBookingOwnerEmail(
-        address = contact.email!!,
-        userName = contact.name ?: "Book Video",
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        court = booking.court!!.description,
-        date = main.appointmentDate,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
-        comments = booking.comments,
-      )
-      BookingAction.CANCEL -> CancelledCourtBookingOwnerEmail(
-        address = contact.email!!,
-        userName = contact.name ?: "Book Video",
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        court = booking.court!!.description,
-        prison = prison.name,
-        date = main.appointmentDate,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
-        comments = booking.comments,
-      )
-    }
-  }
-
-  private fun createCourtPrisonEmail(
-    contact: BookingContact,
-    prisoner: Prisoner,
-    booking: VideoBooking,
-    prison: Prison,
-    contacts: Collection<BookingContact>,
-    main: PrisonAppointment,
-    pre: PrisonAppointment?,
-    post: PrisonAppointment?,
-    locations: Map<String, Location>,
-    action: BookingAction,
-  ): Email {
-    val primaryCourtContact = contacts.primaryCourtContact()
-    return when (action) {
-      BookingAction.CREATE -> {
-        if (primaryCourtContact != null) {
-          NewCourtBookingPrisonCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            courtEmailAddress = primaryCourtContact.email!!,
-            prison = prison.name,
-            date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.comments,
-          )
-        } else {
-          NewCourtBookingPrisonNoCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            prison = prison.name,
-            date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.comments,
-          )
-        }
-      }
-      BookingAction.AMEND -> {
-        if (primaryCourtContact != null) {
-          AmendedCourtBookingPrisonCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            courtEmailAddress = primaryCourtContact.email!!,
-            prison = prison.name,
-            date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.comments,
-          )
-        } else {
-          AmendedCourtBookingPrisonNoCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            prison = prison.name,
-            date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.comments,
-          )
-        }
-      }
-      BookingAction.CANCEL -> {
-        if (primaryCourtContact != null) {
-          CancelledCourtBookingPrisonCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            courtEmailAddress = primaryCourtContact.email!!,
-            prison = prison.name,
-            date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.comments,
-          )
-        } else {
-          CancelledCourtBookingPrisonNoCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            prison = prison.name,
-            date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.comments,
-          )
-        }
-      }
-    }
-  }
-
   private fun getCourtAppointments(booking: VideoBooking): Triple<PrisonAppointment?, PrisonAppointment, PrisonAppointment?> {
     return prisonAppointmentRepository.findByVideoBooking(booking).prisonAppointmentsForCourtHearing()
   }
-
-  private fun Collection<BookingContact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
 
   private fun Collection<BookingContact>.allContactsWithAnEmailAddress() = filter { it.email != null }
 
@@ -304,15 +147,12 @@ class BookingFacade(
   private fun Collection<PrisonAppointment>.main() = single { it.appointmentType == "VLB_COURT_MAIN" }
 
   private fun Collection<PrisonAppointment>.post() = singleOrNull { it.appointmentType == "VLB_COURT_POST" }
-
-  private fun PrisonAppointment.appointmentInformation(locations: Map<String, Location>) =
-    "${locations.room(prisonLocKey)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
-
-  private fun Map<String, Location>.room(key: String) = this[key]?.localName ?: ""
 }
 
 enum class BookingAction {
   CREATE,
   AMEND,
   CANCEL,
+  RELEASED,
+  TRANSFERRED,
 }
