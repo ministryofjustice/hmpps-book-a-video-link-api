@@ -19,12 +19,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCour
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingPrisonNoCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingPrisonNoCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingUserEmail
 
 object CourtEmailFactory {
 
@@ -39,6 +39,12 @@ object CourtEmailFactory {
     locations: Map<String, Location>,
     action: BookingAction,
   ): Email? {
+    booking.requireIsCourtBooking()
+
+    require(contact.contactType == ContactType.USER) {
+      "Incorrect contact type ${contact.contactType} for user email"
+    }
+
     return when (action) {
       BookingAction.CREATE -> NewCourtBookingUserEmail(
         address = contact.email!!,
@@ -97,8 +103,14 @@ object CourtEmailFactory {
     locations: Map<String, Location>,
     action: BookingAction,
   ): Email? {
+    booking.requireIsCourtBooking()
+
+    require(contact.contactType == ContactType.COURT) {
+      "Incorrect contact type ${contact.contactType} for court email"
+    }
+
     return when (action) {
-      BookingAction.RELEASED -> ReleasedCourtBookingUserEmail(
+      BookingAction.RELEASED -> ReleasedCourtBookingCourtEmail(
         address = contact.email!!,
         court = booking.court!!.description,
         prison = prison.name,
@@ -113,7 +125,7 @@ object CourtEmailFactory {
         comments = booking.comments,
       )
 
-      BookingAction.TRANSFERRED -> TransferredCourtBookingUserEmail(
+      BookingAction.TRANSFERRED -> TransferredCourtBookingCourtEmail(
         address = contact.email!!,
         court = booking.court!!.description,
         prison = prison.name,
@@ -144,6 +156,12 @@ object CourtEmailFactory {
     locations: Map<String, Location>,
     action: BookingAction,
   ): Email {
+    booking.requireIsCourtBooking()
+
+    require(contact.contactType == ContactType.PRISON) {
+      "Incorrect contact type ${contact.contactType} for prison email"
+    }
+
     val primaryCourtContact = contacts.primaryCourtContact()
 
     return when (action) {
@@ -322,4 +340,8 @@ object CourtEmailFactory {
   private fun Map<String, Location>.room(key: String) = this[key]?.localName ?: ""
 
   private fun Collection<BookingContact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
+
+  private fun VideoBooking.requireIsCourtBooking() {
+    require(isCourtBooking()) { "Booking ID $videoBookingId is not a court booking" }
+  }
 }

@@ -5,7 +5,28 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingRequestPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingRequestPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingRequestUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.GovNotifyEmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonNoProbationTeamEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonProbationTeamEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingPrisonNoCourtEmail
 import uk.gov.service.notify.NotificationClient
 import java.time.LocalDate
 import java.util.UUID
@@ -34,10 +55,10 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation-booking-request.user:}") private val probationBookingRequestUser: String,
   @Value("\${notify.templates.probation-booking-request.prison-probation-team-email:}") private val probationBookingRequestPrisonProbationTeamEmail: String,
   @Value("\${notify.templates.probation-booking-request.prison-no-probation-team-email:}") private val probationBookingRequestPrisonNoProbationTeamEmail: String,
-  @Value("\${notify.templates.transfer-court-booking.user:}") private val transferCourtBookingUser: String,
+  @Value("\${notify.templates.transfer-court-booking.court:}") private val transferCourtBookingCourt: String,
   @Value("\${notify.templates.transfer-court-booking.prison-court-email:}") private val transferCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.transfer-court-booking.prison-no-court-email:}") private val transferCourtBookingPrisonNoCourtEmail: String,
-  @Value("\${notify.templates.release-court-booking.user:}") private val releaseCourtBookingUser: String,
+  @Value("\${notify.templates.release-court-booking.court:}") private val releaseCourtBookingCourt: String,
   @Value("\${notify.templates.release-court-booking.prison-court-email:}") private val releaseCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.release-court-booking.prison-no-court-email:}") private val releaseCourtBookingPrisonNoCourtEmail: String,
 ) {
@@ -70,10 +91,10 @@ class EmailConfiguration(
     probationBookingRequestUser = probationBookingRequestUser,
     probationBookingRequestPrisonProbationTeamEmail = probationBookingRequestPrisonProbationTeamEmail,
     probationBookingRequestPrisonNoProbationTeamEmail = probationBookingRequestPrisonNoProbationTeamEmail,
-    transferCourtBookingUser = transferCourtBookingUser,
+    transferCourtBookingCourt = transferCourtBookingCourt,
     transferCourtBookingPrisonCourtEmail = transferCourtBookingPrisonCourtEmail,
     transferCourtBookingPrisonNoCourtEmail = transferCourtBookingPrisonNoCourtEmail,
-    releaseCourtBookingUser = releaseCourtBookingUser,
+    releaseCourtBookingCourt = releaseCourtBookingCourt,
     releaseCourtBookingPrisonCourtEmail = releaseCourtBookingPrisonCourtEmail,
     releaseCourtBookingPrisonNoCourtEmail = releaseCourtBookingPrisonNoCourtEmail,
   )
@@ -125,10 +146,43 @@ data class EmailTemplates(
   val probationBookingRequestUser: String,
   val probationBookingRequestPrisonProbationTeamEmail: String,
   val probationBookingRequestPrisonNoProbationTeamEmail: String,
-  val transferCourtBookingUser: String,
+  val transferCourtBookingCourt: String,
   val transferCourtBookingPrisonCourtEmail: String,
   val transferCourtBookingPrisonNoCourtEmail: String,
-  val releaseCourtBookingUser: String,
+  val releaseCourtBookingCourt: String,
   val releaseCourtBookingPrisonCourtEmail: String,
   val releaseCourtBookingPrisonNoCourtEmail: String,
-)
+) {
+
+  private val emailTemplateMappings = mapOf(
+    NewCourtBookingUserEmail::class.java to newCourtBookingUser,
+    NewCourtBookingPrisonCourtEmail::class.java to newCourtBookingPrisonCourtEmail,
+    NewCourtBookingPrisonNoCourtEmail::class.java to newCourtBookingPrisonNoCourtEmail,
+    AmendedCourtBookingUserEmail::class.java to amendedCourtBookingUser,
+    AmendedCourtBookingPrisonCourtEmail::class.java to amendedCourtBookingPrisonCourtEmail,
+    AmendedCourtBookingPrisonNoCourtEmail::class.java to amendedCourtBookingPrisonNoCourtEmail,
+    CancelledCourtBookingUserEmail::class.java to cancelledCourtBookingUser,
+    CancelledCourtBookingPrisonCourtEmail::class.java to cancelledCourtBookingPrisonCourtEmail,
+    CancelledCourtBookingPrisonNoCourtEmail::class.java to cancelledCourtBookingPrisonNoCourtEmail,
+    CourtBookingRequestUserEmail::class.java to courtBookingRequestUser,
+    CourtBookingRequestPrisonCourtEmail::class.java to courtBookingRequestPrisonCourtEmail,
+    CourtBookingRequestPrisonNoCourtEmail::class.java to courtBookingRequestPrisonNoCourtEmail,
+    ProbationBookingRequestUserEmail::class.java to probationBookingRequestUser,
+    ProbationBookingRequestPrisonProbationTeamEmail::class.java to probationBookingRequestPrisonProbationTeamEmail,
+    ProbationBookingRequestPrisonNoProbationTeamEmail::class.java to probationBookingRequestPrisonNoProbationTeamEmail,
+    TransferredCourtBookingCourtEmail::class.java to transferCourtBookingCourt,
+    TransferredCourtBookingPrisonCourtEmail::class.java to transferCourtBookingPrisonCourtEmail,
+    TransferredCourtBookingPrisonNoCourtEmail::class.java to transferCourtBookingPrisonNoCourtEmail,
+    ReleasedCourtBookingCourtEmail::class.java to releaseCourtBookingCourt,
+    ReleasedCourtBookingPrisonCourtEmail::class.java to releaseCourtBookingPrisonCourtEmail,
+    ReleasedCourtBookingPrisonNoCourtEmail::class.java to releaseCourtBookingPrisonNoCourtEmail,
+  )
+
+  init {
+    require(EmailTemplates::class.constructors.single().parameters.size == emailTemplateMappings.size) {
+      "Number of email template mappings does not match that of the number of possible templates"
+    }
+  }
+
+  fun <T : Email> templateFor(type: Class<T>) = emailTemplateMappings[type]
+}
