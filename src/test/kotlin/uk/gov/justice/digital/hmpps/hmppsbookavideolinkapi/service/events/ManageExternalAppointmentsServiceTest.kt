@@ -101,6 +101,38 @@ class ManageExternalAppointmentsServiceTest {
   }
 
   @Test
+  fun `should create court appointment without comments via activities client when appointments rolled out`() {
+    val courtAppointmentWithoutComments = appointment(
+      booking = courtBooking.apply { comments = null },
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      appointmentType = "VLB_COURT_PRE",
+      date = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      locationKey = "ABC",
+    )
+
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointmentWithoutComments)
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
+    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
+
+    service.createAppointment(1)
+
+    verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocKey)
+
+    verify(activitiesAppointmentsClient).createAppointment(
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      startDate = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      internalLocationId = 123456,
+      comments = null,
+    )
+  }
+
+  @Test
   fun `should not create court appointment via activities client when appointment already exists`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
@@ -196,6 +228,41 @@ class ManageExternalAppointmentsServiceTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       comments = "Video booking for court hearing type TRIBUNAL at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
+    )
+  }
+
+  @Test
+  fun `should create court appointment without comments via prison api client when appointments not rolled out`() {
+    val courtAppointmentWithoutComments = appointment(
+      booking = courtBooking.apply { comments = null },
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      appointmentType = "VLB_COURT_PRE",
+      date = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      locationKey = "ABC",
+    )
+
+    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointmentWithoutComments)
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
+    whenever(prisonerSearchClient.getPrisoner(courtAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(
+      prisonerNumber = courtAppointment.prisonerNumber,
+      prisonCode = courtAppointment.prisonCode,
+      bookingId = 1,
+    )
+    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
+
+    service.createAppointment(1)
+
+    verify(activitiesAppointmentsClient, never()).createAppointment(any(), any(), any(), any(), any(), any(), any())
+    verify(prisonApiClient).createAppointment(
+      bookingId = 1,
+      locationId = 123456,
+      appointmentDate = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      comments = null,
     )
   }
 

@@ -200,12 +200,14 @@ class ManageExternalAppointmentsService(
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
     }
 
-  private fun PrisonAppointment.detailedComments() =
-    if (videoBooking.isCourtBooking()) {
+  private fun PrisonAppointment.detailedComments(): String? {
+    if (comments == null) return null
+    return if (videoBooking.isCourtBooking()) {
       "Video booking for court hearing type ${videoBooking.hearingType} at ${videoBooking.court?.description}\n\n$comments"
     } else {
       "Video booking for probation meeting type ${videoBooking.probationMeetingType} at ${videoBooking.probationTeam?.description}\n\n$comments"
     }
+  }
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
   private fun PrisonAppointment.internalLocationId() =
