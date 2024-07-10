@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
@@ -18,7 +17,7 @@ import uk.gov.service.notify.NotificationClient
 import uk.gov.service.notify.NotificationClientException
 import uk.gov.service.notify.SendEmailResponse
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 class GovNotifyEmailServiceTest {
   private val today = LocalDate.now()
@@ -42,6 +41,12 @@ class GovNotifyEmailServiceTest {
     probationBookingRequestUser = "template 13",
     probationBookingRequestPrisonProbationTeamEmail = "template 14",
     probationBookingRequestPrisonNoProbationTeamEmail = "template 15",
+    transferCourtBookingCourt = "template 16",
+    transferCourtBookingPrisonCourtEmail = "template 17",
+    transferCourtBookingPrisonNoCourtEmail = "template 18",
+    releaseCourtBookingCourt = "template 19",
+    releaseCourtBookingPrisonCourtEmail = "template 20",
+    releaseCourtBookingPrisonNoCourtEmail = "template 21",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)
@@ -676,9 +681,10 @@ class GovNotifyEmailServiceTest {
 
   @Test
   fun `should throw error for unsupported email type`() {
-    val error = assertThrows<RuntimeException> { service.send(UnsupportedEmail) }
+    val error = service.send(UnsupportedEmail)
 
-    error.message isEqualTo "Unsupported email type UnsupportedEmail."
+    error.isFailure isBool true
+    error.exceptionOrNull()?.message isEqualTo "EMAIL: Missing template ID for email type UnsupportedEmail."
   }
 
   private object UnsupportedEmail : Email("", "", "", LocalDate.now())

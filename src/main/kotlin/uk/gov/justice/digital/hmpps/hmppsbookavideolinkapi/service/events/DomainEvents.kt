@@ -57,6 +57,9 @@ class PrisonerReleasedEvent(additionalInformation: ReleaseInformation) :
   fun isTemporary() = listOf("TEMPORARY_ABSENCE_RELEASE", "SENT_TO_COURT").contains(additionalInformation.reason)
 
   @JsonIgnore
+  fun isTransferred() = listOf("TRANSFERRED").contains(additionalInformation.reason)
+
+  @JsonIgnore
   fun isPermanent() = listOf("RELEASED", "RELEASED_TO_HOSPITAL").contains(additionalInformation.reason)
 }
 

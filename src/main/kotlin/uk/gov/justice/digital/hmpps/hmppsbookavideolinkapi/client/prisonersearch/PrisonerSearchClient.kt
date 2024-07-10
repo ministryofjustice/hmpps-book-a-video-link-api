@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
+import java.time.LocalDate
 
 @Component
 class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
@@ -34,5 +35,6 @@ data class Prisoner(
   val prisonId: String? = null,
   val firstName: String,
   val lastName: String,
+  val dateOfBirth: LocalDate,
   val bookingId: String? = null,
 )

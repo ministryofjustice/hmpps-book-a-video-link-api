@@ -59,27 +59,27 @@ class BookingFacade(
 
   fun cancel(videoBookingId: Long, cancelledBy: String) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
-    log.info("Video booking ${booking.videoBookingId} cancelled")
+    log.info("Video booking ${booking.videoBookingId} cancelled by user")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
   }
 
   fun prisonerTransferred(videoBookingId: Long, username: String) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, username)
-    log.info("Video booking ${booking.videoBookingId} cancelled")
+    log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
     sendBookingEmails(BookingAction.TRANSFERRED, booking, getPrisoner(booking.prisoner()))
   }
 
   fun prisonerReleased(videoBookingId: Long, username: String) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, username)
-    log.info("Video booking ${booking.videoBookingId} cancelled")
+    log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
     sendBookingEmails(BookingAction.RELEASED, booking, getPrisoner(booking.prisoner()))
   }
 
   private fun getPrisoner(prisonerNumber: String) =
-    prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName) }
+    prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
 
   private fun VideoBooking.bookingType() = if (isCourtBooking()) BookingType.COURT else BookingType.PROBATION
 
@@ -99,6 +99,7 @@ class BookingFacade(
     contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> CourtEmailFactory.user(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
+        ContactType.COURT -> CourtEmailFactory.court(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
         ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
         else -> null
       }
