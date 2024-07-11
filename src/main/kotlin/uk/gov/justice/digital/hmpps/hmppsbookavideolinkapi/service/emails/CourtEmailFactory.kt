@@ -111,25 +111,19 @@ object CourtEmailFactory {
     }
 
     return when (action) {
-      BookingAction.CREATE -> {
-        if (booking.createdByPrison) {
-          NewCourtBookingCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            prison = prison.name,
-            date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.comments,
-          )
-        } else {
-          null
-        }
-      }
+      BookingAction.CREATE -> NewCourtBookingCourtEmail(
+        address = contact.email!!,
+        prisonerFirstName = prisoner.firstName,
+        prisonerLastName = prisoner.lastName,
+        prisonerNumber = prisoner.prisonerNumber,
+        court = booking.court!!.description,
+        prison = prison.name,
+        date = main.appointmentDate,
+        preAppointmentInfo = pre?.appointmentInformation(locations),
+        mainAppointmentInfo = main.appointmentInformation(locations),
+        postAppointmentInfo = post?.appointmentInformation(locations),
+        comments = booking.comments,
+      )
 
       BookingAction.AMEND -> null // TODO: Inform court when the prison amends a booking
 
