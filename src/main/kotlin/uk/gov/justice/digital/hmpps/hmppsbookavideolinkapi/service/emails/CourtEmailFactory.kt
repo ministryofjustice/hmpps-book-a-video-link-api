@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
@@ -110,6 +111,30 @@ object CourtEmailFactory {
     }
 
     return when (action) {
+      BookingAction.CREATE -> {
+        if (booking.createdByPrison) {
+          NewCourtBookingCourtEmail(
+            address = contact.email!!,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            prisonerNumber = prisoner.prisonerNumber,
+            court = booking.court!!.description,
+            prison = prison.name,
+            date = main.appointmentDate,
+            preAppointmentInfo = pre?.appointmentInformation(locations),
+            mainAppointmentInfo = main.appointmentInformation(locations),
+            postAppointmentInfo = post?.appointmentInformation(locations),
+            comments = booking.comments,
+          )
+        } else {
+          null
+        }
+      }
+
+      BookingAction.AMEND -> null // TODO: Inform court when the prison amends a booking
+
+      BookingAction.CANCEL -> null // TODO: Inform court when the prison cancels a booking
+
       BookingAction.RELEASED -> ReleasedCourtBookingCourtEmail(
         address = contact.email!!,
         court = booking.court!!.description,
@@ -139,8 +164,6 @@ object CourtEmailFactory {
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
       )
-
-      else -> null
     }
   }
 

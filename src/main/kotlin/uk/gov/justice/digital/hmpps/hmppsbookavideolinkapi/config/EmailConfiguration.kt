@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingR
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingRequestPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingRequestUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.GovNotifyEmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
@@ -41,6 +42,7 @@ import java.util.UUID
 class EmailConfiguration(
   @Value("\${notify.api.key:}") private val apiKey: String,
   @Value("\${notify.templates.new-court-booking.user:}") private val newCourtBookingUser: String,
+  @Value("\${notify.templates.new-court-booking.court:}") private val newCourtBookingCourt: String,
   @Value("\${notify.templates.new-court-booking.prison-court-email:}") private val newCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.new-court-booking.prison-no-court-email:}") private val newCourtBookingPrisonNoCourtEmail: String,
   @Value("\${notify.templates.amended-court-booking.user:}") private val amendedCourtBookingUser: String,
@@ -77,6 +79,7 @@ class EmailConfiguration(
 
   private fun emailTemplates() = EmailTemplates(
     newCourtBookingUser = newCourtBookingUser,
+    newCourtBookingCourt = newCourtBookingCourt,
     newCourtBookingPrisonCourtEmail = newCourtBookingPrisonCourtEmail,
     newCourtBookingPrisonNoCourtEmail = newCourtBookingPrisonNoCourtEmail,
     amendedCourtBookingUser = amendedCourtBookingUser,
@@ -132,6 +135,7 @@ abstract class Email(
 
 data class EmailTemplates(
   val newCourtBookingUser: String,
+  val newCourtBookingCourt: String,
   val newCourtBookingPrisonCourtEmail: String,
   val newCourtBookingPrisonNoCourtEmail: String,
   val amendedCourtBookingUser: String,
@@ -156,6 +160,7 @@ data class EmailTemplates(
 
   private val emailTemplateMappings = mapOf(
     NewCourtBookingUserEmail::class.java to newCourtBookingUser,
+    NewCourtBookingCourtEmail::class.java to newCourtBookingCourt,
     NewCourtBookingPrisonCourtEmail::class.java to newCourtBookingPrisonCourtEmail,
     NewCourtBookingPrisonNoCourtEmail::class.java to newCourtBookingPrisonNoCourtEmail,
     AmendedCourtBookingUserEmail::class.java to amendedCourtBookingUser,

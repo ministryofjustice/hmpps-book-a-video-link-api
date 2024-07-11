@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingCourtEmail
@@ -50,7 +51,18 @@ class CourtEmailFactoryTest {
     lastName = "Bloggs",
   )
 
-  private val courtBooking = courtBooking()
+  private val courtBookingCreatedByCourt = courtBooking()
+    .addAppointment(
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      appointmentType = "VLB_COURT_MAIN",
+      date = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      locationKey = moorlandLocation.key,
+    )
+
+  private val courtBookingCreatedByPrison = courtBooking(createdByPrison = true)
     .addAppointment(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
@@ -82,10 +94,16 @@ class CourtEmailFactoryTest {
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun supportedCourtBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
+    fun supportedCourtBookingActionsWhenActionedByCourt() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun unsupportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL)
+    fun unSupportedCourtBookingActionsWhenActionedByCourt() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL)
+
+    @JvmStatic
+    fun supportedCourtBookingActionsWhenActionedByPrison() = setOf(BookingAction.CREATE, BookingAction.RELEASED, BookingAction.TRANSFERRED)
+
+    @JvmStatic
+    fun unSupportedCourtBookingActionsWhenActionedByPrison() = setOf(BookingAction.AMEND, BookingAction.CANCEL)
   }
 
   private val userEmails = mapOf(
@@ -95,6 +113,7 @@ class CourtEmailFactoryTest {
   )
 
   private val courtEmails = mapOf(
+    BookingAction.CREATE to NewCourtBookingCourtEmail::class.java,
     BookingAction.RELEASED to ReleasedCourtBookingCourtEmail::class.java,
     BookingAction.TRANSFERRED to TransferredCourtBookingCourtEmail::class.java,
   )
@@ -106,10 +125,10 @@ class CourtEmailFactoryTest {
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
-      booking = courtBooking,
+      booking = courtBookingCreatedByCourt,
       prison = prison,
       pre = null,
-      main = courtBooking.appointments().single(),
+      main = courtBookingCreatedByCourt.appointments().single(),
       post = null,
       locations = mapOf(moorlandLocation.key to moorlandLocation),
     )
@@ -124,10 +143,10 @@ class CourtEmailFactoryTest {
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
-      booking = courtBooking,
+      booking = courtBookingCreatedByCourt,
       prison = prison,
       pre = null,
-      main = courtBooking.appointments().single(),
+      main = courtBookingCreatedByCourt.appointments().single(),
       post = null,
       locations = mapOf(moorlandLocation.key to moorlandLocation),
     )
@@ -142,10 +161,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = prisonBookingContact,
         prisoner = prisoner,
-        booking = courtBooking,
+        booking = courtBookingCreatedByCourt,
         prison = prison,
         pre = null,
-        main = courtBooking.appointments().single(),
+        main = courtBookingCreatedByCourt.appointments().single(),
         post = null,
         locations = mapOf(moorlandLocation.key to moorlandLocation),
       )
@@ -174,16 +193,16 @@ class CourtEmailFactoryTest {
   }
 
   @ParameterizedTest
-  @MethodSource("supportedCourtBookingActions")
-  fun `should return court emails for supported court based actions`(action: BookingAction) {
+  @MethodSource("supportedCourtBookingActionsWhenActionedByCourt")
+  fun `should return court emails for supported court based actions by a court`(action: BookingAction) {
     val email = CourtEmailFactory.court(
       action = action,
       contact = courtBookingContact,
       prisoner = prisoner,
-      booking = courtBooking,
+      booking = courtBookingCreatedByCourt,
       prison = prison,
       pre = null,
-      main = courtBooking.appointments().single(),
+      main = courtBookingCreatedByCourt.appointments().single(),
       post = null,
       locations = mapOf(moorlandLocation.key to moorlandLocation),
     )
@@ -192,16 +211,52 @@ class CourtEmailFactoryTest {
   }
 
   @ParameterizedTest
-  @MethodSource("unsupportedCourtBookingActions")
-  fun `should return no email for unsupported court based actions`(action: BookingAction) {
+  @MethodSource("unSupportedCourtBookingActionsWhenActionedByCourt")
+  fun `should return no email for unsupported court based actions by a court`(action: BookingAction) {
     val email = CourtEmailFactory.court(
       action = action,
       contact = courtBookingContact,
       prisoner = prisoner,
-      booking = courtBooking,
+      booking = courtBookingCreatedByCourt,
       prison = prison,
       pre = null,
-      main = courtBooking.appointments().single(),
+      main = courtBookingCreatedByCourt.appointments().single(),
+      post = null,
+      locations = mapOf(moorlandLocation.key to moorlandLocation),
+    )
+
+    email isEqualTo null
+  }
+
+  @ParameterizedTest
+  @MethodSource("supportedCourtBookingActionsWhenActionedByPrison")
+  fun `should return court emails for supported court based actions by a prison`(action: BookingAction) {
+    val email = CourtEmailFactory.court(
+      action = action,
+      contact = courtBookingContact,
+      prisoner = prisoner,
+      booking = courtBookingCreatedByPrison,
+      prison = prison,
+      pre = null,
+      main = courtBookingCreatedByCourt.appointments().single(),
+      post = null,
+      locations = mapOf(moorlandLocation.key to moorlandLocation),
+    )
+
+    email isInstanceOf courtEmails[action]!!
+  }
+
+  @ParameterizedTest
+  @MethodSource("unSupportedCourtBookingActionsWhenActionedByPrison")
+  fun `should return no email for unsupported court based actions by a prison`(action: BookingAction) {
+    val email = CourtEmailFactory.court(
+      action = action,
+      contact = courtBookingContact,
+      prisoner = prisoner,
+      booking = courtBookingCreatedByPrison,
+      prison = prison,
+      pre = null,
+      main = courtBookingCreatedByCourt.appointments().single(),
       post = null,
       locations = mapOf(moorlandLocation.key to moorlandLocation),
     )
@@ -216,10 +271,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
-        booking = courtBooking,
+        booking = courtBookingCreatedByCourt,
         prison = prison,
         pre = null,
-        main = courtBooking.appointments().single(),
+        main = courtBookingCreatedByCourt.appointments().single(),
         post = null,
         locations = mapOf(moorlandLocation.key to moorlandLocation),
       )
@@ -254,10 +309,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
-        booking = courtBooking,
+        booking = courtBookingCreatedByCourt,
         prison = prison,
         pre = null,
-        main = courtBooking.appointments().single(),
+        main = courtBookingCreatedByCourt.appointments().single(),
         post = null,
         locations = mapOf(moorlandLocation.key to moorlandLocation),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),

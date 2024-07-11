@@ -391,7 +391,7 @@ alter sequence if exists court_court_id_seq restart with 327;
 ---
 
 insert into court_contact (court_contact_id, court_id, name, email, telephone, position, enabled, notes, primary_contact, created_by, created_time)
-values (1, 1, 'Tim Hipkins', 't@t.com', '0117 282442', 'Court Clerk', true, '', true, 'TIM', current_timestamp),
+values (1, 1, 'John Hipkins', 'j@j.com', '0117 282442', 'Court Clerk', true, '', true, 'TIM', current_timestamp),
        (2, 1, 'Matt Hipkins', 'm@m.com', '0117 282443', 'Court Clerk', true, '', false, 'TIM', current_timestamp),
        (3, 1, 'Steve Hipkins', 's@s.com', '0117 282444', 'Court Clerk', true, '', false, 'TIM', current_timestamp);
 
