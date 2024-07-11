@@ -475,7 +475,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn requestedCourt
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
@@ -594,7 +594,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(BIRMINGHAM, "$BIRMINGHAM-B-2-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-B-2-001", tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 

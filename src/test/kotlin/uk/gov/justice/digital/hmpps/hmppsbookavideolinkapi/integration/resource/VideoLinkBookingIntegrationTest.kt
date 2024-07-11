@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
@@ -278,6 +279,36 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       userMessage isEqualTo "Exception: One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
       developerMessage isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
     }
+  }
+
+  @Test
+  fun `should create a court booking which clashes with a future cancelled booking`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      date = tomorrow(),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+    )
+
+    val originalBooking = webTestClient.createBooking(courtBookingRequest)
+
+    webTestClient.cancelBooking(originalBooking, "cancelled by user")
+
+    videoBookingRepository.findById(originalBooking).orElseThrow().statusCode isEqualTo StatusCode.CANCELLED
+
+    val clashingBooking = webTestClient.createBooking(courtBookingRequest)
+
+    originalBooking isNotEqualTo clashingBooking
+
+    videoBookingRepository.findById(clashingBooking).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
   }
 
   @Test
