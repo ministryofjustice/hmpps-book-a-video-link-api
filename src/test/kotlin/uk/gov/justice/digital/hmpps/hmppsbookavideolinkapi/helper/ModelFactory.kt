@@ -47,6 +47,7 @@ fun prisonerSearchPrisoner(
   firstName: String = "Fred",
   lastName: String = "Bloggs",
   bookingId: Long = -1,
+  lastPrisonCode: String? = null,
 ) = Prisoner(
   prisonerNumber = prisonerNumber,
   prisonId = prisonCode,
@@ -54,6 +55,7 @@ fun prisonerSearchPrisoner(
   lastName = lastName,
   bookingId = bookingId.toString(),
   dateOfBirth = LocalDate.of(2000, 1, 1),
+  lastPrisonId = lastPrisonCode,
 )
 
 fun userEmail(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, email, verified)

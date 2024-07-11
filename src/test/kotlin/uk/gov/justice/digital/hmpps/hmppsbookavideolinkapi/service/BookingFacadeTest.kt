@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -12,6 +13,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
@@ -93,7 +95,7 @@ class BookingFacadeTest {
   }
 
   @Test
-  fun `should send cancellation court booking emails and booking cancellation event on cancellation of court booking`() {
+  fun `should send two cancellation court booking emails and booking cancellation event on cancellation of court booking`() {
     val prisoner = Prisoner(courtBooking.prisoner(), MOORLAND, "Bob", "Builder", yesterday())
 
     whenever(cancelVideoBookingService.cancel(1, "facade court user")) doReturn courtBooking
@@ -164,7 +166,7 @@ class BookingFacadeTest {
   }
 
   @Test
-  fun `should send court booking emails and booking created event on creation of court booking`() {
+  fun `should send two court booking emails and booking created event on creation of court booking`() {
     val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = courtBooking.prisoner())
 
     whenever(createBookingService.create(bookingRequest, "facade court user")) doReturn Pair(courtBooking, prisoner(prisonerNumber = courtBooking.prisoner(), prisonCode = MOORLAND))
@@ -234,7 +236,7 @@ class BookingFacadeTest {
   }
 
   @Test
-  fun `should send court booking emails on amendment of court booking`() {
+  fun `should send two court booking emails on amendment of court booking`() {
     val bookingRequest = amendCourtBookingRequest(prisonCode = MOORLAND, prisonerNumber = "123456")
 
     whenever(amendBookingService.amend(1, bookingRequest, "facade court user")) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
@@ -321,5 +323,285 @@ class BookingFacadeTest {
     facade.amend(1, booking, "facade probation team user")
 
     verify(amendBookingService).amend(1, booking, "facade probation team user")
+  }
+
+  @Test
+  fun `should send two transfer emails and booking cancellation event on transfer of prisoner`() {
+    val prisoner = Prisoner(
+      prisonerNumber = courtBooking.prisoner(),
+      prisonId = "TRN",
+      firstName = "Bob",
+      lastName = "Builder",
+      dateOfBirth = LocalDate.EPOCH,
+      lastPrisonId = MOORLAND,
+    )
+    whenever(contactsService.getPrimaryBookingContacts(any(), anyOrNull())) doReturn listOf(
+      bookingContact(contactType = ContactType.COURT, email = "jon@court.com", name = "Jon"),
+      bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
+    )
+
+    whenever(cancelVideoBookingService.cancel(1, "transfer user")) doReturn courtBooking
+    whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(any<TransferredCourtBookingCourtEmail>())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any<TransferredCourtBookingPrisonCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
+
+    facade.prisonerTransferred(1, "transfer user")
+
+    inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      verify(cancelVideoBookingService).cancel(1, "transfer user")
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
+
+    emailCaptor.allValues hasSize 2
+    with(emailCaptor.firstValue) {
+      this isInstanceOf TransferredCourtBookingCourtEmail::class.java
+      address isEqualTo "jon@court.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Bob Builder",
+        "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+    with(emailCaptor.secondValue) {
+      this isInstanceOf TransferredCourtBookingPrisonCourtEmail::class.java
+      address isEqualTo "jon@prison.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Bob Builder",
+        "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 2
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@court.com"
+      templateName isEqualTo "court template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo courtBooking
+    }
+    with(notificationCaptor.secondValue) {
+      email isEqualTo "jon@prison.com"
+      templateName isEqualTo "prison template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo courtBooking
+    }
+  }
+
+  @Test
+  fun `should send one transfer email and booking cancellation event on transfer of prisoner`() {
+    val prisoner = Prisoner(
+      prisonerNumber = courtBooking.prisoner(),
+      prisonId = "TRN",
+      firstName = "Bob",
+      lastName = "Builder",
+      dateOfBirth = LocalDate.EPOCH,
+      lastPrisonId = MOORLAND,
+    )
+    whenever(contactsService.getPrimaryBookingContacts(any(), anyOrNull())) doReturn listOf(
+      bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
+    )
+
+    whenever(cancelVideoBookingService.cancel(1, "transfer user")) doReturn courtBooking
+    whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(any<TransferredCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
+
+    facade.prisonerTransferred(1, "transfer user")
+
+    inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      verify(cancelVideoBookingService).cancel(1, "transfer user")
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
+
+    emailCaptor.allValues hasSize 1
+    with(emailCaptor.firstValue) {
+      this isInstanceOf TransferredCourtBookingPrisonNoCourtEmail::class.java
+      address isEqualTo "jon@prison.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Bob Builder",
+        "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 1
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@prison.com"
+      templateName isEqualTo "prison template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo courtBooking
+    }
+  }
+
+  @Test
+  fun `should send two release emails and booking cancellation event on release of prisoner`() {
+    val prisoner = Prisoner(
+      prisonerNumber = courtBooking.prisoner(),
+      prisonId = "TRN",
+      firstName = "Bob",
+      lastName = "Builder",
+      dateOfBirth = LocalDate.EPOCH,
+      lastPrisonId = MOORLAND,
+    )
+    whenever(contactsService.getPrimaryBookingContacts(any(), anyOrNull())) doReturn listOf(
+      bookingContact(contactType = ContactType.COURT, email = "jon@court.com", name = "Jon"),
+      bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
+    )
+
+    whenever(cancelVideoBookingService.cancel(1, "release user")) doReturn courtBooking
+    whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(any<ReleasedCourtBookingCourtEmail>())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any<ReleasedCourtBookingPrisonCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
+
+    facade.prisonerReleased(1, "release user")
+
+    inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      verify(cancelVideoBookingService).cancel(1, "release user")
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
+
+    emailCaptor.allValues hasSize 2
+    with(emailCaptor.firstValue) {
+      this isInstanceOf ReleasedCourtBookingCourtEmail::class.java
+      address isEqualTo "jon@court.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Bob Builder",
+        "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+    with(emailCaptor.secondValue) {
+      this isInstanceOf ReleasedCourtBookingPrisonCourtEmail::class.java
+      address isEqualTo "jon@prison.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Bob Builder",
+        "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 2
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@court.com"
+      templateName isEqualTo "court template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo courtBooking
+    }
+    with(notificationCaptor.secondValue) {
+      email isEqualTo "jon@prison.com"
+      templateName isEqualTo "prison template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo courtBooking
+    }
+  }
+
+  @Test
+  fun `should send one release email and booking cancellation event on release of prisoner`() {
+    val prisoner = Prisoner(
+      prisonerNumber = courtBooking.prisoner(),
+      prisonId = "TRN",
+      firstName = "Bob",
+      lastName = "Builder",
+      dateOfBirth = LocalDate.EPOCH,
+      lastPrisonId = MOORLAND,
+    )
+    whenever(contactsService.getPrimaryBookingContacts(any(), anyOrNull())) doReturn listOf(
+      bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
+    )
+
+    whenever(cancelVideoBookingService.cancel(1, "release user")) doReturn courtBooking
+    whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(any<ReleasedCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
+
+    facade.prisonerReleased(1, "release user")
+
+    inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      verify(cancelVideoBookingService).cancel(1, "release user")
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
+
+    emailCaptor.allValues hasSize 1
+    with(emailCaptor.firstValue) {
+      this isInstanceOf ReleasedCourtBookingPrisonNoCourtEmail::class.java
+      address isEqualTo "jon@prison.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Bob Builder",
+        "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 1
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@prison.com"
+      templateName isEqualTo "prison template id"
+      govNotifyNotificationId isEqualTo notificationId
+      videoBooking isEqualTo courtBooking
+    }
   }
 }

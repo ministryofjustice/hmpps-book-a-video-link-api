@@ -166,13 +166,15 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
 
+    prisonSearchApi().stubGetPrisoner(prisonNumber = "YD1234", prisonCode = "TRN", lastPrisonCode = WERRINGTON)
+
     inboundEventsListener.onMessage(
       raw(
         PrisonerReleasedEvent(
           ReleaseInformation(
             nomsNumber = "YD1234",
-            prisonId = WERRINGTON,
-            reason = "RELEASED",
+            prisonId = "TRN",
+            reason = "TRANSFERRED",
           ),
         ),
       ),
@@ -186,8 +188,8 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
           PrisonerReleasedEvent(
             ReleaseInformation(
               nomsNumber = "YD1234",
-              prisonId = WERRINGTON,
-              reason = "RELEASED",
+              prisonId = "TRN",
+              reason = "TRANSFERRED",
             ),
           ),
         ),
