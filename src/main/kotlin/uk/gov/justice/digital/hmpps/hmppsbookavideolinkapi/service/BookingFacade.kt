@@ -68,18 +68,21 @@ class BookingFacade(
     val booking = cancelVideoBookingService.cancel(videoBookingId, username)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
-    sendBookingEmails(BookingAction.TRANSFERRED, booking, getPrisoner(booking.prisoner()))
+    sendBookingEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()))
   }
 
   fun prisonerReleased(videoBookingId: Long, username: String) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, username)
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
-    sendBookingEmails(BookingAction.RELEASED, booking, getPrisoner(booking.prisoner()))
+    sendBookingEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()))
   }
 
   private fun getPrisoner(prisonerNumber: String) =
     prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
+
+  private fun getReleasedOrTransferredPrisoner(prisonerNumber: String) =
+    prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.lastPrisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
 
   private fun VideoBooking.bookingType() = if (isCourtBooking()) BookingType.COURT else BookingType.PROBATION
 
