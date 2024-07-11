@@ -10,7 +10,16 @@ import java.time.LocalTime
 interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   fun findByVideoBooking(booking: VideoBooking): List<PrisonAppointment>
 
-  fun findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(
+  @Query(
+    value = """
+    SELECT pa FROM PrisonAppointment pa 
+     WHERE pa.prisonCode = :prisonCode
+       AND pa.prisonLocKey = :key
+       AND pa.videoBooking.statusCode = 'ACTIVE'
+       AND pa.appointmentDate = :date
+  """,
+  )
+  fun findActivePrisonAppointmentsAtLocationOnDate(
     prisonCode: String,
     key: String,
     date: LocalDate,

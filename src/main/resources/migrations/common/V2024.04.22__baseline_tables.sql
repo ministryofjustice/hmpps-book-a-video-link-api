@@ -223,7 +223,7 @@ CREATE INDEX idx_prison_appointment_loc_key ON prison_appointment(prison_loc_key
 CREATE INDEX idx_prison_appointment_date ON prison_appointment(appointment_date);
 CREATE INDEX idx_prison_appointment_start_time ON prison_appointment(start_time);
 CREATE INDEX idx_prison_appointment_end_time ON prison_appointment(end_time);
-CREATE UNIQUE INDEX idx_prison_appointment_loc_date_start_end on prison_appointment(prison_loc_key, appointment_date, start_time, end_time);
+CREATE INDEX idx_prison_appointment_loc_date_start_end on prison_appointment(prison_loc_key, appointment_date, start_time, end_time);
 
 ---------------------------------------------------------------------------------------
 -- This is the third party contact details for attendees to a booking

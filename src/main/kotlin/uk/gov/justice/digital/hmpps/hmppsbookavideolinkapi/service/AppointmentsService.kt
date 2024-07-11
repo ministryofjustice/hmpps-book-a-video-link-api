@@ -63,7 +63,7 @@ class AppointmentsService(
 
   private fun List<Appointment>.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
     forEach { newAppointment ->
-      prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(
+      prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
         prisonCode,
         newAppointment.locationKey!!,
         newAppointment.date!!,
@@ -113,7 +113,7 @@ class AppointmentsService(
   }
 
   private fun Appointment.checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
-    prisonAppointmentRepository.findByPrisonCodeAndPrisonLocKeyAndAppointmentDate(
+    prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
       prisonCode,
       locationKey!!,
       date!!,
