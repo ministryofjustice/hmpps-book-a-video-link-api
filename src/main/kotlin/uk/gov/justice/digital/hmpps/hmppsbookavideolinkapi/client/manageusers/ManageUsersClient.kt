@@ -4,6 +4,8 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.EmailAddressDto
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto
 
 @Component
 class ManageUsersClient(private val manageUsersApiWebClient: WebClient) {
@@ -26,17 +28,3 @@ class ManageUsersClient(private val manageUsersApiWebClient: WebClient) {
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()?.takeIf(EmailAddressDto::verified)
 }
-
-data class UserDetailsDto(
-  val username: String,
-  val active: Boolean,
-  val name: String,
-  val authSource: String,
-  val activeCaseLoadId: String?,
-)
-
-data class EmailAddressDto(
-  val username: String,
-  val email: String?,
-  val verified: Boolean,
-)

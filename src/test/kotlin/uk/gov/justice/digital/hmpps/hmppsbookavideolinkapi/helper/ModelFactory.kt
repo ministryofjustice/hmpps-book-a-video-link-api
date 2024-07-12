@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.EmailAddressDto
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.UserDetailsDto
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.EmailAddressDto
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
@@ -58,14 +58,14 @@ fun prisonerSearchPrisoner(
   lastPrisonId = lastPrisonCode,
 )
 
-fun userEmail(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, email, verified)
+fun userEmail(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, verified, email)
 
 fun userDetails(username: String, name: String) = UserDetailsDto(
+  userId = "TEST",
   username = username,
   active = true,
   name = name,
-  authSource = "TEST",
-  activeCaseLoadId = null,
+  authSource = UserDetailsDto.AuthSource.auth,
 )
 
 fun userContactDetails(name: String, email: String) = ContactDetails(
