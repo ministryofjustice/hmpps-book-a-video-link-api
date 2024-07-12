@@ -251,9 +251,10 @@ class BookingFacadeTest {
 
   @Test
   fun `should send three court booking emails and booking created event on creation of court booking by a prison`() {
-    val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = courtBookingCreatedByPrison.prisoner(), createdByPrison = true)
+    val user = user("facade prison user", userType = UserType.PRISON)
+    val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = courtBookingCreatedByPrison.prisoner())
 
-    whenever(createBookingService.create(bookingRequest, user("facade court user"))) doReturn Pair(courtBookingCreatedByPrison, prisoner(prisonerNumber = courtBookingCreatedByPrison.prisoner(), prisonCode = MOORLAND))
+    whenever(createBookingService.create(bookingRequest, user)) doReturn Pair(courtBookingCreatedByPrison, prisoner(prisonerNumber = courtBookingCreatedByPrison.prisoner(), prisonCode = MOORLAND))
 
     val notificationId = UUID.randomUUID()
 
@@ -261,10 +262,10 @@ class BookingFacadeTest {
     whenever(emailService.send(any<NewCourtBookingCourtEmail>())) doReturn Result.success(notificationId to "court template id")
     whenever(emailService.send(any<NewCourtBookingPrisonCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
 
-    facade.create(bookingRequest, user("facade court user"))
+    facade.create(bookingRequest, user)
 
     inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
-      verify(createBookingService).create(bookingRequest, user("facade court user"))
+      verify(createBookingService).create(bookingRequest, user)
       verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, courtBookingCreatedByPrison.videoBookingId)
       verify(emailService).send(emailCaptor.capture())
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())

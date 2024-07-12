@@ -44,7 +44,10 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
   }
 }
 
-data class User(val username: String, val userType: UserType, val name: String, val email: String? = null)
+data class User(val username: String, val userType: UserType, val name: String, val email: String? = null) {
+  fun isPrisonUser() = userType == UserType.PRISON
+  fun isExternalUser() = userType == UserType.EXTERNAL
+}
 
 enum class UserType {
   EXTERNAL,

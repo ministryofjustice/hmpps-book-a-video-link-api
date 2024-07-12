@@ -51,7 +51,7 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy.username,
-      createdByPrison = request.createdByPrison!!,
+      createdByPrison = createdBy.isPrisonUser(),
     )
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
@@ -72,7 +72,7 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy.username,
-      createdByPrison = request.createdByPrison!!,
+      createdByPrison = createdBy.isPrisonUser(),
     )
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner()) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
