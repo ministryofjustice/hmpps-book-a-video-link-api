@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.ManageUsersClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
@@ -28,12 +29,17 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
 
   fun getUser(username: String): User? {
     val userDetails = manageUsersClient.getUsersDetails(username) ?: return null
+    val userType = when (userDetails.authSource) {
+      AuthSource.nomis -> UserType.PRISON
+      AuthSource.auth -> UserType.EXTERNAL
+      else -> throw AccessDeniedException("Users with auth source ${userDetails.authSource} are not supported by this service")
+    }
 
     return User(
       username = username,
-      userType = if (userDetails.authSource == AuthSource.nomis) UserType.PRISON else UserType.EXTERNAL,
+      userType = userType,
       name = userDetails.name,
-      email = if (username.isEmail()) username else manageUsersClient.getUsersEmail(username)?.email,
+      email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email,
     )
   }
 }

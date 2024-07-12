@@ -67,7 +67,6 @@ fun userDetails(username: String, name: String) = UserDetailsDto(
   authSource = UserDetailsDto.AuthSource.auth,
 )
 
-
 fun prisoner(
   prisonerNumber: String,
   prisonCode: String,

@@ -21,10 +21,7 @@ class ProbationTeamsService(
     probationTeamRepository.findProbationTeamsByUsername(user.username).toModel()
 
   @Transactional
-  fun setUserProbationTeamPreferences(
-    request: SetProbationTeamPreferencesRequest,
-    user: User,
-  ): SetProbationTeamPreferencesResponse {
+  fun setUserProbationTeamPreferences(request: SetProbationTeamPreferencesRequest, user: User): SetProbationTeamPreferencesResponse {
     userProbationRepository.findAllByUsername(user.username).forEach(userProbationRepository::delete)
 
     val newTeams = probationTeamRepository.findAllByCodeIn(request.probationTeamCodes).filter { it.enabled }
