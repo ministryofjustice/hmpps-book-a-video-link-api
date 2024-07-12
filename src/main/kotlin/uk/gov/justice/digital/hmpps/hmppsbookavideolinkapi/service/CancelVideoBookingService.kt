@@ -23,7 +23,7 @@ class CancelVideoBookingService(
   }
 
   @Transactional
-  fun cancel(videoBookingId: Long, cancelledBy: String): VideoBooking {
+  fun cancel(videoBookingId: Long, cancelledBy: User): VideoBooking {
     val booking = videoBookingRepository
       .findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }

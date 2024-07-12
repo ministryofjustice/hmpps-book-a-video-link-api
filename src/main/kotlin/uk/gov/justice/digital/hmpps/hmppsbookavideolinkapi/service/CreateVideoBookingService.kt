@@ -32,13 +32,13 @@ class CreateVideoBookingService(
   }
 
   @Transactional
-  fun create(booking: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> =
+  fun create(booking: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> =
     when (booking.bookingType!!) {
       BookingType.COURT -> createCourt(booking, createdBy)
       BookingType.PROBATION -> createProbation(booking, createdBy)
     }
 
-  private fun createCourt(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
+  private fun createCourt(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
     val court = courtRepository.findByCode(request.courtCode!!)
       ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
@@ -50,7 +50,7 @@ class CreateVideoBookingService(
       hearingType = request.courtHearingType!!.name,
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
-      createdBy = createdBy,
+      createdBy = createdBy.username,
       createdByPrison = request.createdByPrison!!,
     )
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
@@ -59,7 +59,7 @@ class CreateVideoBookingService(
       .also { log.info("BOOKINGS: court booking with id ${it.videoBookingId} created") } to prisoner
   }
 
-  private fun createProbation(request: CreateVideoBookingRequest, createdBy: String): Pair<VideoBooking, Prisoner> {
+  private fun createProbation(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
     val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
       ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
@@ -71,7 +71,7 @@ class CreateVideoBookingService(
       probationMeetingType = request.probationMeetingType!!.name,
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
-      createdBy = createdBy,
+      createdBy = createdBy.username,
       createdByPrison = request.createdByPrison!!,
     )
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner()) }

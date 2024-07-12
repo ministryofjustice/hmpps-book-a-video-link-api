@@ -17,19 +17,19 @@ class ProbationTeamsService(
   fun getEnabledProbationTeams() =
     probationTeamRepository.findAllByEnabledIsTrue().toModel()
 
-  fun getUserProbationTeamPreferences(username: String) =
-    probationTeamRepository.findProbationTeamsByUsername(username).toModel()
+  fun getUserProbationTeamPreferences(user: User) =
+    probationTeamRepository.findProbationTeamsByUsername(user.username).toModel()
 
   @Transactional
   fun setUserProbationTeamPreferences(
     request: SetProbationTeamPreferencesRequest,
-    username: String,
+    user: User,
   ): SetProbationTeamPreferencesResponse {
-    userProbationRepository.findAllByUsername(username).forEach(userProbationRepository::delete)
+    userProbationRepository.findAllByUsername(user.username).forEach(userProbationRepository::delete)
 
     val newTeams = probationTeamRepository.findAllByCodeIn(request.probationTeamCodes).filter { it.enabled }
     newTeams.map { probationTeam ->
-      UserProbation(probationTeam = probationTeam, username = username, createdBy = username)
+      UserProbation(probationTeam = probationTeam, username = user.username, createdBy = user.username)
     }.forEach(userProbationRepository::saveAndFlush)
 
     return SetProbationTeamPreferencesResponse(probationTeamsSaved = newTeams.size)

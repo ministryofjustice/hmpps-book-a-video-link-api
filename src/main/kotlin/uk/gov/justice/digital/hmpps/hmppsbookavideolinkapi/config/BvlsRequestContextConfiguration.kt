@@ -9,6 +9,10 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getClientAsUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
 import uk.gov.justice.hmpps.kotlin.auth.AuthAwareAuthenticationToken
 import java.time.LocalDateTime
 
@@ -32,36 +36,31 @@ class BvlsRequestContextConfiguration(private val bvlsRequestContextInterceptor:
 }
 
 @Configuration
-class BvlsRequestContextInterceptor : HandlerInterceptor {
+class BvlsRequestContextInterceptor(private val userService: UserService) : HandlerInterceptor {
 
   companion object {
     private val log = LoggerFactory.getLogger(BvlsRequestContextInterceptor::class.java)
   }
 
   override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-    val username = getUsernameFromClaim()
+    val username = authentication().userName
+    val clientId = authentication().clientId
 
     if (username != null) {
-      request.setAttribute(BvlsRequestContext::class.simpleName, BvlsRequestContext(username = username))
+      request.setAttribute(BvlsRequestContext::class.simpleName, BvlsRequestContext(user = userService.getUser(username) ?: throw IllegalArgumentException("User with username $username not found")))
     } else {
-      log.info("Unable to determine user from the request.")
+      // The clientId is non-nullable, otherwise the request would not be authenticated!
+      request.setAttribute(BvlsRequestContext::class.simpleName, BvlsRequestContext(user = getClientAsUser(clientId)))
     }
 
     return true
   }
-
-  private fun getUsernameFromClaim(): String? =
-    authentication().let {
-      it.tokenAttributes["user_name"] as String?
-        ?: it.tokenAttributes["username"] as String?
-        ?: it.tokenAttributes["client_id"] as String?
-    }
 
   private fun authentication(): AuthAwareAuthenticationToken =
     SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken?
       ?: throw AccessDeniedException("User is not authenticated")
 }
 
-data class BvlsRequestContext(val username: String, val requestAt: LocalDateTime = LocalDateTime.now())
+data class BvlsRequestContext(val user: User, val requestAt: LocalDateTime = LocalDateTime.now())
 
 fun HttpServletRequest.getBvlsRequestContext() = getAttribute(BvlsRequestContext::class.simpleName) as BvlsRequestContext

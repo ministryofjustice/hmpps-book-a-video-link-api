@@ -4,7 +4,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.EmailAddressDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -68,10 +67,6 @@ fun userDetails(username: String, name: String) = UserDetailsDto(
   authSource = UserDetailsDto.AuthSource.auth,
 )
 
-fun userContactDetails(name: String, email: String) = ContactDetails(
-  name = name,
-  email = email,
-)
 
 fun prisoner(
   prisonerNumber: String,

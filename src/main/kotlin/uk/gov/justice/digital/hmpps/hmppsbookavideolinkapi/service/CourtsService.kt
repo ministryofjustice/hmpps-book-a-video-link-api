@@ -17,16 +17,16 @@ class CourtsService(
   fun getEnabledCourts() =
     courtRepository.findAllByEnabledIsTrue().toModel()
 
-  fun getUserCourtPreferences(username: String) =
-    courtRepository.findCourtsByUsername(username).toModel()
+  fun getUserCourtPreferences(user: User) =
+    courtRepository.findCourtsByUsername(user.username).toModel()
 
   @Transactional
-  fun setUserCourtPreferences(request: SetCourtPreferencesRequest, username: String): SetCourtPreferencesResponse {
-    userCourtRepository.findAllByUsername(username).forEach(userCourtRepository::delete)
+  fun setUserCourtPreferences(request: SetCourtPreferencesRequest, user: User): SetCourtPreferencesResponse {
+    userCourtRepository.findAllByUsername(user.username).forEach(userCourtRepository::delete)
 
     val newCourts = courtRepository.findAllByCodeIn(request.courtCodes).filter { it.enabled }
     newCourts.map { court ->
-      UserCourt(court = court, username = username, createdBy = username)
+      UserCourt(court = court, username = user.username, createdBy = user.username)
     }.forEach(userCourtRepository::saveAndFlush)
 
     return SetCourtPreferencesResponse(courtsSaved = newCourts.size)

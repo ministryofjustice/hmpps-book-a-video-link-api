@@ -33,7 +33,7 @@ class AmendVideoBookingService(
   }
 
   @Transactional
-  fun amend(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: String): Pair<VideoBooking, Prisoner> {
+  fun amend(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
       .also {
@@ -48,7 +48,7 @@ class AmendVideoBookingService(
     }
   }
 
-  private fun amendCourt(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: String): Pair<VideoBooking, Prisoner> {
+  private fun amendCourt(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     val court = courtRepository.findByCode(request.courtCode!!)
       ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
@@ -60,7 +60,7 @@ class AmendVideoBookingService(
       hearingType = request.courtHearingType!!.name
       comments = request.comments
       videoUrl = request.videoLinkUrl
-      this.amendedBy = amendedBy
+      this.amendedBy = amendedBy.username
       amendedTime = LocalDateTime.now()
     }
       .also { thisBooking -> thisBooking.removeAllAppointments() }
@@ -70,7 +70,7 @@ class AmendVideoBookingService(
       .also { thisBooking -> log.info("BOOKINGS: court booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 
-  private fun amendProbation(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: String): Pair<VideoBooking, Prisoner> {
+  private fun amendProbation(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
       ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
@@ -82,7 +82,7 @@ class AmendVideoBookingService(
       probationMeetingType = request.probationMeetingType!!.name
       comments = request.comments
       videoUrl = request.videoLinkUrl
-      this.amendedBy = amendedBy
+      this.amendedBy = amendedBy.username
       amendedTime = LocalDateTime.now()
     }
       .also { thisBooking -> thisBooking.removeAllAppointments() }
