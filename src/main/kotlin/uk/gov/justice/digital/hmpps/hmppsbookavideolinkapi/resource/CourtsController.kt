@@ -67,7 +67,7 @@ class CourtsController(private val courtsService: CourtsService) {
     ],
   )
   @GetMapping(value = ["/enabled"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun enabledCourts(): List<Court> = courtsService.getEnabledCourts()
 
   @Operation(summary = "Endpoint to return the list of enabled courts selected by a user (identified from the token content)")

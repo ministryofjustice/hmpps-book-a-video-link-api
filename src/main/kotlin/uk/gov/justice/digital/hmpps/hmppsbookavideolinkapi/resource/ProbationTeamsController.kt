@@ -67,7 +67,7 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
     ],
   )
   @GetMapping(value = ["/enabled"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun enabledProbationTeams(): List<ProbationTeam> = probationTeamsService.getEnabledProbationTeams()
 
   @Operation(summary = "Endpoint to return the list of enabled probation teams select by a user (identified from the token content)")

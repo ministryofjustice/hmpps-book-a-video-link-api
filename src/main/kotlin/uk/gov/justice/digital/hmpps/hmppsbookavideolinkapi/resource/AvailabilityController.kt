@@ -60,7 +60,7 @@ class AvailabilityController(val availabilityService: AvailabilityService) {
     ],
   )
   @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun checkAvailability(
     @Valid
     @RequestBody
