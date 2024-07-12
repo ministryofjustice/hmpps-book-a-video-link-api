@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
@@ -43,7 +44,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
 
-const val AMENDED_BY = "TEST USER"
+val AMENDED_BY = user("TEST USER")
 
 class AmendVideoBookingServiceTest {
 
@@ -128,7 +129,7 @@ class AmendVideoBookingServiceTest {
       hearingType isEqualTo amendCourtBookingRequest.courtHearingType?.name
       comments isEqualTo "court booking comments"
       videoUrl isEqualTo amendCourtBookingRequest.videoLinkUrl
-      amendedBy isEqualTo AMENDED_BY
+      amendedBy isEqualTo AMENDED_BY.username
       amendedTime isCloseTo LocalDateTime.now()
 
       appointments() hasSize 3
@@ -610,7 +611,7 @@ class AmendVideoBookingServiceTest {
       probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
       comments isEqualTo "probation booking comments"
       videoUrl isEqualTo probationBookingRequest.videoLinkUrl
-      amendedBy isEqualTo AMENDED_BY
+      amendedBy isEqualTo AMENDED_BY.username
       amendedTime isCloseTo LocalDateTime.now()
 
       appointments() hasSize 1

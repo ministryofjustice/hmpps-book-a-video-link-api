@@ -109,7 +109,7 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun probationTeamsUserPreferences(
     httpRequest: HttpServletRequest,
-  ) = probationTeamsService.getUserProbationTeamPreferences(httpRequest.getBvlsRequestContext().username)
+  ) = probationTeamsService.getUserProbationTeamPreferences(httpRequest.getBvlsRequestContext().user)
 
   @Operation(summary = "Endpoint to set the probation team preferences for a user (identified from the token content)")
   @ApiResponses(
@@ -169,5 +169,5 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
     @Parameter(description = "The request body containing the user probation team preferences", required = true)
     request: SetProbationTeamPreferencesRequest,
     httpRequest: HttpServletRequest,
-  ) = probationTeamsService.setUserProbationTeamPreferences(request, httpRequest.getBvlsRequestContext().username)
+  ) = probationTeamsService.setUserProbationTeamPreferences(request, httpRequest.getBvlsRequestContext().user)
 }

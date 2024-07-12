@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.RequestBookingService
@@ -98,7 +99,7 @@ class VideoLinkBookingControllerTest {
     val response = mockMvc.post("/video-link-booking") {
       contentType = MediaType.APPLICATION_JSON
       content = json
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext("FRED", LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(user(), LocalDateTime.now()))
     }
       .andExpect {
         status { isBadRequest() }
@@ -140,12 +141,12 @@ class VideoLinkBookingControllerTest {
     mockMvc.post("/video-link-booking") {
       contentType = MediaType.APPLICATION_JSON
       content = json
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext("FRED", LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(user(), LocalDateTime.now()))
     }
       .andExpect {
         status { isCreated() }
       }
 
-    verify(bookingFacade).create(objectMapper.readValue(json, CreateVideoBookingRequest::class.java), "FRED")
+    verify(bookingFacade).create(objectMapper.readValue(json, CreateVideoBookingRequest::class.java), user())
   }
 }

@@ -42,14 +42,14 @@ class RequestBookingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun request(request: RequestVideoBookingRequest, username: String) {
+  fun request(request: RequestVideoBookingRequest, user: User) {
     when (request.bookingType!!) {
-      BookingType.COURT -> processCourtBookingRequest(request, username)
-      BookingType.PROBATION -> processProbationBookingRequest(request, username)
+      BookingType.COURT -> processCourtBookingRequest(request, user)
+      BookingType.PROBATION -> processProbationBookingRequest(request, user)
     }
   }
 
-  private fun processCourtBookingRequest(request: RequestVideoBookingRequest, username: String) {
+  private fun processCourtBookingRequest(request: RequestVideoBookingRequest, user: User) {
     val prisoner = request.prisoner()
     appointmentsService.checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!)
 
@@ -60,7 +60,7 @@ class RequestBookingService(
     val hearingType = fetchReferenceCode("COURT_HEARING_TYPE", request.courtHearingType!!.toString())
 
     val locations = fetchLocations(setOfNotNull(pre?.locationKey, main.locationKey, post?.locationKey))
-    val contacts = contactsService.getContactsForCourtBookingRequest(court, prison, username).allContactsWithAnEmailAddress()
+    val contacts = contactsService.getContactsForCourtBookingRequest(court, prison, user).allContactsWithAnEmailAddress()
 
     sendEmails(contacts) { contact ->
       when (contact.contactType) {
@@ -71,7 +71,7 @@ class RequestBookingService(
     }
   }
 
-  private fun processProbationBookingRequest(request: RequestVideoBookingRequest, username: String) {
+  private fun processProbationBookingRequest(request: RequestVideoBookingRequest, user: User) {
     val prisoner = request.prisoner()
     appointmentsService.checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!)
 
@@ -81,7 +81,7 @@ class RequestBookingService(
     val meetingType = fetchReferenceCode("PROBATION_MEETING_TYPE", request.probationMeetingType!!.toString())
 
     val locations = fetchLocations(setOf(appointment.locationKey!!))
-    val contacts = contactsService.getContactsForProbationBookingRequest(probationTeam, prison, username).allContactsWithAnEmailAddress()
+    val contacts = contactsService.getContactsForProbationBookingRequest(probationTeam, prison, user).allContactsWithAnEmailAddress()
 
     sendEmails(contacts) { contact ->
       when (contact.contactType) {

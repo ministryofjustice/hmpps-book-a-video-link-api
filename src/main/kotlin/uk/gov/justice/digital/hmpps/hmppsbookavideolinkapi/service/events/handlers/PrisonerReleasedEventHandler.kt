@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ServiceName
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReleasedEvent
 import java.time.LocalDate
 import java.time.LocalTime
@@ -38,10 +38,10 @@ class PrisonerReleasedEventHandler(
       .forEach { booking ->
         if (event.isTransferred()) {
           log.info("RELEASE EVENT HANDLER: processing transfer event $event")
-          bookingFacade.prisonerTransferred(booking, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+          bookingFacade.prisonerTransferred(booking, getServiceAsUser())
         } else if (event.isPermanent()) {
           log.info("RELEASE EVENT HANDLER: processing release event $event")
-          bookingFacade.prisonerReleased(booking, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+          bookingFacade.prisonerReleased(booking, getServiceAsUser())
         } else {
           log.info("RELEASE EVENT HANDLER: no action taken for release event $event")
         }

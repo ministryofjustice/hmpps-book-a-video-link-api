@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -14,6 +15,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -37,7 +40,7 @@ abstract class IntegrationTestBase {
   protected lateinit var jwtAuthHelper: JwtAuthHelper
 
   protected fun setAuthorisation(
-    user: String = "AUTH_ADM",
+    user: String = TEST_USERNAME,
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles, scopes)
@@ -57,4 +60,14 @@ abstract class IntegrationTestBase {
   protected fun locationsInsidePrisonApi() = LocationsInsidePrisonApiExtension.server
 
   protected fun manageUsersApi() = ManageUsersApiExtension.server
+
+  protected fun stubUser(username: String = TEST_USERNAME, name: String = "Test Users Name", email: String? = TEST_USER_EMAIL) {
+    manageUsersApi().stubGetUserDetails(username, name)
+    if (email != null) manageUsersApi().stubGetUserEmail(username, email)
+  }
+
+  @BeforeEach
+  fun `stub user`() {
+    stubUser()
+  }
 }

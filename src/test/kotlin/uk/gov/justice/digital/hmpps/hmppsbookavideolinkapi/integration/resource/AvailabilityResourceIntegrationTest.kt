@@ -29,8 +29,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should confirm availability for a court booking when the prison room is free`() {
-    val bookingCreator = "BOOKING_CREATOR"
-
     videoBookingRepository.findAll() hasSize 0
 
     // With no bookings present, the availability check should succeed
@@ -48,7 +46,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    val availabilityResponse = webTestClient.availabilityCheck(bookingCreator, availabilityRequest)
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
 
     assertThat(availabilityResponse).isNotNull
     with(availabilityResponse) {
@@ -59,8 +57,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should offer alternatives for a court booking when the prison room is already occupied`() {
-    val bookingCreator = "BOOKING_CREATOR"
-
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -76,7 +72,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    webTestClient.createBooking(bookingCreator, courtBookingRequest)
+    webTestClient.createBooking(courtBookingRequest)
 
     // Do the availability check for a booking at the same time as the existing booking above
     val availabilityRequest = AvailabilityRequest(
@@ -93,7 +89,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    val availabilityResponse = webTestClient.availabilityCheck(bookingCreator, availabilityRequest)
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
 
     assertThat(availabilityResponse).isNotNull
     with(availabilityResponse) {
@@ -104,8 +100,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should exclude specific booking when checking for availability`() {
-    val bookingCreator = "BOOKING_CREATOR"
-
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -121,7 +115,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val id = webTestClient.createBooking(bookingCreator, courtBookingRequest)
+    val id = webTestClient.createBooking(courtBookingRequest)
 
     // Do the availability check for a booking at the same time as the existing booking above
     val availabilityRequest = AvailabilityRequest(
@@ -139,7 +133,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       vlbIdToExclude = id,
     )
 
-    val availabilityResponse = webTestClient.availabilityCheck(bookingCreator, availabilityRequest)
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
 
     assertThat(availabilityResponse).isNotNull
     with(availabilityResponse) {
@@ -150,8 +144,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should confirm availability for a probation booking when the prison room is free`() {
-    val bookingCreator = "BOOKING_CREATOR"
-
     videoBookingRepository.findAll() hasSize 0
 
     val availabilityRequest = AvailabilityRequest(
@@ -168,7 +160,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    val availabilityResponse = webTestClient.availabilityCheck(bookingCreator, availabilityRequest)
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
 
     assertThat(availabilityResponse).isNotNull
     with(availabilityResponse) {
@@ -179,8 +171,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should return alternatives for a probation booking when the prison room is already occupied`() {
-    val bookingCreator = "BOOKING_CREATOR"
-
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -198,7 +188,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       location = werringtonLocation,
     )
 
-    webTestClient.createBooking(bookingCreator, probationBookingRequest)
+    webTestClient.createBooking(probationBookingRequest)
 
     videoBookingRepository.findAll() hasSize 1
 
@@ -217,7 +207,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    val availabilityResponse = webTestClient.availabilityCheck(bookingCreator, availabilityRequest)
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
 
     assertThat(availabilityResponse).isNotNull
     with(availabilityResponse) {
@@ -226,26 +216,26 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     }
   }
 
-  private fun WebTestClient.createBooking(username: String, request: CreateVideoBookingRequest) =
+  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =
     this
       .post()
       .uri("/video-link-booking")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isCreated
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.availabilityCheck(username: String, request: AvailabilityRequest) =
+  private fun WebTestClient.availabilityCheck(request: AvailabilityRequest) =
     this
       .post()
       .uri("/availability")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

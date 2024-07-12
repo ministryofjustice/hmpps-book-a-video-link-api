@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalDateTime.now
 import java.time.LocalTime
@@ -31,10 +32,10 @@ class VideoBookingTest {
       locationKey = "loc-key",
     )
 
-    booking.cancel("Test User")
+    booking.cancel(user())
 
     booking.statusCode isEqualTo StatusCode.CANCELLED
-    booking.amendedBy isEqualTo "Test User"
+    booking.amendedBy isEqualTo "user"
     booking.amendedTime isCloseTo now()
   }
 
@@ -50,10 +51,10 @@ class VideoBookingTest {
       locationKey = "loc-key",
     )
 
-    booking.cancel("Test User")
+    booking.cancel(user())
 
     val exception = assertThrows<IllegalArgumentException> {
-      booking.cancel("Test User")
+      booking.cancel(user())
     }
 
     exception.message isEqualTo "Video booking ${booking.videoBookingId} is already cancelled"
@@ -72,7 +73,7 @@ class VideoBookingTest {
     )
 
     val exception = assertThrows<IllegalArgumentException> {
-      booking.cancel("Test User")
+      booking.cancel(user())
     }
 
     exception.message isEqualTo "Video booking ${booking.videoBookingId} cannot be cancelled"

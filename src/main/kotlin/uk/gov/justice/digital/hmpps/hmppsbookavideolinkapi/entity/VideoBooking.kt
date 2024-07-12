@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
@@ -94,7 +95,7 @@ class VideoBooking private constructor(
 
   fun removeAllAppointments() = prisonAppointments.clear()
 
-  fun cancel(cancelledBy: String) =
+  fun cancel(cancelledBy: User) =
     apply {
       require(statusCode != StatusCode.CANCELLED) {
         "Video booking $videoBookingId is already cancelled"
@@ -103,7 +104,7 @@ class VideoBooking private constructor(
       require(prisonAppointments.all { it.isStartsAfter(now()) }) { "Video booking $videoBookingId cannot be cancelled" }
 
       statusCode = StatusCode.CANCELLED
-      amendedBy = cancelledBy
+      amendedBy = cancelledBy.username
       amendedTime = now()
     }
 

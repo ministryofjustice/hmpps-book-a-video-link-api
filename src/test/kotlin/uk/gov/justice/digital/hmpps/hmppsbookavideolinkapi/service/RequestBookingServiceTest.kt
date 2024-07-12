@@ -35,6 +35,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -100,7 +101,7 @@ class RequestBookingServiceTest {
     whenever(emailService.send(any<CourtBookingRequestUserEmail>())) doReturn Result.success(notificationId to "court template id")
     whenever(emailService.send(any<CourtBookingRequestPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
 
-    service.request(bookingRequest, "court user")
+    service.request(bookingRequest, user("court user"))
 
     inOrder(emailService, notificationRepository) {
       verify(emailService).send(emailCaptor.capture())
@@ -169,7 +170,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, "court user") }
+    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, user("court user")) }
     error.message isEqualTo "Court with code $DERBY_JUSTICE_CENTRE is not enabled"
 
     verify(emailService, never()).send(any())
@@ -188,7 +189,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "court user") }
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("court user")) }
     error.message isEqualTo "Court with code $DERBY_JUSTICE_CENTRE not found"
 
     verify(emailService, never()).send(any())
@@ -207,7 +208,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, "court user") }
+    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, user("court user")) }
     error.message isEqualTo "Prison with code $MOORLAND is not enabled"
 
     verify(emailService, never()).send(any())
@@ -226,7 +227,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "court user") }
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("court user")) }
     error.message isEqualTo "Prison with code $MOORLAND not found"
 
     verify(emailService, never()).send(any())
@@ -245,7 +246,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "court user") }
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("court user")) }
     error.message isEqualTo "COURT_HEARING_TYPE with code TRIBUNAL not found"
 
     verify(emailService, never()).send(any())
@@ -267,7 +268,7 @@ class RequestBookingServiceTest {
     whenever(emailService.send(any<ProbationBookingRequestUserEmail>())) doReturn Result.success(notificationId to "probation template id")
     whenever(emailService.send(any<ProbationBookingRequestPrisonNoProbationTeamEmail>())) doReturn Result.success(notificationId to "prison template id")
 
-    service.request(bookingRequest, "probation user")
+    service.request(bookingRequest, user("probation user"))
 
     inOrder(emailService, notificationRepository) {
       verify(emailService).send(emailCaptor.capture())
@@ -332,7 +333,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, "probation user") }
+    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, user("probation user")) }
     error.message isEqualTo "Probation team with code $BLACKPOOL_MC_PPOC is not enabled"
 
     verify(emailService, never()).send(any())
@@ -351,7 +352,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "probation user") }
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("probation user")) }
     error.message isEqualTo "Probation team with code $BLACKPOOL_MC_PPOC not found"
 
     verify(emailService, never()).send(any())
@@ -370,7 +371,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, "probation user") }
+    val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, user("probation user")) }
     error.message isEqualTo "Prison with code $MOORLAND is not enabled"
 
     verify(emailService, never()).send(any())
@@ -389,7 +390,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "probation user") }
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("probation user")) }
     error.message isEqualTo "Prison with code $MOORLAND not found"
 
     verify(emailService, never()).send(any())
@@ -408,7 +409,7 @@ class RequestBookingServiceTest {
       location = moorlandLocation,
     )
 
-    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, "probation user") }
+    val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("probation user")) }
     error.message isEqualTo "PROBATION_MEETING_TYPE with code PSR not found"
 
     verify(emailService, never()).send(any())

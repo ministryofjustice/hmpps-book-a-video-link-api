@@ -6,7 +6,6 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contact
@@ -17,6 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -38,8 +38,8 @@ class ContactsServiceTest {
 
     whenever(bookingContactsRepository.findContactsByVideoBookingId(videoBookingId)) doReturn listOf(bookingContact)
     whenever(videoBookingRepository.findById(videoBookingId)) doReturn Optional.of(booking)
-    whenever(userService.getContactDetails("createdByUser")) doReturn ContactDetails("Created User", "created@example.com")
-    whenever(userService.getContactDetails("amendedByUser")) doReturn ContactDetails("Amended User", "amended@example.com")
+    whenever(userService.getUser("createdByUser")) doReturn user(name = "Created User", email = "created@example.com")
+    whenever(userService.getUser("amendedByUser")) doReturn user(name = "Amended User", email = "amended@example.com")
 
     val result = service.getAllBookingContacts(videoBookingId)
 
@@ -62,79 +62,35 @@ class ContactsServiceTest {
   fun `getContactsForCourtBookingRequest should return contacts`() {
     val court = court()
     val prison = prison()
-    val username = "user"
 
     val courtContact = contact(ContactType.COURT, "court.contact@example.com", "Court contact")
     val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
-    val userContactDetails = ContactDetails("User Name", "user@example.com")
 
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.COURT, court.code)) doReturn listOf(courtContact)
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
-    whenever(userService.getContactDetails(username)) doReturn userContactDetails
 
-    val result = service.getContactsForCourtBookingRequest(court, prison, username)
+    val result = service.getContactsForCourtBookingRequest(court, prison, user(name = "User Name"))
 
     result hasSize 3
     result.containsAll(listOf(courtContact, prisonContact)) isBool true
     result.any { it.name == "User Name" && it.primaryContact } isBool true
-  }
-
-  @Test
-  fun `getContactsForCourtBookingRequest should return only court and prison contacts if user not found`() {
-    val court = court()
-    val prison = prison()
-    val username = "user"
-
-    val courtContact = contact(ContactType.COURT, "court.contact@example.com", "Court contact")
-    val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
-
-    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.COURT, court.code)) doReturn listOf(courtContact)
-    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
-    whenever(userService.getContactDetails(username)) doReturn null
-
-    val result = service.getContactsForCourtBookingRequest(court, prison, username)
-
-    result hasSize 2
-    result.containsAll(listOf(courtContact, prisonContact)) isBool true
   }
 
   @Test
   fun `getContactsForProbationBookingRequest should return contacts`() {
     val probationTeam = probationTeam()
     val prison = prison()
-    val username = "user"
 
     val probationContact = contact(ContactType.PROBATION, "probation.contact@example.com", "Probation contact")
     val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
-    val userContactDetails = ContactDetails("User Name", "user@example.com")
 
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
-    whenever(userService.getContactDetails(username)) doReturn userContactDetails
 
-    val result = service.getContactsForProbationBookingRequest(probationTeam, prison, username)
+    val result = service.getContactsForProbationBookingRequest(probationTeam, prison, user(name = "User Name"))
 
     result hasSize 3
     result.containsAll(listOf(probationContact, prisonContact)) isBool true
     result.any { it.name == "User Name" && it.primaryContact } isBool true
-  }
-
-  @Test
-  fun `getContactsForProbationBookingRequest should return only probation and prison contacts if user not found`() {
-    val probationTeam = probationTeam()
-    val prison = prison()
-    val username = "user"
-
-    val probationContact = contact(ContactType.PROBATION, "probation.contact@example.com", "Probation contact")
-    val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
-
-    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
-    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
-    whenever(userService.getContactDetails(username)) doReturn null
-
-    val result = service.getContactsForProbationBookingRequest(probationTeam, prison, username)
-
-    result hasSize 2
-    result.containsAll(listOf(probationContact, prisonContact)) isBool true
   }
 }

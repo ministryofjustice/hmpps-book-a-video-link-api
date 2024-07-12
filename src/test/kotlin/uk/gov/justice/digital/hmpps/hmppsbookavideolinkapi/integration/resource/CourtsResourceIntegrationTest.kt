@@ -9,6 +9,7 @@ import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
@@ -45,6 +46,7 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-user-court-data.sql")
   @Test
   fun `should return a list of preferred courts for a specified user`() {
+    stubUser("michael.horden@itv.com")
     val listOfPreferredCourts = webTestClient.getUserPreferenceCourts("michael.horden@itv.com")
 
     // Check that the user-preferences as setup by the SQL above are returned
@@ -59,17 +61,16 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Test
   fun `should set a list of preferred courts for a specified user`() {
     val newCourts = listOf("CVNTCC", "DRBYCC", "MNSFMC")
-    val username = "test-user@mymail.com"
     val request = SetCourtPreferencesRequest(courtCodes = newCourts)
 
     userCourtRepository.findAll() hasSize 0
 
-    val response = webTestClient.setUserPreferenceCourts(request, username)
+    val response = webTestClient.setUserPreferenceCourts(request)
 
     assertThat(response?.courtsSaved).isEqualTo(3)
     userCourtRepository.findAll() hasSize 3
 
-    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(username)
+    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts()
     assertThat(listOfPreferredCourts).extracting("code").containsAll(newCourts)
 
     userCourtRepository.deleteAll()
@@ -78,26 +79,25 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Test
   fun `should replace the preferred courts for a specified user`() {
     val courts1 = listOf("CVNTCC", "DRBYCC", "MNSFMC")
-    val username = "test-user@mymail.com"
     val request1 = SetCourtPreferencesRequest(courtCodes = courts1)
 
     // Set the preferences to this set of initial courts
-    val response = webTestClient.setUserPreferenceCourts(request1, username)
+    val response = webTestClient.setUserPreferenceCourts(request1)
     assertThat(response?.courtsSaved).isEqualTo(3)
 
     userCourtRepository.findAll() hasSize 3
 
-    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(username)
+    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts()
     assertThat(listOfPreferredCourts).extracting("code").containsAll(courts1)
 
     // Replace original preferences with a different set of courts
     val courts2 = listOf("SWINCC", "SWINMC", "AMERCC")
     val request2 = SetCourtPreferencesRequest(courtCodes = courts2)
 
-    webTestClient.setUserPreferenceCourts(request2, username)
+    webTestClient.setUserPreferenceCourts(request2)
 
     // Assert that the preferences are changed to the second set
-    val newPreferredCourts = webTestClient.getUserPreferenceCourts(username)
+    val newPreferredCourts = webTestClient.getUserPreferenceCourts()
     assertThat(newPreferredCourts).extracting("code").containsAll(courts2)
 
     userCourtRepository.findAll() hasSize 3
@@ -115,23 +115,23 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
       .expectBodyList(Court::class.java)
       .returnResult().responseBody
 
-  private fun WebTestClient.getUserPreferenceCourts(username: String) =
+  private fun WebTestClient.getUserPreferenceCourts(username: String = TEST_USERNAME) =
     get()
       .uri("/courts/user-preferences")
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(Court::class.java)
       .returnResult().responseBody
 
-  private fun WebTestClient.setUserPreferenceCourts(request: SetCourtPreferencesRequest, username: String) =
+  private fun WebTestClient.setUserPreferenceCourts(request: SetCourtPreferencesRequest) =
     post()
       .uri("/courts/user-preferences/set")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

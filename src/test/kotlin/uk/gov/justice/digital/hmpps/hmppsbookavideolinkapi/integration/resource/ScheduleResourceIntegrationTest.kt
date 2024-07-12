@@ -37,7 +37,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       val scheduleResponse = webTestClient.getPrisonSchedule(
-        username = "PRISON-USER",
         prisonCode = MOORLAND,
         date = LocalDate.now(),
       )
@@ -47,8 +46,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `Prison - return items when a booking is present for the prison`() {
-      val bookingCreator = "BOOKING_CREATOR"
-
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -65,11 +62,10 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         comments = "integration test court booking comments",
       )
 
-      webTestClient.createBooking(bookingCreator, courtBookingRequest)
+      webTestClient.createBooking(courtBookingRequest)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getPrisonSchedule(
-        username = "PRISON-USER",
         prisonCode = WERRINGTON,
         date = tomorrow(),
       )
@@ -92,8 +88,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `Prison - return court and probation bookings for the prison`() {
-      val bookingCreator = "BOOKING_CREATOR"
-
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -110,7 +104,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         comments = "integration test court booking comments",
       )
 
-      webTestClient.createBooking(bookingCreator, courtBookingRequest)
+      webTestClient.createBooking(courtBookingRequest)
 
       // Will default to tomorrow's date
       val probationBookingRequest = probationBookingRequest(
@@ -125,11 +119,10 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = werringtonLocation,
       )
 
-      webTestClient.createBooking(bookingCreator, probationBookingRequest)
+      webTestClient.createBooking(probationBookingRequest)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getPrisonSchedule(
-        username = "PRISON-USER",
         prisonCode = WERRINGTON,
         date = tomorrow(),
       )
@@ -162,8 +155,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
   inner class CourtSchedule {
     @Test
     fun `Court - return no items when only probation bookings are present`() {
-      val bookingCreator = "BOOKING_CREATOR"
-
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -182,11 +173,10 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = werringtonLocation,
       )
 
-      webTestClient.createBooking(bookingCreator, probationBookingRequest)
+      webTestClient.createBooking(probationBookingRequest)
 
       // Check for tomorrow's date for court bookings
       val scheduleResponse = webTestClient.getCourtSchedule(
-        username = "PRISON-USER",
         courtCode = DERBY_JUSTICE_CENTRE,
         date = tomorrow(),
       )
@@ -197,8 +187,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `Court - return items when bookings are present for this court`() {
-      val bookingCreator = "BOOKING_CREATOR"
-
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -215,11 +203,10 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         comments = "integration test court booking comments",
       )
 
-      webTestClient.createBooking(bookingCreator, courtBookingRequest)
+      webTestClient.createBooking(courtBookingRequest)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getCourtSchedule(
-        username = "PRISON-USER",
         courtCode = DERBY_JUSTICE_CENTRE,
         date = tomorrow(),
       )
@@ -246,8 +233,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
   inner class ProbationSchedule {
     @Test
     fun `Probation - return no items when only court bookings are present`() {
-      val bookingCreator = "BOOKING_CREATOR"
-
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -264,11 +249,10 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         comments = "integration test court booking comments",
       )
 
-      webTestClient.createBooking(bookingCreator, courtBookingRequest)
+      webTestClient.createBooking(courtBookingRequest)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getProbationSchedule(
-        username = "PRISON-USER",
         probationTeamCode = "BLKPPP",
         date = tomorrow(),
       )
@@ -279,8 +263,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `Probation - return items when bookings are present for this probation team`() {
-      val bookingCreator = "BOOKING_CREATOR"
-
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -299,11 +281,10 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = werringtonLocation,
       )
 
-      webTestClient.createBooking(bookingCreator, probationBookingRequest)
+      webTestClient.createBooking(probationBookingRequest)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getProbationSchedule(
-        username = "PRISON-USER",
         probationTeamCode = "BLKPPP",
         date = tomorrow(),
       )
@@ -323,49 +304,49 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     }
   }
 
-  private fun WebTestClient.createBooking(username: String, request: CreateVideoBookingRequest) =
+  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =
     this
       .post()
       .uri("/video-link-booking")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isCreated
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.getPrisonSchedule(username: String, prisonCode: String, date: LocalDate, cancelled: Boolean = false) =
+  private fun WebTestClient.getPrisonSchedule(prisonCode: String, date: LocalDate, cancelled: Boolean = false) =
     this
       .get()
       .uri("/schedule/prison/{prisonCode}?date=$date&includeCancelled=$cancelled", prisonCode, date, cancelled)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(ScheduleItem::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.getCourtSchedule(username: String, courtCode: String, date: LocalDate, cancelled: Boolean = false) =
+  private fun WebTestClient.getCourtSchedule(courtCode: String, date: LocalDate, cancelled: Boolean = false) =
     this
       .get()
       .uri("/schedule/court/{courtCode}?date=$date&includeCancelled=$cancelled", courtCode, date, cancelled)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(ScheduleItem::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.getProbationSchedule(username: String, probationTeamCode: String, date: LocalDate, cancelled: Boolean = false) =
+  private fun WebTestClient.getProbationSchedule(probationTeamCode: String, date: LocalDate, cancelled: Boolean = false) =
     this
       .get()
       .uri("/schedule/probation/{probationTeamCode}?date=$date&includeCancelled=$cancelled", probationTeamCode, date, cancelled)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

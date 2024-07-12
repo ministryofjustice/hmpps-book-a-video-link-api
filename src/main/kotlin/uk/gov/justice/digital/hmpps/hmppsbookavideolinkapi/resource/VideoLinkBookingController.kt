@@ -84,7 +84,7 @@ class VideoLinkBookingController(
     @Parameter(description = "The request with the new video link booking details", required = true)
     request: CreateVideoBookingRequest,
     httpRequest: HttpServletRequest,
-  ): Long = bookingFacade.create(request, httpRequest.getBvlsRequestContext().username)
+  ): Long = bookingFacade.create(request, httpRequest.getBvlsRequestContext().user)
 
   @Operation(summary = "Endpoint to support the amendment of video link bookings")
   @ApiResponses(
@@ -142,7 +142,7 @@ class VideoLinkBookingController(
     @Parameter(description = "The request with the amended video link booking details", required = true)
     request: AmendVideoBookingRequest,
     httpRequest: HttpServletRequest,
-  ): Long = bookingFacade.amend(videoBookingId, request, httpRequest.getBvlsRequestContext().username)
+  ): Long = bookingFacade.amend(videoBookingId, request, httpRequest.getBvlsRequestContext().user)
 
   @Operation(summary = "Endpoint to return the details of a video link booking using its internal ID")
   @ApiResponses(
@@ -250,7 +250,7 @@ class VideoLinkBookingController(
     @PathVariable("videoBookingId") videoBookingId: Long,
     httpRequest: HttpServletRequest,
   ) {
-    bookingFacade.cancel(videoBookingId, httpRequest.getBvlsRequestContext().username)
+    bookingFacade.cancel(videoBookingId, httpRequest.getBvlsRequestContext().user)
   }
 
   @Operation(summary = "Endpoint to support the request for a prison to create a video link booking for a prisoner due to arrive")
@@ -291,5 +291,5 @@ class VideoLinkBookingController(
     @Parameter(description = "The request with the requested video link booking details", required = true)
     request: RequestVideoBookingRequest,
     httpRequest: HttpServletRequest,
-  ) = requestBookingService.request(request, httpRequest.getBvlsRequestContext().username)
+  ) = requestBookingService.request(request, httpRequest.getBvlsRequestContext().user)
 }

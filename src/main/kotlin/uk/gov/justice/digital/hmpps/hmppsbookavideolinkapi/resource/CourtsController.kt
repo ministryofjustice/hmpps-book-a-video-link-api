@@ -109,7 +109,7 @@ class CourtsController(private val courtsService: CourtsService) {
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun getUserCourtPreferences(
     httpRequest: HttpServletRequest,
-  ) = courtsService.getUserCourtPreferences(httpRequest.getBvlsRequestContext().username)
+  ) = courtsService.getUserCourtPreferences(httpRequest.getBvlsRequestContext().user)
 
   @Operation(summary = "Endpoint to set the court preferences for a user (identified from the token content)")
   @ApiResponses(
@@ -169,5 +169,5 @@ class CourtsController(private val courtsService: CourtsService) {
     @Parameter(description = "The request body containing the user court preferences", required = true)
     request: SetCourtPreferencesRequest,
     httpRequest: HttpServletRequest,
-  ) = courtsService.setUserCourtPreferences(request, httpRequest.getBvlsRequestContext().username)
+  ) = courtsService.setUserCourtPreferences(request, httpRequest.getBvlsRequestContext().user)
 }

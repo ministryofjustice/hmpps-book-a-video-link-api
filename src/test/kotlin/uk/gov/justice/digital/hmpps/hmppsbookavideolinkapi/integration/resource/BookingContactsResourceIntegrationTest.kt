@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -32,7 +31,6 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should return a list of prison and court contacts for a booking`() {
-    val bookingCreator = "BOOKING_CREATOR"
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
@@ -48,26 +46,24 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(bookingCreator, courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
 
     videoBookingRepository.findAll() hasSize 1
 
     // DRBYMC court has 3 contacts, WNI prison has 3 contacts
-    val listOfContacts = webTestClient.getBookingContacts("user", bookingId)
+    val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
     // Check contacts returned
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.PRISON)
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.COURT)
+    assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.PROBATION)
-    assertThat(listOfContacts).hasSize(6)
-    assertThat(listOfContacts).extracting("email").containsAll(
-      listOf("m@m.com", "t@t.com", "s@s.com"),
-    )
+    assertThat(listOfContacts).hasSize(7)
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", "test@user.com"))
   }
 
   @Test
   fun `should return a list of prison and probation contacts for a booking`() {
-    val bookingCreator = "BOOKING_CREATOR"
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
 
@@ -83,26 +79,24 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       location = werringtonLocation,
     )
 
-    val bookingId = webTestClient.createBooking(bookingCreator, probationBookingRequest)
+    val bookingId = webTestClient.createBooking(probationBookingRequest)
 
     videoBookingRepository.findAll() hasSize 1
 
     // BLKPPP probation team has 3 contacts, WNI prison has 3 contacts
-    val listOfContacts = webTestClient.getBookingContacts("user", bookingId)
+    val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
     // Check contacts returned
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.PRISON)
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.PROBATION)
+    assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.COURT)
-    assertThat(listOfContacts).hasSize(6)
-    assertThat(listOfContacts).extracting("email").containsAll(
-      listOf("m@m.com", "t@t.com", "s@s.com"),
-    )
+    assertThat(listOfContacts).hasSize(7)
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", "test@user.com"))
   }
 
   @Test
-  fun `should return an empty list where no prison or court contacts are defined for a booking`() {
-    val bookingCreator = "BOOKING_CREATOR"
+  fun `should return the user only, where no prison or court contacts are defined for a booking`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", MOORLAND)
@@ -118,19 +112,19 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(bookingCreator, courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
 
     videoBookingRepository.findAll() hasSize 1
 
-    // NWPIAC court has no contacts, and BMI prison has 0 contacts
-    val listOfContacts = webTestClient.getBookingContacts(bookingCreator, bookingId)
+    // NWPIAC court has 0 contacts, and BMI prison has 0 contacts
+    val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
-    assertThat(listOfContacts).isEmpty()
+    listOfContacts hasSize 1
+    assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
   }
 
   @Test
   fun `should return 404 where an invalid video booking ID was supplied`() {
-    val bookingCreator = "BOOKING_CREATOR"
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", BIRMINGHAM)
@@ -146,11 +140,11 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(bookingCreator, courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
 
     videoBookingRepository.findAll() hasSize 1
 
-    val errorResponse = webTestClient.getBookingContactsNotFound(bookingCreator, bookingId + 300)
+    val errorResponse = webTestClient.getBookingContactsNotFound(bookingId + 300)
 
     assertThat(errorResponse?.status).isEqualTo(404)
   }
@@ -162,15 +156,10 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should return the user contact details for a created booking`() {
-    // If the creating username is an email address, this will be returned as the OWNER name and contact
-    val bookingCreator = TEST_USERNAME
-
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
-    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
-    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
@@ -182,12 +171,12 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(bookingCreator, courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
 
     videoBookingRepository.findAll() hasSize 1
 
     // DRBYMC court has 3 contacts, WNI prison has 3 contacts
-    val listOfContacts = webTestClient.getBookingContacts("user", bookingId)
+    val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
     assertThat(listOfContacts).hasSize(7)
 
@@ -204,7 +193,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     )
 
     // Check the user email and name are as expected
-    val userObject = listOfContacts?.find { it.contactType == ContactType.USER }
+    val userObject = listOfContacts.find { it.contactType == ContactType.USER }
     assertThat(userObject?.email).isEqualTo(TEST_USER_EMAIL)
     assertThat(userObject?.name).isEqualTo("Test Users Name")
   }
@@ -215,35 +204,35 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     // If the createdBy and amendedBy usernames are both email addresses, and different, they are returned as joint OWNERS
   }
 
-  private fun WebTestClient.getBookingContactsNotFound(username: String, videoBookingId: Long) =
+  private fun WebTestClient.getBookingContactsNotFound(videoBookingId: Long) =
     get()
       .uri("/booking-contacts/id/{videoBookingId}", videoBookingId)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isNotFound
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(ErrorResponse::class.java)
       .returnResult().responseBody
 
-  private fun WebTestClient.getBookingContacts(username: String, videoBookingId: Long) =
+  private fun WebTestClient.getBookingContacts(videoBookingId: Long) =
     get()
       .uri("/booking-contacts/id/{videoBookingId}", videoBookingId)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(BookingContact::class.java)
-      .returnResult().responseBody
+      .returnResult().responseBody!!
 
-  private fun WebTestClient.createBooking(username: String, request: CreateVideoBookingRequest) =
+  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =
     this
       .post()
       .uri("/video-link-booking")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isCreated
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

@@ -7,13 +7,14 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userDetails
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmailAddress
+import java.net.URLEncoder
 
 class ManageUsersApiMockServer : MockServer(8093) {
 
   fun stubGetUserDetails(username: String = TEST_USERNAME, name: String) {
     stubFor(
-      get("/users/$username")
+      get("/users/${username.urlEncode()}")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -25,15 +26,17 @@ class ManageUsersApiMockServer : MockServer(8093) {
 
   fun stubGetUserEmail(username: String = TEST_USERNAME, email: String = TEST_USER_EMAIL, verified: Boolean = true) {
     stubFor(
-      get("/users/$username/email?unverified=false")
+      get("/users/${username.urlEncode()}/email?unverified=false")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(userEmail(username, email, verified)))
+            .withBody(mapper.writeValueAsString(userEmailAddress(username, email, verified)))
             .withStatus(200),
         ),
     )
   }
+
+  private fun String.urlEncode() = URLEncoder.encode(this, "utf-8")
 }
 
 class ManageUsersApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
