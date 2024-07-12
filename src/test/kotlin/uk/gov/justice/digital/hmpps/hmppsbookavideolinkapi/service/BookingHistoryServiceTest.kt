@@ -40,7 +40,7 @@ class BookingHistoryServiceTest {
 
   @Test
   fun `Should create history for a court booking`() {
-    val courtBooking = courtBooking(CREATED_BY)
+    val courtBooking = courtBooking(CREATED_BY.username)
       .addAppointment(
         prisonCode = MOORLAND,
         prisonerNumber = "A1234AA",
@@ -61,7 +61,7 @@ class BookingHistoryServiceTest {
       hearingType isEqualTo courtBooking.hearingType
       comments isEqualTo "Court hearing comments"
       videoUrl isEqualTo courtBooking.videoUrl
-      createdBy isEqualTo CREATED_BY
+      createdBy isEqualTo CREATED_BY.username
       createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
       with(appointments().first()) {
@@ -114,7 +114,7 @@ class BookingHistoryServiceTest {
 
   @Test
   fun `Should create history for a court booking amendment`() {
-    val courtBooking = courtBooking(CREATED_BY)
+    val courtBooking = courtBooking(CREATED_BY.username)
       .addAppointment(
         prisonCode = MOORLAND,
         prisonerNumber = "A1234AA",
@@ -160,7 +160,7 @@ class BookingHistoryServiceTest {
 
   @Test
   fun `Should cater for multiple prisoners at different prisons on the same booking`() {
-    val courtBooking = courtBooking(CREATED_BY)
+    val courtBooking = courtBooking(CREATED_BY.username)
       .addAppointment(
         prisonCode = MOORLAND,
         prisonerNumber = "A1111AA",

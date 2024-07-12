@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.EmailAddressDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
@@ -14,6 +15,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Prisone
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.UnknownPrisonerDetails
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
@@ -57,15 +60,24 @@ fun prisonerSearchPrisoner(
   lastPrisonId = lastPrisonCode,
 )
 
-fun userEmail(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, verified, email)
+fun userEmailAddress(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, verified, email)
 
-fun userDetails(username: String, name: String) = UserDetailsDto(
-  userId = "TEST",
-  username = username,
-  active = true,
-  name = name,
-  authSource = UserDetailsDto.AuthSource.auth,
-)
+fun userDetails(username: String, name: String = "Test User", authSource: AuthSource = AuthSource.auth) =
+  UserDetailsDto(
+    userId = "TEST",
+    username = username,
+    active = true,
+    name = name,
+    authSource = authSource,
+  )
+
+fun user(username: String = "user", userType: UserType = UserType.EXTERNAL, name: String = "Test User", email: String? = null) =
+  User(
+    username = username,
+    userType = userType,
+    name = name,
+    email = email,
+  )
 
 fun prisoner(
   prisonerNumber: String,

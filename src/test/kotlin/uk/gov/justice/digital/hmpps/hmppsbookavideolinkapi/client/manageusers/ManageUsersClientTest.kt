@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userDetails
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmailAddress
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiMockServer
 
 class ManageUsersClientTest {
@@ -24,7 +24,7 @@ class ManageUsersClientTest {
   fun `should return a verified users email`() {
     server.stubGetUserEmail("username", "verified@email.com", true)
 
-    client.getUsersEmail("username") isEqualTo userEmail("username", "verified@email.com")
+    client.getUsersEmail("username") isEqualTo userEmailAddress("username", "verified@email.com")
   }
 
   @Test

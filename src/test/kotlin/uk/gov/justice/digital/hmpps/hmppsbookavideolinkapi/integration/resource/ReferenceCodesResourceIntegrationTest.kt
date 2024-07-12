@@ -64,7 +64,7 @@ class ReferenceCodesResourceIntegrationTest : IntegrationTestBase() {
     get()
       .uri("/reference-codes/group/{groupCode}", groupCode)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation("user", roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

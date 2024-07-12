@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReleasedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReleaseInformation
 import java.time.LocalDate
@@ -58,7 +59,7 @@ class PrisonerReleasedEventHandlerTest {
 
     dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
 
-    verify(bookingFacade).prisonerReleased(courtBooking.videoBookingId, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+    verify(bookingFacade).prisonerReleased(courtBooking.videoBookingId, getServiceAsUser())
   }
 
   @Test
@@ -77,8 +78,8 @@ class PrisonerReleasedEventHandlerTest {
 
     dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
 
-    verify(bookingFacade).prisonerReleased(1, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
-    verify(bookingFacade).prisonerReleased(2, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+    verify(bookingFacade).prisonerReleased(1, getServiceAsUser())
+    verify(bookingFacade).prisonerReleased(2, getServiceAsUser())
   }
 
   @Test
@@ -96,7 +97,7 @@ class PrisonerReleasedEventHandlerTest {
 
     dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
 
-    verify(bookingFacade).prisonerTransferred(courtBooking.videoBookingId, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+    verify(bookingFacade).prisonerTransferred(courtBooking.videoBookingId, getServiceAsUser())
   }
 
   @Test
@@ -115,7 +116,7 @@ class PrisonerReleasedEventHandlerTest {
 
     dateCaptor.firstValue.atTime(timeCaptor.firstValue) isCloseTo LocalDateTime.now()
 
-    verify(bookingFacade).prisonerTransferred(1, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
-    verify(bookingFacade).prisonerTransferred(2, ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name)
+    verify(bookingFacade).prisonerTransferred(1, getServiceAsUser())
+    verify(bookingFacade).prisonerTransferred(2, getServiceAsUser())
   }
 }

@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.util.Optional
 
@@ -29,7 +30,7 @@ class CancelVideoBookingServiceTest {
 
     booking.statusCode isEqualTo StatusCode.ACTIVE
 
-    val booking = service.cancel(1, "Test User")
+    val booking = service.cancel(1, user())
 
     booking.statusCode isEqualTo StatusCode.CANCELLED
 
@@ -41,7 +42,7 @@ class CancelVideoBookingServiceTest {
   fun `should fail if booking is not found`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.empty()
 
-    val error = assertThrows<EntityNotFoundException> { service.cancel(1, "Test user") }
+    val error = assertThrows<EntityNotFoundException> { service.cancel(1, user()) }
 
     error.message isEqualTo "Video booking with ID 1 not found."
 

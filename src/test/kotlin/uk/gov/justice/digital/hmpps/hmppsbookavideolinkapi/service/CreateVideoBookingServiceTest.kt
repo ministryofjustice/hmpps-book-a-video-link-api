@@ -30,6 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
@@ -40,7 +41,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-const val CREATED_BY = "TEST USER"
+val CREATED_BY = user("TEST USER")
 
 class CreateVideoBookingServiceTest {
   private val courtRepository: CourtRepository = mock()
@@ -122,7 +123,7 @@ class CreateVideoBookingServiceTest {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo CREATED_BY
+      createdBy isEqualTo CREATED_BY.username
       createdTime isCloseTo LocalDateTime.now()
 
       appointments() hasSize 3
@@ -551,7 +552,7 @@ class CreateVideoBookingServiceTest {
       probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
       comments isEqualTo "probation booking comments"
       videoUrl isEqualTo probationBookingRequest.videoLinkUrl
-      createdBy isEqualTo CREATED_BY
+      createdBy isEqualTo CREATED_BY.username
       createdTime isCloseTo LocalDateTime.now()
 
       appointments() hasSize 1

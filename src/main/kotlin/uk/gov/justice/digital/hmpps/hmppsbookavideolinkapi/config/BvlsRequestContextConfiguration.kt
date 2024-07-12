@@ -37,16 +37,12 @@ class BvlsRequestContextConfiguration(private val bvlsRequestContextInterceptor:
 @Configuration
 class BvlsRequestContextInterceptor(private val userService: UserService) : HandlerInterceptor {
 
-  companion object {
-    private val log = LoggerFactory.getLogger(BvlsRequestContextInterceptor::class.java)
-  }
-
   override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
     val username = authentication().userName
     val clientId = authentication().clientId
 
     if (username != null) {
-      request.setAttribute(BvlsRequestContext::class.simpleName, BvlsRequestContext(user = userService.getUser(username) ?: throw IllegalArgumentException("User with username $username not found")))
+      request.setAttribute(BvlsRequestContext::class.simpleName, BvlsRequestContext(user = userService.getUser(username) ?: throw AccessDeniedException("User with username $username not found")))
     } else {
       // The clientId is non-nullable, otherwise the request would not be authenticated!
       request.setAttribute(BvlsRequestContext::class.simpleName, BvlsRequestContext(user = getClientAsUser(clientId)))

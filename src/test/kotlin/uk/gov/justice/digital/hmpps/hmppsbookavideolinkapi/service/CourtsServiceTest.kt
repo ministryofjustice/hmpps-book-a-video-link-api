@@ -9,6 +9,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
@@ -66,7 +67,7 @@ class CourtsServiceTest {
 
     whenever(courtRepository.findCourtsByUsername("user")).thenReturn(listOfCourtsForUser)
 
-    assertThat(service.getUserCourtPreferences("user")).isEqualTo(
+    assertThat(service.getUserCourtPreferences(user("user"))).isEqualTo(
       listOfCourtsForUser.toModel(),
     )
 
@@ -75,15 +76,15 @@ class CourtsServiceTest {
 
   @Test
   fun `Should set court preferences for a user`() {
-    val username = "user"
+    val user = user("user")
     val existingCourts = listOf("COURT1", "COURT2")
     val requestedCourts = listOf("COURT3", "COURT4")
     val request = SetCourtPreferencesRequest(courtCodes = requestedCourts)
 
     // Mock response for the current UserCourt selections to remove
     val existingPreferences = listOf(
-      userCourtEntity(1L, courtEntity(1, existingCourts.first(), "One"), username),
-      userCourtEntity(2L, courtEntity(2, existingCourts.last(), "Two"), username),
+      userCourtEntity(1L, courtEntity(1, existingCourts.first(), "One"), user.username),
+      userCourtEntity(2L, courtEntity(2, existingCourts.last(), "Two"), user.username),
     )
 
     // Mock response for requested courts
@@ -92,13 +93,13 @@ class CourtsServiceTest {
       courtEntity(4L, "COURT4", "Four"),
     )
 
-    whenever(userCourtRepository.findAllByUsername(username)).thenReturn(existingPreferences)
+    whenever(userCourtRepository.findAllByUsername(user.username)).thenReturn(existingPreferences)
     whenever(courtRepository.findAllByCodeIn(requestedCourts)).thenReturn(newCourts)
 
-    assertThat(service.setUserCourtPreferences(request, username))
+    assertThat(service.setUserCourtPreferences(request, user))
       .isEqualTo(SetCourtPreferencesResponse(courtsSaved = 2))
 
-    verify(userCourtRepository).findAllByUsername(username)
+    verify(userCourtRepository).findAllByUsername(user.username)
     verify(userCourtRepository, times(2)).delete(any())
     verify(userCourtRepository, times(2)).saveAndFlush(any())
     verify(courtRepository).findAllByCodeIn(requestedCourts)
@@ -106,14 +107,14 @@ class CourtsServiceTest {
 
   @Test
   fun `Should set court preferences for a user only for enabled courts`() {
-    val username = "user"
+    val user = user("user")
     val existingCourts = listOf("COURT1")
     val requestedCourts = listOf("COURT3", "COURT4")
     val request = SetCourtPreferencesRequest(courtCodes = requestedCourts)
 
     // Mock response for the current UserCourt selections to remove
     val existingPreferences = listOf(
-      userCourtEntity(1L, courtEntity(1, existingCourts.first(), "One"), username),
+      userCourtEntity(1L, courtEntity(1, existingCourts.first(), "One"), user.username),
     )
 
     // Mock response for requested courts
@@ -122,13 +123,13 @@ class CourtsServiceTest {
       courtEntity(4L, "COURT4", "Four"),
     )
 
-    whenever(userCourtRepository.findAllByUsername(username)).thenReturn(existingPreferences)
+    whenever(userCourtRepository.findAllByUsername(user.username)).thenReturn(existingPreferences)
     whenever(courtRepository.findAllByCodeIn(requestedCourts)).thenReturn(newCourts)
 
-    assertThat(service.setUserCourtPreferences(request, username))
+    assertThat(service.setUserCourtPreferences(request, user))
       .isEqualTo(SetCourtPreferencesResponse(courtsSaved = 1))
 
-    verify(userCourtRepository).findAllByUsername(username)
+    verify(userCourtRepository).findAllByUsername(user.username)
     verify(userCourtRepository).delete(any())
     verify(userCourtRepository).saveAndFlush(any())
     verify(courtRepository).findAllByCodeIn(requestedCourts)

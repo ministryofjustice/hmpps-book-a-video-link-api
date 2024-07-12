@@ -19,8 +19,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.InboundEventsListener
@@ -47,8 +45,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
-    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
-    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -61,7 +57,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
 
     videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
 
@@ -87,8 +83,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
-    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
-    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -101,7 +95,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
 
     videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
 
@@ -128,8 +122,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("ABCDEF", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
-    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
-    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     receiveEvent(
       PrisonerReleasedEvent(
@@ -150,8 +142,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   fun `should not attempt to cancel an already cancelled future booking`() {
     prisonSearchApi().stubGetPrisoner("YD1234", WERRINGTON)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
-    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
-    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -164,7 +154,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+    val bookingId = webTestClient.createBooking(courtBookingRequest)
 
     prisonSearchApi().stubGetPrisoner(prisonNumber = "YD1234", prisonCode = "TRN", lastPrisonCode = WERRINGTON)
 
@@ -197,16 +187,13 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
-  private fun WebTestClient.createBooking(
-    request: CreateVideoBookingRequest,
-    username: String = "booking@creator.com",
-  ) =
+  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =
     this
       .post()
       .uri("/video-link-booking")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isCreated
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

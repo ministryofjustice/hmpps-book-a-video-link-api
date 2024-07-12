@@ -7,6 +7,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserProbationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
@@ -58,7 +59,7 @@ class ProbationTeamsServiceTest {
 
     whenever(probationTeamRepository.findProbationTeamsByUsername("user")).thenReturn(listOfTeamsForUser)
 
-    assertThat(service.getUserProbationTeamPreferences("user")).isEqualTo(
+    assertThat(service.getUserProbationTeamPreferences(user("user"))).isEqualTo(
       listOfTeamsForUser.toModel(),
     )
 
