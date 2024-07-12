@@ -23,36 +23,36 @@ class GovNotifyEmailServiceTest {
   private val today = LocalDate.now()
   private val notificationId = UUID.randomUUID()
   private val sendEmailResponse: SendEmailResponse = mock { on { notificationId } doReturn notificationId }
-  private val client: NotificationClient =
-    mock { on { sendEmail(any(), any(), any(), anyOrNull()) } doReturn sendEmailResponse }
+  private val client: NotificationClient = mock { on { sendEmail(any(), any(), any(), anyOrNull()) } doReturn sendEmailResponse }
   private val emailTemplates = EmailTemplates(
-    newCourtBookingUser = "template 1",
-    newCourtBookingPrisonCourtEmail = "template 2",
-    newCourtBookingPrisonNoCourtEmail = "template 3",
-    amendedCourtBookingUser = "template 4",
-    amendedCourtBookingPrisonCourtEmail = "template 5",
-    amendedCourtBookingPrisonNoCourtEmail = "template 6",
-    cancelledCourtBookingUser = "template 7",
-    cancelledCourtBookingPrisonCourtEmail = "template 8",
-    cancelledCourtBookingPrisonNoCourtEmail = "template 9",
-    courtBookingRequestUser = "template 10",
-    courtBookingRequestPrisonCourtEmail = "template 11",
-    courtBookingRequestPrisonNoCourtEmail = "template 12",
-    probationBookingRequestUser = "template 13",
-    probationBookingRequestPrisonProbationTeamEmail = "template 14",
-    probationBookingRequestPrisonNoProbationTeamEmail = "template 15",
-    transferCourtBookingCourt = "template 16",
-    transferCourtBookingPrisonCourtEmail = "template 17",
-    transferCourtBookingPrisonNoCourtEmail = "template 18",
-    releaseCourtBookingCourt = "template 19",
-    releaseCourtBookingPrisonCourtEmail = "template 20",
-    releaseCourtBookingPrisonNoCourtEmail = "template 21",
+    newCourtBookingUser = "newCourtBookingUser",
+    newCourtBookingCourt = "newCourtBookingCourt",
+    newCourtBookingPrisonCourtEmail = "newCourtBookingPrisonCourtEmail",
+    newCourtBookingPrisonNoCourtEmail = "newCourtBookingPrisonNoCourtEmail",
+    amendedCourtBookingUser = "amendedCourtBookingUser",
+    amendedCourtBookingPrisonCourtEmail = "amendedCourtBookingPrisonCourtEmail",
+    amendedCourtBookingPrisonNoCourtEmail = "amendedCourtBookingPrisonNoCourtEmail",
+    cancelledCourtBookingUser = "cancelledCourtBookingUser",
+    cancelledCourtBookingPrisonCourtEmail = "cancelledCourtBookingPrisonCourtEmail",
+    cancelledCourtBookingPrisonNoCourtEmail = "cancelledCourtBookingPrisonNoCourtEmail",
+    courtBookingRequestUser = "courtBookingRequestUser",
+    courtBookingRequestPrisonCourtEmail = "courtBookingRequestPrisonCourtEmail",
+    courtBookingRequestPrisonNoCourtEmail = "courtBookingRequestPrisonNoCourtEmail",
+    probationBookingRequestUser = "probationBookingRequestUser",
+    probationBookingRequestPrisonProbationTeamEmail = "probationBookingRequestPrisonProbationTeamEmail",
+    probationBookingRequestPrisonNoProbationTeamEmail = "probationBookingRequestPrisonNoProbationTeamEmail",
+    transferCourtBookingCourt = "transferCourtBookingCourt",
+    transferCourtBookingPrisonCourtEmail = "transferCourtBookingPrisonCourtEmail",
+    transferCourtBookingPrisonNoCourtEmail = "transferCourtBookingPrisonNoCourtEmail",
+    releaseCourtBookingCourt = "releaseCourtBookingCourt",
+    releaseCourtBookingPrisonCourtEmail = "releaseCourtBookingPrisonCourtEmail",
+    releaseCourtBookingPrisonNoCourtEmail = "releaseCourtBookingPrisonNoCourtEmail",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)
 
   @Test
-  fun `should send court new booking email and return a notification ID`() {
+  fun `should send user new booking email and return a notification ID`() {
     val result = service.send(
       NewCourtBookingUserEmail(
         address = "recipient@emailaddress.com",
@@ -70,10 +70,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 1")
+    result.getOrThrow() isEqualTo Pair(notificationId, "newCourtBookingUser")
 
     verify(client).sendEmail(
-      "template 1",
+      "newCourtBookingUser",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -92,7 +92,7 @@ class GovNotifyEmailServiceTest {
   }
 
   @Test
-  fun `should send court new booking email with no pre and post appoint or no comments, and return a notification ID`() {
+  fun `should send user new booking email with no pre and post appoint or no comments, and return a notification ID`() {
     val result = service.send(
       NewCourtBookingUserEmail(
         address = "recipient@emailaddress.com",
@@ -110,10 +110,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 1")
+    result.getOrThrow() isEqualTo Pair(notificationId, "newCourtBookingUser")
 
     verify(client).sendEmail(
-      "template 1",
+      "newCourtBookingUser",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -126,6 +126,44 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "Not required",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "Not required",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send court new booking with court email and return a notification ID`() {
+    val result = service.send(
+      NewCourtBookingCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        date = today,
+        comments = "comments for bob",
+        preAppointmentInfo = "bobs pre-appointment info",
+        mainAppointmentInfo = "bobs main appointment info",
+        postAppointmentInfo = "bob post appointment info",
+        court = "the court",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "newCourtBookingCourt")
+
+    verify(client).sendEmail(
+      "newCourtBookingCourt",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "bobs pre-appointment info",
+        "mainAppointmentInfo" to "bobs main appointment info",
+        "postAppointmentInfo" to "bob post appointment info",
       ),
       null,
     )
@@ -150,10 +188,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 2")
+    result.getOrThrow() isEqualTo Pair(notificationId, "newCourtBookingPrisonCourtEmail")
 
     verify(client).sendEmail(
-      "template 2",
+      "newCourtBookingPrisonCourtEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -189,10 +227,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 3")
+    result.getOrThrow() isEqualTo Pair(notificationId, "newCourtBookingPrisonNoCourtEmail")
 
     verify(client).sendEmail(
-      "template 3",
+      "newCourtBookingPrisonNoCourtEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -227,10 +265,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 4")
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedCourtBookingUser")
 
     verify(client).sendEmail(
-      "template 4",
+      "amendedCourtBookingUser",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -266,10 +304,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 5")
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedCourtBookingPrisonCourtEmail")
 
     verify(client).sendEmail(
-      "template 5",
+      "amendedCourtBookingPrisonCourtEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -305,10 +343,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 6")
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedCourtBookingPrisonNoCourtEmail")
 
     verify(client).sendEmail(
-      "template 6",
+      "amendedCourtBookingPrisonNoCourtEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -344,10 +382,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 7")
+    result.getOrThrow() isEqualTo Pair(notificationId, "cancelledCourtBookingUser")
 
     verify(client).sendEmail(
-      "template 7",
+      "cancelledCourtBookingUser",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -384,10 +422,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 8")
+    result.getOrThrow() isEqualTo Pair(notificationId, "cancelledCourtBookingPrisonCourtEmail")
 
     verify(client).sendEmail(
-      "template 8",
+      "cancelledCourtBookingPrisonCourtEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -423,10 +461,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 9")
+    result.getOrThrow() isEqualTo Pair(notificationId, "cancelledCourtBookingPrisonNoCourtEmail")
 
     verify(client).sendEmail(
-      "template 9",
+      "cancelledCourtBookingPrisonNoCourtEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -463,10 +501,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 10")
+    result.getOrThrow() isEqualTo Pair(notificationId, "courtBookingRequestUser")
 
     verify(client).sendEmail(
-      "template 10",
+      "courtBookingRequestUser",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -505,10 +543,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 11")
+    result.getOrThrow() isEqualTo Pair(notificationId, "courtBookingRequestPrisonCourtEmail")
 
     verify(client).sendEmail(
-      "template 11",
+      "courtBookingRequestPrisonCourtEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -546,10 +584,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 12")
+    result.getOrThrow() isEqualTo Pair(notificationId, "courtBookingRequestPrisonNoCourtEmail")
 
     verify(client).sendEmail(
-      "template 12",
+      "courtBookingRequestPrisonNoCourtEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -585,10 +623,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 13")
+    result.getOrThrow() isEqualTo Pair(notificationId, "probationBookingRequestUser")
 
     verify(client).sendEmail(
-      "template 13",
+      "probationBookingRequestUser",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -623,10 +661,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 14")
+    result.getOrThrow() isEqualTo Pair(notificationId, "probationBookingRequestPrisonProbationTeamEmail")
 
     verify(client).sendEmail(
-      "template 14",
+      "probationBookingRequestPrisonProbationTeamEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -660,10 +698,10 @@ class GovNotifyEmailServiceTest {
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "template 15")
+    result.getOrThrow() isEqualTo Pair(notificationId, "probationBookingRequestPrisonNoProbationTeamEmail")
 
     verify(client).sendEmail(
-      "template 15",
+      "probationBookingRequestPrisonNoProbationTeamEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),

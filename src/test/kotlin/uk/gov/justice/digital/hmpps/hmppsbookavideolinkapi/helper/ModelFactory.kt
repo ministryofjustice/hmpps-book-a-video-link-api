@@ -97,6 +97,7 @@ fun courtBookingRequest(
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
+  createdByPrison: Boolean = false,
 ): CreateVideoBookingRequest {
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
@@ -121,6 +122,7 @@ fun courtBookingRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = "https://video.link.com",
+    createdByPrison = createdByPrison,
   )
 }
 

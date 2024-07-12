@@ -55,6 +55,29 @@ class NewCourtBookingUserEmail(
   }
 }
 
+class NewCourtBookingCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  date: LocalDate = LocalDate.now(),
+  court: String,
+  prison: String,
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
+    addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+  }
+}
+
 class NewCourtBookingPrisonCourtEmail(
   address: String,
   prisonerFirstName: String,

@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingCourtEmail
@@ -82,10 +83,10 @@ class CourtEmailFactoryTest {
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun supportedCourtBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
+    fun supportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun unsupportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL)
+    fun unsupportedCourtBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL)
   }
 
   private val userEmails = mapOf(
@@ -95,6 +96,7 @@ class CourtEmailFactoryTest {
   )
 
   private val courtEmails = mapOf(
+    BookingAction.CREATE to NewCourtBookingCourtEmail::class.java,
     BookingAction.RELEASED to ReleasedCourtBookingCourtEmail::class.java,
     BookingAction.TRANSFERRED to TransferredCourtBookingCourtEmail::class.java,
   )

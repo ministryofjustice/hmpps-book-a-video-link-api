@@ -67,6 +67,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCour
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingRequestPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingRequestPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
@@ -169,6 +170,83 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent(TEST_USER_EMAIL, "new court booking user template id", persistedBooking)
+
+    thereShouldBe {
+      2.publishedMessages {
+        firstValue isInstanceOf VideoBookingCreatedEvent::class.java
+        firstValue.additionalInformation isEqualTo VideoBookingInformation(persistedBooking.videoBookingId)
+
+        secondValue isInstanceOf AppointmentCreatedEvent::class.java
+        secondValue.additionalInformation isEqualTo AppointmentInformation(persistedAppointment.prisonAppointmentId)
+      }
+    }
+  }
+
+  @Test
+  fun `should create a Derby court booking as prison user and emails sent to Werrington prison and Derby court`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    manageUsersApi().stubGetUserDetails(TEST_USERNAME, "Test Users Name")
+    manageUsersApi().stubGetUserEmail(TEST_USERNAME, TEST_USER_EMAIL)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+      createdByPrison = true,
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, TEST_USERNAME)
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(persistedBooking) {
+      videoBookingId isEqualTo bookingId
+      bookingType isEqualTo "COURT"
+      court?.code isEqualTo courtBookingRequest.courtCode
+      hearingType isEqualTo courtBookingRequest.courtHearingType?.name
+      comments isEqualTo "integration test court booking comments"
+      videoUrl isEqualTo courtBookingRequest.videoLinkUrl
+      createdBy isEqualTo TEST_USERNAME
+      createdByPrison isEqualTo true
+    }
+
+    val persistedAppointment = prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()
+
+    with(persistedAppointment) {
+      videoBooking isEqualTo persistedBooking
+      prisonCode isEqualTo WERRINGTON
+      prisonerNumber isEqualTo "123456"
+      appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
+      appointmentDate isEqualTo tomorrow()
+      prisonLocKey isEqualTo werringtonLocation.key
+      startTime isEqualTo LocalTime.of(12, 0)
+      endTime isEqualTo LocalTime.of(12, 30)
+      comments isEqualTo "integration test court booking comments"
+    }
+
+    val history = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
+    with(history.first()) {
+      historyType isEqualTo HistoryType.CREATE
+      videoBookingId isEqualTo persistedBooking.videoBookingId
+      hearingType isEqualTo persistedBooking.hearingType
+      courtId isEqualTo persistedBooking.court?.courtId
+      appointments() hasSize 1
+    }
+
+    // There should be 3 notifications - 1 user email, 1 court email and 1 prison email
+    val notifications = notificationRepository.findAll().also { it hasSize 3 }
+
+    notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("j@j.com", "new court booking court template id", persistedBooking)
     notifications.isPresent(TEST_USER_EMAIL, "new court booking user template id", persistedBooking)
 
     thereShouldBe {
@@ -1454,6 +1532,7 @@ class TestEmailConfiguration {
     EmailService { email ->
       when (email) {
         is NewCourtBookingUserEmail -> Result.success(UUID.randomUUID() to "new court booking user template id")
+        is NewCourtBookingCourtEmail -> Result.success(UUID.randomUUID() to "new court booking court template id")
         is NewCourtBookingPrisonCourtEmail -> Result.success(UUID.randomUUID() to "new court booking prison template id with email address")
         is NewCourtBookingPrisonNoCourtEmail -> Result.success(UUID.randomUUID() to "new court booking prison template id no email address")
         is AmendedCourtBookingUserEmail -> Result.success(UUID.randomUUID() to "amended court booking user template id")
