@@ -20,9 +20,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.InboundEventsListener
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.MergeInformation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerMergedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReleasedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReleaseInformation
 import java.time.LocalTime
@@ -37,6 +41,12 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
+
+  @Autowired
+  private lateinit var prisonAppointmentRepository: PrisonAppointmentRepository
+
+  @Autowired
+  private lateinit var bookingHistoryAppointmentRepository: BookingHistoryAppointmentRepository
 
   @DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
   @Test
@@ -185,6 +195,29 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
         ),
       )
     }
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-prisoner-merge.sql")
+  fun `should merge prison appointments and booking appointment history when prison merged`() {
+    val existingBooking = videoBookingRepository.findById(-1).orElseThrow()
+
+    prisonAppointmentRepository.findByVideoBooking(existingBooking).single { it.prisonerNumber == "OLD123" }
+    bookingHistoryAppointmentRepository.findAll().single { it.prisonerNumber == "OLD123" }
+
+    inboundEventsListener.onMessage(
+      raw(
+        PrisonerMergedEvent(
+          MergeInformation(
+            removedNomsNumber = "OLD123",
+            nomsNumber = "NEW123",
+          ),
+        ),
+      ),
+    )
+
+    prisonAppointmentRepository.findByVideoBooking(existingBooking).single { it.prisonerNumber == "NEW123" }
+    bookingHistoryAppointmentRepository.findAll().single { it.prisonerNumber == "NEW123" }
   }
 
   private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =

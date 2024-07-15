@@ -65,7 +65,15 @@ class PrisonerReleasedEvent(additionalInformation: ReleaseInformation) :
 
 data class ReleaseInformation(val nomsNumber: String, val reason: String, val prisonId: String) : AdditionalInformation
 
-enum class DomainEventType(val eventType: String, val description: String) {
+class PrisonerMergedEvent(additionalInformation: MergeInformation) :
+  DomainEvent<MergeInformation>(DomainEventType.PRISONER_MERGED, additionalInformation) {
+  fun newPrisonerNumber() = additionalInformation.nomsNumber
+  fun oldPrisonerNumber() = additionalInformation.removedNomsNumber
+}
+
+data class MergeInformation(val nomsNumber: String, val removedNomsNumber: String) : AdditionalInformation
+
+enum class DomainEventType(val eventType: String, val description: String = "") {
   VIDEO_BOOKING_CREATED(
     "book-a-video-link.video-booking.created",
     "A new video booking has been created in the book a video link service",
@@ -94,9 +102,13 @@ enum class DomainEventType(val eventType: String, val description: String) {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =
       mapper.readValue<VideoBookingAmendedEvent>(message)
   },
-  PRISONER_RELEASED("prisoner-offender-search.prisoner.released", "") {
+  PRISONER_RELEASED("prisoner-offender-search.prisoner.released") {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =
       mapper.readValue<PrisonerReleasedEvent>(message)
+  },
+  PRISONER_MERGED("prison-offender-events.prisoner.merged") {
+    override fun toInboundEvent(mapper: ObjectMapper, message: String) =
+      mapper.readValue<PrisonerMergedEvent>(message)
   },
   ;
 

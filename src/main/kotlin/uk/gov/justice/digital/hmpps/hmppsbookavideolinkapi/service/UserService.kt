@@ -27,26 +27,25 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
     )
   }
 
-  fun getUser(username: String): User? {
-    val userDetails = manageUsersClient.getUsersDetails(username) ?: return null
-    val userType = when (userDetails.authSource) {
-      AuthSource.nomis -> UserType.PRISON
-      AuthSource.auth -> UserType.EXTERNAL
-      else -> throw AccessDeniedException("Users with auth source ${userDetails.authSource} are not supported by this service")
-    }
+  fun getUser(username: String): User? =
+    manageUsersClient.getUsersDetails(username)?.let { userDetails ->
+      val userType = when (userDetails.authSource) {
+        AuthSource.nomis -> UserType.PRISON
+        AuthSource.auth -> UserType.EXTERNAL
+        else -> throw AccessDeniedException("Users with auth source ${userDetails.authSource} are not supported by this service")
+      }
 
-    return User(
-      username = username,
-      userType = userType,
-      name = userDetails.name,
-      email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email,
-    )
-  }
+      User(
+        username = username,
+        userType = userType,
+        name = userDetails.name,
+        email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
+      )
+    }
 }
 
-data class User(val username: String, val userType: UserType, val name: String, val email: String? = null) {
-  fun isPrisonUser() = userType == UserType.PRISON
-  fun isExternalUser() = userType == UserType.EXTERNAL
+data class User(val username: String, private val userType: UserType, val name: String, val email: String? = null) {
+  fun isUserType(type: UserType) = this.userType == type
 }
 
 enum class UserType {
