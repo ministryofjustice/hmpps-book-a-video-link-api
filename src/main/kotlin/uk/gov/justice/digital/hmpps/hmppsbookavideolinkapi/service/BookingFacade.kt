@@ -102,7 +102,7 @@ class BookingFacade(
     contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> CourtEmailFactory.user(contact, prisoner, booking, prison, main, pre, post, locations, eventType)
-        ContactType.COURT -> if (user?.isPrisonUser() == true || eventType == BookingAction.RELEASED || eventType == BookingAction.TRANSFERRED) CourtEmailFactory.court(contact, prisoner, booking, prison, main, pre, post, locations, eventType) else null
+        ContactType.COURT -> if (user?.isUserType(UserType.PRISON) == true || eventType == BookingAction.RELEASED || eventType == BookingAction.TRANSFERRED) CourtEmailFactory.court(contact, prisoner, booking, prison, main, pre, post, locations, eventType) else null
         ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
         else -> null
       }

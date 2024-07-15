@@ -8,8 +8,8 @@ import org.mockito.kotlin.whenever
 import org.springframework.security.access.AccessDeniedException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.ManageUsersClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmailAddress
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getClientAsUser
@@ -22,22 +22,22 @@ class UserServiceTest {
 
   @Test
   fun `getServiceAsUser should return ContactDetails for valid email username`() {
-    val result = getServiceAsUser()
-
-    result.username isEqualTo "BOOK_A_VIDEO_LINK_SERVICE"
-    result.name isEqualTo "BOOK_A_VIDEO_LINK_SERVICE"
-    result.userType isEqualTo UserType.SERVICE
-    result.email isEqualTo null
+    with(getServiceAsUser()) {
+      username isEqualTo "BOOK_A_VIDEO_LINK_SERVICE"
+      name isEqualTo "BOOK_A_VIDEO_LINK_SERVICE"
+      isUserType(UserType.SERVICE) isBool true
+      email isEqualTo null
+    }
   }
 
   @Test
   fun `getClientAsUser should return ContactDetails for valid email username`() {
-    val result = getClientAsUser("client")
-
-    result.username isEqualTo "client"
-    result.name isEqualTo "client"
-    result.userType isEqualTo UserType.SERVICE
-    result.email isEqualTo null
+    with(getClientAsUser("client")) {
+      username isEqualTo "client"
+      name isEqualTo "client"
+      isUserType(UserType.SERVICE) isBool true
+      email isEqualTo null
+    }
   }
 
   @Test
@@ -45,11 +45,11 @@ class UserServiceTest {
     val username = "testUser"
     whenever(manageUsersClient.getUsersDetails(username)) doReturn userDetails(username, "Test User", authSource = AuthSource.nomis)
 
-    val user = userService.getUser(username)
-
-    user isNotEqualTo null
-    user?.userType isEqualTo UserType.PRISON
-    user?.name isEqualTo "Test User"
+    with(userService.getUser(username)!!) {
+      username isEqualTo "testUser"
+      isUserType(UserType.PRISON) isBool true
+      name isEqualTo "Test User"
+    }
   }
 
   @Test
@@ -57,11 +57,11 @@ class UserServiceTest {
     val username = "testUser"
     whenever(manageUsersClient.getUsersDetails(username)) doReturn userDetails(username, "Test User", authSource = AuthSource.auth)
 
-    val user = userService.getUser(username)
-
-    user isNotEqualTo null
-    user?.userType isEqualTo UserType.EXTERNAL
-    user?.name isEqualTo "Test User"
+    with(userService.getUser(username)!!) {
+      username isEqualTo "testUser"
+      isUserType(UserType.EXTERNAL) isBool true
+      name isEqualTo "Test User"
+    }
   }
 
   @Test
@@ -79,9 +79,7 @@ class UserServiceTest {
     val username = "testUser"
     whenever(manageUsersClient.getUsersDetails(username)) doReturn null
 
-    val user = userService.getUser(username)
-
-    user isEqualTo null
+    userService.getUser(username) isEqualTo null
   }
 
   @Test
@@ -89,10 +87,7 @@ class UserServiceTest {
     val username = "test@example.com"
     whenever(manageUsersClient.getUsersDetails(username)) doReturn userDetails(username, "Test User")
 
-    val user = userService.getUser(username)
-
-    user isNotEqualTo null
-    user?.email isEqualTo "test@example.com"
+    userService.getUser(username)?.email isEqualTo "test@example.com"
   }
 
   @Test
@@ -101,9 +96,6 @@ class UserServiceTest {
     whenever(manageUsersClient.getUsersDetails(username)) doReturn userDetails(username, "Test User")
     whenever(manageUsersClient.getUsersEmail(username)) doReturn userEmailAddress(username, "test@example.com")
 
-    val user = userService.getUser(username)
-
-    user isNotEqualTo null
-    user?.email isEqualTo "test@example.com"
+    userService.getUser(username)?.email isEqualTo "test@example.com"
   }
 }

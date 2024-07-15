@@ -5,6 +5,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.AppointmentCreatedEventHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerMergedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingAmendedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCancelledEventHandler
@@ -17,6 +18,7 @@ class InboundEventsServiceTest {
   private val videoBookingCancelledEventHandler: VideoBookingCancelledEventHandler = mock()
   private val videoBookingAmendedEventHandler: VideoBookingAmendedEventHandler = mock()
   private val prisonerReleasedEventHandler: PrisonerReleasedEventHandler = mock()
+  private val prisonerMergedEventHandler: PrisonerMergedEventHandler = mock()
 
   private val service = InboundEventsService(
     appointmentCreatedEventHandler,
@@ -24,6 +26,7 @@ class InboundEventsServiceTest {
     videoBookingCancelledEventHandler,
     videoBookingAmendedEventHandler,
     prisonerReleasedEventHandler,
+    prisonerMergedEventHandler,
   )
 
   @Test
@@ -79,5 +82,12 @@ class InboundEventsServiceTest {
     val event2 = PrisonerReleasedEvent(ReleaseInformation("78910", "RELEASED", BIRMINGHAM))
     service.process(event2)
     verify(prisonerReleasedEventHandler).handle(event2)
+  }
+
+  @Test
+  fun `should call prisoner merged handler when for prisoner merged event`() {
+    val event = PrisonerMergedEvent(MergeInformation(nomsNumber = "NEW", removedNomsNumber = "OLD"))
+    service.process(event)
+    verify(prisonerMergedEventHandler).handle(event)
   }
 }
