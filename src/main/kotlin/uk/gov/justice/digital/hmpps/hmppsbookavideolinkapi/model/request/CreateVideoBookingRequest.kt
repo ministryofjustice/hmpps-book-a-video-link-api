@@ -46,9 +46,6 @@ data class CreateVideoBookingRequest(
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
   @Schema(description = "The video link for the appointment. Must be a valid URL", example = "https://video.here.com")
   val videoLinkUrl: String?,
-
-  @Schema(description = "Set to true when called by a prison request. Will default to false.", example = "false")
-  val createdByPrison: Boolean? = false,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The court code and court hearing type are mandatory for court bookings")

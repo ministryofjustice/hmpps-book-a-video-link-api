@@ -15,7 +15,7 @@ class ManageUsersClientTest {
 
   @Test
   fun `should get users details`() {
-    server.stubGetUserDetails("username", "name")
+    server.stubGetUserDetails("username", name = "name")
 
     client.getUsersDetails("username") isEqualTo userDetails("username", "name")
   }

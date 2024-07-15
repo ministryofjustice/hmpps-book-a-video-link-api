@@ -50,7 +50,7 @@ data class VideoLinkBooking(
   @Schema(description = "The video link for the appointment. Must be a valid URL", example = "https://video.here.com")
   val videoLinkUrl: String?,
 
-  @Schema(description = "Set to true when called by a prison request. Will default to false.", example = "false")
+  @Schema(description = "True if the booking was made by a prison user.", example = "false")
   val createdByPrison: Boolean? = false,
 
   @Schema(description = "Username of the person who created this booking.", example = "creator@email.com")
