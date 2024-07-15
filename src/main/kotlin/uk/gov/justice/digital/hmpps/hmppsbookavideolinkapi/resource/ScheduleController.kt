@@ -73,7 +73,7 @@ class ScheduleController(
     ],
   )
   @GetMapping(value = ["/prison/{prisonCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getScheduleForPrison(
     @Parameter(description = "A prison code", required = true)
     @PathVariable("prisonCode")
@@ -132,7 +132,7 @@ class ScheduleController(
     ],
   )
   @GetMapping(value = ["/court/{courtCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getCourtSchedule(
     @Parameter(description = "A court code", required = true)
     @PathVariable("courtCode")
@@ -191,7 +191,7 @@ class ScheduleController(
     ],
   )
   @GetMapping(value = ["/probation/{probationTeamCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getProbationSchedule(
     @Parameter(description = "A probation team code", required = true)
     @PathVariable("probationTeamCode")

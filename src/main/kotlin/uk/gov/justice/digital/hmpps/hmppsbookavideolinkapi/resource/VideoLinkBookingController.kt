@@ -77,7 +77,7 @@ class VideoLinkBookingController(
   )
   @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
   @ResponseStatus(HttpStatus.CREATED)
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun create(
     @Valid
     @RequestBody
@@ -133,7 +133,7 @@ class VideoLinkBookingController(
   )
   @PutMapping(value = ["/id/{videoBookingId}"], consumes = [MediaType.APPLICATION_JSON_VALUE])
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun amend(
     @PathVariable("videoBookingId")
     videoBookingId: Long,
@@ -190,7 +190,7 @@ class VideoLinkBookingController(
     ],
   )
   @GetMapping(value = ["/id/{videoBookingId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getVideoLinkBookingById(@PathVariable("videoBookingId") videoBookingId: Long) =
     videoLinkBookingsService.getVideoLinkBookingById(videoBookingId)
 
@@ -245,7 +245,7 @@ class VideoLinkBookingController(
       ),
     ],
   )
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun cancelVideoBooking(
     @PathVariable("videoBookingId") videoBookingId: Long,
     httpRequest: HttpServletRequest,

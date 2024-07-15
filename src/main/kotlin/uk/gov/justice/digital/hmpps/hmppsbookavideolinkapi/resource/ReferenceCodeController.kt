@@ -59,7 +59,7 @@ class ReferenceCodeController(private val referenceCodeService: ReferenceCodeSer
     ],
   )
   @GetMapping(value = ["/group/{groupCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getReferenceDataByGroup(
     @Parameter(description = "EnabledOnly true or false. Defaults to false if not supplied.")
     @PathVariable("groupCode", required = true) groupCode: String,
