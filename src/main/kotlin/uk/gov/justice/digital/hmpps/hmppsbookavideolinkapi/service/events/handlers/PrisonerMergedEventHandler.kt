@@ -24,7 +24,7 @@ class PrisonerMergedEventHandler(
     prisonAppRepository.countByPrisonerNumber(old).takeIf { it > 0 }?.let { count ->
       prisonAppRepository.mergeOldPrisonerNumberToNew(oldNumber = old, newNumber = new)
       log.info("PRISONER MERGED: merged $count prison appointment(s) for old number '$old' to new number '$new'")
-    }
+    } ?: log.info("PRISONER MERGED: nothing to merge for old prisoner number '$old' to new number '$new'")
 
     bookingHistoryAppRepository.countByPrisonerNumber(old).takeIf { it > 0 }?.let { count ->
       bookingHistoryAppRepository.mergeOldPrisonerNumberToNew(oldNumber = old, newNumber = new)
