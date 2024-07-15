@@ -9,7 +9,7 @@ interface BookingHistoryAppointmentRepository : JpaRepository<BookingHistoryAppo
 
   fun countByPrisonerNumber(prisonerNumber: String): Long
 
-  @Query(value = "UPDATE BookingHistoryAppointment bha SET bha.prisonerNumber = :newNumber WHERE bha.prisonerNumber = :oldNumber")
+  @Query(value = "UPDATE BookingHistoryAppointment bha SET bha.prisonerNumber = :replacementNumber WHERE bha.prisonerNumber = :removedNumber")
   @Modifying
-  fun mergeOldPrisonerNumberToNew(oldNumber: String, newNumber: String)
+  fun mergePrisonerNumber(removedNumber: String, replacementNumber: String)
 }

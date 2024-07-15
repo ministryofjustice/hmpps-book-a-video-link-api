@@ -67,8 +67,8 @@ data class ReleaseInformation(val nomsNumber: String, val reason: String, val pr
 
 class PrisonerMergedEvent(additionalInformation: MergeInformation) :
   DomainEvent<MergeInformation>(DomainEventType.PRISONER_MERGED, additionalInformation) {
-  fun newPrisonerNumber() = additionalInformation.nomsNumber
-  fun oldPrisonerNumber() = additionalInformation.removedNomsNumber
+  fun replacementPrisonerNumber() = additionalInformation.nomsNumber
+  fun removedPrisonerNumber() = additionalInformation.removedNomsNumber
 }
 
 data class MergeInformation(val nomsNumber: String, val removedNomsNumber: String) : AdditionalInformation
