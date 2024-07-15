@@ -18,17 +18,17 @@ class PrisonerMergedEventHandler(
 
   @Transactional
   override fun handle(event: PrisonerMergedEvent) {
-    val old = event.oldPrisonerNumber()
-    val new = event.newPrisonerNumber()
+    val removed = event.removedPrisonerNumber()
+    val replacement = event.replacementPrisonerNumber()
 
-    prisonAppRepository.countByPrisonerNumber(old).takeIf { it > 0 }?.let { count ->
-      prisonAppRepository.mergeOldPrisonerNumberToNew(oldNumber = old, newNumber = new)
-      log.info("PRISONER MERGED: merged $count prison appointment(s) for old number '$old' to new number '$new'")
-    } ?: log.info("PRISONER MERGED: nothing to merge for old prisoner number '$old' to new number '$new'")
+    prisonAppRepository.countByPrisonerNumber(removed).takeIf { it > 0 }?.let { count ->
+      prisonAppRepository.mergePrisonerNumber(removedNumber = removed, replacementNumber = replacement)
+      log.info("PRISONER MERGED: merged $count prison appointment(s) - replaced number '$removed' with '$replacement'")
+    } ?: log.info("PRISONER MERGED: nothing to merge for prisoner number '$removed'")
 
-    bookingHistoryAppRepository.countByPrisonerNumber(old).takeIf { it > 0 }?.let { count ->
-      bookingHistoryAppRepository.mergeOldPrisonerNumberToNew(oldNumber = old, newNumber = new)
-      log.info("PRISONER MERGED: merged $count booking history appointment(s) for old number '$old' to new number '$new'")
+    bookingHistoryAppRepository.countByPrisonerNumber(removed).takeIf { it > 0 }?.let { count ->
+      bookingHistoryAppRepository.mergePrisonerNumber(removedNumber = removed, replacementNumber = replacement)
+      log.info("PRISONER MERGED: merged $count booking history appointment(s) - replaced number '$removed' with '$replacement'")
     }
   }
 }

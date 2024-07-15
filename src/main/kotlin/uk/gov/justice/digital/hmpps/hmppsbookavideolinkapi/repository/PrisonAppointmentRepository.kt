@@ -42,7 +42,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
 
   fun countByPrisonerNumber(prisonerNumber: String): Long
 
-  @Query(value = "UPDATE PrisonAppointment pa SET pa.prisonerNumber = :newNumber WHERE pa.prisonerNumber = :oldNumber")
+  @Query(value = "UPDATE PrisonAppointment pa SET pa.prisonerNumber = :replacementNumber WHERE pa.prisonerNumber = :removedNumber")
   @Modifying
-  fun mergeOldPrisonerNumberToNew(oldNumber: String, newNumber: String)
+  fun mergePrisonerNumber(removedNumber: String, replacementNumber: String)
 }
