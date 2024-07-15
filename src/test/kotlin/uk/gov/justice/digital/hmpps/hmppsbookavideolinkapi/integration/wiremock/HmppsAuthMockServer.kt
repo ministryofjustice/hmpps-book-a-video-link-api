@@ -10,8 +10,10 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 
-const val TEST_USERNAME = "test_user"
-const val TEST_USER_EMAIL = "test@user.com"
+const val TEST_EXTERNAL_USER = "external_user"
+const val TEST_EXTERNAL_USER_EMAIL = "user@external.com"
+const val TEST_PRISON_USER = "prison_user"
+const val TEST_PRISON_USER_EMAIL = "user@prison.com"
 
 class HmppsAuthMockServer : MockServer(8090, "/auth") {
 

@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USER_EMAIL
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
@@ -59,7 +59,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.PROBATION)
     assertThat(listOfContacts).hasSize(7)
-    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", "test@user.com"))
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", TEST_EXTERNAL_USER_EMAIL))
   }
 
   @Test
@@ -92,7 +92,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.COURT)
     assertThat(listOfContacts).hasSize(7)
-    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", "test@user.com"))
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", TEST_EXTERNAL_USER_EMAIL))
   }
 
   @Test
@@ -189,12 +189,12 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     // Check that the contact addresses are present
     assertThat(listOfContacts).extracting("email").containsAll(
-      listOf("m@m.com", "t@t.com", "s@s.com", TEST_USER_EMAIL),
+      listOf("m@m.com", "t@t.com", "s@s.com", TEST_EXTERNAL_USER_EMAIL),
     )
 
     // Check the user email and name are as expected
     val userObject = listOfContacts.find { it.contactType == ContactType.USER }
-    assertThat(userObject?.email).isEqualTo(TEST_USER_EMAIL)
+    assertThat(userObject?.email).isEqualTo(TEST_EXTERNAL_USER_EMAIL)
     assertThat(userObject?.name).isEqualTo("Test Users Name")
   }
 

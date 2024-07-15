@@ -9,7 +9,7 @@ import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_USERNAME
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
@@ -115,7 +115,7 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
       .expectBodyList(Court::class.java)
       .returnResult().responseBody
 
-  private fun WebTestClient.getUserPreferenceCourts(username: String = TEST_USERNAME) =
+  private fun WebTestClient.getUserPreferenceCourts(username: String = TEST_EXTERNAL_USER) =
     get()
       .uri("/courts/user-preferences")
       .accept(MediaType.APPLICATION_JSON)
