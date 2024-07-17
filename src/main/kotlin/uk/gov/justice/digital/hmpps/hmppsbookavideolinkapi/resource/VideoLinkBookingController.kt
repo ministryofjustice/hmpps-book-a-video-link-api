@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.getBvlsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.RequestBookingService
@@ -292,4 +293,49 @@ class VideoLinkBookingController(
     request: RequestVideoBookingRequest,
     httpRequest: HttpServletRequest,
   ) = requestBookingService.request(request, httpRequest.getBvlsRequestContext().user)
+
+  @Operation(summary = "Endpoint to search for a unique matching video link booking.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "The matching video link booking details",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = VideoLinkBooking::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], path = ["/search"])
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
+  fun searchForBooking(
+    @Valid
+    @RequestBody
+    @Parameter(description = "The request with the search criteria for a video booking", required = true)
+    searchRequest: VideoBookingSearchRequest,
+  ) = videoLinkBookingsService.findMatchingVideoLinkBooking(searchRequest)
 }

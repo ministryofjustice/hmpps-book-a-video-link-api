@@ -20,29 +20,16 @@ class ContactsService(
   private val userService: UserService,
 ) {
   fun getAllBookingContacts(videoBookingId: Long): List<BookingContact> {
-    // Get the contact details of people set up as contacts for the prison, court or probation team
-    val listOfContacts = bookingContactsRepository.findContactsByVideoBookingId(videoBookingId).toMutableList()
-
     // Get the booking itself, to find the createdBy and amendedBy usernames
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
 
-    userService.getUser(booking.createdBy)?.also {
-      listOfContacts.add(
-        BookingContact(
-          videoBookingId = videoBookingId,
-          contactType = ContactType.USER,
-          name = it.name,
-          email = it.email,
-          primaryContact = true,
-        ),
-      )
-    }
+    return buildList {
+      // Get the contact details of people set up as contacts for the prison, court or probation team
+      addAll(bookingContactsRepository.findContactsByVideoBookingId(videoBookingId))
 
-    // Include the person who amended this booking as a second user, if different
-    if (booking.amendedBy != null && booking.amendedBy != booking.createdBy) {
-      userService.getUser(booking.amendedBy!!)?.also {
-        listOfContacts.add(
+      userService.getUser(booking.createdBy)?.let {
+        add(
           BookingContact(
             videoBookingId = videoBookingId,
             contactType = ContactType.USER,
@@ -52,9 +39,22 @@ class ContactsService(
           ),
         )
       }
-    }
 
-    return listOfContacts.toList()
+      // Include the person who amended this booking as a second user, if different
+      if (booking.amendedBy != null && booking.amendedBy != booking.createdBy) {
+        userService.getUser(booking.amendedBy!!)?.let {
+          add(
+            BookingContact(
+              videoBookingId = videoBookingId,
+              contactType = ContactType.USER,
+              name = it.name,
+              email = it.email,
+              primaryContact = true,
+            ),
+          )
+        }
+      }
+    }
   }
 
   fun getPrimaryBookingContacts(videoBookingId: Long, user: User?): List<BookingContact> {

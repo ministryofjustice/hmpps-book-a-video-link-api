@@ -13,6 +13,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
@@ -42,6 +43,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocatio
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
@@ -55,6 +57,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
@@ -1407,6 +1410,30 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
+  @Test
+  @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
+  fun `should find matching video link bookings`() {
+    webTestClient.searchForBooking(
+      VideoBookingSearchRequest(
+        prisonerNumber = "123456",
+        locationKey = "WNI-123456",
+        date = today(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+      ),
+    ).videoLinkBookingId isEqualTo 1000
+
+    webTestClient.searchForBooking(
+      VideoBookingSearchRequest(
+        prisonerNumber = "78910",
+        locationKey = "WNI-78910",
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(10, 0),
+      ),
+    ).videoLinkBookingId isEqualTo 2000
+  }
+
   // This is to just aid readability
   private fun thereShouldBe(f: () -> Unit) {
     f()
@@ -1434,6 +1461,19 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .expectStatus().isCreated
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
+      .returnResult().responseBody!!
+
+  private fun WebTestClient.searchForBooking(request: VideoBookingSearchRequest, username: String = TEST_EXTERNAL_USER) =
+    this
+      .post()
+      .uri("/video-link-booking/search")
+      .bodyValue(request)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().isOk
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(VideoLinkBooking::class.java)
       .returnResult().responseBody!!
 
   private fun WebTestClient.amendBooking(videoBookingId: Long, request: AmendVideoBookingRequest) =
