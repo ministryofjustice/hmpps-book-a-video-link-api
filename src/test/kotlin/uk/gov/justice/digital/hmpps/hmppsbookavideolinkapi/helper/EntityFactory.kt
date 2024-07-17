@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
@@ -104,3 +105,23 @@ fun courtHearingType(description: String) = ReferenceCode(
   description = description,
   createdBy = "Test User",
 )
+
+fun videoAppointment(
+  booking: VideoBooking,
+  prisonAppointment: PrisonAppointment,
+) =
+  VideoAppointment(
+    videoBookingId = booking.videoBookingId,
+    prisonAppointmentId = prisonAppointment.prisonAppointmentId,
+    bookingType = booking.bookingType,
+    statusCode = booking.statusCode.name,
+    courtCode = booking.court?.code,
+    probationTeamCode = null,
+    prisonCode = MOORLAND,
+    prisonerNumber = "A1234AA",
+    appointmentType = prisonAppointment.appointmentType,
+    prisonLocKey = prisonAppointment.prisonLocKey,
+    appointmentDate = prisonAppointment.appointmentDate,
+    startTime = prisonAppointment.startTime,
+    endTime = prisonAppointment.endTime,
+  )

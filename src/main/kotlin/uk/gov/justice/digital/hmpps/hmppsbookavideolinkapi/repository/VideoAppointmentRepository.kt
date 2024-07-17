@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Repository
 interface VideoAppointmentRepository : JpaRepository<VideoAppointment, Long> {
@@ -23,4 +24,12 @@ interface VideoAppointmentRepository : JpaRepository<VideoAppointment, Long> {
     forPrison: String,
     forLocationKeys: List<String>,
   ): List<VideoAppointment>
+
+  fun findByPrisonerNumberAndAppointmentDateAndPrisonLocKeyAndStartTimeAndEndTime(
+    prisonerNumber: String,
+    appointmentDate: LocalDate,
+    prisonLocKey: String,
+    startTime: LocalTime,
+    endTime: LocalTime,
+  ): VideoAppointment?
 }
