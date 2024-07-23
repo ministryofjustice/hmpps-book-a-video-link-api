@@ -5,6 +5,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.data.annotation.Immutable
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 /**
@@ -21,17 +22,19 @@ data class VideoBookingHistory(
 
   val dateOfBooking: LocalDate,
 
+  val timestamp: LocalDateTime,
+
   val historyType: String,
 
   val prisonCode: String,
 
-  val courtDescription: String?,
+  val courtDescription: String? = null,
 
-  val courtCode: String?,
+  val courtCode: String? = null,
 
-  val probationTeamDescription: String?,
+  val probationTeamDescription: String? = null,
 
-  val probationTeamCode: String?,
+  val probationTeamCode: String? = null,
 
   val createdByPrison: Boolean,
 

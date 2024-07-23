@@ -2,7 +2,8 @@ CREATE OR REPLACE VIEW v_video_booking_history
 AS
 select
   vlb.video_booking_id,
-  bh.created_time::date as date_of_booking,
+  vlb.created_time::date as date_of_booking,
+  bh.created_time as timestamp,
   bh.history_type as history_type,
   bha_main.prison_code,
   c.description as court_description,
@@ -32,7 +33,8 @@ where vlb.court_id is not null
 UNION
 select
     vlb.video_booking_id,
-    bh.created_time::date as date_of_booking,
+    vlb.created_time::date as date_of_booking,
+    bh.created_time as timestamp,
     bh.history_type as history_type,
     bha_main.prison_code,
     null as court_description,
