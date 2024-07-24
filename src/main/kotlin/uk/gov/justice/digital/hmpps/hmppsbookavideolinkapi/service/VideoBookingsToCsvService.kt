@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CsvMapperConfig.csvMapper
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingHistory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingHistoryRepository
 import java.io.OutputStream
 import java.time.LocalDate
@@ -15,6 +16,7 @@ import kotlin.streams.asSequence
 @Service
 class VideoBookingsToCsvService(
   private val videoBookingHistoryRepository: VideoBookingHistoryRepository,
+  private val locationsService: LocationsService,
 ) {
 
   @Transactional(readOnly = true)
@@ -28,10 +30,11 @@ class VideoBookingsToCsvService(
   }
 
   private fun writeCourtBookingsToCsv(bookings: Stream<VideoBookingHistory>, csvOutputStream: OutputStream) {
-    // TODO need to pull out location descriptions ...
+    val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
+
     val courtBookings = bookings.filter(VideoBookingHistory::isCourtBooking)
-      .peek { println("Look up locations ...") }
-      .map(::CourtBookingDto)
+      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false) } }
+      .map { CourtBookingDto(it, locationsByPrisonCode) }
       .asSequence()
 
     csvMapper
@@ -77,7 +80,7 @@ data class CourtBookingDto(
   val preLocationName: String?,
   val postLocationName: String?,
 ) {
-  constructor(vbh: VideoBookingHistory) : this(
+  constructor(vbh: VideoBookingHistory, locations: Map<String, List<Location>>) : this(
     vbh.timestamp,
     vbh.videoBookingId,
     // Old BVLS does not have CANCEL, it has DELETE instead
@@ -92,8 +95,8 @@ data class CourtBookingDto(
     vbh.preDate?.atTime(vbh.preEndTime),
     vbh.postDate?.atTime(vbh.postStartTime),
     vbh.postDate?.atTime(vbh.postEndTime),
-    vbh.mainLocationKey,
-    vbh.preLocationKey,
-    vbh.postLocationKey,
+    vbh.mainLocationKey.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
+    vbh.preLocationKey?.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
+    vbh.postLocationKey?.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
   )
 }

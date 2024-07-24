@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.never
+import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingHistory
@@ -13,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingHistoryRepository
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
@@ -23,7 +26,8 @@ import java.util.stream.Stream
 
 class VideoBookingsToCsvServiceTest {
   private val videoBookingHistoryRepository: VideoBookingHistoryRepository = mock()
-  private val service = VideoBookingsToCsvService(videoBookingHistoryRepository)
+  private val locationsService: LocationsService = mock()
+  private val service = VideoBookingsToCsvService(videoBookingHistoryRepository, locationsService)
   private val csvOutputStream = ByteArrayOutputStream()
   private val moorlandCourtBooking = VideoBookingHistory(
     videoBookingId = 1,
@@ -47,9 +51,22 @@ class VideoBookingsToCsvServiceTest {
     preLocationKey = "pre-loc-key",
     postLocationKey = "post-loc-key",
   )
+  private val locations = listOf(
+    location(key = "pre-loc-key", description = "Pre location"),
+    location(key = "main-loc-key", description = "Main location"),
+    location(key = "post-loc-key", description = "Post location"),
+  )
   private val moorlandPrisonCourtBooking = moorlandCourtBooking.copy(createdByPrison = true)
   private val risleyCourtBooking = moorlandCourtBooking.copy(prisonCode = RISLEY, historyType = "CANCEL")
   private val risleyPrisonCourtBooking = risleyCourtBooking.copy(createdByPrison = true)
+
+  @BeforeEach
+  fun before() {
+    locationsService.stub {
+      on { getVideoLinkLocationsAtPrison(MOORLAND, false) } doReturn locations
+      on { getVideoLinkLocationsAtPrison(RISLEY, false) } doReturn locations
+    }
+  }
 
   @Test
   fun `should produce CSV for court court bookings by hearing date`() {
@@ -62,7 +79,7 @@ class VideoBookingsToCsvServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,main-loc-key,pre-loc-key,post-loc-key\n"
+      "2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
   }
 
   @Test
@@ -76,12 +93,14 @@ class VideoBookingsToCsvServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,main-loc-key,pre-loc-key,post-loc-key\n"
+      "2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
   }
 
   @Test
   fun `should produce CSV for court court bookings by booking date`() {
-    whenever(videoBookingHistoryRepository.findByDateOfBookingBetween(any(), any())) doReturn Stream.of(risleyCourtBooking)
+    whenever(videoBookingHistoryRepository.findByDateOfBookingBetween(any(), any())) doReturn Stream.of(
+      risleyCourtBooking,
+    )
 
     service.courtBookingsByBookingDateToCsv(today(), tomorrow(), csvOutputStream)
 
@@ -90,12 +109,14 @@ class VideoBookingsToCsvServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,main-loc-key,pre-loc-key,post-loc-key\n"
+      "2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
   }
 
   @Test
   fun `should produce CSV for prison court bookings by booking date`() {
-    whenever(videoBookingHistoryRepository.findByDateOfBookingBetween(any(), any())) doReturn Stream.of(risleyPrisonCourtBooking)
+    whenever(videoBookingHistoryRepository.findByDateOfBookingBetween(any(), any())) doReturn Stream.of(
+      risleyPrisonCourtBooking,
+    )
 
     service.courtBookingsByBookingDateToCsv(today(), tomorrow(), csvOutputStream)
 
@@ -104,6 +125,9 @@ class VideoBookingsToCsvServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,main-loc-key,pre-loc-key,post-loc-key\n"
+      "2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
   }
+
+  private fun location(key: String, description: String) =
+    Location(key = key, description = description, enabled = true)
 }
