@@ -24,10 +24,10 @@ import java.time.LocalTime
 import java.time.Month
 import java.util.stream.Stream
 
-class VideoBookingsToCsvServiceTest {
+class CsvDataExtractionServiceTest {
   private val videoBookingHistoryRepository: VideoBookingHistoryRepository = mock()
   private val locationsService: LocationsService = mock()
-  private val service = VideoBookingsToCsvService(videoBookingHistoryRepository, locationsService)
+  private val service = CsvDataExtractionService(videoBookingHistoryRepository, locationsService)
   private val csvOutputStream = ByteArrayOutputStream()
   private val moorlandCourtBooking = VideoBookingHistory(
     videoBookingId = 1,
@@ -51,6 +51,7 @@ class VideoBookingsToCsvServiceTest {
     preLocationKey = "pre-loc-key",
     postLocationKey = "post-loc-key",
   )
+  private val moorlandProbationBooking = moorlandCourtBooking.copy(courtDescription = null, courtCode = null, probationTeamCode = "probation code", probationTeamDescription = "probation team description")
   private val locations = listOf(
     location(key = "pre-loc-key", description = "Pre location"),
     location(key = "main-loc-key", description = "Main location"),
@@ -59,6 +60,7 @@ class VideoBookingsToCsvServiceTest {
   private val moorlandPrisonCourtBooking = moorlandCourtBooking.copy(createdByPrison = true)
   private val risleyCourtBooking = moorlandCourtBooking.copy(prisonCode = RISLEY, historyType = "CANCEL")
   private val risleyPrisonCourtBooking = risleyCourtBooking.copy(createdByPrison = true)
+  private val risleyProbationBooking = moorlandProbationBooking.copy(prisonCode = RISLEY)
 
   @BeforeEach
   fun before() {
@@ -69,8 +71,8 @@ class VideoBookingsToCsvServiceTest {
   }
 
   @Test
-  fun `should produce CSV for court court bookings by hearing date`() {
-    whenever(videoBookingHistoryRepository.findByMainDateBetween(any(), any())) doReturn Stream.of(moorlandCourtBooking)
+  fun `should produce CSV for court court bookings by hearing date only and probation meetings are not included`() {
+    whenever(videoBookingHistoryRepository.findByMainDateBetween(any(), any())) doReturn Stream.of(moorlandCourtBooking, moorlandProbationBooking)
 
     service.courtBookingsByHearingDateToCsv(today(), tomorrow(), csvOutputStream)
 
@@ -97,9 +99,10 @@ class VideoBookingsToCsvServiceTest {
   }
 
   @Test
-  fun `should produce CSV for court court bookings by booking date`() {
+  fun `should produce CSV for court court bookings by booking date and probation meetings are not included`() {
     whenever(videoBookingHistoryRepository.findByDateOfBookingBetween(any(), any())) doReturn Stream.of(
       risleyCourtBooking,
+      risleyProbationBooking,
     )
 
     service.courtBookingsByBookingDateToCsv(today(), tomorrow(), csvOutputStream)

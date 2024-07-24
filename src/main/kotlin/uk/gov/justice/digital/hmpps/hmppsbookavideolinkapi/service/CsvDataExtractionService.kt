@@ -14,7 +14,7 @@ import java.util.stream.Stream
 import kotlin.streams.asSequence
 
 @Service
-class VideoBookingsToCsvService(
+class CsvDataExtractionService(
   private val videoBookingHistoryRepository: VideoBookingHistoryRepository,
   private val locationsService: LocationsService,
 ) {
