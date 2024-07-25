@@ -15,9 +15,11 @@ import java.time.LocalTime
  */
 @Entity
 @Immutable
-@Table(name = "v_video_booking_history")
-data class VideoBookingHistory(
+@Table(name = "v_video_booking_event")
+data class VideoBookingEvent(
   @Id
+  val eventId: Long,
+
   val videoBookingId: Long,
 
   val dateOfBooking: LocalDate,

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CsvMapperConfig.csvMapper
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingHistory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingHistoryRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
 import java.io.OutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -15,26 +15,23 @@ import kotlin.streams.asSequence
 
 @Service
 class CsvDataExtractionService(
-  private val videoBookingHistoryRepository: VideoBookingHistoryRepository,
+  private val videoBookingEventRepository: VideoBookingEventRepository,
   private val locationsService: LocationsService,
 ) {
 
   @Transactional(readOnly = true)
   fun courtBookingsByHearingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
-    writeCourtBookingsToCsv(videoBookingHistoryRepository.findByMainDateBetween(fromDate, toDate), csvOutputStream)
+    writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(fromDate, toDate), csvOutputStream)
   }
 
   @Transactional(readOnly = true)
   fun courtBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
-    writeCourtBookingsToCsv(videoBookingHistoryRepository.findByDateOfBookingBetween(fromDate, toDate), csvOutputStream)
+    writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(fromDate, toDate), csvOutputStream)
   }
 
-  private fun writeCourtBookingsToCsv(bookings: Stream<VideoBookingHistory>, csvOutputStream: OutputStream) {
-    val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
-
-    val courtBookings = bookings.filter(VideoBookingHistory::isCourtBooking)
-      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false) } }
-      .map { CourtBookingDto(it, locationsByPrisonCode) }
+  private fun writeCourtBookingsToCsv(bookings: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {
+    val courtBookings = bookings.filter(VideoBookingEvent::isCourtBooking)
+      .map { CourtBookingDto(it, mapOf(it.prisonCode to locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false))) }
       .asSequence()
 
     csvMapper
@@ -80,7 +77,7 @@ data class CourtBookingDto(
   val preLocationName: String?,
   val postLocationName: String?,
 ) {
-  constructor(vbh: VideoBookingHistory, locations: Map<String, List<Location>>) : this(
+  constructor(vbh: VideoBookingEvent, locations: Map<String, List<Location>>) : this(
     vbh.timestamp,
     vbh.videoBookingId,
     // Old BVLS does not have CANCEL, it has DELETE instead

@@ -4,12 +4,12 @@ import jakarta.persistence.QueryHint
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.jpa.repository.QueryHints
 import org.springframework.stereotype.Repository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingHistory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEvent
 import java.time.LocalDate
 import java.util.stream.Stream
 
 @Repository
-interface VideoBookingHistoryRepository : ReadOnlyRepository<VideoBookingHistory, Long> {
+interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Long> {
 
   @QueryHints(
     value = [
@@ -20,13 +20,17 @@ interface VideoBookingHistoryRepository : ReadOnlyRepository<VideoBookingHistory
   )
   @Query(
     value = """
-      FROM VideoBookingHistory vbh 
+      FROM VideoBookingEvent vbh 
       WHERE vbh.dateOfBooking >= :fromDate and vbh.dateOfBooking <= :toDate
       ORDER BY vbh.mainDate, vbh.mainStartTime
     """,
   )
-  fun findByDateOfBookingBetween(fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingHistory>
+  fun findByDateOfBookingBetween(fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
 
+  /**
+   * The join back onto the view itself is so updates/amends take precedence over creates (cancel/deletes are not
+   * wanted here).
+   */
   @QueryHints(
     value = [
       QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "" + Integer.MAX_VALUE),
@@ -36,13 +40,13 @@ interface VideoBookingHistoryRepository : ReadOnlyRepository<VideoBookingHistory
   )
   @Query(
     value = """
-      FROM VideoBookingHistory vbh
-      LEFT JOIN VideoBookingHistory later on vbh.videoBookingId = later.videoBookingId and vbh.timestamp < later.timestamp
+      FROM VideoBookingEvent vbh
+      LEFT JOIN VideoBookingEvent later on vbh.videoBookingId = later.videoBookingId and vbh.timestamp < later.timestamp
       WHERE later.videoBookingId is null
       AND   vbh.mainDate >= :fromDate and vbh.mainDate <= :toDate
       AND   vbh.historyType != 'CANCEL'
       ORDER BY vbh.mainDate, vbh.mainStartTime
     """,
   )
-  fun findByMainDateBetween(fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingHistory>
+  fun findByMainDateBetween(fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
 }

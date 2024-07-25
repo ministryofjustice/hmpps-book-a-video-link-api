@@ -1,6 +1,7 @@
-CREATE OR REPLACE VIEW v_video_booking_history
+CREATE OR REPLACE VIEW v_video_booking_event
 AS
 select
+  bh.booking_history_id as event_id,
   vlb.video_booking_id,
   vlb.created_time::date as date_of_booking,
   bh.created_time as timestamp,
@@ -32,6 +33,7 @@ from video_booking vlb
 where vlb.court_id is not null
 UNION
 select
+    bh.booking_history_id as event_id,
     vlb.video_booking_id,
     vlb.created_time::date as date_of_booking,
     bh.created_time as timestamp,
