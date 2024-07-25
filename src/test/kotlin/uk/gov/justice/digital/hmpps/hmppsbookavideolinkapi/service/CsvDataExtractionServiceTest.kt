@@ -34,7 +34,7 @@ class CsvDataExtractionServiceTest {
     videoBookingId = 1,
     dateOfBooking = today(),
     timestamp = LocalDateTime.of(2024, Month.JULY, 1, 9, 0),
-    historyType = "CREATE",
+    eventType = "CREATE",
     prisonCode = MOORLAND,
     courtDescription = "court description",
     courtCode = "court code",
@@ -59,7 +59,7 @@ class CsvDataExtractionServiceTest {
     location(key = "post-loc-key", description = "Post location"),
   )
   private val moorlandPrisonCourtBooking = moorlandCourtBooking.copy(createdByPrison = true)
-  private val risleyCourtBooking = moorlandCourtBooking.copy(prisonCode = RISLEY, historyType = "CANCEL")
+  private val risleyCourtBooking = moorlandCourtBooking.copy(prisonCode = RISLEY, eventType = "CANCEL")
   private val risleyPrisonCourtBooking = risleyCourtBooking.copy(createdByPrison = true)
   private val risleyProbationBooking = moorlandProbationBooking.copy(prisonCode = RISLEY)
 
