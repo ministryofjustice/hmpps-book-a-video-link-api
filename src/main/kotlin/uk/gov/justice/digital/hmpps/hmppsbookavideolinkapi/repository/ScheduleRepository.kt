@@ -1,13 +1,12 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository
 
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
 import java.time.LocalDate
 
 @Repository
-interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
+interface ScheduleRepository : ReadOnlyRepository<ScheduleItem, Long> {
   @Query(
     value = """
       FROM ScheduleItem si 
