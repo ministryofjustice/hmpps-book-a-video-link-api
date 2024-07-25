@@ -1,3 +1,5 @@
+DROP VIEW IF EXISTS v_video_booking_event;
+
 CREATE OR REPLACE VIEW v_video_booking_event
 AS
 select
