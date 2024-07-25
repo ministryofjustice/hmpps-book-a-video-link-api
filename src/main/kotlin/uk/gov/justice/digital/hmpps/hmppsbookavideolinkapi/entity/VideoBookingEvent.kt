@@ -26,7 +26,7 @@ data class VideoBookingEvent(
 
   val timestamp: LocalDateTime,
 
-  val historyType: String,
+  val eventType: String,
 
   val prisonCode: String,
 

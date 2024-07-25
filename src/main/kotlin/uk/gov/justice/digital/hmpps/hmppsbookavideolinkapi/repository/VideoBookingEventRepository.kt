@@ -20,16 +20,16 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
   )
   @Query(
     value = """
-      FROM VideoBookingEvent vbh 
-      WHERE vbh.dateOfBooking >= :fromDate and vbh.dateOfBooking <= :toDate
-      ORDER BY vbh.mainDate, vbh.mainStartTime
+      FROM VideoBookingEvent vbe 
+      WHERE vbe.dateOfBooking >= :fromDate and vbe.dateOfBooking <= :toDate
+      ORDER BY vbe.mainDate, vbe.mainStartTime
     """,
   )
   fun findByDateOfBookingBetween(fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
 
   /**
    * The join back onto the view itself is so updates/amends take precedence over creates (cancel/deletes are not
-   * wanted here).
+   * wanted here as the booking is no longer live).
    */
   @QueryHints(
     value = [
@@ -40,12 +40,12 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
   )
   @Query(
     value = """
-      FROM VideoBookingEvent vbh
-      LEFT JOIN VideoBookingEvent later on vbh.videoBookingId = later.videoBookingId and vbh.timestamp < later.timestamp
+      FROM VideoBookingEvent vbe
+      LEFT JOIN VideoBookingEvent later on vbe.videoBookingId = later.videoBookingId and vbe.timestamp < later.timestamp
       WHERE later.videoBookingId is null
-      AND   vbh.mainDate >= :fromDate and vbh.mainDate <= :toDate
-      AND   vbh.historyType != 'CANCEL'
-      ORDER BY vbh.mainDate, vbh.mainStartTime
+      AND   vbe.mainDate >= :fromDate and vbe.mainDate <= :toDate
+      AND   vbe.eventType != 'CANCEL'
+      ORDER BY vbe.mainDate, vbe.mainStartTime
     """,
   )
   fun findByMainDateBetween(fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>

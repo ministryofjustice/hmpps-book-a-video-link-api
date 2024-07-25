@@ -30,8 +30,11 @@ class CsvDataExtractionService(
   }
 
   private fun writeCourtBookingsToCsv(bookings: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {
+    val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
+
     val courtBookings = bookings.filter(VideoBookingEvent::isCourtBooking)
-      .map { CourtBookingDto(it, mapOf(it.prisonCode to locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false))) }
+      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false) } }
+      .map { CourtBookingDto(it, locationsByPrisonCode) }
       .asSequence()
 
     csvMapper
@@ -84,7 +87,7 @@ data class CourtBookingDto(
     vbh.timestamp,
     vbh.videoBookingId,
     // Old BVLS does not have CANCEL, it has DELETE instead
-    vbh.historyType.let { if (it == "CANCEL") "DELETE" else it },
+    vbh.eventType.let { if (it == "CANCEL") "DELETE" else it },
     vbh.prisonCode,
     vbh.courtDescription!!,
     vbh.courtCode!!,
