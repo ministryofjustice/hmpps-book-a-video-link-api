@@ -42,6 +42,7 @@ class CsvDataExtractionService(
 }
 
 @JsonPropertyOrder(
+  "eventId",
   "timestamp",
   "videoLinkBookingId",
   "eventType",
@@ -60,6 +61,7 @@ class CsvDataExtractionService(
   "postLocationName",
 )
 data class CourtBookingDto(
+  val eventId: Long,
   val timestamp: LocalDateTime,
   val videoLinkBookingId: Long,
   val eventType: String,
@@ -78,6 +80,7 @@ data class CourtBookingDto(
   val postLocationName: String?,
 ) {
   constructor(vbh: VideoBookingEvent, locations: Map<String, List<Location>>) : this(
+    vbh.eventId,
     vbh.timestamp,
     vbh.videoBookingId,
     // Old BVLS does not have CANCEL, it has DELETE instead

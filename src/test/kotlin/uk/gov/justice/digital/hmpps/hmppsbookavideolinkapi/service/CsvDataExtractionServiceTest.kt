@@ -81,8 +81,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "1,2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
   }
 
   @Test
@@ -95,8 +95,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "1,2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
   }
 
   @Test
@@ -112,8 +112,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByMainDateBetween(any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
   }
 
   @Test
@@ -128,8 +128,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByMainDateBetween(any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
   }
 
   private fun location(key: String, description: String) =
