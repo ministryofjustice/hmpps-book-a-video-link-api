@@ -10,4 +10,4 @@ fun ReferenceCodeEntity.toModel() = ReferenceCode(
   description = description,
 )
 
-fun List<ReferenceCodeEntity>.toModel() = map { it.toModel() }
+fun List<ReferenceCodeEntity>.toModel() = map { it.toModel() }.sortedBy { it.description }

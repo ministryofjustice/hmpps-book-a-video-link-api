@@ -11,4 +11,4 @@ fun CourtEntity.toModel() = Court(
   notes = notes,
 )
 
-fun List<CourtEntity>.toModel() = map { it.toModel() }
+fun List<CourtEntity>.toModel() = map { it.toModel() }.sortedBy { it.description }

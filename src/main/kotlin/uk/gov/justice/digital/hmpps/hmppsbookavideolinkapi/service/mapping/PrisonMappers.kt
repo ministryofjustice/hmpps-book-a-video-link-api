@@ -11,4 +11,4 @@ fun PrisonEntity.toModel() = Prison(
   notes = notes,
 )
 
-fun List<PrisonEntity>.toModel() = map { it.toModel() }
+fun List<PrisonEntity>.toModel() = map { it.toModel() }.sortedBy { it.name }
