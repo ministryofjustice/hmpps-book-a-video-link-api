@@ -8,3 +8,5 @@ fun Location.toModel() = ModelLocation(
   description = localName,
   enabled = active,
 )
+
+fun List<Location>.toModel() = map { it.toModel() }.sortedBy { it.description }
