@@ -25,7 +25,8 @@ select
   bha_post.prison_loc_key as post_location_key,
   bha_post.appointment_date as post_date,
   bha_post.start_time as post_start_time,
-  bha_post.end_time as post_end_time
+  bha_post.end_time as post_end_time,
+  true as court_booking
 from video_booking vlb
   join booking_history bh on bh.video_booking_id = vlb.video_booking_id
   join booking_history_appointment bha_main on bha_main.booking_history_id = bh.booking_history_id and bha_main.appointment_type = 'VLB_COURT_MAIN'
@@ -57,7 +58,8 @@ select
     null as post_location_key,
     null as post_date,
     null as post_start_time,
-    null as post_end_time
+    null as post_end_time,
+    false as court_booking
 from video_booking vlb
   join booking_history bh on bh.video_booking_id = vlb.video_booking_id
   join booking_history_appointment bha_main on bha_main.booking_history_id = bh.booking_history_id and bha_main.appointment_type = 'VLB_PROBATION'

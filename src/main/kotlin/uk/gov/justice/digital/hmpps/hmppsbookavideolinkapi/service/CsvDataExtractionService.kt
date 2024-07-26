@@ -21,26 +21,50 @@ class CsvDataExtractionService(
 
   @Transactional(readOnly = true)
   fun courtBookingsByHearingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
-    writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(fromDate, toDate), csvOutputStream)
+    writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, fromDate, toDate), csvOutputStream)
   }
 
   @Transactional(readOnly = true)
   fun courtBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
-    writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(fromDate, toDate), csvOutputStream)
+    writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, fromDate, toDate), csvOutputStream)
   }
 
-  private fun writeCourtBookingsToCsv(bookings: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {
+  private fun writeCourtBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {
     val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
 
-    val courtBookings = bookings.filter(VideoBookingEvent::isCourtBooking)
+    val courtEvents = events
       .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false) } }
-      .map { CourtBookingDto(it, locationsByPrisonCode) }
+      .map { CourtBookingEvent(it, locationsByPrisonCode) }
       .asSequence()
 
     csvMapper
-      .writer(csvMapper.schemaFor(CourtBookingDto::class.java).withHeader())
+      .writer(csvMapper.schemaFor(CourtBookingEvent::class.java).withHeader())
       .writeValues(csvOutputStream.bufferedWriter())
-      .use { writer -> courtBookings.forEach(writer::write) }
+      .use { writer -> courtEvents.forEach(writer::write) }
+  }
+
+  @Transactional(readOnly = true)
+  fun probationBookingsByMeetingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
+    writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, fromDate, toDate), csvOutputStream)
+  }
+
+  @Transactional(readOnly = true)
+  fun probationBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
+    writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, fromDate, toDate), csvOutputStream)
+  }
+
+  private fun writeProbationBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {
+    val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
+
+    val probationEvents = events
+      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false) } }
+      .map { ProbationBookingEvent(it, locationsByPrisonCode) }
+      .asSequence()
+
+    csvMapper
+      .writer(csvMapper.schemaFor(ProbationBookingEvent::class.java).withHeader())
+      .writeValues(csvOutputStream.bufferedWriter())
+      .use { writer -> probationEvents.forEach(writer::write) }
   }
 }
 
@@ -63,7 +87,7 @@ class CsvDataExtractionService(
   "preLocationName",
   "postLocationName",
 )
-data class CourtBookingDto(
+data class CourtBookingEvent(
   val eventId: Long,
   val timestamp: LocalDateTime,
   val videoLinkBookingId: Long,
@@ -101,5 +125,65 @@ data class CourtBookingDto(
     vbh.mainLocationKey.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
     vbh.preLocationKey?.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
     vbh.postLocationKey?.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
+  )
+}
+
+@JsonPropertyOrder(
+  "eventId",
+  "timestamp",
+  "videoLinkBookingId",
+  "eventType",
+  "agencyId",
+  "probationTeam",
+  "probationTeamId",
+  "madeByTheCourt",
+  "mainStartTime",
+  "mainEndTime",
+  "preStartTime",
+  "preEndTime",
+  "postStartTime",
+  "postEndTime",
+  "mainLocationName",
+  "preLocationName",
+  "postLocationName",
+)
+data class ProbationBookingEvent(
+  val eventId: Long,
+  val timestamp: LocalDateTime,
+  val videoLinkBookingId: Long,
+  val eventType: String,
+  val agencyId: String,
+  val probationTeam: String,
+  val probationTeamId: String,
+  val madeByTheCourt: Boolean,
+  val mainStartTime: LocalDateTime,
+  val mainEndTime: LocalDateTime,
+  val preStartTime: LocalDateTime?,
+  val preEndTime: LocalDateTime?,
+  val postStartTime: LocalDateTime?,
+  val postEndTime: LocalDateTime?,
+  val mainLocationName: String,
+  val preLocationName: String?,
+  val postLocationName: String?,
+) {
+  constructor(vbh: VideoBookingEvent, locations: Map<String, List<Location>>) : this(
+    vbh.eventId,
+    vbh.timestamp,
+    vbh.videoBookingId,
+    // Old BVLS does not have CANCEL, it has DELETE instead
+    vbh.eventType.let { if (it == "CANCEL") "DELETE" else it },
+    vbh.prisonCode,
+    vbh.probationTeamDescription!!,
+    vbh.probationTeamCode!!,
+    vbh.createdByPrison.not(),
+    vbh.mainDate.atTime(vbh.mainStartTime),
+    vbh.mainDate.atTime(vbh.mainEndTime),
+    null,
+    null,
+    null,
+    null,
+    vbh.mainLocationKey.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
+    null,
+    null,
   )
 }
