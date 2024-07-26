@@ -21,11 +21,12 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
   @Query(
     value = """
       FROM VideoBookingEvent vbe 
-      WHERE vbe.dateOfBooking >= :fromDate and vbe.dateOfBooking <= :toDate
+      WHERE vbe.dateOfBooking >= :fromDate AND vbe.dateOfBooking <= :toDate
+      AND   vbe.courtBooking = :isCourtBooking
       ORDER BY vbe.mainDate, vbe.mainStartTime
     """,
   )
-  fun findByDateOfBookingBetween(fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
+  fun findByDateOfBookingBetween(isCourtBooking: Boolean, fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
 
   /**
    * The join back onto the view itself is so updates/amends take precedence over creates (cancel/deletes are not
@@ -45,8 +46,9 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
       WHERE later.videoBookingId is null
       AND   vbe.mainDate >= :fromDate and vbe.mainDate <= :toDate
       AND   vbe.eventType != 'CANCEL'
+      AND   vbe.courtBooking = :isCourtBooking
       ORDER BY vbe.mainDate, vbe.mainStartTime
     """,
   )
-  fun findByMainDateBetween(fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
+  fun findByMainDateBetween(isCourtBooking: Boolean, fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
 }
