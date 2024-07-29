@@ -18,6 +18,10 @@ class AppointmentsService(
   fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
     checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
+    if (user.isUserType(UserType.PRISON)) {
+      prisoner.checkForDuplicateAppointment(AppointmentType.VLB_COURT_MAIN)
+    }
+
     // Add all appointments to the booking - they will be saved when the booking is saved
     prisoner.appointments.forEach {
       videoBooking.addAppointment(
@@ -93,6 +97,10 @@ class AppointmentsService(
   fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
     checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
+    if (user.isUserType(UserType.PRISON)) {
+      prisoner.checkForDuplicateAppointment(AppointmentType.VLB_PROBATION)
+    }
+
     with(prisoner.appointments.single()) {
       videoBooking.addAppointment(
         prisonCode = prisoner.prisonCode,
@@ -118,6 +126,22 @@ class AppointmentsService(
       }
 
       locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
+    }
+  }
+
+  private fun PrisonerDetails.checkForDuplicateAppointment(appointmentType: AppointmentType) {
+    val appointment = appointments.single { it.type == appointmentType }
+
+    if (prisonAppointmentRepository.existsActivePrisonAppointmentsByPrisonerNumberLocationDateAndTime(
+        prisonCode = prisonCode!!,
+        prisonerNumber = prisonerNumber!!,
+        date = appointment.date!!,
+        startTime = appointment.startTime!!,
+        endTime = appointment.endTime!!,
+        key = appointment.locationKey!!,
+      )
+    ) {
+      throw IllegalArgumentException("Duplicate appointment requested for prisoner $prisonerNumber")
     }
   }
 
