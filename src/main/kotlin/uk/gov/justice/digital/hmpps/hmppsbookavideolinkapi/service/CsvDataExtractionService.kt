@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import java.io.OutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.DAYS
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
@@ -21,11 +22,15 @@ class CsvDataExtractionService(
 
   @Transactional(readOnly = true)
   fun courtBookingsByHearingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
+    checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+
     writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, fromDate, toDate), csvOutputStream)
   }
 
   @Transactional(readOnly = true)
   fun courtBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
+    checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+
     writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, fromDate, toDate), csvOutputStream)
   }
 
@@ -45,11 +50,15 @@ class CsvDataExtractionService(
 
   @Transactional(readOnly = true)
   fun probationBookingsByMeetingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
+    checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+
     writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, fromDate, toDate), csvOutputStream)
   }
 
   @Transactional(readOnly = true)
   fun probationBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
+    checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+
     writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, fromDate, toDate), csvOutputStream)
   }
 
@@ -65,6 +74,12 @@ class CsvDataExtractionService(
       .writer(csvMapper.schemaFor(ProbationBookingEvent::class.java).withHeader())
       .writeValues(csvOutputStream.bufferedWriter())
       .use { writer -> probationEvents.forEach(writer::write) }
+  }
+
+  private fun checkDaysBetweenDoesNotExceedAYear(fromDate: LocalDate, toDate: LocalDate) {
+    require(DAYS.between(fromDate, toDate) <= 365) {
+      "CSV extracts are limited to a years worth of data."
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison
 
 import jakarta.validation.ValidationException
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -9,6 +10,7 @@ import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isActive
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isAtPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
@@ -23,6 +25,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block() ?: emptyList()
 
+  @Cacheable(CacheConfiguration.NON_RESIDENTIAL_LOCATIONS_CACHE_NAME)
   fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/prison/{prisonCode}/non-residential-usage-type/APPOINTMENT", prisonCode)
     .retrieve()
@@ -30,6 +33,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block() ?: emptyList()
 
+  @Cacheable(CacheConfiguration.VIDEO_LINK_LOCATIONS_CACHE_NAME)
   fun getVideoLinkLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/prison/{prisonCode}/location-type/VIDEO_LINK", prisonCode)
     .retrieve()
