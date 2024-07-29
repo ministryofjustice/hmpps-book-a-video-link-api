@@ -23,7 +23,7 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
       FROM VideoBookingEvent vbe 
       WHERE vbe.dateOfBooking >= :fromDate AND vbe.dateOfBooking <= :toDate
       AND   vbe.courtBooking = :isCourtBooking
-      ORDER BY vbe.mainDate, vbe.mainStartTime
+      ORDER BY vbe.eventId
     """,
   )
   fun findByDateOfBookingBetween(isCourtBooking: Boolean, fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
