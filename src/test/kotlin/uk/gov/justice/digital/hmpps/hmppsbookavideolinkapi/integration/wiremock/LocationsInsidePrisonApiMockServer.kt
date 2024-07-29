@@ -9,7 +9,9 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import java.time.LocalDateTime
 import java.util.UUID
 
 class LocationsInsidePrisonApiMockServer : MockServer(8091) {
@@ -36,6 +38,11 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     topLevelId = UUID.randomUUID(),
                     key = key,
                     isResidential = true,
+                    lastModifiedBy = "test user",
+                    lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+                    level = 2,
+                    leafLevel = true,
+                    status = Location.Status.ACTIVE,
                   )
                 },
               ),
@@ -45,7 +52,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubNonResidentialAppointmentLocationsAtPrison(keys: Set<String>, enabled: Boolean = true, prisonCode: String = MOORLAND) {
+  fun stubNonResidentialAppointmentLocationsAtPrison(keys: Set<String>, enabled: Boolean = true, prisonCode: String = MOORLAND, leafLevel: Boolean = true) {
     stubFor(
       get("/locations/prison/$prisonCode/non-residential-usage-type/APPOINTMENT")
         .willReturn(
@@ -67,6 +74,11 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     topLevelId = UUID.randomUUID(),
                     key = key,
                     isResidential = false,
+                    lastModifiedBy = "test user",
+                    lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+                    level = 2,
+                    leafLevel = leafLevel,
+                    status = Location.Status.ACTIVE,
                   )
                 },
               ),
@@ -76,7 +88,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubVideoLinkLocationsAtPrison(keys: Set<String>, enabled: Boolean = true, prisonCode: String = MOORLAND) {
+  fun stubVideoLinkLocationsAtPrison(keys: Set<String>, enabled: Boolean = true, prisonCode: String = MOORLAND, leafLevel: Boolean = true) {
     stubFor(
       get("/locations/prison/$prisonCode/location-type/VIDEO_LINK")
         .willReturn(
@@ -98,6 +110,11 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     topLevelId = UUID.randomUUID(),
                     key = key,
                     isResidential = false,
+                    lastModifiedBy = "test user",
+                    lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+                    level = 2,
+                    leafLevel = leafLevel,
+                    status = Location.Status.ACTIVE,
                   )
                 },
               ),
