@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.cache.CacheManager
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
@@ -18,7 +20,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepo
 class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Autowired
+  private lateinit var cacheManager: CacheManager
+
+  @Autowired
   private lateinit var prisonRepository: PrisonRepository
+
+  @BeforeEach
+  fun before() {
+    // Some location endpoints are being cached, so we need to clear them so as not to impact the unit tests in this class.
+    cacheManager.clearAllCaches()
+  }
 
   @Test
   fun `should return a list of enabled prisons`() {
@@ -106,4 +117,8 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(Location::class.java)
       .returnResult().responseBody!!
+
+  private fun CacheManager.clearAllCaches() {
+    cacheNames.forEach { cacheManager.getCache(it)?.clear() }
+  }
 }

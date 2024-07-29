@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -85,6 +86,29 @@ class CsvDataExtractionServiceTest {
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
       "1,2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+  }
+
+  @Test
+  fun `should fail to produce CSV reports when requested date range more than a year`() {
+    assertThrows<IllegalArgumentException> {
+      service.courtBookingsByHearingDateToCsv(today(), today().plusDays(366), csvOutputStream)
+    }
+      .message isEqualTo "CSV extracts are limited to a years worth of data."
+
+    assertThrows<IllegalArgumentException> {
+      service.courtBookingsByBookingDateToCsv(today(), today().plusDays(366), csvOutputStream)
+    }
+      .message isEqualTo "CSV extracts are limited to a years worth of data."
+
+    assertThrows<IllegalArgumentException> {
+      service.probationBookingsByMeetingDateToCsv(today(), today().plusDays(366), csvOutputStream)
+    }
+      .message isEqualTo "CSV extracts are limited to a years worth of data."
+
+    assertThrows<IllegalArgumentException> {
+      service.probationBookingsByBookingDateToCsv(today(), today().plusDays(366), csvOutputStream)
+    }
+      .message isEqualTo "CSV extracts are limited to a years worth of data."
   }
 
   @Test
