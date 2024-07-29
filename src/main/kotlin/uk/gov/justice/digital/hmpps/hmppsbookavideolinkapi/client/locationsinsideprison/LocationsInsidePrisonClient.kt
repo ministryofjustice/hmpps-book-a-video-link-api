@@ -31,7 +31,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .retrieve()
     .bodyToMono(typeReference<List<Location>>())
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block() ?: emptyList()
+    .block()?.filter(Location::leafLevel) ?: emptyList()
 
   @Cacheable(CacheConfiguration.VIDEO_LINK_LOCATIONS_CACHE_NAME)
   fun getVideoLinkLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
@@ -39,7 +39,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .retrieve()
     .bodyToMono(typeReference<List<Location>>())
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block() ?: emptyList()
+    .block()?.filter(Location::leafLevel) ?: emptyList()
 }
 
 @Component

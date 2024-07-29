@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.mo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Unknown
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as ModelPrisoner
@@ -41,6 +43,11 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   key = "$prisonCode-$locationKeySuffix",
   isResidential = false,
   localName = localName,
+  lastModifiedBy = "test user",
+  lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+  level = 2,
+  leafLevel = true,
+  status = Location.Status.ACTIVE,
 )
 
 fun prisonerSearchPrisoner(
