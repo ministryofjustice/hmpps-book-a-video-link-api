@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -17,7 +18,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecis
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
@@ -30,7 +33,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
@@ -40,8 +42,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.LocalDateTime
 import java.time.LocalTime
-
-val CREATED_BY = user("TEST USER")
 
 class CreateVideoBookingServiceTest {
   private val courtRepository: CourtRepository = mock()
@@ -109,7 +109,7 @@ class CreateVideoBookingServiceTest {
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
 
-    val (booking, prisoner) = service.create(courtBookingRequest, CREATED_BY)
+    val (booking, prisoner) = service.create(courtBookingRequest, EXTERNAL_USER)
 
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
@@ -123,7 +123,7 @@ class CreateVideoBookingServiceTest {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo CREATED_BY.username
+      createdBy isEqualTo EXTERNAL_USER.username
       createdTime isCloseTo LocalDateTime.now()
 
       appointments() hasSize 3
@@ -207,7 +207,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
@@ -243,7 +243,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Requested court booking appointments must not overlap."
   }
@@ -279,7 +279,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Requested court booking appointments must not overlap."
   }
@@ -315,7 +315,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, MOORLAND)) doReturn prisonerSearchPrisoner(prisonerNumber, MOORLAND)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
@@ -358,7 +358,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
@@ -401,7 +401,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
@@ -444,13 +444,13 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
 
   @Test
-  fun `should fail to create a court video booking when new appointment overlaps existing`() {
+  fun `should fail to create a court video booking when new appointment overlaps existing for external user`() {
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -480,9 +480,45 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "One or more requested court appointments overlaps with an existing appointment at location $prisonCode-A-1-001"
+  }
+
+  @Test
+  fun `should succeed to create a court video booking when new appointment overlaps existing for prison user`() {
+    val prisonCode = BIRMINGHAM
+    val prisonerNumber = "123456"
+    val courtBookingRequest = courtBookingRequest(
+      prisonCode = prisonCode,
+      prisonerNumber = prisonerNumber,
+      appointments = listOf(
+        Appointment(
+          type = AppointmentType.VLB_COURT_MAIN,
+          locationKey = "$prisonCode-A-1-001",
+          date = tomorrow(),
+          startTime = LocalTime.of(9, 30),
+          endTime = LocalTime.of(10, 0),
+        ),
+      ),
+    )
+
+    val overlappingAppointment: PrisonAppointment = mock {
+      on { startTime } doReturn LocalTime.of(9, 0)
+      on { endTime } doReturn LocalTime.of(10, 0)
+    }
+
+    val requestedCourt = court(courtBookingRequest.courtCode!!)
+
+    whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn requestedCourt
+    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
+    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+
+    assertDoesNotThrow {
+      service.create(courtBookingRequest, PRISON_USER)
+    }
   }
 
   @Test
@@ -492,7 +528,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn disabledCourt
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Court with code ${courtBookingRequest.courtCode} is not enabled"
 
@@ -506,7 +542,7 @@ class CreateVideoBookingServiceTest {
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn court(courtBookingRequest.courtCode!!)
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<EntityNotFoundException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Prison with code $MOORLAND not found"
 
@@ -519,7 +555,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.create(courtBookingRequest, CREATED_BY) }
+    val error = assertThrows<EntityNotFoundException> { service.create(courtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Court with code ${courtBookingRequest.courtCode} not found"
 
@@ -538,7 +574,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
 
-    val (booking, prisoner) = service.create(probationBookingRequest, CREATED_BY)
+    val (booking, prisoner) = service.create(probationBookingRequest, EXTERNAL_USER)
 
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
@@ -552,7 +588,7 @@ class CreateVideoBookingServiceTest {
       probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
       comments isEqualTo "probation booking comments"
       videoUrl isEqualTo probationBookingRequest.videoLinkUrl
-      createdBy isEqualTo CREATED_BY.username
+      createdBy isEqualTo EXTERNAL_USER.username
       createdTime isCloseTo LocalDateTime.now()
 
       appointments() hasSize 1
@@ -576,7 +612,7 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to create a probation video booking when new appointment overlaps existing`() {
+  fun `should fail to create a probation video booking when new appointment overlaps existing for external user`() {
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(
@@ -599,9 +635,38 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Requested probation appointment overlaps with an existing appointment at location $BIRMINGHAM-B-2-001"
+  }
+
+  @Test
+  fun `should succeed to create a probation video booking when new appointment overlaps existing for prison user`() {
+    val prisonCode = BIRMINGHAM
+    val prisonerNumber = "123456"
+    val probationBookingRequest = probationBookingRequest(
+      prisonCode = prisonCode,
+      prisonerNumber = prisonerNumber,
+      startTime = LocalTime.of(8, 30),
+      endTime = LocalTime.of(9, 30),
+      locationSuffix = "B-2-001",
+    )
+    val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
+
+    val overlappingAppointment: PrisonAppointment = mock {
+      on { startTime } doReturn LocalTime.of(9, 0)
+      on { endTime } doReturn LocalTime.of(10, 0)
+    }
+
+    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
+    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-B-2-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
+    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+
+    assertDoesNotThrow {
+      service.create(probationBookingRequest, PRISON_USER)
+    }
   }
 
   @Test
@@ -610,7 +675,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.create(probationBookingRequest, CREATED_BY) }
+    val error = assertThrows<EntityNotFoundException> { service.create(probationBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Probation team with code ${probationBookingRequest.probationTeamCode} not found"
 
@@ -624,7 +689,7 @@ class CreateVideoBookingServiceTest {
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn probationTeam()
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.create(probationBookingRequest, CREATED_BY) }
+    val error = assertThrows<EntityNotFoundException> { service.create(probationBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Prison with code $BIRMINGHAM not found"
 
@@ -638,7 +703,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn disabledProbationTeam
 
-    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Probation team with code ${probationBookingRequest.probationTeamCode} is not enabled"
 
@@ -657,7 +722,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
-    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, CREATED_BY) }
+    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Appointment type VLB_COURT_MAIN is not valid for probation appointments"
   }

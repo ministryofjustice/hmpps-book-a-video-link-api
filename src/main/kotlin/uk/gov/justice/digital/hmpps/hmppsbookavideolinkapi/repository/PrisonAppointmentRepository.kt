@@ -13,6 +13,28 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
 
   @Query(
     value = """
+    SELECT CASE WHEN count(pa) > 0 THEN TRUE ELSE FALSE END
+      FROM PrisonAppointment pa 
+     WHERE pa.prisonerNumber = :prisonerNumber
+       AND pa.prisonCode = :prisonCode
+       AND pa.prisonLocKey = :key
+       AND pa.videoBooking.statusCode = 'ACTIVE'
+       AND pa.appointmentDate = :date
+       AND pa.startTime = :startTime
+       and pa.endTime = :endTime
+  """,
+  )
+  fun existsActivePrisonAppointmentsByPrisonerNumberLocationDateAndTime(
+    prisonerNumber: String,
+    prisonCode: String,
+    key: String,
+    date: LocalDate,
+    startTime: LocalTime,
+    endTime: LocalTime,
+  ): Boolean
+
+  @Query(
+    value = """
     SELECT pa FROM PrisonAppointment pa 
      WHERE pa.prisonCode = :prisonCode
        AND pa.prisonLocKey = :key

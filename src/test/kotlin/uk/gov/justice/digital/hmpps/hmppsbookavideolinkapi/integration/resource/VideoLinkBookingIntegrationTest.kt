@@ -261,6 +261,64 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `should allow creation of overlapping court bookings as a prison user`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("789101", WERRINGTON)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+    )
+
+    webTestClient.createBooking(courtBookingRequest, TEST_PRISON_USER)
+
+    val overlappingCourtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "789101",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+    )
+
+    // No should be thrown
+    webTestClient.createBooking(overlappingCourtBookingRequest, TEST_PRISON_USER)
+  }
+
+  @Test
+  fun `should reject duplicate court booking creation as a prison user`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("789101", WERRINGTON)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = WERRINGTON,
+      location = werringtonLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+    )
+
+    webTestClient.createBooking(courtBookingRequest, TEST_PRISON_USER)
+    webTestClient.createBookingFails(courtBookingRequest, TEST_PRISON_USER).expectStatus().isBadRequest
+  }
+
+  @Test
   fun `should create a Chesterfield court booking and emails sent to Birmingham prison`() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
@@ -605,6 +663,27 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       userMessage isEqualTo "Validation failure: Prisoner 789012 not found at prison MDI"
       developerMessage isEqualTo "Prisoner 789012 not found at prison MDI"
     }
+  }
+
+  @Test
+  fun `should reject duplicate probation booking creation as a prison user`() {
+    prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      videoLinkUrl = "https://probation.videolink.com",
+      prisonCode = MOORLAND,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = moorlandLocation,
+    )
+
+    webTestClient.createBooking(probationBookingRequest, TEST_PRISON_USER)
+    webTestClient.createBookingFails(probationBookingRequest, TEST_PRISON_USER).expectStatus().isBadRequest
   }
 
   @Test
@@ -1462,6 +1541,15 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
       .returnResult().responseBody!!
+
+  private fun WebTestClient.createBookingFails(request: CreateVideoBookingRequest, username: String = TEST_EXTERNAL_USER) =
+    this
+      .post()
+      .uri("/video-link-booking")
+      .bodyValue(request)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
 
   private fun WebTestClient.searchForBooking(request: VideoBookingSearchRequest, username: String = TEST_EXTERNAL_USER) =
     this
