@@ -15,8 +15,8 @@ class AppointmentsService(
   private val locationValidator: LocationValidator,
 ) {
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
-  fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
-    checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!)
+  fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
+    checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
     // Add all appointments to the booking - they will be saved when the booking is saved
     prisoner.appointments.forEach {
@@ -32,10 +32,15 @@ class AppointmentsService(
     }
   }
 
-  fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String) {
+  fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
     appointments.checkCourtAppointmentTypesOnly()
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
-    appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode)
+
+    // Prison users can have overlapping appointments
+    if (!user.isUserType(UserType.PRISON)) {
+      appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode)
+    }
+
     locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
   }
 
@@ -85,8 +90,8 @@ class AppointmentsService(
   private fun Appointment.isBefore(other: Appointment): Boolean =
     this.date!! <= other.date && this.endTime!! <= other.startTime
 
-  fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails) {
-    checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!)
+  fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
+    checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
     with(prisoner.appointments.single()) {
       videoBooking.addAppointment(
@@ -101,13 +106,17 @@ class AppointmentsService(
     }
   }
 
-  fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String) {
+  fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
     with(appointments.single()) {
       require(type!!.isProbation) {
         "Appointment type $type is not valid for probation appointments"
       }
 
-      checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode)
+      // Prison users can have overlapping appointments
+      if (!user.isUserType(UserType.PRISON)) {
+        checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode)
+      }
+
       locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
     }
   }

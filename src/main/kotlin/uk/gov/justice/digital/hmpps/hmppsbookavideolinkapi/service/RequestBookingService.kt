@@ -51,7 +51,7 @@ class RequestBookingService(
 
   private fun processCourtBookingRequest(request: RequestVideoBookingRequest, user: User) {
     val prisoner = request.prisoner()
-    appointmentsService.checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!)
+    appointmentsService.checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
     val (pre, main, post) = getCourtAppointments(prisoner)
 
@@ -73,7 +73,7 @@ class RequestBookingService(
 
   private fun processProbationBookingRequest(request: RequestVideoBookingRequest, user: User) {
     val prisoner = request.prisoner()
-    appointmentsService.checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!)
+    appointmentsService.checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
     val appointment = prisoner.appointments.single()
     val prison = fetchPrison(prisoner.prisonCode)

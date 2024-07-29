@@ -53,7 +53,7 @@ class CreateVideoBookingService(
       createdBy = createdBy.username,
       createdByPrison = createdBy.isUserType(UserType.PRISON),
     )
-      .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner()) }
+      .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
       .also { booking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, booking) }
       .also { log.info("BOOKINGS: court booking with id ${it.videoBookingId} created") } to prisoner
@@ -74,7 +74,7 @@ class CreateVideoBookingService(
       createdBy = createdBy.username,
       createdByPrison = createdBy.isUserType(UserType.PRISON),
     )
-      .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner()) }
+      .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), createdBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
       .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, thisBooking) }
       .also { thisBooking -> log.info("BOOKINGS: probation team booking ${thisBooking.videoBookingId} created") } to prisoner

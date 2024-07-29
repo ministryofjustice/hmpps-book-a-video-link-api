@@ -10,6 +10,7 @@ import org.mockito.kotlin.argumentCaptor
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
@@ -40,7 +41,7 @@ class BookingHistoryServiceTest {
 
   @Test
   fun `Should create history for a court booking`() {
-    val courtBooking = courtBooking(CREATED_BY.username)
+    val courtBooking = courtBooking(EXTERNAL_USER.username)
       .addAppointment(
         prisonCode = MOORLAND,
         prisonerNumber = "A1234AA",
@@ -61,7 +62,7 @@ class BookingHistoryServiceTest {
       hearingType isEqualTo courtBooking.hearingType
       comments isEqualTo "Court hearing comments"
       videoUrl isEqualTo courtBooking.videoUrl
-      createdBy isEqualTo CREATED_BY.username
+      createdBy isEqualTo EXTERNAL_USER.username
       createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
       with(appointments().first()) {
@@ -114,7 +115,7 @@ class BookingHistoryServiceTest {
 
   @Test
   fun `Should create history for a court booking amendment`() {
-    val courtBooking = courtBooking(CREATED_BY.username)
+    val courtBooking = courtBooking(EXTERNAL_USER.username)
       .addAppointment(
         prisonCode = MOORLAND,
         prisonerNumber = "A1234AA",
@@ -160,7 +161,7 @@ class BookingHistoryServiceTest {
 
   @Test
   fun `Should cater for multiple prisoners at different prisons on the same booking`() {
-    val courtBooking = courtBooking(CREATED_BY.username)
+    val courtBooking = courtBooking(EXTERNAL_USER.username)
       .addAppointment(
         prisonCode = MOORLAND,
         prisonerNumber = "A1111AA",
