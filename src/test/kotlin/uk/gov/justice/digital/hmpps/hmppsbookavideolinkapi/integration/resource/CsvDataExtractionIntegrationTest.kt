@@ -51,12 +51,28 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-probation-events-by-meeting-date-data.sql")
   @Test
   fun `should download probation events by meeting date`() {
-    val probationResponse = webTestClient.downloadProbationDataByMeetingDate(LocalDate.of(2099, 1, 24), 2)
+    val probationResponse = webTestClient.downloadProbationDataByMeetingDate(LocalDate.of(2099, 1, 24), 365)
 
-    probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-24-for-2-days.csv"
+    probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-24-for-365-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
       "-4000,2024-01-01T01:00:00,-4000,CREATE,WNI,\"Blackpool MC (PPOC)\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
   }
+
+  @Test
+  fun `should be bad request when more than 365 days requested`() {
+    webTestClient.badRequestWhenRequestTooManyDaysOfData()
+      .expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("userMessage").isEqualTo("Exception: CSV extracts are limited to a years worth of data.")
+      .jsonPath("developerMessage").isEqualTo("CSV extracts are limited to a years worth of data.")
+  }
+
+  private fun WebTestClient.badRequestWhenRequestTooManyDaysOfData() =
+    this
+      .get()
+      .uri("/download-csv/court-data-by-hearing-date?start-date=2024-07-30&days=366")
+      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
 
   private fun WebTestClient.downloadCourtDataByHearingDate(startDate: LocalDate, days: Long) =
     this
@@ -98,6 +114,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
     this
       .get()
       .uri("/download-csv/probation-data-by-meeting-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
+      .accept(MediaType.parseMediaType("text/csv"), MediaType.APPLICATION_JSON)
       .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
