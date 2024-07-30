@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CsvMapperConfig.csvMapper
@@ -19,10 +20,15 @@ class CsvDataExtractionService(
   private val videoBookingEventRepository: VideoBookingEventRepository,
   private val locationsService: LocationsService,
 ) {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   @Transactional(readOnly = true)
   fun courtBookingsByHearingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+
+    log.info("CSV: downloading court bookings by hearing date, fromDate=$fromDate, toDate=$toDate")
 
     writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, fromDate, toDate), csvOutputStream)
   }
@@ -30,6 +36,8 @@ class CsvDataExtractionService(
   @Transactional(readOnly = true)
   fun courtBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+
+    log.info("CSV: downloading court bookings by booking date, fromDate=$fromDate, toDate=$toDate")
 
     writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, fromDate, toDate), csvOutputStream)
   }
@@ -52,12 +60,16 @@ class CsvDataExtractionService(
   fun probationBookingsByMeetingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
+    log.info("CSV: downloading probation bookings by meeting date, fromDate=$fromDate, toDate=$toDate")
+
     writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, fromDate, toDate), csvOutputStream)
   }
 
   @Transactional(readOnly = true)
   fun probationBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+
+    log.info("CSV: downloading probation bookings by booking date, fromDate=$fromDate, toDate=$toDate")
 
     writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, fromDate, toDate), csvOutputStream)
   }
