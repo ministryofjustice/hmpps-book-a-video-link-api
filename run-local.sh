@@ -10,9 +10,9 @@
 
 # Provide the DB connection details to local container-hosted Postgresql DB already running
 export DB_SERVER=localhost
-export DB_NAME=book-a-video-link-db
-export DB_USER=book-a-video-link
-export DB_PASS=book-a-video-link
+export DB_NAME=db98fd0234773e36a8
+export DB_USER=cpCnsogWnk
+export DB_PASS=dXtRbdA8SC9j0pVf
 export DB_SSL_MODE=prefer
 export $(cat .env | xargs)  # If you want to set or update the current shell environment e.g. system client and secret.
 
