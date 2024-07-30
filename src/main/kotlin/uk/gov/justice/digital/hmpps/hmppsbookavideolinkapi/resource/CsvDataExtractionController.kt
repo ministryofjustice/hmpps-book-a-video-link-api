@@ -15,14 +15,16 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CsvDataExtractionService
+import java.io.OutputStream
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @Tag(name = "CSV Data Extraction Controller")
 @RestController
-@RequestMapping(value = ["download-csv"])
+@RequestMapping(value = ["download-csv"], produces = ["text/csv", MediaType.APPLICATION_JSON_VALUE])
 class CsvDataExtractionController(private val service: CsvDataExtractionService) {
 
-  @GetMapping(path = ["/court-data-by-hearing-date"], produces = ["text/csv"])
+  @GetMapping(path = ["/court-data-by-hearing-date"])
   @Operation(description = "Return details of court video link bookings by hearing date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun downloadCourtBookingsByHearingDate(
@@ -31,27 +33,16 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     @Parameter(description = "The earliest hearing date for which to return event details.", required = true)
     startDate: LocalDate,
     @RequestParam(name = "days")
-    @Parameter(description = "Return details of events occurring within this number of days of start-date")
+    @Parameter(description = "Return details of events occurring within this number of days of start-date. A maximum of 365 days.")
     days: Long = 7,
-  ): ResponseEntity<StreamingResponseBody> {
-    return ResponseEntity.ok()
-      .header(
-        HttpHeaders.CONTENT_DISPOSITION,
-        "attachment; filename=video-links-by-court-hearing-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-      )
-      .contentType(MediaType.parseMediaType("text/csv"))
-      .body(
-        StreamingResponseBody {
-          service.courtBookingsByHearingDateToCsv(
-            fromDate = startDate,
-            toDate = startDate.plusDays(days),
-            it,
-          )
-        },
-      )
-  }
+  ): ResponseEntity<StreamingResponseBody> =
+    streamedCsvResponse(
+      startDate,
+      days,
+      "video-links-by-court-hearing-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
+    ) { os -> service.courtBookingsByHearingDateToCsv(fromDate = startDate, toDate = startDate.plusDays(days), os) }
 
-  @GetMapping(path = ["/probation-data-by-meeting-date"], produces = ["text/csv"])
+  @GetMapping(path = ["/probation-data-by-meeting-date"])
   @Operation(description = "Return details of probation video link bookings by meeting date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun downloadProbationBookingsByMeetingDate(
@@ -60,27 +51,16 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     @Parameter(description = "The earliest meeting date for which to return event details.", required = true)
     startDate: LocalDate,
     @RequestParam(name = "days")
-    @Parameter(description = "Return details of events occurring within this number of days of start-date")
+    @Parameter(description = "Return details of events occurring within this number of days of start-date. A maximum of 365 days.")
     days: Long = 7,
-  ): ResponseEntity<StreamingResponseBody> {
-    return ResponseEntity.ok()
-      .header(
-        HttpHeaders.CONTENT_DISPOSITION,
-        "attachment; filename=video-links-by-probation-meeting-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-      )
-      .contentType(MediaType.parseMediaType("text/csv"))
-      .body(
-        StreamingResponseBody {
-          service.probationBookingsByMeetingDateToCsv(
-            fromDate = startDate,
-            toDate = startDate.plusDays(days),
-            it,
-          )
-        },
-      )
-  }
+  ): ResponseEntity<StreamingResponseBody> =
+    streamedCsvResponse(
+      startDate,
+      days,
+      "video-links-by-probation-meeting-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
+    ) { os -> service.probationBookingsByMeetingDateToCsv(fromDate = startDate, toDate = startDate.plusDays(days), os) }
 
-  @GetMapping(path = ["/court-data-by-booking-date"], produces = ["text/csv"])
+  @GetMapping(path = ["/court-data-by-booking-date"])
   @Operation(description = "Return details of court video link bookings by booking date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun downloadCourtBookingsByBookingDate(
@@ -89,26 +69,16 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     @Parameter(description = "The earliest booking date for which to return bookings for.", required = true)
     startDate: LocalDate,
     @RequestParam(name = "days")
-    @Parameter(description = "Return details of bookings occurring within this number of days of start-date")
+    @Parameter(description = "Return details of bookings occurring within this number of days of start-date. A maximum of 365 days.")
     days: Long = 7,
   ): ResponseEntity<StreamingResponseBody> =
-    ResponseEntity.ok()
-      .header(
-        HttpHeaders.CONTENT_DISPOSITION,
-        "attachment; filename=video-links-by-court-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-      )
-      .contentType(MediaType.parseMediaType("text/csv"))
-      .body(
-        StreamingResponseBody {
-          service.courtBookingsByBookingDateToCsv(
-            fromDate = startDate,
-            toDate = startDate.plusDays(days),
-            it,
-          )
-        },
-      )
+    streamedCsvResponse(
+      startDate,
+      days,
+      "video-links-by-court-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
+    ) { os -> service.courtBookingsByBookingDateToCsv(fromDate = startDate, toDate = startDate.plusDays(days), os) }
 
-  @GetMapping(path = ["/probation-data-by-booking-date"], produces = ["text/csv"])
+  @GetMapping(path = ["/probation-data-by-booking-date"])
   @Operation(description = "Return details of probation video link bookings by booking date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun downloadProbationBookingsByBookingDate(
@@ -117,22 +87,23 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     @Parameter(description = "The earliest booking date for which to return bookings for.", required = true)
     startDate: LocalDate,
     @RequestParam(name = "days")
-    @Parameter(description = "Return details of bookings occurring within this number of days of start-date")
+    @Parameter(description = "Return details of bookings occurring within this number of days of start-date. A maximum of 365 days.")
     days: Long = 7,
   ): ResponseEntity<StreamingResponseBody> =
-    ResponseEntity.ok()
-      .header(
-        HttpHeaders.CONTENT_DISPOSITION,
-        "attachment; filename=video-links-by-probation-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-      )
+    streamedCsvResponse(
+      startDate,
+      days,
+      "video-links-by-probation-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
+    ) { os -> service.probationBookingsByBookingDateToCsv(fromDate = startDate, toDate = startDate.plusDays(days), os) }
+
+  private fun streamedCsvResponse(startDate: LocalDate, days: Long, filename: String, block: (outputStream: OutputStream) -> Unit): ResponseEntity<StreamingResponseBody> {
+    require(ChronoUnit.DAYS.between(startDate, startDate.plusDays(days)) <= 365) {
+      "CSV extracts are limited to a years worth of data."
+    }
+
+    return ResponseEntity.ok()
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
       .contentType(MediaType.parseMediaType("text/csv"))
-      .body(
-        StreamingResponseBody {
-          service.probationBookingsByBookingDateToCsv(
-            fromDate = startDate,
-            toDate = startDate.plusDays(days),
-            it,
-          )
-        },
-      )
+      .body(StreamingResponseBody { block(it) })
+  }
 }
