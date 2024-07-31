@@ -69,6 +69,13 @@ spring:
         provider:
           hmpps-auth:
             token-uri: ${api.base.url.hmpps-auth}/oauth/token
+  task:
+    execution:
+      thread-name-prefix: async-thread-
+      pool:
+        core-size: 2
+        max-size: 4
+        queue-capacity: 50
 
 server:
   port: 8080

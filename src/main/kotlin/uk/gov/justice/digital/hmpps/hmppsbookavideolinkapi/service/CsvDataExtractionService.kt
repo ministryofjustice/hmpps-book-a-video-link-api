@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CsvMapperConfig.csvMapper
@@ -13,25 +14,37 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
 import java.util.stream.Stream
 import kotlin.streams.asSequence
+import kotlin.system.measureTimeMillis
 
 @Service
 class CsvDataExtractionService(
   private val videoBookingEventRepository: VideoBookingEventRepository,
   private val locationsService: LocationsService,
 ) {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   @Transactional(readOnly = true)
   fun courtBookingsByHearingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
-    writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, fromDate, toDate), csvOutputStream)
+    val elapsed = measureTimeMillis {
+      writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, fromDate, toDate), csvOutputStream)
+    }
+
+    log.info("CSV: time taken downloading court bookings by hearing date from $fromDate to $toDate in millis=$elapsed")
   }
 
   @Transactional(readOnly = true)
   fun courtBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
-    writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, fromDate, toDate), csvOutputStream)
+    val elapsed = measureTimeMillis {
+      writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, fromDate, toDate), csvOutputStream)
+    }
+
+    log.info("CSV: time taken downloading court bookings by booking date from $fromDate to $toDate in millis=$elapsed")
   }
 
   private fun writeCourtBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {
@@ -52,14 +65,22 @@ class CsvDataExtractionService(
   fun probationBookingsByMeetingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
-    writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, fromDate, toDate), csvOutputStream)
+    val elapsed = measureTimeMillis {
+      writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, fromDate, toDate), csvOutputStream)
+    }
+
+    log.info("CSV: time taken downloading probation bookings by meeting date from $fromDate to $toDate in millis=$elapsed")
   }
 
   @Transactional(readOnly = true)
   fun probationBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
-    writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, fromDate, toDate), csvOutputStream)
+    val elapsed = measureTimeMillis {
+      writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, fromDate, toDate), csvOutputStream)
+    }
+
+    log.info("CSV: time taken downloading probation bookings by booking date from $fromDate to $toDate in millis=$elapsed")
   }
 
   private fun writeProbationBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {

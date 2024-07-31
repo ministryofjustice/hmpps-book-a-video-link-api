@@ -3,10 +3,12 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.resource
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,10 +21,19 @@ import java.io.OutputStream
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
+/**
+ * StreamingResponseBody return types are asynchronous by default, the methods themselves do not need annotating.
+ *
+ * By using the @EnableAsync annotation we can override Springs defaults settings in the Spring configuration (file).
+ */
+@EnableAsync
 @Tag(name = "CSV Data Extraction Controller")
 @RestController
 @RequestMapping(value = ["download-csv"], produces = ["text/csv", MediaType.APPLICATION_JSON_VALUE])
 class CsvDataExtractionController(private val service: CsvDataExtractionService) {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   @GetMapping(path = ["/court-data-by-hearing-date"])
   @Operation(description = "Return details of court video link bookings by hearing date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
@@ -100,6 +111,8 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     require(ChronoUnit.DAYS.between(startDate, startDate.plusDays(days)) <= 365) {
       "CSV extracts are limited to a years worth of data."
     }
+
+    log.info("CSV controller: beginning CSV download for $filename")
 
     return ResponseEntity.ok()
       .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
