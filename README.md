@@ -45,7 +45,7 @@ SYSTEM_CLIENT_ID=<system.client.id>
 SYSTEM_CLIENT_SECRET=<system.client.secret>
 ```
 
-Start up the docker dependencies using the docker-compose file in the `hmpps-activities-management-api` service.
+Start up the docker dependencies using the docker-compose file.
 
 ```
 docker-compose up --remove-orphans
