@@ -92,6 +92,8 @@ import java.time.LocalTime
 import java.util.*
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
+// This is not ideal. Due to potential timing issues with messages/events we disable this on the CI pipeline.
+// We need a better solution to this.
 @DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
 class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
@@ -666,24 +668,19 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should reject duplicate probation booking creation as a prison user`() {
-    prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
+  fun `should fail to create a probation booking when user is prison user`() {
+    val error = webTestClient.createBookingFails(probationBookingRequest(), TEST_PRISON_USER)
+      .expectStatus().isBadRequest
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
 
-    val probationBookingRequest = probationBookingRequest(
-      probationTeamCode = BLACKPOOL_MC_PPOC,
-      probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
-      prisonCode = MOORLAND,
-      prisonerNumber = "123456",
-      startTime = LocalTime.of(9, 0),
-      endTime = LocalTime.of(9, 30),
-      appointmentType = AppointmentType.VLB_PROBATION,
-      location = moorlandLocation,
-    )
-
-    webTestClient.createBooking(probationBookingRequest, TEST_PRISON_USER)
-    webTestClient.createBookingFails(probationBookingRequest, TEST_PRISON_USER).expectStatus().isBadRequest
+    with(error) {
+      status isEqualTo 400
+      userMessage isEqualTo "Exception: Prison users cannot create probation meetings."
+      developerMessage isEqualTo "Prison users cannot create probation meetings."
+    }
   }
 
   @Test

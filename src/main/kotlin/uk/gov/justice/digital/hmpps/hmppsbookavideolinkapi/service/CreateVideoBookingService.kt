@@ -60,6 +60,10 @@ class CreateVideoBookingService(
   }
 
   private fun createProbation(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
+    require(!createdBy.isUserType(UserType.PRISON)) {
+      "Prison users cannot create probation meetings."
+    }
+
     val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
       ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
