@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -73,7 +74,7 @@ class CourtEmailFactoryTest {
       locationKey = moorlandLocation.key,
     )
 
-  private val prison = prison(prisonCode = BIRMINGHAM)
+  private val prison = prison(prisonCode = MOORLAND)
 
   companion object {
     @JvmStatic
@@ -153,7 +154,7 @@ class CourtEmailFactoryTest {
       )
     }
 
-    error.message isEqualTo "Incorrect contact type ${prisonBookingContact.contactType} for user email"
+    error.message isEqualTo "Incorrect contact type ${prisonBookingContact.contactType} for court user email"
   }
 
   @Test
@@ -227,7 +228,7 @@ class CourtEmailFactoryTest {
       )
     }
 
-    error.message isEqualTo "Incorrect contact type ${userBookingContact.contactType} for court email"
+    error.message isEqualTo "Incorrect contact type ${userBookingContact.contactType} for court court email"
   }
 
   @Test
@@ -266,7 +267,7 @@ class CourtEmailFactoryTest {
       )
     }
 
-    error.message isEqualTo "Incorrect contact type ${userBookingContact.contactType} for prison email"
+    error.message isEqualTo "Incorrect contact type ${userBookingContact.contactType} for court prison email"
   }
 
   @Test

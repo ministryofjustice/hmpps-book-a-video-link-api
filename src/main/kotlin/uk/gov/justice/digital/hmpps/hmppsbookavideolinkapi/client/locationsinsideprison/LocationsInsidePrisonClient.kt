@@ -17,6 +17,13 @@ inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>(
 @Component
 class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient: WebClient) {
 
+  fun getLocationByKey(key: String): Location? = locationsInsidePrisonApiWebClient.get()
+    .uri("/locations/key/{key}", key)
+    .retrieve()
+    .bodyToMono(Location::class.java)
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block()
+
   fun getLocationsByKeys(keys: Set<String>): List<Location> = locationsInsidePrisonApiWebClient.post()
     .uri("/locations/keys")
     .bodyValue(keys)
