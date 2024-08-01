@@ -39,7 +39,7 @@ class Court(
 
     other as Court
 
-    return courtId == other.courtId
+    return courtId == other.courtId && code == other.code
   }
 
   override fun hashCode(): Int {

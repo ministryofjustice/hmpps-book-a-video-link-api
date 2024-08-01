@@ -53,6 +53,10 @@ class AmendVideoBookingService(
       ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
 
+    if (amendedBy.isUserType(UserType.PRISON) && booking.court != court) {
+      throw IllegalArgumentException("Prison users cannot change the court on a booking.")
+    }
+
     val prisoner = request.prisoner().validate()
 
     return booking.apply {

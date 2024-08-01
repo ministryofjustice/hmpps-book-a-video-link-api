@@ -41,7 +41,10 @@ class VideoLinkBookingController(
   val videoLinkBookingsService: VideoLinkBookingsService,
 ) {
 
-  @Operation(summary = "Endpoint to support the creation of video link bookings")
+  @Operation(
+    summary = "Endpoint to support the creation of video link bookings",
+    description = "Only external users can create probation meetings, prison users cannot create them.",
+  )
   @ApiResponses(
     value = [
       ApiResponse(

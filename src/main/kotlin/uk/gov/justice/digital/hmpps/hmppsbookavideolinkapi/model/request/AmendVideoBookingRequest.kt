@@ -20,7 +20,7 @@ data class AmendVideoBookingRequest(
   @Schema(description = "The prisoner or prisoners associated with the video link booking")
   val prisoners: List<PrisonerDetails>,
 
-  @Schema(description = "The court code is needed if booking type is COURT, otherwise null", example = "DRBYMC")
+  @Schema(description = "The court code is needed if booking type is COURT, otherwise null. This cannot be changed by prison users.", example = "DRBYMC")
   val courtCode: String? = null,
 
   @Schema(description = "The court hearing type is needed if booking type is COURT, otherwise null", example = "APPEAL")

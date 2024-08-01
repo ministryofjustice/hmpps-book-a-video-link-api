@@ -9,6 +9,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
@@ -18,6 +19,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
@@ -76,10 +79,11 @@ class AmendVideoBookingServiceTest {
   @Test
   fun `should amend an existing court video booking`() {
     val videoBookingId = 1L
-    val courtBooking = courtBooking()
+    val courtBooking = courtBooking(court = court(DERBY_JUSTICE_CENTRE))
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(
+      courtCode = CHESTERFIELD_JUSTICE_CENTRE,
       prisonCode = prisonCode,
       prisonerNumber = prisonerNumber,
       appointments = listOf(
@@ -125,7 +129,7 @@ class AmendVideoBookingServiceTest {
 
     with(amendedBookingCaptor.firstValue) {
       bookingType isEqualTo "COURT"
-      court isEqualTo requestedCourt
+      court isEqualTo court(CHESTERFIELD_JUSTICE_CENTRE)
       hearingType isEqualTo amendCourtBookingRequest.courtHearingType?.name
       comments isEqualTo "court booking comments"
       videoUrl isEqualTo amendCourtBookingRequest.videoLinkUrl
@@ -497,6 +501,39 @@ class AmendVideoBookingServiceTest {
     val error = assertThrows<IllegalArgumentException> { service.amend(videoBookingId, amendCourtBookingRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
+  }
+
+  @Test
+  fun `should fail to amend a court video booking when prison user changes the court`() {
+    val videoBookingId = 1L
+    val courtBooking = courtBooking(court = court(DERBY_JUSTICE_CENTRE))
+    val prisonCode = BIRMINGHAM
+    val prisonerNumber = "123456"
+
+    val amendCourtBookingRequest = amendCourtBookingRequest(
+      courtCode = CHESTERFIELD_JUSTICE_CENTRE,
+      prisonCode = prisonCode,
+      prisonerNumber = prisonerNumber,
+      appointments = listOf(
+        Appointment(
+          type = AppointmentType.VLB_COURT_MAIN,
+          locationKey = "$prisonCode-A-1-001",
+          date = tomorrow(),
+          startTime = LocalTime.of(9, 30),
+          endTime = LocalTime.of(10, 0),
+        ),
+      ),
+    )
+    val requestedCourt = court(amendCourtBookingRequest.courtCode!!)
+
+    whenever(videoBookingRepository.findById(videoBookingId)) doReturn Optional.of(courtBooking)
+    whenever(courtRepository.findByCode(amendCourtBookingRequest.courtCode!!)) doReturn requestedCourt
+
+    val error = assertThrows<IllegalArgumentException> { service.amend(videoBookingId, amendCourtBookingRequest, PRISON_USER) }
+
+    error.message isEqualTo "Prison users cannot change the court on a booking."
+
+    verify(videoBookingRepository, never()).saveAndFlush(any())
   }
 
   @Test

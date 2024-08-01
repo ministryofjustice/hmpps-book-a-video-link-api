@@ -9,6 +9,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -641,7 +642,7 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
-  fun `should succeed to create a probation video booking when new appointment overlaps existing for prison user`() {
+  fun `should fail to create a probation video booking when prison user`() {
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(
@@ -651,22 +652,12 @@ class CreateVideoBookingServiceTest {
       endTime = LocalTime.of(9, 30),
       locationSuffix = "B-2-001",
     )
-    val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
-    val overlappingAppointment: PrisonAppointment = mock {
-      on { startTime } doReturn LocalTime.of(9, 0)
-      on { endTime } doReturn LocalTime.of(10, 0)
-    }
+    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, PRISON_USER) }
 
-    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
-    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-B-2-001", tomorrow())) doReturn listOf(overlappingAppointment)
-    whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
-    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+    error.message isEqualTo "Prison users cannot create probation meetings."
 
-    assertDoesNotThrow {
-      service.create(probationBookingRequest, PRISON_USER)
-    }
+    verify(videoBookingRepository, never()).saveAndFlush(any())
   }
 
   @Test

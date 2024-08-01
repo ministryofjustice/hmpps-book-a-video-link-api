@@ -40,8 +40,8 @@ fun probationTeam(code: String = "BLKPPP", enabled: Boolean = true) = ProbationT
   createdBy = "Test",
 )
 
-fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = false) = VideoBooking.newCourtBooking(
-  court = court(),
+fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = false, court: Court = court()) = VideoBooking.newCourtBooking(
+  court = court,
   hearingType = "TRIBUNAL",
   comments = "Court hearing comments",
   videoUrl = "https://court.hearing.link",
