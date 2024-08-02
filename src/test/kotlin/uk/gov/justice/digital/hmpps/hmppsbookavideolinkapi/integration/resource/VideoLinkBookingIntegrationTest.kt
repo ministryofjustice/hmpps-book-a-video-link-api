@@ -76,6 +76,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestUserEmail
@@ -486,7 +487,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -543,7 +544,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -585,7 +586,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should fail to create a clashing probation booking`() {
     prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
+    locationsInsidePrisonApi().stubGetLocationByKey(moorlandLocation.key, MOORLAND)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -740,7 +741,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
+    locationsInsidePrisonApi().stubGetLocationByKey(moorlandLocation.key, MOORLAND)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1054,7 +1055,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1118,7 +1119,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val probationBookingRequest1 = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1184,7 +1185,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1202,7 +1203,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val videoBookingId = webTestClient.createBooking(probationBookingRequest)
 
     prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val amendBookingRequest = amendProbationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1388,7 +1389,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should request a Blackpool probation team booking and emails sent to Norwich prison`() {
     notificationRepository.findAll() hasSize 0
 
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(norwichLocation.key), NORWICH)
+    locationsInsidePrisonApi().stubGetLocationByKey(norwichLocation.key, NORWICH)
 
     val probationRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1415,7 +1416,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should request a Harrow probation booking and emails sent to Birmingham prison`() {
     notificationRepository.findAll() hasSize 0
 
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val probationRequest = requestProbationVideoLinkRequest(
       probationTeamCode = HARROW,
@@ -1443,7 +1444,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1647,6 +1648,7 @@ class TestEmailConfiguration {
         is ProbationBookingRequestUserEmail -> Result.success(UUID.randomUUID() to "requested probation booking user template id")
         is ProbationBookingRequestPrisonProbationTeamEmail -> Result.success(UUID.randomUUID() to "requested probation booking prison template id with email address")
         is ProbationBookingRequestPrisonNoProbationTeamEmail -> Result.success(UUID.randomUUID() to "requested probation booking prison template id with no email address")
+        is NewProbationBookingUserEmail -> Result.success(UUID.randomUUID() to "new probation booking user template id")
         else -> throw RuntimeException("Unsupported email")
       }
     }

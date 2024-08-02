@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.Notificati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.CourtEmailFactory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.ProbationEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 
@@ -52,7 +53,7 @@ class BookingFacade(
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, amendedBy: User): Long {
     val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, amendedBy)
-    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, booking.videoBookingId)
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
     sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
     return booking.videoBookingId
   }
@@ -60,21 +61,21 @@ class BookingFacade(
   fun cancel(videoBookingId: Long, cancelledBy: User) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
     log.info("Video booking ${booking.videoBookingId} cancelled by user")
-    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
   }
 
   fun prisonerTransferred(videoBookingId: Long, user: User) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
-    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()))
   }
 
   fun prisonerReleased(videoBookingId: Long, user: User) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
-    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, booking.videoBookingId)
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()))
   }
 
@@ -111,17 +112,31 @@ class BookingFacade(
     }
   }
 
-  private fun sendProbationBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User?) {
-    log.info("TODO - send probation booking emails.")
+  private fun sendProbationBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User?) {
+    val appointment = booking.appointments().single()
+    val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
+    val contacts = contactsService.getPrimaryBookingContacts(booking.videoBookingId, user).allContactsWithAnEmailAddress()
+    val location = locationsInsidePrisonClient.getLocationByKey(appointment.prisonLocKey)!!
+
+    contacts.mapNotNull { contact ->
+      when (contact.contactType) {
+        ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType)
+        else -> null
+      }
+    }.forEach { email ->
+      sendEmailAndSaveNotification(email, booking, eventType)
+    }
   }
 
   private fun sendEmailAndSaveNotification(email: Email, booking: VideoBooking, action: BookingAction) {
+    val bookingType = if (booking.isCourtBooking()) "court" else "probation"
+
     val reason = when (action) {
-      BookingAction.CREATE -> "New court booking"
-      BookingAction.AMEND -> "Amended court booking"
-      BookingAction.CANCEL -> "Cancelled court booking"
-      BookingAction.RELEASED -> "Cancelled court booking due to release"
-      BookingAction.TRANSFERRED -> "Cancelled court booking due to transfer"
+      BookingAction.CREATE -> "New $bookingType booking"
+      BookingAction.AMEND -> "Amended $bookingType booking"
+      BookingAction.CANCEL -> "Cancelled $bookingType booking"
+      BookingAction.RELEASED -> "Cancelled $bookingType booking due to release"
+      BookingAction.TRANSFERRED -> "Cancelled $bookingType booking due to transfer"
     }
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(

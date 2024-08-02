@@ -53,11 +53,15 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
 class LocationValidator(private val locationsInsidePrisonClient: LocationsInsidePrisonClient) {
 
   fun validatePrisonLocation(prisonCode: String, locationKey: String) {
-    validatePrisonLocations(prisonCode, setOf(locationKey))
+    validate(prisonCode, setOf(locationKey), listOfNotNull(locationsInsidePrisonClient.getLocationByKey(locationKey)))
   }
 
   fun validatePrisonLocations(prisonCode: String, locationKeys: Set<String>) {
-    val maybeFoundLocations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys).associateBy { it.key }
+    validate(prisonCode, locationKeys, locationsInsidePrisonClient.getLocationsByKeys(locationKeys))
+  }
+
+  private fun validate(prisonCode: String, locationKeys: Set<String>, maybeLocations: List<Location>) {
+    val maybeFoundLocations = maybeLocations.associateBy { it.key }
 
     if (maybeFoundLocations.isEmpty()) {
       validationError("The following ${if (locationKeys.size == 1) "location was" else "locations were"} not found $locationKeys")

@@ -35,6 +35,7 @@ object ProbationEmailFactory {
         prisonerNumber = prisoner.prisonerNumber,
         userName = contact.name ?: "Book Video",
         probationTeam = booking.probationTeam!!.description,
+        date = appointment.appointmentDate,
         appointmentInfo = appointment.appointmentInformation(location),
         comments = booking.comments,
         prisonerFirstName = prisoner.firstName,

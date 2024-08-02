@@ -174,7 +174,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    locationsInsidePrisonApi().stubGetLocationByKey(werringtonLocation.key, WERRINGTON)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",
