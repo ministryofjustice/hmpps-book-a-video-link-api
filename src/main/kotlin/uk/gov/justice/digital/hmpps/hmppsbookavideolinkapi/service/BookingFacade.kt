@@ -117,7 +117,7 @@ class BookingFacade(
     contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType)
-        ContactType.PROBATION -> ProbationEmailFactory.probation(contact, prisoner, booking, prison, appointment, location, eventType)
+        ContactType.PRISON -> ProbationEmailFactory.prison(contact, prisoner, booking, prison, appointment, location, eventType, contacts)
         else -> null
       }
     }.forEach { probationEmail -> sendEmailAndSaveNotification(probationEmail, booking, eventType) }

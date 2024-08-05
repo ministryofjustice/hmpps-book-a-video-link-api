@@ -17,7 +17,7 @@ import uk.gov.service.notify.NotificationClient
 import uk.gov.service.notify.NotificationClientException
 import uk.gov.service.notify.SendEmailResponse
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 class GovNotifyEmailServiceTest {
   private val today = LocalDate.now()
@@ -48,7 +48,8 @@ class GovNotifyEmailServiceTest {
     releaseCourtBookingPrisonCourtEmail = "releaseCourtBookingPrisonCourtEmail",
     releaseCourtBookingPrisonNoCourtEmail = "releaseCourtBookingPrisonNoCourtEmail",
     newProbationBookingUser = "newProbationBookingUser",
-    newProbationBookingProbation = "newProbationBookingProbation",
+    newProbationBookingPrisonProbationEmail = "newProbationBookingPrisonProbationEmail",
+    newProbationBookingPrisonNoProbationEmail = "newProbationBookingPrisonNoProbationEmail",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)
@@ -794,9 +795,9 @@ class GovNotifyEmailServiceTest {
   }
 
   @Test
-  fun `should send probation probation new booking email and return a notification ID`() {
+  fun `should send prison probation new booking email and return a notification ID`() {
     val result = service.send(
-      NewProbationBookingProbationEmail(
+      NewProbationBookingPrisonProbationEmail(
         address = "recipient@emailaddress.com",
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
@@ -806,13 +807,14 @@ class GovNotifyEmailServiceTest {
         appointmentInfo = "bobs appointment info",
         probationTeam = "the probation team",
         prison = "the prison",
+        probationEmailAddress = "jim@probation.com",
       ),
     )
 
-    result.getOrThrow() isEqualTo Pair(notificationId, "newProbationBookingProbation")
+    result.getOrThrow() isEqualTo Pair(notificationId, "newProbationBookingPrisonProbationEmail")
 
     verify(client).sendEmail(
-      "newProbationBookingProbation",
+      "newProbationBookingPrisonProbationEmail",
       "recipient@emailaddress.com",
       mapOf(
         "date" to today.toMediumFormatStyle(),
@@ -822,6 +824,7 @@ class GovNotifyEmailServiceTest {
         "probationTeam" to "the probation team",
         "prison" to "the prison",
         "appointmentInfo" to "bobs appointment info",
+        "probationEmailAddress" to "jim@probation.com",
       ),
       null,
     )
