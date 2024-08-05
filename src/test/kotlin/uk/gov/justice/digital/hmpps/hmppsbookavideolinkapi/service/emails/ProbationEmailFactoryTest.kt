@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
 import java.time.LocalDate
 import java.time.LocalTime
@@ -37,6 +38,12 @@ class ProbationEmailFactoryTest {
 
   private val prisonBookingContact = bookingContact(
     contactType = ContactType.PRISON,
+    email = "user@email.com",
+    name = "Fred",
+  )
+
+  private val probationBookingContact = bookingContact(
+    contactType = ContactType.PROBATION,
     email = "user@email.com",
     name = "Fred",
   )
@@ -76,6 +83,10 @@ class ProbationEmailFactoryTest {
     BookingAction.CREATE to NewProbationBookingUserEmail::class.java,
   )
 
+  private val probationEmails = mapOf(
+    BookingAction.CREATE to NewProbationBookingProbationEmail::class.java,
+  )
+
   companion object {
     @JvmStatic
     fun supportedUserBookingActions() = setOf(BookingAction.CREATE)
@@ -84,10 +95,10 @@ class ProbationEmailFactoryTest {
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun supportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.RELEASED, BookingAction.TRANSFERRED)
+    fun supportedProbationBookingActions() = setOf(BookingAction.CREATE)
 
     @JvmStatic
-    fun unsupportedCourtBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL)
+    fun unsupportedProbationBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL)
   }
 
   @ParameterizedTest
@@ -138,5 +149,55 @@ class ProbationEmailFactoryTest {
     }
 
     error.message isEqualTo "Booking ID 0 is not a probation booking"
+  }
+
+  @Test
+  fun `should reject court video bookings for probation emails`() {
+    val error = assertThrows<IllegalArgumentException> {
+      ProbationEmailFactory.probation(
+        action = BookingAction.CREATE,
+        contact = prisonBookingContact,
+        prisoner = prisoner,
+        booking = courtBooking,
+        prison = prison,
+        appointment = courtBooking.appointments().single(),
+        location = birminghamLocation,
+      )
+    }
+
+    error.message isEqualTo "Booking ID 0 is not a probation booking"
+  }
+
+  @ParameterizedTest
+  @MethodSource("supportedProbationBookingActions")
+  fun `should return probation emails for supported user based actions`(action: BookingAction) {
+    val email = ProbationEmailFactory.probation(
+      action = action,
+      contact = probationBookingContact,
+      prisoner = prisoner,
+      booking = probationBooking,
+      prison = prison,
+      appointment = probationBooking.appointments().single(),
+      location = moorlandLocation,
+    )
+
+    email isInstanceOf probationEmails[action]!!
+  }
+
+  @Test
+  fun `should reject incorrect contact type for probation emails`() {
+    val error = assertThrows<IllegalArgumentException> {
+      ProbationEmailFactory.probation(
+        action = BookingAction.CREATE,
+        contact = courtBookingContact,
+        prisoner = prisoner,
+        booking = probationBooking,
+        prison = prison,
+        appointment = probationBooking.appointments().single(),
+        location = birminghamLocation,
+      )
+    }
+
+    error.message isEqualTo "Incorrect contact type ${courtBookingContact.contactType} for probation probation email"
   }
 }

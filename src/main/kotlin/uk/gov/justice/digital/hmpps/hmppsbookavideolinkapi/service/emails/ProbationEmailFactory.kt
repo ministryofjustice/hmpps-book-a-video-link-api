@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
 
 object ProbationEmailFactory {
@@ -44,6 +45,37 @@ object ProbationEmailFactory {
       )
       BookingAction.AMEND -> null
       BookingAction.CANCEL -> null
+      else -> null
+    }
+  }
+
+  fun probation(
+    contact: BookingContact,
+    prisoner: Prisoner,
+    booking: VideoBooking,
+    prison: Prison,
+    appointment: PrisonAppointment,
+    location: Location,
+    action: BookingAction,
+  ): Email? {
+    booking.requireIsProbationBooking()
+
+    require(contact.contactType == ContactType.PROBATION) {
+      "Incorrect contact type ${contact.contactType} for probation probation email"
+    }
+
+    return when (action) {
+      BookingAction.CREATE -> NewProbationBookingProbationEmail(
+        address = contact.email!!,
+        prisonerNumber = prisoner.prisonerNumber,
+        probationTeam = booking.probationTeam!!.description,
+        appointmentDate = appointment.appointmentDate,
+        appointmentInfo = appointment.appointmentInformation(location),
+        comments = booking.comments,
+        prisonerFirstName = prisoner.firstName,
+        prisonerLastName = prisoner.lastName,
+        prison = prison.name,
+      )
       else -> null
     }
   }

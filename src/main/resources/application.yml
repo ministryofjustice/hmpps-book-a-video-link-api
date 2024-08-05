@@ -144,6 +144,7 @@ notify:
         prison-no-probation-team-email: "2326fa9d-1627-4c04-8c8d-a6e1ae19a6cb"
       new-booking:
         user: "20fddb45-3907-4e10-a570-86377bbe9dd1"
+        probation: "1a3cdd5a-411b-4365-9613-e1211a0f15b6"
 
 
 springdoc:

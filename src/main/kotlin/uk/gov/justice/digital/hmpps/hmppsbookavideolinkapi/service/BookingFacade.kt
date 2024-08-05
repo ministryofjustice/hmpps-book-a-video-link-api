@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.CourtEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.ProbationEmailFactory
@@ -24,7 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Domain
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 
 /**
- * This facade exists to ensure booking related transactions are fully committed prior to sending any emails.
+ * This facade exists to ensure all booking related transactions are fully committed prior to sending any events or emails.
  */
 @Component
 class BookingFacade(
@@ -32,7 +31,6 @@ class BookingFacade(
   private val amendVideoBookingService: AmendVideoBookingService,
   private val cancelVideoBookingService: CancelVideoBookingService,
   private val contactsService: ContactsService,
-  private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val prisonRepository: PrisonRepository,
   private val emailService: EmailService,
   private val notificationRepository: NotificationRepository,
@@ -95,7 +93,7 @@ class BookingFacade(
   }
 
   private fun sendCourtBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User?) {
-    val (pre, main, post) = getCourtAppointments(booking)
+    val (pre, main, post) = booking.courtAppointments()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
     val contacts = contactsService.getPrimaryBookingContacts(booking.videoBookingId, user).allContactsWithAnEmailAddress()
     val locations = locationsInsidePrisonClient.getLocationsByKeys(setOfNotNull(pre?.prisonLocKey, main.prisonLocKey, post?.prisonLocKey)).associateBy { it.key }
@@ -107,9 +105,7 @@ class BookingFacade(
         ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
         else -> null
       }
-    }.forEach { email ->
-      sendEmailAndSaveNotification(email, booking, eventType)
-    }
+    }.forEach { courtEmail -> sendEmailAndSaveNotification(courtEmail, booking, eventType) }
   }
 
   private fun sendProbationBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User?) {
@@ -121,11 +117,10 @@ class BookingFacade(
     contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType)
+        ContactType.PROBATION -> ProbationEmailFactory.probation(contact, prisoner, booking, prison, appointment, location, eventType)
         else -> null
       }
-    }.forEach { email ->
-      sendEmailAndSaveNotification(email, booking, eventType)
-    }
+    }.forEach { probationEmail -> sendEmailAndSaveNotification(probationEmail, booking, eventType) }
   }
 
   private fun sendEmailAndSaveNotification(email: Email, booking: VideoBooking, action: BookingAction) {
@@ -138,6 +133,7 @@ class BookingFacade(
       BookingAction.RELEASED -> "Cancelled $bookingType booking due to release"
       BookingAction.TRANSFERRED -> "Cancelled $bookingType booking due to transfer"
     }
+
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(
         Notification(
@@ -153,9 +149,8 @@ class BookingFacade(
     }
   }
 
-  private fun getCourtAppointments(booking: VideoBooking): Triple<PrisonAppointment?, PrisonAppointment, PrisonAppointment?> {
-    return prisonAppointmentRepository.findByVideoBooking(booking).prisonAppointmentsForCourtHearing()
-  }
+  private fun VideoBooking.courtAppointments(): Triple<PrisonAppointment?, PrisonAppointment, PrisonAppointment?> =
+    appointments().prisonAppointmentsForCourtHearing()
 
   private fun Collection<BookingContact>.allContactsWithAnEmailAddress() = filter { it.email != null }
 

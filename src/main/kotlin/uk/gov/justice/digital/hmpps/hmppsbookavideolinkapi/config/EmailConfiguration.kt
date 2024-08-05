@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonProbationTeamEmail
@@ -65,6 +66,7 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation.booking-request.prison-probation-team-email:}") private val probationBookingRequestPrisonProbationTeamEmail: String,
   @Value("\${notify.templates.probation.booking-request.prison-no-probation-team-email:}") private val probationBookingRequestPrisonNoProbationTeamEmail: String,
   @Value("\${notify.templates.probation.new-booking.user:}") private val newProbationBookingUser: String,
+  @Value("\${notify.templates.probation.new-booking.probation:}") private val newProbationBookingProbation: String,
 ) {
 
   companion object {
@@ -103,6 +105,7 @@ class EmailConfiguration(
     releaseCourtBookingPrisonCourtEmail = releaseCourtBookingPrisonCourtEmail,
     releaseCourtBookingPrisonNoCourtEmail = releaseCourtBookingPrisonNoCourtEmail,
     newProbationBookingUser = newProbationBookingUser,
+    newProbationBookingProbation = newProbationBookingProbation,
   )
 }
 
@@ -160,6 +163,7 @@ data class EmailTemplates(
   val releaseCourtBookingPrisonCourtEmail: String,
   val releaseCourtBookingPrisonNoCourtEmail: String,
   val newProbationBookingUser: String,
+  val newProbationBookingProbation: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
@@ -186,6 +190,7 @@ data class EmailTemplates(
     ReleasedCourtBookingPrisonCourtEmail::class.java to releaseCourtBookingPrisonCourtEmail,
     ReleasedCourtBookingPrisonNoCourtEmail::class.java to releaseCourtBookingPrisonNoCourtEmail,
     NewProbationBookingUserEmail::class.java to newProbationBookingUser,
+    NewProbationBookingProbationEmail::class.java to newProbationBookingProbation,
   )
 
   init {

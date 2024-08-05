@@ -40,7 +40,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
@@ -54,7 +53,6 @@ class BookingFacadeTest {
   private val amendBookingService: AmendVideoBookingService = mock()
   private val cancelVideoBookingService: CancelVideoBookingService = mock()
   private val contactsService: ContactsService = mock()
-  private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val prisonRepository: PrisonRepository = mock()
   private val emailService: EmailService = mock()
   private val notificationRepository: NotificationRepository = mock()
@@ -67,7 +65,6 @@ class BookingFacadeTest {
     amendBookingService,
     cancelVideoBookingService,
     contactsService,
-    prisonAppointmentRepository,
     prisonRepository,
     emailService,
     notificationRepository,
@@ -119,8 +116,8 @@ class BookingFacadeTest {
       bookingContact(contactType = ContactType.USER, email = "jon@somewhere.com", name = "Jon"),
       bookingContact(contactType = ContactType.COURT, email = "jon@court.com", name = "Jon"),
       bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
+      bookingContact(contactType = ContactType.PROBATION, email = "jon@probation.com", name = "Jon"),
     )
-    whenever(prisonAppointmentRepository.findByVideoBooking(courtBooking)) doReturn courtBooking.appointments()
   }
 
   @Test
@@ -445,6 +442,7 @@ class BookingFacadeTest {
 
     whenever(createBookingService.create(request, user("facade probation team user"))) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
     whenever(emailService.send(any<NewProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
+    whenever(emailService.send(any<NewProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
 
     facade.create(request, user("facade probation team user"))
 
@@ -453,9 +451,13 @@ class BookingFacadeTest {
       verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, probationBookingAtBirminghamPrison.videoBookingId)
       verify(emailService).send(emailCaptor.capture())
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
     }
 
-    with(emailCaptor.allValues.single()) {
+    emailCaptor.allValues hasSize 2
+
+    with(emailCaptor.firstValue) {
       this isInstanceOf NewProbationBookingUserEmail::class.java
       address isEqualTo "jon@somewhere.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
@@ -470,10 +472,32 @@ class BookingFacadeTest {
       )
     }
 
-    notificationCaptor.allValues hasSize 1
+    with(emailCaptor.secondValue) {
+      this isInstanceOf NewProbationBookingProbationEmail::class.java
+      address isEqualTo "jon@probation.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "probationTeam" to "probation team description",
+        "prison" to "Birmingham",
+        "offenderNo" to "654321",
+        "prisonerName" to "Bob Builder",
+        "date" to tomorrow().toMediumFormatStyle(),
+        "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+        "comments" to "Probation meeting comments",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 2
     with(notificationCaptor.firstValue) {
       email isEqualTo "jon@somewhere.com"
       templateName isEqualTo "user template id"
+      govNotifyNotificationId isEqualTo emailNotificationId
+      videoBooking isEqualTo probationBookingAtBirminghamPrison
+      reason isEqualTo "New probation booking"
+    }
+
+    with(notificationCaptor.secondValue) {
+      email isEqualTo "jon@probation.com"
+      templateName isEqualTo "probation template id"
       govNotifyNotificationId isEqualTo emailNotificationId
       videoBooking isEqualTo probationBookingAtBirminghamPrison
       reason isEqualTo "New probation booking"

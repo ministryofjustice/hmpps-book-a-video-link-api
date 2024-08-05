@@ -48,6 +48,7 @@ class GovNotifyEmailServiceTest {
     releaseCourtBookingPrisonCourtEmail = "releaseCourtBookingPrisonCourtEmail",
     releaseCourtBookingPrisonNoCourtEmail = "releaseCourtBookingPrisonNoCourtEmail",
     newProbationBookingUser = "newProbationBookingUser",
+    newProbationBookingProbation = "newProbationBookingProbation",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)
@@ -784,6 +785,40 @@ class GovNotifyEmailServiceTest {
         "comments" to "comments for bob",
         "offenderNo" to "123456",
         "userName" to "username",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send probation probation new booking email and return a notification ID`() {
+    val result = service.send(
+      NewProbationBookingProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "newProbationBookingProbation")
+
+    verify(client).sendEmail(
+      "newProbationBookingProbation",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
         "probationTeam" to "the probation team",
         "prison" to "the prison",
         "appointmentInfo" to "bobs appointment info",
