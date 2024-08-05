@@ -145,7 +145,7 @@ notify:
       new-booking:
         user: "20fddb45-3907-4e10-a570-86377bbe9dd1"
         prison-probation-email: "73a0e2b3-6b49-4a31-8960-973e3e833e81"
-        prison-no-probation-email: "bf2c340e-31a4-45db-bc70-e902ee499ec5"
+        prison-no-probation-email: "9701dd1e-ba93-49e9-94f4-2b335459d420"
 
 
 springdoc:
