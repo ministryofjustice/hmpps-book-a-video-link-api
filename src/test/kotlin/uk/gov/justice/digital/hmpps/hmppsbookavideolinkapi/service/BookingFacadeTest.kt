@@ -45,7 +45,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Domain
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.UUID
+import java.util.*
 
 class BookingFacadeTest {
   private val emailCaptor = argumentCaptor<Email>()
@@ -442,7 +442,7 @@ class BookingFacadeTest {
 
     whenever(createBookingService.create(request, user("facade probation team user"))) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
     whenever(emailService.send(any<NewProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
-    whenever(emailService.send(any<NewProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
+    whenever(emailService.send(any<NewProbationBookingPrisonProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
 
     facade.create(request, user("facade probation team user"))
 
@@ -473,8 +473,8 @@ class BookingFacadeTest {
     }
 
     with(emailCaptor.secondValue) {
-      this isInstanceOf NewProbationBookingProbationEmail::class.java
-      address isEqualTo "jon@probation.com"
+      this isInstanceOf NewProbationBookingPrisonProbationEmail::class.java
+      address isEqualTo "jon@prison.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "probationTeam" to "probation team description",
         "prison" to "Birmingham",
@@ -483,6 +483,7 @@ class BookingFacadeTest {
         "date" to tomorrow().toMediumFormatStyle(),
         "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
         "comments" to "Probation meeting comments",
+        "probationEmailAddress" to "jon@probation.com",
       )
     }
 
@@ -496,7 +497,7 @@ class BookingFacadeTest {
     }
 
     with(notificationCaptor.secondValue) {
-      email isEqualTo "jon@probation.com"
+      email isEqualTo "jon@prison.com"
       templateName isEqualTo "probation template id"
       govNotifyNotificationId isEqualTo emailNotificationId
       videoBooking isEqualTo probationBookingAtBirminghamPrison

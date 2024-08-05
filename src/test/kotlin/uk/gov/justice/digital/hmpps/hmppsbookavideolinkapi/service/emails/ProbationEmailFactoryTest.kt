@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
 import java.time.LocalDate
 import java.time.LocalTime
@@ -83,8 +83,8 @@ class ProbationEmailFactoryTest {
     BookingAction.CREATE to NewProbationBookingUserEmail::class.java,
   )
 
-  private val probationEmails = mapOf(
-    BookingAction.CREATE to NewProbationBookingProbationEmail::class.java,
+  private val prisonEmails = mapOf(
+    BookingAction.CREATE to NewProbationBookingPrisonProbationEmail::class.java,
   )
 
   companion object {
@@ -95,7 +95,7 @@ class ProbationEmailFactoryTest {
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun supportedProbationBookingActions() = setOf(BookingAction.CREATE)
+    fun supportedPrisonBookingActions() = setOf(BookingAction.CREATE)
 
     @JvmStatic
     fun unsupportedProbationBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL)
@@ -154,7 +154,7 @@ class ProbationEmailFactoryTest {
   @Test
   fun `should reject court video bookings for probation emails`() {
     val error = assertThrows<IllegalArgumentException> {
-      ProbationEmailFactory.probation(
+      ProbationEmailFactory.prison(
         action = BookingAction.CREATE,
         contact = prisonBookingContact,
         prisoner = prisoner,
@@ -162,6 +162,7 @@ class ProbationEmailFactoryTest {
         prison = prison,
         appointment = courtBooking.appointments().single(),
         location = birminghamLocation,
+        contacts = emptySet(),
       )
     }
 
@@ -169,25 +170,26 @@ class ProbationEmailFactoryTest {
   }
 
   @ParameterizedTest
-  @MethodSource("supportedProbationBookingActions")
-  fun `should return probation emails for supported user based actions`(action: BookingAction) {
-    val email = ProbationEmailFactory.probation(
+  @MethodSource("supportedPrisonBookingActions")
+  fun `should return prison probation emails for supported user based actions`(action: BookingAction) {
+    val email = ProbationEmailFactory.prison(
       action = action,
-      contact = probationBookingContact,
+      contact = prisonBookingContact,
       prisoner = prisoner,
       booking = probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
       location = moorlandLocation,
+      contacts = setOf(probationBookingContact),
     )
 
-    email isInstanceOf probationEmails[action]!!
+    email isInstanceOf prisonEmails[action]!!
   }
 
   @Test
-  fun `should reject incorrect contact type for probation emails`() {
+  fun `should reject incorrect contact type for prison probation emails`() {
     val error = assertThrows<IllegalArgumentException> {
-      ProbationEmailFactory.probation(
+      ProbationEmailFactory.prison(
         action = BookingAction.CREATE,
         contact = courtBookingContact,
         prisoner = prisoner,
@@ -195,9 +197,10 @@ class ProbationEmailFactoryTest {
         prison = prison,
         appointment = probationBooking.appointments().single(),
         location = birminghamLocation,
+        contacts = emptySet(),
       )
     }
 
-    error.message isEqualTo "Incorrect contact type ${courtBookingContact.contactType} for probation probation email"
+    error.message isEqualTo "Incorrect contact type ${courtBookingContact.contactType} for prison probation email"
   }
 }

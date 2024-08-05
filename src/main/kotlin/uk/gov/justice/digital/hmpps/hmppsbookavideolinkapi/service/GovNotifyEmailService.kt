@@ -587,13 +587,34 @@ class NewProbationBookingUserEmail(
   }
 }
 
-class NewProbationBookingProbationEmail(
+class NewProbationBookingPrisonProbationEmail(
   address: String,
-  prison: String,
-  prisonerNumber: String,
   prisonerFirstName: String,
   prisonerLastName: String,
+  prisonerNumber: String,
   probationTeam: String,
+  probationEmailAddress: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("probationEmailAddress", probationEmailAddress)
+    addPersonalisation("prison", prison)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}
+
+class NewProbationBookingPrisonNoProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  prison: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
   comments: String?,

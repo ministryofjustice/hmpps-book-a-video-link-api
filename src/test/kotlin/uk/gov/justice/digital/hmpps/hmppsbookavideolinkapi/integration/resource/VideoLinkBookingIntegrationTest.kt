@@ -76,7 +76,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationBookingRequestPrisonProbationTeamEmail
@@ -1650,7 +1651,8 @@ class TestEmailConfiguration {
         is ProbationBookingRequestPrisonProbationTeamEmail -> Result.success(UUID.randomUUID() to "requested probation booking prison template id with email address")
         is ProbationBookingRequestPrisonNoProbationTeamEmail -> Result.success(UUID.randomUUID() to "requested probation booking prison template id with no email address")
         is NewProbationBookingUserEmail -> Result.success(UUID.randomUUID() to "new probation booking user template id")
-        is NewProbationBookingProbationEmail -> Result.success(UUID.randomUUID() to "new probation booking probation template id")
+        is NewProbationBookingPrisonProbationEmail -> Result.success(UUID.randomUUID() to "new probation booking prison template id with email address")
+        is NewProbationBookingPrisonNoProbationEmail -> Result.success(UUID.randomUUID() to "new probation booking prison template id no email address")
         else -> throw RuntimeException("Unsupported email in test email configuration: ${email.javaClass.simpleName}")
       }
     }
