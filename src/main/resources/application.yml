@@ -111,35 +111,40 @@ management:
 
 notify:
   templates:
-    new-court-booking:
-      user: "c8d61c0f-1fa0-4281-9597-a45780e345d4"
-      court: "f1713d8d-b622-4b07-8182-27275bfbb24d"
-      prison-court-email: "bf2c340e-31a4-45db-bc70-e902ee499ec5"
-      prison-no-court-email: "d555929e-c8a5-4771-911b-4538ba259eba"
-    amended-court-booking:
-      user: "443760a3-e644-4228-8c60-ecb76fb39664"
-      prison-court-email: "9edef9a6-df69-462a-995c-010c2b4f2cbf"
-      prison-no-court-email: "d756d798-bf1b-4651-85e5-6f42c741e33b"
-    cancelled-court-booking:
-      user: "946a129a-ed09-40ca-b0ac-a39ec6c1bc2b"
-      prison-court-email: "9c80bb57-abed-4316-8404-cbdcd48b8f25"
-      prison-no-court-email: "602981eb-cc7f-4a85-aba3-577167f1ee83"
-    court-booking-request:
-      user: "cccb8914-8418-4382-9a9d-2d5defe7c1c6"
-      prison-court-email: "7c246d95-60b5-4c3c-a7b3-2c43c42b61b0"
-      prison-no-court-email: "a82f319b-1a44-4d0f-aed5-a7b28857cc42"
-    probation-booking-request:
-      user: "d401c074-6914-4910-b29c-92b328951925"
-      prison-probation-team-email: "a8f74eda-c327-4dde-88db-354843292c6c"
-      prison-no-probation-team-email: "2326fa9d-1627-4c04-8c8d-a6e1ae19a6cb"
-    transfer-court-booking:
-      court: "3fe1e9d5-3319-496c-90df-0115087cd31b"
-      prison-court-email: "6fdf202b-01f9-48e7-b216-35c695f84df3"
-      prison-no-court-email: "0498e8d9-a2ea-4e00-9e5c-96d1d3cd6cb9"
-    release-court-booking:
-      court: "55817f53-211c-442d-ac6f-f3fda3adee84"
-      prison-court-email: "e5bbd8a8-f59c-4670-9ba3-fd4cda922a21"
-      prison-no-court-email: "da59e795-aef6-4cb9-be68-54435df8c8b1"
+    court:
+      new-booking:
+        user: "c8d61c0f-1fa0-4281-9597-a45780e345d4"
+        court: "f1713d8d-b622-4b07-8182-27275bfbb24d"
+        prison-court-email: "bf2c340e-31a4-45db-bc70-e902ee499ec5"
+        prison-no-court-email: "d555929e-c8a5-4771-911b-4538ba259eba"
+      amended-booking:
+        user: "443760a3-e644-4228-8c60-ecb76fb39664"
+        prison-court-email: "9edef9a6-df69-462a-995c-010c2b4f2cbf"
+        prison-no-court-email: "d756d798-bf1b-4651-85e5-6f42c741e33b"
+      cancelled-booking:
+        user: "946a129a-ed09-40ca-b0ac-a39ec6c1bc2b"
+        prison-court-email: "9c80bb57-abed-4316-8404-cbdcd48b8f25"
+        prison-no-court-email: "602981eb-cc7f-4a85-aba3-577167f1ee83"
+      booking-request:
+        user: "cccb8914-8418-4382-9a9d-2d5defe7c1c6"
+        prison-court-email: "7c246d95-60b5-4c3c-a7b3-2c43c42b61b0"
+        prison-no-court-email: "a82f319b-1a44-4d0f-aed5-a7b28857cc42"
+      transfer-booking:
+        court: "3fe1e9d5-3319-496c-90df-0115087cd31b"
+        prison-court-email: "6fdf202b-01f9-48e7-b216-35c695f84df3"
+        prison-no-court-email: "0498e8d9-a2ea-4e00-9e5c-96d1d3cd6cb9"
+      release-booking:
+        court: "55817f53-211c-442d-ac6f-f3fda3adee84"
+        prison-court-email: "e5bbd8a8-f59c-4670-9ba3-fd4cda922a21"
+        prison-no-court-email: "da59e795-aef6-4cb9-be68-54435df8c8b1"
+    probation:
+      booking-request:
+        user: "d401c074-6914-4910-b29c-92b328951925"
+        prison-probation-team-email: "a8f74eda-c327-4dde-88db-354843292c6c"
+        prison-no-probation-team-email: "2326fa9d-1627-4c04-8c8d-a6e1ae19a6cb"
+      new-booking:
+        user: "20fddb45-3907-4e10-a570-86377bbe9dd1"
+        probation: "1a3cdd5a-411b-4365-9613-e1211a0f15b6"
 
 
 springdoc:

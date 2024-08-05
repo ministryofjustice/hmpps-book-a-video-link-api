@@ -565,3 +565,43 @@ class TransferredCourtBookingPrisonNoCourtEmail(
     addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
   }
 }
+
+class NewProbationBookingUserEmail(
+  address: String,
+  prisonerNumber: String,
+  userName: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  probationTeam: String,
+  prison: String,
+  date: LocalDate = LocalDate.now(),
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("userName", userName)
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("prison", prison)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}
+
+class NewProbationBookingProbationEmail(
+  address: String,
+  prison: String,
+  prisonerNumber: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  probationTeam: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("prison", prison)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}

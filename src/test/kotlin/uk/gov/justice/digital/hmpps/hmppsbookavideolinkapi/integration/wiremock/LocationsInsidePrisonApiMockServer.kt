@@ -16,6 +16,40 @@ import java.util.UUID
 
 class LocationsInsidePrisonApiMockServer : MockServer(8091) {
 
+  fun stubGetLocationByKey(key: String, prisonId: String = "MDI") {
+    val id = UUID.randomUUID()
+
+    stubFor(
+      get("/locations/key/$key").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            mapper.writeValueAsString(
+              Location(
+                id = id,
+                prisonId = prisonId,
+                code = "001",
+                pathHierarchy = "A-1-001",
+                locationType = Location.LocationType.VIDEO_LINK,
+                permanentlyInactive = false,
+                active = true,
+                deactivatedByParent = false,
+                topLevelId = id,
+                key = key,
+                isResidential = true,
+                lastModifiedBy = "test user",
+                lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+                level = 2,
+                leafLevel = true,
+                status = Location.Status.ACTIVE,
+              ),
+            ),
+          )
+          .withStatus(200),
+      ),
+    )
+  }
+
   fun stubPostLocationByKeys(keys: Set<String>, prisonCode: String = MOORLAND) {
     stubFor(
       post("/locations/keys")
@@ -52,7 +86,12 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubNonResidentialAppointmentLocationsAtPrison(keys: Set<String>, enabled: Boolean = true, prisonCode: String = MOORLAND, leafLevel: Boolean = true) {
+  fun stubNonResidentialAppointmentLocationsAtPrison(
+    keys: Set<String>,
+    enabled: Boolean = true,
+    prisonCode: String = MOORLAND,
+    leafLevel: Boolean = true,
+  ) {
     stubFor(
       get("/locations/prison/$prisonCode/non-residential-usage-type/APPOINTMENT")
         .willReturn(
@@ -88,7 +127,12 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubVideoLinkLocationsAtPrison(keys: Set<String>, enabled: Boolean = true, prisonCode: String = MOORLAND, leafLevel: Boolean = true) {
+  fun stubVideoLinkLocationsAtPrison(
+    keys: Set<String>,
+    enabled: Boolean = true,
+    prisonCode: String = MOORLAND,
+    leafLevel: Boolean = true,
+  ) {
     stubFor(
       get("/locations/prison/$prisonCode/location-type/VIDEO_LINK")
         .willReturn(

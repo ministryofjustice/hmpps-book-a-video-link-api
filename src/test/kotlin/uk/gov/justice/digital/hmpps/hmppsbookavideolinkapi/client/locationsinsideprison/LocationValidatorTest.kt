@@ -21,7 +21,7 @@ class LocationValidatorTest {
 
   @Test
   fun `should pass validation when location found`() {
-    whenever(client.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(client.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
     assertDoesNotThrow {
       validator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
@@ -30,7 +30,7 @@ class LocationValidatorTest {
 
   @Test
   fun `should fail validation when single location not found`() {
-    whenever(client.getLocationsByKeys(setOf("location_does_not_exist"))) doReturn emptyList()
+    whenever(client.getLocationByKey("location_does_not_exist")) doReturn null
 
     val error = assertThrows<ValidationException> { validator.validatePrisonLocation(BIRMINGHAM, "location_does_not_exist") }
 

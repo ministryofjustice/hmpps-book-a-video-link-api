@@ -43,7 +43,7 @@ object CourtEmailFactory {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.USER) {
-      "Incorrect contact type ${contact.contactType} for user email"
+      "Incorrect contact type ${contact.contactType} for court user email"
     }
 
     return when (action) {
@@ -107,7 +107,7 @@ object CourtEmailFactory {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.COURT) {
-      "Incorrect contact type ${contact.contactType} for court email"
+      "Incorrect contact type ${contact.contactType} for court court email"
     }
 
     return when (action) {
@@ -176,7 +176,7 @@ object CourtEmailFactory {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.PRISON) {
-      "Incorrect contact type ${contact.contactType} for prison email"
+      "Incorrect contact type ${contact.contactType} for court prison email"
     }
 
     val primaryCourtContact = contacts.primaryCourtContact()

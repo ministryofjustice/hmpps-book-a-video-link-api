@@ -65,7 +65,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
   @Test
   fun `should return a list of prison and probation contacts for a booking`() {
     prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    locationsInsidePrisonApi().stubGetLocationByKey(werringtonLocation.key, WERRINGTON)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",

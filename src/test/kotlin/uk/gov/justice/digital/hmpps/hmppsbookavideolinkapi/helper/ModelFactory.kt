@@ -24,7 +24,7 @@ import java.time.LocalTime
 import java.util.*
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as ModelPrisoner
 
-val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG")
+val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG", localName = "Birmingham room")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
 val moorlandLocation = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG", localName = "Moorland room")
 val werringtonLocation = location(prisonCode = WERRINGTON, locationKeySuffix = "ABCDEFG")
