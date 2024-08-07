@@ -100,7 +100,7 @@ class BookingFacade(
 
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
-        ContactType.USER -> CourtEmailFactory.user(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user.isUserType(UserType.EXTERNAL) }
+        ContactType.USER -> CourtEmailFactory.user(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user.isUserType(UserType.PRISON, UserType.EXTERNAL) }
         ContactType.COURT -> CourtEmailFactory.court(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user.isUserType(UserType.PRISON, UserType.SERVICE) }
         ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
         else -> null
@@ -118,7 +118,7 @@ class BookingFacade(
 
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
-        ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType).takeIf { user.isUserType(UserType.EXTERNAL) }
+        ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType).takeIf { user.isUserType(UserType.PRISON, UserType.EXTERNAL) }
         ContactType.PROBATION -> ProbationEmailFactory.probation(contact, prisoner, booking, prison, appointment, location, eventType).takeIf { user.isUserType(UserType.PRISON, UserType.SERVICE) }
         ContactType.PRISON -> ProbationEmailFactory.prison(contact, prisoner, booking, prison, appointment, location, eventType, contacts)
         else -> null

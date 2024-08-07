@@ -270,6 +270,7 @@ class BookingFacadeTest {
     val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = courtBookingCreatedByPrison.prisoner())
 
     whenever(createBookingService.create(bookingRequest, prisonUser)) doReturn Pair(courtBookingCreatedByPrison, prisoner(prisonerNumber = courtBookingCreatedByPrison.prisoner(), prisonCode = MOORLAND))
+    whenever(emailService.send(any<NewCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
     whenever(emailService.send(any<NewCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
     whenever(emailService.send(any<NewCourtBookingPrisonCourtEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
@@ -282,10 +283,28 @@ class BookingFacadeTest {
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
       verify(emailService).send(emailCaptor.capture())
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
     }
 
-    emailCaptor.allValues hasSize 2
+    emailCaptor.allValues hasSize 3
     with(emailCaptor.firstValue) {
+      this isInstanceOf NewCourtBookingUserEmail::class.java
+      address isEqualTo "jon@somewhere.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "userName" to "Jon",
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Moorland",
+        "offenderNo" to "123456",
+        "prisonerName" to "Fred Bloggs",
+        "date" to "1 Jan 2100",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "Court hearing comments",
+      )
+    }
+    with(emailCaptor.secondValue) {
       this isInstanceOf NewCourtBookingCourtEmail::class.java
       address isEqualTo "jon@court.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
@@ -300,7 +319,7 @@ class BookingFacadeTest {
         "comments" to "Court hearing comments",
       )
     }
-    with(emailCaptor.secondValue) {
+    with(emailCaptor.thirdValue) {
       this isInstanceOf NewCourtBookingPrisonCourtEmail::class.java
       address isEqualTo "jon@prison.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
@@ -317,15 +336,22 @@ class BookingFacadeTest {
       )
     }
 
-    notificationCaptor.allValues hasSize 2
+    notificationCaptor.allValues hasSize 3
     with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@somewhere.com"
+      templateName isEqualTo "user template id"
+      govNotifyNotificationId isEqualTo emailNotificationId
+      videoBooking isEqualTo courtBookingCreatedByPrison
+      reason isEqualTo "New court booking"
+    }
+    with(notificationCaptor.secondValue) {
       email isEqualTo "jon@court.com"
       templateName isEqualTo "court template id"
       govNotifyNotificationId isEqualTo emailNotificationId
       videoBooking isEqualTo courtBookingCreatedByPrison
       reason isEqualTo "New court booking"
     }
-    with(notificationCaptor.secondValue) {
+    with(notificationCaptor.thirdValue) {
       email isEqualTo "jon@prison.com"
       templateName isEqualTo "prison template id"
       govNotifyNotificationId isEqualTo emailNotificationId
@@ -560,6 +586,7 @@ class BookingFacadeTest {
     val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
 
     whenever(amendBookingService.amend(1, amendRequest, prisonUser)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!))
+    whenever(emailService.send(any<AmendedProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
     whenever(emailService.send(any<AmendedProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
     whenever(emailService.send(any<AmendedProbationBookingPrisonProbationEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
@@ -572,10 +599,26 @@ class BookingFacadeTest {
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
       verify(emailService).send(emailCaptor.capture())
       verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
     }
 
-    emailCaptor.allValues hasSize 2
+    emailCaptor.allValues hasSize 3
     with(emailCaptor.firstValue) {
+      this isInstanceOf AmendedProbationBookingUserEmail::class.java
+      address isEqualTo "jon@somewhere.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "userName" to "Jon",
+        "probationTeam" to "probation team description",
+        "prison" to "Birmingham",
+        "offenderNo" to "654321",
+        "prisonerName" to "Fred Bloggs",
+        "date" to tomorrow().toMediumFormatStyle(),
+        "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+        "comments" to "Probation meeting comments",
+      )
+    }
+    with(emailCaptor.secondValue) {
       this isInstanceOf AmendedProbationBookingPrisonProbationEmail::class.java
       address isEqualTo "jon@prison.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
@@ -589,7 +632,7 @@ class BookingFacadeTest {
         "probationEmailAddress" to "jon@probation.com",
       )
     }
-    with(emailCaptor.secondValue) {
+    with(emailCaptor.thirdValue) {
       this isInstanceOf AmendedProbationBookingProbationEmail::class.java
       address isEqualTo "jon@probation.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
@@ -603,15 +646,22 @@ class BookingFacadeTest {
       )
     }
 
-    notificationCaptor.allValues hasSize 2
+    notificationCaptor.allValues hasSize 3
     with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@somewhere.com"
+      templateName isEqualTo "user template id"
+      govNotifyNotificationId isEqualTo emailNotificationId
+      videoBooking isEqualTo probationBookingAtBirminghamPrison
+      reason isEqualTo "Amended probation booking"
+    }
+    with(notificationCaptor.secondValue) {
       email isEqualTo "jon@prison.com"
       templateName isEqualTo "prison template id"
       govNotifyNotificationId isEqualTo emailNotificationId
       videoBooking isEqualTo probationBookingAtBirminghamPrison
       reason isEqualTo "Amended probation booking"
     }
-    with(notificationCaptor.secondValue) {
+    with(notificationCaptor.thirdValue) {
       email isEqualTo "jon@probation.com"
       templateName isEqualTo "probation template id"
       govNotifyNotificationId isEqualTo emailNotificationId

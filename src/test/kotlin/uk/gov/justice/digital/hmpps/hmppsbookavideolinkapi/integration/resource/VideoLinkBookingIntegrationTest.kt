@@ -50,6 +50,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegr
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_PRISON_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -250,11 +251,12 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       appointments() hasSize 1
     }
 
-    // There should be 2 notifications - 1 court email and 1 prison email
-    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+    // There should be 3 notifications - 1 user email, 1 court email and 1 prison email
+    val notifications = notificationRepository.findAll().also { it hasSize 3 }
 
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
     notifications.isPresent("j@j.com", "new court booking court template id", persistedBooking)
+    notifications.isPresent(TEST_PRISON_USER_EMAIL, "new court booking user template id", persistedBooking)
 
     thereShouldBe {
       2.publishedMessages {
