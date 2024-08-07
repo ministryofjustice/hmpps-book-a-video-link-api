@@ -31,7 +31,7 @@ class CsvDataExtractionServiceTest {
   private val locationsService: LocationsService = mock()
   private val service = CsvDataExtractionService(videoBookingEventRepository, locationsService)
   private val csvOutputStream = ByteArrayOutputStream()
-  private val moorlandCourtBooking = VideoBookingEvent(
+  private val moorlandCreateCourtBookingEvent = VideoBookingEvent(
     eventId = 1,
     videoBookingId = 1,
     dateOfBooking = today(),
@@ -55,11 +55,15 @@ class CsvDataExtractionServiceTest {
     postLocationKey = "post-loc-key",
     courtBooking = true,
   )
-  private val moorlandProbationBooking = moorlandCourtBooking.copy(courtDescription = null, courtCode = null, probationTeamCode = "probation code", probationTeamDescription = "probation team description", courtBooking = false)
-  private val moorlandPrisonCourtBooking = moorlandCourtBooking.copy(createdByPrison = true)
-  private val risleyCourtBooking = moorlandCourtBooking.copy(prisonCode = RISLEY, eventType = "CANCEL")
+  private val moorlandCancelCourtBookingEvent = moorlandCreateCourtBookingEvent.copy(eventType = "CANCEL")
+  private val moorlandAmendCourtBookingEvent = moorlandCreateCourtBookingEvent.copy(eventType = "AMEND")
+  private val moorlandCreateProbationBookingEvent = moorlandCreateCourtBookingEvent.copy(courtDescription = null, courtCode = null, probationTeamCode = "probation code", probationTeamDescription = "probation team description", courtBooking = false)
+  private val moorlandCancelProbationBooking = moorlandCreateProbationBookingEvent.copy(eventType = "CANCEL")
+  private val moorlandAmendProbationBooking = moorlandCreateProbationBookingEvent.copy(eventType = "AMEND")
+  private val moorlandPrisonCourtBooking = moorlandCreateCourtBookingEvent.copy(createdByPrison = true)
+  private val risleyCourtBooking = moorlandCreateCourtBookingEvent.copy(prisonCode = RISLEY, eventType = "CANCEL")
   private val risleyPrisonCourtBooking = risleyCourtBooking.copy(createdByPrison = true, courtBooking = false)
-  private val risleyProbationBooking = moorlandProbationBooking.copy(prisonCode = RISLEY, createdByPrison = false)
+  private val risleyProbationBooking = moorlandCreateProbationBookingEvent.copy(prisonCode = RISLEY, createdByPrison = false)
   private val locations = listOf(
     location(key = "pre-loc-key", description = "Pre location"),
     location(key = "main-loc-key", description = "Main location"),
@@ -76,7 +80,7 @@ class CsvDataExtractionServiceTest {
 
   @Test
   fun `should produce CSV for court court bookings by hearing date only`() {
-    whenever(videoBookingEventRepository.findByMainDateBetween(eq(true), any(), any())) doReturn Stream.of(moorlandCourtBooking)
+    whenever(videoBookingEventRepository.findByMainDateBetween(eq(true), any(), any())) doReturn Stream.of(moorlandCreateCourtBookingEvent)
 
     service.courtBookingsByHearingDateToCsv(today(), tomorrow(), csvOutputStream)
 
@@ -156,8 +160,36 @@ class CsvDataExtractionServiceTest {
   }
 
   @Test
+  fun `should replace CANCEL with DELETE for court booking event`() {
+    whenever(videoBookingEventRepository.findByMainDateBetween(eq(true), any(), any())) doReturn Stream.of(moorlandCancelCourtBookingEvent)
+
+    service.courtBookingsByHearingDateToCsv(today(), tomorrow(), csvOutputStream)
+
+    verify(videoBookingEventRepository).findByMainDateBetween(any(), any(), any())
+    verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
+
+    csvOutputStream.toString() isEqualTo
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$MOORLAND,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+  }
+
+  @Test
+  fun `should replace AMEND with UPDATE for court booking event`() {
+    whenever(videoBookingEventRepository.findByMainDateBetween(eq(true), any(), any())) doReturn Stream.of(moorlandAmendCourtBookingEvent)
+
+    service.courtBookingsByHearingDateToCsv(today(), tomorrow(), csvOutputStream)
+
+    verify(videoBookingEventRepository).findByMainDateBetween(any(), any(), any())
+    verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
+
+    csvOutputStream.toString() isEqualTo
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "1,2024-07-01T09:00:00,1,UPDATE,$MOORLAND,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+  }
+
+  @Test
   fun `should produce CSV for probation bookings by meeting date only`() {
-    whenever(videoBookingEventRepository.findByMainDateBetween(eq(false), any(), any())) doReturn Stream.of(moorlandProbationBooking)
+    whenever(videoBookingEventRepository.findByMainDateBetween(eq(false), any(), any())) doReturn Stream.of(moorlandCreateProbationBookingEvent)
 
     service.probationBookingsByMeetingDateToCsv(today(), tomorrow(), csvOutputStream)
 
@@ -165,8 +197,36 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
       "1,2024-07-01T09:00:00,1,CREATE,$MOORLAND,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
+  }
+
+  @Test
+  fun `should replace CANCEL with DELETE for probation booking event`() {
+    whenever(videoBookingEventRepository.findByMainDateBetween(any(), any(), any())) doReturn Stream.of(moorlandCancelProbationBooking)
+
+    service.probationBookingsByMeetingDateToCsv(today(), tomorrow(), csvOutputStream)
+
+    verify(videoBookingEventRepository).findByMainDateBetween(any(), any(), any())
+    verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
+
+    csvOutputStream.toString() isEqualTo
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$MOORLAND,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
+  }
+
+  @Test
+  fun `should replace AMEND with UPDATE for probation booking event`() {
+    whenever(videoBookingEventRepository.findByMainDateBetween(any(), any(), any())) doReturn Stream.of(moorlandAmendProbationBooking)
+
+    service.probationBookingsByMeetingDateToCsv(today(), tomorrow(), csvOutputStream)
+
+    verify(videoBookingEventRepository).findByMainDateBetween(any(), any(), any())
+    verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
+
+    csvOutputStream.toString() isEqualTo
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "1,2024-07-01T09:00:00,1,UPDATE,$MOORLAND,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
   }
 
   @Test
@@ -179,7 +239,7 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByMainDateBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
       "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
   }
 

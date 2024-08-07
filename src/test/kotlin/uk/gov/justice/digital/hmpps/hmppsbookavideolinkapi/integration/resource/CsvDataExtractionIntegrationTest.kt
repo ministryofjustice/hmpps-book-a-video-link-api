@@ -29,7 +29,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     // This should pick up the amended event in favour of the create event.
     response contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-1100,2024-07-24T02:00:00,-1000,AMEND,WNI,\"Derby Justice Centre\",DRBYMC,true,2100-07-25T12:00:00,2100-07-25T13:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
+      "-1100,2024-07-24T02:00:00,-1000,UPDATE,WNI,\"Derby Justice Centre\",DRBYMC,true,2100-07-25T12:00:00,2100-07-25T13:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
   }
 
   @Sql("classpath:integration-test-data/seed-events-by-booking-date-data-extract.sql")
@@ -44,7 +44,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
     val probationResponse = webTestClient.downloadProbationDataByBookingDate(LocalDate.of(2024, 1, 1), 2)
 
     probationResponse contains "video-links-by-probation-booking-date-from-2024-01-01-for-2-days.csv"
-    probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+    probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
       "-3000,2024-01-01T01:00:00,-3000,CREATE,WNI,\"Blackpool MC (PPOC)\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
   }
 
@@ -54,7 +54,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
     val probationResponse = webTestClient.downloadProbationDataByMeetingDate(LocalDate.of(2099, 1, 24), 365)
 
     probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-24-for-365-days.csv"
-    probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+    probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
       "-4000,2024-01-01T01:00:00,-4000,CREATE,WNI,\"Blackpool MC (PPOC)\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
   }
 
