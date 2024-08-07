@@ -146,6 +146,11 @@ notify:
         user: "20fddb45-3907-4e10-a570-86377bbe9dd1"
         prison-probation-email: "73a0e2b3-6b49-4a31-8960-973e3e833e81"
         prison-no-probation-email: "9701dd1e-ba93-49e9-94f4-2b335459d420"
+      amended-booking:
+        user: "a3c1c0f9-d86f-43bc-904c-c666d309111c"
+        probation: "21ae0c83-69d2-4dc3-b19a-22c56500f67f"
+        prison-probation-email: "1ccb289c-bd49-4421-8c1c-e56e99db9886"
+        prison-no-probation-email: "d00804ff-25f8-45f8-b5a5-164c14e0d66f"
 
 
 springdoc:

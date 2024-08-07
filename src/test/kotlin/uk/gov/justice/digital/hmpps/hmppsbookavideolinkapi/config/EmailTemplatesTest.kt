@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonNoCourtEmail
@@ -84,6 +85,10 @@ class EmailTemplatesTest {
     newProbationBookingUser = "newProbationBookingUser",
     newProbationBookingPrisonProbationEmail = "newProbationBookingPrisonProbationEmail",
     newProbationBookingPrisonNoProbationEmail = "newProbationBookingPrisonNoProbationEmail",
+    amendedProbationBookingUser = "amendedProbationBookingUser",
+    amendedProbationBookingPrisonProbationEmail = "amendedProbationBookingPrisonProbationEmail",
+    amendedProbationBookingPrisonNoProbationEmail = "amendedProbationBookingPrisonNoProbationEmail",
+    amendedProbationBookingProbationEmail = "amendedProbationBookingProbationEmail",
   )
 
   @Test
@@ -91,5 +96,76 @@ class EmailTemplatesTest {
     emailTypes.forEach {
       templates.templateFor(it.key) isEqualTo it.value
     }
+  }
+
+  @Test
+  fun `should be a distinct template for each email type`() {
+    EmailTemplates(
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f",
+      "g",
+      "h",
+      "i",
+      "j",
+      "k",
+      "l",
+      "m",
+      "n",
+      "o",
+      "p",
+      "q",
+      "r",
+      "s",
+      "t",
+      "u",
+      "v",
+      "w",
+      "x",
+      "y",
+      "z",
+      "1",
+      "2",
+      "3",
+    )
+
+    val error = assertThrows<IllegalArgumentException> {
+      EmailTemplates(
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "w",
+        "x",
+        "y",
+        "z",
+        "1",
+        "duplicate",
+        "duplicate",
+      )
+    }
+
+    error.message isEqualTo "Template IDs must be unique."
   }
 }

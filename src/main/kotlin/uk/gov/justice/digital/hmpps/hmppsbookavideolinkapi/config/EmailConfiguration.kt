@@ -8,6 +8,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingUserEmail
@@ -69,6 +73,10 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation.new-booking.user:}") private val newProbationBookingUser: String,
   @Value("\${notify.templates.probation.new-booking.prison-probation-email:}") private val newProbationBookingPrisonProbationEmail: String,
   @Value("\${notify.templates.probation.new-booking.prison-no-probation-email:}") private val newProbationBookingPrisonNoProbationEmail: String,
+  @Value("\${notify.templates.probation.amended-booking.user:}") private val amendedProbationBookingUser: String,
+  @Value("\${notify.templates.probation.amended-booking.prison-probation-email:}") private val amendedProbationBookingPrisonProbationEmail: String,
+  @Value("\${notify.templates.probation.amended-booking.prison-no-probation-email:}") private val amendedProbationBookingPrisonNoProbationEmail: String,
+  @Value("\${notify.templates.probation.amended-booking.probation:}") private val amendedProbationBookingProbationEmail: String,
 ) {
 
   companion object {
@@ -109,6 +117,10 @@ class EmailConfiguration(
     newProbationBookingUser = newProbationBookingUser,
     newProbationBookingPrisonProbationEmail = newProbationBookingPrisonProbationEmail,
     newProbationBookingPrisonNoProbationEmail = newProbationBookingPrisonNoProbationEmail,
+    amendedProbationBookingUser = amendedProbationBookingUser,
+    amendedProbationBookingPrisonProbationEmail = amendedProbationBookingPrisonProbationEmail,
+    amendedProbationBookingPrisonNoProbationEmail = amendedProbationBookingPrisonNoProbationEmail,
+    amendedProbationBookingProbationEmail = amendedProbationBookingProbationEmail,
   )
 }
 
@@ -168,6 +180,10 @@ data class EmailTemplates(
   val newProbationBookingUser: String,
   val newProbationBookingPrisonProbationEmail: String,
   val newProbationBookingPrisonNoProbationEmail: String,
+  val amendedProbationBookingUser: String,
+  val amendedProbationBookingPrisonProbationEmail: String,
+  val amendedProbationBookingPrisonNoProbationEmail: String,
+  val amendedProbationBookingProbationEmail: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
@@ -196,11 +212,19 @@ data class EmailTemplates(
     NewProbationBookingUserEmail::class.java to newProbationBookingUser,
     NewProbationBookingPrisonProbationEmail::class.java to newProbationBookingPrisonProbationEmail,
     NewProbationBookingPrisonNoProbationEmail::class.java to newProbationBookingPrisonNoProbationEmail,
+    AmendedProbationBookingUserEmail::class.java to amendedProbationBookingUser,
+    AmendedProbationBookingPrisonProbationEmail::class.java to amendedProbationBookingPrisonProbationEmail,
+    AmendedProbationBookingPrisonNoProbationEmail::class.java to amendedProbationBookingPrisonNoProbationEmail,
+    AmendedProbationBookingProbationEmail::class to amendedProbationBookingProbationEmail,
   )
 
   init {
     require(EmailTemplates::class.constructors.single().parameters.size == emailTemplateMappings.size) {
       "Number of email template mappings does not match that of the number of possible templates"
+    }
+
+    require(EmailTemplates::class.constructors.single().parameters.size == emailTemplateMappings.values.distinct().size) {
+      "Template IDs must be unique."
     }
   }
 

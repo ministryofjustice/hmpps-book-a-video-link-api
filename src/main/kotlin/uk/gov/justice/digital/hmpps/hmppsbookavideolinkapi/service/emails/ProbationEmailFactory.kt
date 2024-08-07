@@ -10,6 +10,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonProbationEmail
@@ -44,8 +48,51 @@ object ProbationEmailFactory {
         prisonerLastName = prisoner.lastName,
         prison = prison.name,
       )
-      BookingAction.AMEND -> null
-      BookingAction.CANCEL -> null
+
+      BookingAction.AMEND -> AmendedProbationBookingUserEmail(
+        address = contact.email!!,
+        prisonerNumber = prisoner.prisonerNumber,
+        userName = contact.name ?: "Book Video",
+        probationTeam = booking.probationTeam!!.description,
+        appointmentDate = appointment.appointmentDate,
+        appointmentInfo = appointment.appointmentInformation(location),
+        comments = booking.comments,
+        prisonerFirstName = prisoner.firstName,
+        prisonerLastName = prisoner.lastName,
+        prison = prison.name,
+      )
+
+      else -> null
+    }
+  }
+
+  fun probation(
+    contact: BookingContact,
+    prisoner: Prisoner,
+    booking: VideoBooking,
+    prison: Prison,
+    appointment: PrisonAppointment,
+    location: Location,
+    action: BookingAction,
+  ): Email? {
+    booking.requireIsProbationBooking()
+
+    require(contact.contactType == ContactType.PROBATION) {
+      "Incorrect contact type ${contact.contactType} for probation probation email"
+    }
+
+    return when (action) {
+      BookingAction.AMEND -> AmendedProbationBookingProbationEmail(
+        address = contact.email!!,
+        prisonerNumber = prisoner.prisonerNumber,
+        prisonerFirstName = prisoner.firstName,
+        prisonerLastName = prisoner.lastName,
+        appointmentDate = appointment.appointmentDate,
+        probationTeam = booking.probationTeam!!.description,
+        comments = booking.comments,
+        appointmentInfo = appointment.appointmentInformation(location),
+        prison = prison.name,
+      )
       else -> null
     }
   }
@@ -97,6 +144,36 @@ object ProbationEmailFactory {
           )
         }
       }
+
+      BookingAction.AMEND -> {
+        if (primaryProbationContact != null) {
+          AmendedProbationBookingPrisonProbationEmail(
+            address = contact.email!!,
+            prisonerNumber = prisoner.prisonerNumber,
+            probationTeam = booking.probationTeam!!.description,
+            appointmentDate = appointment.appointmentDate,
+            appointmentInfo = appointment.appointmentInformation(location),
+            comments = booking.comments,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            prison = prison.name,
+            probationEmailAddress = primaryProbationContact.email!!,
+          )
+        } else {
+          AmendedProbationBookingPrisonNoProbationEmail(
+            address = contact.email!!,
+            prisonerNumber = prisoner.prisonerNumber,
+            probationTeam = booking.probationTeam!!.description,
+            appointmentDate = appointment.appointmentDate,
+            appointmentInfo = appointment.appointmentInformation(location),
+            comments = booking.comments,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            prison = prison.name,
+          )
+        }
+      }
+
       else -> null
     }
   }
@@ -108,5 +185,6 @@ object ProbationEmailFactory {
   private fun PrisonAppointment.appointmentInformation(location: Location) =
     "${location.localName} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
-  private fun Collection<BookingContact>.primaryProbationContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
+  private fun Collection<BookingContact>.primaryProbationContact() =
+    singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
 }

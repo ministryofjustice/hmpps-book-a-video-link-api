@@ -30,6 +30,11 @@ val moorlandLocation = location(prisonCode = MOORLAND, locationKeySuffix = "ABCE
 val werringtonLocation = location(prisonCode = WERRINGTON, locationKeySuffix = "ABCDEFG")
 val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
 
+val courtUser = user(userType = UserType.EXTERNAL, name = "court user")
+val prisonUser = user(userType = UserType.PRISON, name = "prison user")
+val probationUser = user(userType = UserType.EXTERNAL, name = "probation user")
+val serviceUser = user(userType = UserType.SERVICE, name = "service user")
+
 fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null) = Location(
   id = UUID.randomUUID(),
   prisonId = prisonCode,

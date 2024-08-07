@@ -50,7 +50,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegr
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_PRISON_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_PRISON_USER_EMAIL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -66,6 +65,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingUserEmail
@@ -247,12 +250,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       appointments() hasSize 1
     }
 
-    // There should be 3 notifications - 1 user email, 1 court email and 1 prison email
-    val notifications = notificationRepository.findAll().also { it hasSize 3 }
+    // There should be 2 notifications - 1 court email and 1 prison email
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
     notifications.isPresent("j@j.com", "new court booking court template id", persistedBooking)
-    notifications.isPresent(TEST_PRISON_USER_EMAIL, "new court booking user template id", persistedBooking)
 
     thereShouldBe {
       2.publishedMessages {
@@ -1653,6 +1655,10 @@ class TestEmailConfiguration {
         is NewProbationBookingUserEmail -> Result.success(UUID.randomUUID() to "new probation booking user template id")
         is NewProbationBookingPrisonProbationEmail -> Result.success(UUID.randomUUID() to "new probation booking prison template id with email address")
         is NewProbationBookingPrisonNoProbationEmail -> Result.success(UUID.randomUUID() to "new probation booking prison template id no email address")
+        is AmendedProbationBookingUserEmail -> Result.success(UUID.randomUUID() to "amended probation booking user template id")
+        is AmendedProbationBookingPrisonProbationEmail -> Result.success(UUID.randomUUID() to "amended probation booking template id with email address")
+        is AmendedProbationBookingPrisonNoProbationEmail -> Result.success(UUID.randomUUID() to "amended probation booking template id no email address")
+        is AmendedProbationBookingProbationEmail -> Result.success(UUID.randomUUID() to "amended probation booking probation template id")
         else -> throw RuntimeException("Unsupported email in test email configuration: ${email.javaClass.simpleName}")
       }
     }
