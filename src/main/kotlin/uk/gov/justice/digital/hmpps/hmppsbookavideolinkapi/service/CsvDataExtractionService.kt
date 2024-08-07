@@ -146,8 +146,8 @@ data class CourtBookingEvent(
     vbh.eventId,
     vbh.timestamp,
     vbh.videoBookingId,
-    // Old BVLS does not have CANCEL, it has DELETE instead
-    vbh.eventType.let { if (it == "CANCEL") "DELETE" else it },
+    // Old BVLS has DELETE instead of CANCEL and UPDATE instead of AMEND
+    vbh.eventType.let { if (it == "CANCEL") "DELETE" else if (it == "AMEND") "UPDATE" else it },
     vbh.prisonCode,
     vbh.courtDescription!!,
     vbh.courtCode!!,
@@ -172,7 +172,7 @@ data class CourtBookingEvent(
   "agencyId",
   "probationTeam",
   "probationTeamId",
-  "madeByTheCourt",
+  "madeByProbation",
   "mainStartTime",
   "mainEndTime",
   "preStartTime",
@@ -191,7 +191,7 @@ data class ProbationBookingEvent(
   val agencyId: String,
   val probationTeam: String,
   val probationTeamId: String,
-  val madeByTheCourt: Boolean,
+  val madeByProbation: Boolean,
   val mainStartTime: LocalDateTime,
   val mainEndTime: LocalDateTime,
   val preStartTime: LocalDateTime?,
@@ -206,8 +206,8 @@ data class ProbationBookingEvent(
     vbh.eventId,
     vbh.timestamp,
     vbh.videoBookingId,
-    // Old BVLS does not have CANCEL, it has DELETE instead
-    vbh.eventType.let { if (it == "CANCEL") "DELETE" else it },
+    // Old BVLS has DELETE instead of CANCEL and UPDATE instead of AMEND
+    vbh.eventType.let { if (it == "CANCEL") "DELETE" else if (it == "AMEND") "UPDATE" else it },
     vbh.prisonCode,
     vbh.probationTeamDescription!!,
     vbh.probationTeamCode!!,
