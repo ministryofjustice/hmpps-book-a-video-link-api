@@ -626,3 +626,84 @@ class NewProbationBookingPrisonNoProbationEmail(
     addPersonalisation("appointmentInfo", appointmentInfo)
   }
 }
+
+class AmendedProbationBookingUserEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  userName: String,
+  probationTeam: String,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("userName", userName)
+    addPersonalisation("prison", prison)
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}
+
+class AmendedProbationBookingProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  probationTeam: String,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("prison", prison)
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}
+
+class AmendedProbationBookingPrisonProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  probationEmailAddress: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("probationEmailAddress", probationEmailAddress)
+    addPersonalisation("prison", prison)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}
+
+class AmendedProbationBookingPrisonNoProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  comments: String?,
+) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("probationTeam", probationTeam)
+    addPersonalisation("prison", prison)
+    addPersonalisation("appointmentInfo", appointmentInfo)
+  }
+}

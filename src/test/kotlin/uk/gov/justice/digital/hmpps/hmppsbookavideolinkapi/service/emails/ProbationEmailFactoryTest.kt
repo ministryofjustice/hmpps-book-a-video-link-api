@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
@@ -81,21 +83,23 @@ class ProbationEmailFactoryTest {
 
   private val userEmails = mapOf(
     BookingAction.CREATE to NewProbationBookingUserEmail::class.java,
+    BookingAction.AMEND to AmendedProbationBookingUserEmail::class.java,
   )
 
   private val prisonEmails = mapOf(
     BookingAction.CREATE to NewProbationBookingPrisonProbationEmail::class.java,
+    BookingAction.AMEND to AmendedProbationBookingPrisonProbationEmail::class.java,
   )
 
   companion object {
     @JvmStatic
-    fun supportedUserBookingActions() = setOf(BookingAction.CREATE)
+    fun supportedUserBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND)
 
     @JvmStatic
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun supportedPrisonBookingActions() = setOf(BookingAction.CREATE)
+    fun supportedPrisonBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND)
 
     @JvmStatic
     fun unsupportedProbationBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL)

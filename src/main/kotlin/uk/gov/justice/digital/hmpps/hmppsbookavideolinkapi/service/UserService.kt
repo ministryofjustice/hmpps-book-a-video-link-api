@@ -45,7 +45,7 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
 }
 
 data class User(val username: String, private val userType: UserType, val name: String, val email: String? = null) {
-  fun isUserType(type: UserType) = this.userType == type
+  fun isUserType(vararg types: UserType) = types.contains(userType)
 }
 
 enum class UserType {
