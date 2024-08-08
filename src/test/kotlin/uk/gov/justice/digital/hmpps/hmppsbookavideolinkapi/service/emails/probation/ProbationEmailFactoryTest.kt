@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -16,11 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonProbationEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonProbationEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
 import java.time.LocalDate
 import java.time.LocalTime
 

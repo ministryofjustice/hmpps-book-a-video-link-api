@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
@@ -10,14 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonNoProbationEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingPrisonProbationEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingProbationEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonNoProbationEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingPrisonProbationEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewProbationBookingUserEmail
 
 object ProbationEmailFactory {
   fun user(
@@ -41,7 +34,7 @@ object ProbationEmailFactory {
         prisonerNumber = prisoner.prisonerNumber,
         userName = contact.name ?: "Book Video",
         probationTeam = booking.probationTeam!!.description,
-        date = appointment.appointmentDate,
+        appointmentDate = appointment.appointmentDate,
         appointmentInfo = appointment.appointmentInformation(location),
         comments = booking.comments,
         prisonerFirstName = prisoner.firstName,

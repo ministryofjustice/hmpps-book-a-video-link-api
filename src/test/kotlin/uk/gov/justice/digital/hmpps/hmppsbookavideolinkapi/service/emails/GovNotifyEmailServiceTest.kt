@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
 
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.any
@@ -13,6 +13,24 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailTemplates
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
 import uk.gov.service.notify.NotificationClient
 import uk.gov.service.notify.NotificationClientException
 import uk.gov.service.notify.SendEmailResponse
@@ -66,7 +84,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         userName = "username",
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
@@ -106,7 +124,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         userName = "username",
         comments = null,
         preAppointmentInfo = null,
@@ -146,7 +164,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
@@ -184,7 +202,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
@@ -224,7 +242,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
@@ -263,12 +281,13 @@ class GovNotifyEmailServiceTest {
         prisonerLastName = "bob",
         prisonerNumber = "123456",
         userName = "username",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
+        prison = "the prison",
       ),
     )
 
@@ -284,6 +303,7 @@ class GovNotifyEmailServiceTest {
         "comments" to "comments for bob",
         "userName" to "username",
         "court" to "the court",
+        "prison" to "the prison",
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
@@ -300,7 +320,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
@@ -340,7 +360,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
@@ -379,7 +399,7 @@ class GovNotifyEmailServiceTest {
         prisonerLastName = "bob",
         prisonerNumber = "123456",
         userName = "username",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
@@ -418,7 +438,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
@@ -458,7 +478,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
         mainAppointmentInfo = "bobs main appointment info",
@@ -746,7 +766,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = LocalDate.now(),
+        appointmentDate = LocalDate.now(),
         userName = "username",
         comments = "comments for bob",
         preAppointmentInfo = "bobs pre-appointment info",
@@ -770,7 +790,7 @@ class GovNotifyEmailServiceTest {
         prisonerFirstName = "builder",
         prisonerLastName = "bob",
         prisonerNumber = "123456",
-        date = today,
+        appointmentDate = today,
         userName = "username",
         comments = "comments for bob",
         appointmentInfo = "bobs appointment info",

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
@@ -9,23 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingPrisonNoCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AmendedCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingPrisonNoCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CancelledCourtBookingUserEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingPrisonNoCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NewCourtBookingUserEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingPrisonCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReleasedCourtBookingPrisonNoCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingPrisonCourtEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TransferredCourtBookingPrisonNoCourtEmail
 
 object CourtEmailFactory {
 
@@ -55,7 +39,7 @@ object CourtEmailFactory {
         prisonerNumber = prisoner.prisonerNumber,
         court = booking.court!!.description,
         prison = prison.name,
-        date = main.appointmentDate,
+        appointmentDate = main.appointmentDate,
         preAppointmentInfo = pre?.appointmentInformation(locations),
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
@@ -68,7 +52,8 @@ object CourtEmailFactory {
         prisonerLastName = prisoner.lastName,
         prisonerNumber = prisoner.prisonerNumber,
         court = booking.court!!.description,
-        date = main.appointmentDate,
+        prison = prison.name,
+        appointmentDate = main.appointmentDate,
         preAppointmentInfo = pre?.appointmentInformation(locations),
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
@@ -82,7 +67,7 @@ object CourtEmailFactory {
         prisonerNumber = prisoner.prisonerNumber,
         court = booking.court!!.description,
         prison = prison.name,
-        date = main.appointmentDate,
+        appointmentDate = main.appointmentDate,
         preAppointmentInfo = pre?.appointmentInformation(locations),
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
@@ -118,7 +103,7 @@ object CourtEmailFactory {
         prisonerNumber = prisoner.prisonerNumber,
         court = booking.court!!.description,
         prison = prison.name,
-        date = main.appointmentDate,
+        appointmentDate = main.appointmentDate,
         preAppointmentInfo = pre?.appointmentInformation(locations),
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
@@ -192,7 +177,7 @@ object CourtEmailFactory {
             court = booking.court!!.description,
             courtEmailAddress = primaryCourtContact.email!!,
             prison = prison.name,
-            date = main.appointmentDate,
+            appointmentDate = main.appointmentDate,
             preAppointmentInfo = pre?.appointmentInformation(locations),
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
@@ -206,7 +191,7 @@ object CourtEmailFactory {
             prisonerNumber = prisoner.prisonerNumber,
             court = booking.court!!.description,
             prison = prison.name,
-            date = main.appointmentDate,
+            appointmentDate = main.appointmentDate,
             preAppointmentInfo = pre?.appointmentInformation(locations),
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
@@ -225,7 +210,7 @@ object CourtEmailFactory {
             court = booking.court!!.description,
             courtEmailAddress = primaryCourtContact.email!!,
             prison = prison.name,
-            date = main.appointmentDate,
+            appointmentDate = main.appointmentDate,
             preAppointmentInfo = pre?.appointmentInformation(locations),
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
@@ -239,7 +224,7 @@ object CourtEmailFactory {
             prisonerNumber = prisoner.prisonerNumber,
             court = booking.court!!.description,
             prison = prison.name,
-            date = main.appointmentDate,
+            appointmentDate = main.appointmentDate,
             preAppointmentInfo = pre?.appointmentInformation(locations),
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
@@ -258,7 +243,7 @@ object CourtEmailFactory {
             court = booking.court!!.description,
             courtEmailAddress = primaryCourtContact.email!!,
             prison = prison.name,
-            date = main.appointmentDate,
+            appointmentDate = main.appointmentDate,
             preAppointmentInfo = pre?.appointmentInformation(locations),
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
@@ -272,7 +257,7 @@ object CourtEmailFactory {
             prisonerNumber = prisoner.prisonerNumber,
             court = booking.court!!.description,
             prison = prison.name,
-            date = main.appointmentDate,
+            appointmentDate = main.appointmentDate,
             preAppointmentInfo = pre?.appointmentInformation(locations),
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
