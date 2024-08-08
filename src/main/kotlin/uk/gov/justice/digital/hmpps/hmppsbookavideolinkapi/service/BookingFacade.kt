@@ -17,8 +17,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.CourtEmailFactory
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.ProbationEmailFactory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtEmailFactory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 
