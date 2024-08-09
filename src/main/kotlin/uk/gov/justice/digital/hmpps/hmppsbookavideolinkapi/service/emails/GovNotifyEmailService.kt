@@ -8,6 +8,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TemplateId
 import uk.gov.service.notify.NotificationClient
 import java.util.UUID
 
+/**
+ * This is created as a Bean in the email configuration and as such does not require a @Service annotation.
+ */
 class GovNotifyEmailService(
   private val client: NotificationClient,
   private val emailTemplates: EmailTemplates,

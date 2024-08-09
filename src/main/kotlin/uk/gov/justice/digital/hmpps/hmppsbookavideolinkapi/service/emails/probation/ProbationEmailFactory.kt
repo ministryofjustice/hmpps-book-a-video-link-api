@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
@@ -55,6 +56,23 @@ object ProbationEmailFactory {
         prison = prison.name,
       )
 
+      BookingAction.CANCEL -> {
+        booking.requireIsCancelled()
+
+        CancelledProbationBookingUserEmail(
+          address = contact.email!!,
+          userName = contact.name!!,
+          prisonerNumber = prisoner.prisonerNumber,
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          prison = prison.name,
+          probationTeam = booking.probationTeam!!.description,
+          appointmentDate = appointment.appointmentDate,
+          appointmentInfo = appointment.appointmentInformation(location),
+          comments = booking.comments,
+        )
+      }
+
       else -> null
     }
   }
@@ -86,6 +104,22 @@ object ProbationEmailFactory {
         appointmentInfo = appointment.appointmentInformation(location),
         prison = prison.name,
       )
+
+      BookingAction.CANCEL -> {
+        booking.requireIsCancelled()
+
+        CancelledProbationBookingProbationEmail(
+          address = contact.email!!,
+          prisonerNumber = prisoner.prisonerNumber,
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          appointmentDate = appointment.appointmentDate,
+          probationTeam = booking.probationTeam!!.description,
+          prison = prison.name,
+          appointmentInfo = appointment.appointmentInformation(location),
+          comments = booking.comments,
+        )
+      }
       else -> null
     }
   }
@@ -167,12 +201,47 @@ object ProbationEmailFactory {
         }
       }
 
+      BookingAction.CANCEL -> {
+        booking.requireIsCancelled()
+
+        if (primaryProbationContact != null) {
+          CancelledProbationBookingPrisonProbationEmail(
+            address = contact.email!!,
+            prisonerNumber = prisoner.prisonerNumber,
+            probationTeam = booking.probationTeam!!.description,
+            appointmentDate = appointment.appointmentDate,
+            appointmentInfo = appointment.appointmentInformation(location),
+            comments = booking.comments,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            prison = prison.name,
+            probationEmailAddress = primaryProbationContact.email!!,
+          )
+        } else {
+          CancelledProbationBookingPrisonNoProbationEmail(
+            address = contact.email!!,
+            prisonerNumber = prisoner.prisonerNumber,
+            probationTeam = booking.probationTeam!!.description,
+            appointmentDate = appointment.appointmentDate,
+            appointmentInfo = appointment.appointmentInformation(location),
+            comments = booking.comments,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            prison = prison.name,
+          )
+        }
+      }
+
       else -> null
     }
   }
 
   private fun VideoBooking.requireIsProbationBooking() {
     requireNot(isCourtBooking()) { "Booking ID $videoBookingId is not a probation booking" }
+  }
+
+  private fun VideoBooking.requireIsCancelled() {
+    require(isStatus(StatusCode.CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
 
   private fun PrisonAppointment.appointmentInformation(location: Location) =

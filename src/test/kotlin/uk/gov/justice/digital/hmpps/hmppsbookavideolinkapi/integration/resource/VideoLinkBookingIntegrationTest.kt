@@ -80,6 +80,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
@@ -1661,6 +1665,10 @@ class TestEmailConfiguration {
         is AmendedProbationBookingPrisonProbationEmail -> Result.success(UUID.randomUUID() to "amended probation booking template id with email address")
         is AmendedProbationBookingPrisonNoProbationEmail -> Result.success(UUID.randomUUID() to "amended probation booking template id no email address")
         is AmendedProbationBookingProbationEmail -> Result.success(UUID.randomUUID() to "amended probation booking probation template id")
+        is CancelledProbationBookingUserEmail -> Result.success(UUID.randomUUID() to "cancelled probation booking user template id")
+        is CancelledProbationBookingProbationEmail -> Result.success(UUID.randomUUID() to "cancelled probation booking probation template id")
+        is CancelledProbationBookingPrisonProbationEmail -> Result.success(UUID.randomUUID() to "cancelled probation booking template id with email address")
+        is CancelledProbationBookingPrisonNoProbationEmail -> Result.success(UUID.randomUUID() to "cancelled probation booking template id no email address")
         else -> throw RuntimeException("Unsupported email in test email configuration: ${email.javaClass.simpleName}")
       }
     }
