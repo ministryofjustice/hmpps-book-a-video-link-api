@@ -156,6 +156,10 @@ notify:
         probation: "09685f07-20e0-4fd9-9245-e726e500552e"
         prison-probation-email: "b5fdd441-ca5c-43e0-9e66-e3be27d7605d"
         prison-no-probation-email: "8c186bb6-92ba-4619-8633-630a214bcbea"
+      release-booking:
+        probation: "099cab2b-331e-46b3-a2eb-dd46e0979afd"
+        prison-probation-email: "b2b36311-a787-408e-885c-df17b10e936b"
+        prison-no-probation-email: "fb70890b-1c03-4122-8a5f-7c1a8a928e6c"
 
 
 springdoc:

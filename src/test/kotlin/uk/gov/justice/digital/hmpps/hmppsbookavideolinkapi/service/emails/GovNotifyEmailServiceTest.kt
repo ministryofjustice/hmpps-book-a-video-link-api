@@ -76,6 +76,9 @@ class GovNotifyEmailServiceTest {
     cancelledProbationBookingProbationEmail = "cancelledProbationBookingProbationEmail",
     cancelledProbationBookingPrisonProbationEmail = "cancelledProbationBookingPrisonProbationEmail",
     cancelledProbationBookingPrisonNoProbationEmail = "cancelledProbationBookingPrisonNoProbationEmail",
+    releaseProbationBookingProbation = "releaseProbationBookingProbation",
+    releaseProbationBookingPrisonProbationEmail = "releaseProbationBookingPrisonProbationEmail",
+    releaseProbationBookingPrisonNoProbationEmail = "releaseProbationBookingPrisonNoProbationEmail",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates)

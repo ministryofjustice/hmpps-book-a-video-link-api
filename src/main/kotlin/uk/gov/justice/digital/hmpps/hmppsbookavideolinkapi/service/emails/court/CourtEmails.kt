@@ -160,7 +160,6 @@ class AmendedCourtBookingUserEmail(
   appointmentDate = appointmentDate,
   userName = userName,
   court = court,
-  // TODO prison not be used in email, add it!
   prison = prison,
   preAppointmentInfo = preAppointmentInfo,
   mainAppointmentInfo = mainAppointmentInfo,

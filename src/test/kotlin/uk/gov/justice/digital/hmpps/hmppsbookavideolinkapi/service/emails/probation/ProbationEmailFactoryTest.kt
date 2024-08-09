@@ -10,12 +10,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import java.time.LocalDate
 import java.time.LocalTime
@@ -80,30 +82,58 @@ class ProbationEmailFactoryTest {
   private val userEmails = mapOf(
     BookingAction.CREATE to NewProbationBookingUserEmail::class.java,
     BookingAction.AMEND to AmendedProbationBookingUserEmail::class.java,
+    BookingAction.CANCEL to CancelledProbationBookingUserEmail::class.java,
+  )
+
+  private val probationEmails = mapOf(
+    BookingAction.AMEND to AmendedProbationBookingProbationEmail::class.java,
+    BookingAction.CANCEL to CancelledProbationBookingProbationEmail::class.java,
+    BookingAction.RELEASED to ReleasedProbationBookingProbationEmail::class.java,
   )
 
   private val prisonEmails = mapOf(
     BookingAction.CREATE to NewProbationBookingPrisonProbationEmail::class.java,
     BookingAction.AMEND to AmendedProbationBookingPrisonProbationEmail::class.java,
+    BookingAction.CANCEL to CancelledProbationBookingPrisonProbationEmail::class.java,
+    BookingAction.RELEASED to ReleasedProbationBookingPrisonProbationEmail::class.java,
   )
 
   companion object {
     @JvmStatic
-    fun supportedUserBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND)
+    fun supportedUserBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL)
+
+    @JvmStatic
+    fun supportedProbationBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED)
 
     @JvmStatic
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun supportedPrisonBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND)
+    fun supportedPrisonBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED)
 
     @JvmStatic
-    fun unsupportedProbationBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL)
+    fun unsupportedProbationBookingActions() = setOf(BookingAction.CREATE)
   }
 
   @ParameterizedTest
   @MethodSource("supportedUserBookingActions")
   fun `should return user emails for supported user based actions`(action: BookingAction) {
+    val email = ProbationEmailFactory.user(
+      action = action,
+      contact = userBookingContact,
+      prisoner = prisoner,
+      booking = if (action == BookingAction.CANCEL) probationBooking.apply { cancel(courtUser) } else probationBooking,
+      prison = prison,
+      appointment = probationBooking.appointments().single(),
+      location = moorlandLocation,
+    )
+
+    email isInstanceOf userEmails[action]!!
+  }
+
+  @ParameterizedTest
+  @MethodSource("unsupportedUserBookingActions")
+  fun `should return no email for unsupported user based actions`(action: BookingAction) {
     val email = ProbationEmailFactory.user(
       action = action,
       contact = userBookingContact,
@@ -114,7 +144,7 @@ class ProbationEmailFactoryTest {
       location = moorlandLocation,
     )
 
-    email isInstanceOf userEmails[action]!!
+    email isEqualTo null
   }
 
   @Test
@@ -170,13 +200,45 @@ class ProbationEmailFactoryTest {
   }
 
   @ParameterizedTest
+  @MethodSource("supportedProbationBookingActions")
+  fun `should return user emails for supported probation based actions`(action: BookingAction) {
+    val email = ProbationEmailFactory.probation(
+      action = action,
+      contact = probationBookingContact,
+      prisoner = prisoner,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED) probationBooking.apply { cancel(probationUser) } else probationBooking,
+      prison = prison,
+      appointment = probationBooking.appointments().single(),
+      location = moorlandLocation,
+    )
+
+    email isInstanceOf probationEmails[action]!!
+  }
+
+  @ParameterizedTest
+  @MethodSource("unsupportedProbationBookingActions")
+  fun `should return no email for unsupported probation based actions`(action: BookingAction) {
+    val email = ProbationEmailFactory.probation(
+      action = action,
+      contact = probationBookingContact,
+      prisoner = prisoner,
+      booking = probationBooking,
+      prison = prison,
+      appointment = probationBooking.appointments().single(),
+      location = moorlandLocation,
+    )
+
+    email isEqualTo null
+  }
+
+  @ParameterizedTest
   @MethodSource("supportedPrisonBookingActions")
   fun `should return prison probation emails for supported user based actions`(action: BookingAction) {
     val email = ProbationEmailFactory.prison(
       action = action,
       contact = prisonBookingContact,
       prisoner = prisoner,
-      booking = probationBooking,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED) probationBooking.apply { cancel(probationUser) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
       location = moorlandLocation,
