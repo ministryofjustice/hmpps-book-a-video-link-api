@@ -29,6 +29,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
@@ -77,6 +81,10 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation.amended-booking.prison-probation-email:}") private val amendedProbationBookingPrisonProbationEmail: String,
   @Value("\${notify.templates.probation.amended-booking.prison-no-probation-email:}") private val amendedProbationBookingPrisonNoProbationEmail: String,
   @Value("\${notify.templates.probation.amended-booking.probation:}") private val amendedProbationBookingProbationEmail: String,
+  @Value("\${notify.templates.probation.cancelled-booking.user:}") private val cancelledProbationBookingUser: String,
+  @Value("\${notify.templates.probation.cancelled-booking.probation:}") private val cancelledProbationBookingProbationEmail: String,
+  @Value("\${notify.templates.probation.cancelled-booking.prison-probation-email:}") private val cancelledProbationBookingPrisonProbationEmail: String,
+  @Value("\${notify.templates.probation.cancelled-booking.prison-no-probation-email:}") private val cancelledProbationBookingPrisonNoProbationEmail: String,
 ) {
 
   companion object {
@@ -121,6 +129,10 @@ class EmailConfiguration(
     amendedProbationBookingPrisonProbationEmail = amendedProbationBookingPrisonProbationEmail,
     amendedProbationBookingPrisonNoProbationEmail = amendedProbationBookingPrisonNoProbationEmail,
     amendedProbationBookingProbationEmail = amendedProbationBookingProbationEmail,
+    cancelledProbationBookingUser = cancelledProbationBookingUser,
+    cancelledProbationBookingProbationEmail = cancelledProbationBookingProbationEmail,
+    cancelledProbationBookingPrisonProbationEmail = cancelledProbationBookingPrisonProbationEmail,
+    cancelledProbationBookingPrisonNoProbationEmail = cancelledProbationBookingPrisonNoProbationEmail,
   )
 }
 
@@ -184,6 +196,10 @@ data class EmailTemplates(
   val amendedProbationBookingPrisonProbationEmail: String,
   val amendedProbationBookingPrisonNoProbationEmail: String,
   val amendedProbationBookingProbationEmail: String,
+  val cancelledProbationBookingUser: String,
+  val cancelledProbationBookingProbationEmail: String,
+  val cancelledProbationBookingPrisonProbationEmail: String,
+  val cancelledProbationBookingPrisonNoProbationEmail: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
@@ -215,7 +231,11 @@ data class EmailTemplates(
     AmendedProbationBookingUserEmail::class.java to amendedProbationBookingUser,
     AmendedProbationBookingPrisonProbationEmail::class.java to amendedProbationBookingPrisonProbationEmail,
     AmendedProbationBookingPrisonNoProbationEmail::class.java to amendedProbationBookingPrisonNoProbationEmail,
-    AmendedProbationBookingProbationEmail::class to amendedProbationBookingProbationEmail,
+    AmendedProbationBookingProbationEmail::class.java to amendedProbationBookingProbationEmail,
+    CancelledProbationBookingUserEmail::class.java to cancelledProbationBookingUser,
+    CancelledProbationBookingProbationEmail::class.java to cancelledProbationBookingProbationEmail,
+    CancelledProbationBookingPrisonProbationEmail::class.java to cancelledProbationBookingPrisonProbationEmail,
+    CancelledProbationBookingPrisonNoProbationEmail::class.java to cancelledProbationBookingPrisonNoProbationEmail,
   )
 
   init {

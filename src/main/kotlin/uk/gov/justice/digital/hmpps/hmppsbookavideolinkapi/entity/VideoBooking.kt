@@ -69,6 +69,8 @@ class VideoBooking private constructor(
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
   fun prisoner() = appointments().map { it.prisonerNumber }.distinct().single()
 
+  fun isStatus(status: StatusCode) = statusCode == status
+
   fun addAppointment(
     prisonCode: String,
     prisonerNumber: String,

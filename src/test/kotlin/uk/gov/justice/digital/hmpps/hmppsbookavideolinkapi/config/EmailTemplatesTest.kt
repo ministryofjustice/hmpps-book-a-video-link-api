@@ -22,6 +22,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
@@ -57,6 +65,14 @@ class EmailTemplatesTest {
     NewProbationBookingUserEmail::class.java to "newProbationBookingUser",
     NewProbationBookingPrisonProbationEmail::class.java to "newProbationBookingPrisonProbationEmail",
     NewProbationBookingPrisonNoProbationEmail::class.java to "newProbationBookingPrisonNoProbationEmail",
+    AmendedProbationBookingUserEmail::class.java to "amendedProbationBookingUser",
+    AmendedProbationBookingPrisonProbationEmail::class.java to "amendedProbationBookingPrisonProbationEmail",
+    AmendedProbationBookingPrisonNoProbationEmail::class.java to "amendedProbationBookingPrisonNoProbationEmail",
+    AmendedProbationBookingProbationEmail::class.java to "amendedProbationBookingProbationEmail",
+    CancelledProbationBookingUserEmail::class.java to "cancelledProbationBookingUser",
+    CancelledProbationBookingProbationEmail::class.java to "cancelledProbationBookingProbationEmail",
+    CancelledProbationBookingPrisonProbationEmail::class.java to "cancelledProbationBookingPrisonProbationEmail",
+    CancelledProbationBookingPrisonNoProbationEmail::class.java to "cancelledProbationBookingPrisonNoProbationEmail",
   )
 
   private val templates = EmailTemplates(
@@ -89,17 +105,23 @@ class EmailTemplatesTest {
     amendedProbationBookingPrisonProbationEmail = "amendedProbationBookingPrisonProbationEmail",
     amendedProbationBookingPrisonNoProbationEmail = "amendedProbationBookingPrisonNoProbationEmail",
     amendedProbationBookingProbationEmail = "amendedProbationBookingProbationEmail",
+    cancelledProbationBookingUser = "cancelledProbationBookingUser",
+    cancelledProbationBookingProbationEmail = "cancelledProbationBookingProbationEmail",
+    cancelledProbationBookingPrisonProbationEmail = "cancelledProbationBookingPrisonProbationEmail",
+    cancelledProbationBookingPrisonNoProbationEmail = "cancelledProbationBookingPrisonNoProbationEmail",
   )
 
   @Test
   fun `should be a matching template for each email type`() {
+    EmailTemplates::class.constructors.single().parameters.size isEqualTo emailTypes.size
+
     emailTypes.forEach {
-      templates.templateFor(it.key) isEqualTo it.value
+      (templates.templateFor(it.key) ?: "${it.key} not found") isEqualTo it.value
     }
   }
 
   @Test
-  fun `should be a distinct template for each email type`() {
+  fun `should be a unique template identifier for each email type`() {
     EmailTemplates(
       "a",
       "b",
@@ -130,6 +152,10 @@ class EmailTemplatesTest {
       "1",
       "2",
       "3",
+      "4",
+      "5",
+      "6",
+      "7",
     )
 
     val error = assertThrows<IllegalArgumentException> {
@@ -161,6 +187,10 @@ class EmailTemplatesTest {
         "y",
         "z",
         "1",
+        "2",
+        "3",
+        "4",
+        "5",
         "duplicate",
         "duplicate",
       )

@@ -30,12 +30,82 @@ abstract class ProbationEmail(
 
 class CancelledProbationBookingUserEmail(
   address: String,
+  userName: String,
   prisonerFirstName: String,
   prisonerLastName: String,
   prisonerNumber: String,
   appointmentDate: LocalDate,
   probationTeam: String,
   prison: String,
+  appointmentInfo: String,
+  comments: String?,
+) : ProbationEmail(
+  address = address,
+  userName = userName,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  comments = comments,
+)
+
+class CancelledProbationBookingProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  comments: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  comments = comments,
+)
+
+class CancelledProbationBookingPrisonProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  probationEmailAddress: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  comments: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  probationEmailAddress = probationEmailAddress,
+  prison = prison,
+  comments = comments,
+)
+
+class CancelledProbationBookingPrisonNoProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  prison: String,
+  appointmentDate: LocalDate,
   appointmentInfo: String,
   comments: String?,
 ) : ProbationEmail(

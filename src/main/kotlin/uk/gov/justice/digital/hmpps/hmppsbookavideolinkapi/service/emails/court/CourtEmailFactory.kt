@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
@@ -59,20 +60,24 @@ object CourtEmailFactory {
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
       )
-      BookingAction.CANCEL -> CancelledCourtBookingUserEmail(
-        address = contact.email!!,
-        userName = contact.name ?: "Book Video",
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        court = booking.court!!.description,
-        prison = prison.name,
-        appointmentDate = main.appointmentDate,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
-        comments = booking.comments,
-      )
+      BookingAction.CANCEL -> {
+        booking.requireIsCancelled()
+
+        CancelledCourtBookingUserEmail(
+          address = contact.email!!,
+          userName = contact.name ?: "Book Video",
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          prisonerNumber = prisoner.prisonerNumber,
+          court = booking.court!!.description,
+          prison = prison.name,
+          appointmentDate = main.appointmentDate,
+          preAppointmentInfo = pre?.appointmentInformation(locations),
+          mainAppointmentInfo = main.appointmentInformation(locations),
+          postAppointmentInfo = post?.appointmentInformation(locations),
+          comments = booking.comments,
+        )
+      }
 
       else -> null
     }
@@ -234,6 +239,8 @@ object CourtEmailFactory {
       }
 
       BookingAction.CANCEL -> {
+        booking.requireIsCancelled()
+
         if (primaryCourtContact != null) {
           CancelledCourtBookingPrisonCourtEmail(
             address = contact.email!!,
@@ -345,5 +352,9 @@ object CourtEmailFactory {
 
   private fun VideoBooking.requireIsCourtBooking() {
     require(isCourtBooking()) { "Booking ID $videoBookingId is not a court booking" }
+  }
+
+  private fun VideoBooking.requireIsCancelled() {
+    require(isStatus(StatusCode.CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
 }
