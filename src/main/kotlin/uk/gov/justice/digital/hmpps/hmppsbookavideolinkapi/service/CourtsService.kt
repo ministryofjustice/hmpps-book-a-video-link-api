@@ -14,8 +14,13 @@ class CourtsService(
   private val courtRepository: CourtRepository,
   private val userCourtRepository: UserCourtRepository,
 ) {
-  fun getEnabledCourts() =
-    courtRepository.findAllByEnabledIsTrue().toModel()
+
+  fun getCourts(enabledOnly: Boolean) =
+    if (enabledOnly) {
+      courtRepository.findAllByEnabledIsTrue().toModel()
+    } else {
+      courtRepository.findAll().toModel()
+    }
 
   fun getUserCourtPreferences(user: User) =
     courtRepository.findCourtsByUsername(user.username).toModel()

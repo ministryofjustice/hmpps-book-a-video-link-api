@@ -8,6 +8,8 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
@@ -34,13 +36,17 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
   @Sql("classpath:integration-test-data/seed-enabled-probation-team-data.sql")
   @Test
-  fun `should return a list of enabled probation teams`() {
+  fun `should return filtered and unfiltered probation teams`() {
     probationTeamRepository.findAll() hasSize 30
 
-    val listOfEnabledTeams = webTestClient.getEnabledProbationTeams()
+    val enabledOnlyTeams = webTestClient.getProbationTeams(true)
+    enabledOnlyTeams hasSize 29
+    enabledOnlyTeams.all { it.enabled } isBool true
 
-    assertThat(listOfEnabledTeams).extracting("code").contains("ENABLED")
-    assertThat(listOfEnabledTeams).extracting("code").doesNotContain("NOT_ENABLED")
+    val allTeams = webTestClient.getProbationTeams(false)
+    allTeams hasSize 30
+    allTeams.count { it.enabled } isEqualTo 29
+    allTeams.count { !it.enabled } isEqualTo 1
   }
 
   @Sql("classpath:integration-test-data/seed-user-probation-team-data.sql")
@@ -102,16 +108,16 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     userProbationRepository.deleteAll()
   }
 
-  private fun WebTestClient.getEnabledProbationTeams() =
+  private fun WebTestClient.getProbationTeams(enabledOnly: Boolean) =
     get()
-      .uri("/probation-teams/enabled")
+      .uri("/probation-teams?enabledOnly=$enabledOnly")
       .accept(MediaType.APPLICATION_JSON)
       .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(ProbationTeam::class.java)
-      .returnResult().responseBody
+      .returnResult().responseBody!!
 
   private fun WebTestClient.getUserPreferenceTeams(username: String = TEST_EXTERNAL_USER) =
     get()

@@ -8,7 +8,10 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
@@ -31,30 +34,6 @@ class CourtsServiceTest {
   @BeforeEach
   fun setUp() {
     openMocks(this)
-  }
-
-  @Test
-  fun `Should return a list of enabled courts`() {
-    val listOfEnabledCourts = listOf(
-      courtEntity(1L, "COURT1", "One"),
-      courtEntity(2L, "COURT2", "Two"),
-      courtEntity(3L, "COURT3", "Three"),
-    )
-
-    whenever(courtRepository.findAllByEnabledIsTrue()).thenReturn(listOfEnabledCourts)
-
-    assertThat(service.getEnabledCourts()).isEqualTo(
-      listOfEnabledCourts.toModel(),
-    )
-
-    verify(courtRepository).findAllByEnabledIsTrue()
-  }
-
-  @Test
-  fun `Should return an empty list when no courts are enabled`() {
-    whenever(courtRepository.findAllByEnabledIsTrue()).thenReturn(emptyList())
-    assertThat(service.getEnabledCourts()).isEmpty()
-    verify(courtRepository).findAllByEnabledIsTrue()
   }
 
   @Test
@@ -133,5 +112,47 @@ class CourtsServiceTest {
     verify(userCourtRepository).delete(any())
     verify(userCourtRepository).saveAndFlush(any())
     verify(courtRepository).findAllByCodeIn(requestedCourts)
+  }
+
+  @Test
+  fun `Should return enabled courts only`() {
+    val enabledCourts = listOf(
+      courtEntity(1L, "COURT1", "One"),
+      courtEntity(2L, "COURT2", "Two"),
+      courtEntity(3L, "COURT3", "Three"),
+    )
+
+    val disabledCourts = listOf(
+      courtEntity(4L, "COURT4", "Four", enabled = false),
+    )
+
+    val allCourts = enabledCourts.plus(disabledCourts)
+
+    whenever(courtRepository.findAllByEnabledIsTrue()) doReturn (enabledCourts)
+    whenever(courtRepository.findAll()) doReturn allCourts
+
+    service.getCourts(true) containsExactlyInAnyOrder enabledCourts.toModel()
+    verify(courtRepository, never()).findAll()
+  }
+
+  @Test
+  fun `Should return all courts`() {
+    val enabledCourts = listOf(
+      courtEntity(1L, "COURT1", "One"),
+      courtEntity(2L, "COURT2", "Two"),
+      courtEntity(3L, "COURT3", "Three"),
+    )
+
+    val disabledCourts = listOf(
+      courtEntity(4L, "COURT4", "Four", enabled = false),
+    )
+
+    val allCourts = enabledCourts.plus(disabledCourts)
+
+    whenever(courtRepository.findAllByEnabledIsTrue()) doReturn (enabledCourts)
+    whenever(courtRepository.findAll()) doReturn allCourts
+
+    service.getCourts(false) containsExactlyInAnyOrder allCourts.toModel()
+    verify(courtRepository, never()).findAllByEnabledIsTrue()
   }
 }
