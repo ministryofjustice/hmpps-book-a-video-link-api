@@ -68,6 +68,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import java.time.LocalDate
@@ -801,7 +803,7 @@ class BookingFacadeTest {
   @DisplayName("Prisoner transfers")
   inner class PrisonerTransfer {
     @Test
-    fun `should send events and emails on transfer of prisoner by service user`() {
+    fun `should send events and emails on transfer of prisoner by service user for a court booking`() {
       val prisoner = Prisoner(
         prisonerNumber = courtBooking.prisoner(),
         prisonId = "TRN",
@@ -852,6 +854,83 @@ class BookingFacadeTest {
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
         reason isEqualTo "Cancelled court booking due to transfer"
+      }
+    }
+
+    @Test
+    fun `should send events and emails on release of prisoner by service user for a probation booking`() {
+      val prisoner = Prisoner(
+        prisonerNumber = probationBookingAtBirminghamPrison.prisoner(),
+        prisonId = "TRN",
+        firstName = "Bob",
+        lastName = "Builder",
+        dateOfBirth = LocalDate.EPOCH,
+        lastPrisonId = MOORLAND,
+      )
+
+      setupProbationPrimaryContacts(serviceUser)
+
+      whenever(cancelVideoBookingService.cancel(1, serviceUser)) doReturn probationBookingAtBirminghamPrison.apply { cancel(serviceUser) }
+      whenever(prisonerSearchClient.getPrisoner(probationBookingAtBirminghamPrison.prisoner())) doReturn prisoner
+      whenever(emailService.send(any<TransferredProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
+      whenever(emailService.send(any<TransferredProbationBookingPrisonProbationEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
+
+      facade.prisonerTransferred(1, serviceUser)
+
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+        verify(cancelVideoBookingService).cancel(1, serviceUser)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      }
+
+      emailCaptor.allValues hasSize 2
+      with(emailCaptor.firstValue) {
+        this isInstanceOf TransferredProbationBookingPrisonProbationEmail::class.java
+        address isEqualTo prisonUser.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "probationTeam" to "probation team description",
+          "probationEmailAddress" to "probation.user@probation.com",
+          "prison" to "Moorland",
+          "offenderNo" to "654321",
+          "prisonerName" to "Bob Builder",
+          "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "Probation meeting comments",
+        )
+      }
+      with(emailCaptor.secondValue) {
+        this isInstanceOf TransferredProbationBookingProbationEmail::class.java
+        address isEqualTo probationUser.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "probationTeam" to "probation team description",
+          "prison" to "Moorland",
+          "offenderNo" to "654321",
+          "prisonerName" to "Bob Builder",
+          "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "Probation meeting comments",
+        )
+      }
+
+      notificationCaptor.allValues hasSize 2
+      with(notificationCaptor.firstValue) {
+        email isEqualTo prisonUser.email
+        templateName isEqualTo "prison template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo probationBookingAtBirminghamPrison
+        reason isEqualTo "Cancelled probation booking due to transfer"
+      }
+      with(notificationCaptor.secondValue) {
+        email isEqualTo probationUser.email
+        templateName isEqualTo "probation template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo probationBookingAtBirminghamPrison
+        reason isEqualTo "Cancelled probation booking due to transfer"
       }
     }
   }

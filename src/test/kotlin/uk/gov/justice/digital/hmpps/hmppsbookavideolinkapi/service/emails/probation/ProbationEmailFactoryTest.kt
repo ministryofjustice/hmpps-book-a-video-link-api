@@ -89,6 +89,7 @@ class ProbationEmailFactoryTest {
     BookingAction.AMEND to AmendedProbationBookingProbationEmail::class.java,
     BookingAction.CANCEL to CancelledProbationBookingProbationEmail::class.java,
     BookingAction.RELEASED to ReleasedProbationBookingProbationEmail::class.java,
+    BookingAction.TRANSFERRED to TransferredProbationBookingProbationEmail::class.java,
   )
 
   private val prisonEmails = mapOf(
@@ -96,6 +97,7 @@ class ProbationEmailFactoryTest {
     BookingAction.AMEND to AmendedProbationBookingPrisonProbationEmail::class.java,
     BookingAction.CANCEL to CancelledProbationBookingPrisonProbationEmail::class.java,
     BookingAction.RELEASED to ReleasedProbationBookingPrisonProbationEmail::class.java,
+    BookingAction.TRANSFERRED to TransferredProbationBookingPrisonProbationEmail::class.java,
   )
 
   companion object {
@@ -103,13 +105,13 @@ class ProbationEmailFactoryTest {
     fun supportedUserBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL)
 
     @JvmStatic
-    fun supportedProbationBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED)
+    fun supportedProbationBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun supportedPrisonBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED)
+    fun supportedPrisonBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
     fun unsupportedProbationBookingActions() = setOf(BookingAction.CREATE)
@@ -206,7 +208,7 @@ class ProbationEmailFactoryTest {
       action = action,
       contact = probationBookingContact,
       prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED) probationBooking.apply { cancel(probationUser) } else probationBooking,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(probationUser) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
       location = moorlandLocation,
@@ -238,7 +240,7 @@ class ProbationEmailFactoryTest {
       action = action,
       contact = prisonBookingContact,
       prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED) probationBooking.apply { cancel(probationUser) } else probationBooking,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(probationUser) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
       location = moorlandLocation,

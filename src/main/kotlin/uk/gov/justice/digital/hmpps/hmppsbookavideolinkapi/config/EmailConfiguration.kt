@@ -42,6 +42,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
 import uk.gov.service.notify.NotificationClient
 import java.time.LocalDate
 import java.util.UUID
@@ -91,6 +94,9 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation.release-booking.probation:}") private val releaseProbationBookingProbation: String,
   @Value("\${notify.templates.probation.release-booking.prison-probation-email:}") private val releaseProbationBookingPrisonProbationEmail: String,
   @Value("\${notify.templates.probation.release-booking.prison-no-probation-email:}") private val releaseProbationBookingPrisonNoProbationEmail: String,
+  @Value("\${notify.templates.probation.transfer-booking.probation:}") private val transferProbationBookingProbation: String,
+  @Value("\${notify.templates.probation.transfer-booking.prison-probation-email:}") private val transferProbationBookingPrisonProbationEmail: String,
+  @Value("\${notify.templates.probation.transfer-booking.prison-no-probation-email:}") private val transferProbationBookingPrisonNoProbationEmail: String,
 ) {
 
   companion object {
@@ -142,6 +148,9 @@ class EmailConfiguration(
     releaseProbationBookingProbation = releaseProbationBookingProbation,
     releaseProbationBookingPrisonProbationEmail = releaseProbationBookingPrisonProbationEmail,
     releaseProbationBookingPrisonNoProbationEmail = releaseProbationBookingPrisonNoProbationEmail,
+    transferProbationBookingProbation = transferProbationBookingProbation,
+    transferProbationBookingPrisonProbationEmail = transferProbationBookingPrisonProbationEmail,
+    transferProbationBookingPrisonNoProbationEmail = transferProbationBookingPrisonNoProbationEmail,
   )
 }
 
@@ -212,6 +221,9 @@ data class EmailTemplates(
   val releaseProbationBookingProbation: String,
   val releaseProbationBookingPrisonProbationEmail: String,
   val releaseProbationBookingPrisonNoProbationEmail: String,
+  val transferProbationBookingProbation: String,
+  val transferProbationBookingPrisonProbationEmail: String,
+  val transferProbationBookingPrisonNoProbationEmail: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
@@ -251,6 +263,9 @@ data class EmailTemplates(
     ReleasedProbationBookingProbationEmail::class.java to releaseProbationBookingProbation,
     ReleasedProbationBookingPrisonProbationEmail::class.java to releaseProbationBookingPrisonProbationEmail,
     ReleasedProbationBookingPrisonNoProbationEmail::class.java to releaseProbationBookingPrisonNoProbationEmail,
+    TransferredProbationBookingProbationEmail::class.java to transferProbationBookingProbation,
+    TransferredProbationBookingPrisonProbationEmail::class.java to transferProbationBookingPrisonProbationEmail,
+    TransferredProbationBookingPrisonNoProbationEmail::class.java to transferProbationBookingPrisonNoProbationEmail,
   )
 
   init {

@@ -284,6 +284,80 @@ class AmendedProbationBookingPrisonNoProbationEmail(
   comments = comments,
 )
 
+class TransferredProbationBookingProbationEmail(
+  address: String,
+  probationTeam: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  appointmentDate: LocalDate = LocalDate.now(),
+  appointmentInfo: String,
+  comments: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  comments = comments,
+  dateOfBirth = dateOfBirth,
+)
+
+class TransferredProbationBookingPrisonProbationEmail(
+  address: String,
+  probationTeam: String,
+  probationEmailAddress: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  appointmentDate: LocalDate = LocalDate.now(),
+  appointmentInfo: String,
+  comments: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  probationEmailAddress = probationEmailAddress,
+  prison = prison,
+  comments = comments,
+  dateOfBirth = dateOfBirth,
+)
+
+class TransferredProbationBookingPrisonNoProbationEmail(
+  address: String,
+  probationTeam: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  dateOfBirth: LocalDate,
+  prisonerNumber: String,
+  appointmentDate: LocalDate = LocalDate.now(),
+  appointmentInfo: String,
+  comments: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  comments = comments,
+  dateOfBirth = dateOfBirth,
+)
+
 class ReleasedProbationBookingProbationEmail(
   address: String,
   probationTeam: String,
