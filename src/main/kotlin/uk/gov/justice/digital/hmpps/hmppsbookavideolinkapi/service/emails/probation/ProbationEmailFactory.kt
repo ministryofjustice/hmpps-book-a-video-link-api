@@ -120,6 +120,23 @@ object ProbationEmailFactory {
           comments = booking.comments,
         )
       }
+
+      BookingAction.RELEASED -> {
+        booking.requireIsCancelled()
+
+        ReleasedProbationBookingProbationEmail(
+          address = contact.email!!,
+          prisonerNumber = prisoner.prisonerNumber,
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          dateOfBirth = prisoner.dateOfBirth,
+          appointmentDate = appointment.appointmentDate,
+          probationTeam = booking.probationTeam!!.description,
+          prison = prison.name,
+          appointmentInfo = appointment.appointmentInformation(location),
+          comments = booking.comments,
+        )
+      }
       else -> null
     }
   }
@@ -228,6 +245,37 @@ object ProbationEmailFactory {
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
+          )
+        }
+      }
+
+      BookingAction.RELEASED -> {
+        if (primaryProbationContact != null) {
+          ReleasedProbationBookingPrisonProbationEmail(
+            address = contact.email!!,
+            prisonerNumber = prisoner.prisonerNumber,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            dateOfBirth = prisoner.dateOfBirth,
+            appointmentDate = appointment.appointmentDate,
+            probationTeam = booking.probationTeam!!.description,
+            probationEmailAddress = primaryProbationContact.email!!,
+            prison = prison.name,
+            appointmentInfo = appointment.appointmentInformation(location),
+            comments = booking.comments,
+          )
+        } else {
+          ReleasedProbationBookingPrisonNoProbationEmail(
+            address = contact.email!!,
+            prisonerNumber = prisoner.prisonerNumber,
+            prisonerFirstName = prisoner.firstName,
+            prisonerLastName = prisoner.lastName,
+            dateOfBirth = prisoner.dateOfBirth,
+            appointmentDate = appointment.appointmentDate,
+            probationTeam = booking.probationTeam!!.description,
+            prison = prison.name,
+            appointmentInfo = appointment.appointmentInformation(location),
+            comments = booking.comments,
           )
         }
       }
