@@ -86,7 +86,6 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
         AppointmentSearchRequest(
           appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
           startDate = onDate,
-          endDate = onDate,
           categoryCode = VIDEO_LINK_BOOKING,
           prisonerNumbers = listOf(prisonerNumber),
         ),
