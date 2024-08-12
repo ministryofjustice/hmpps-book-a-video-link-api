@@ -138,7 +138,6 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
               AppointmentSearchRequest(
                 appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
                 startDate = date,
-                endDate = date,
                 categoryCode = VIDEO_LINK_BOOKING,
                 prisonerNumbers = listOf(prisonerNumber),
               ),
