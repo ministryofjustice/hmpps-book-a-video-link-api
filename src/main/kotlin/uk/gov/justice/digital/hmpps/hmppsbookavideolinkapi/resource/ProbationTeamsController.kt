@@ -32,46 +32,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationTeam
 @RequestMapping(value = ["probation-teams"], produces = [MediaType.APPLICATION_JSON_VALUE])
 class ProbationTeamsController(private val probationTeamsService: ProbationTeamsService) {
 
-  @Operation(summary = "Endpoint to return a list of enabled probation teams for video link bookings")
-  @ApiResponses(
-    value = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Probation teams",
-        content = [
-          Content(
-            mediaType = "application/json",
-            array = ArraySchema(schema = Schema(implementation = ProbationTeam::class)),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-    ],
-  )
-  @GetMapping(value = ["/enabled"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
-  @Deprecated(message = "Do not use.", replaceWith = ReplaceWith("getProbationTeams"))
-  fun enabledProbationTeams(): List<ProbationTeam> = probationTeamsService.getProbationTeams(true)
-
   @Operation(summary = "Endpoint to return a list of probation teams for video link bookings")
   @ApiResponses(
     value = [
