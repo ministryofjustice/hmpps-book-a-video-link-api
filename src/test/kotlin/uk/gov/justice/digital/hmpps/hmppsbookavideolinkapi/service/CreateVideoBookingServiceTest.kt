@@ -523,7 +523,7 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to create a court video booking when court not enabled`() {
+  fun `should fail to create a court video booking when court not enabled for court user`() {
     val courtBookingRequest = courtBookingRequest()
     val disabledCourt = court(courtBookingRequest.courtCode!!, enabled = false)
 
@@ -534,6 +534,48 @@ class CreateVideoBookingServiceTest {
     error.message isEqualTo "Court with code ${courtBookingRequest.courtCode} is not enabled"
 
     verifyNoInteractions(videoBookingRepository)
+  }
+
+  @Test
+  fun `should create a court video booking when court not enabled for prison user`() {
+    val prisonCode = BIRMINGHAM
+    val prisonerNumber = "123456"
+    val courtBookingRequest = courtBookingRequest(
+      prisonCode = prisonCode,
+      prisonerNumber = prisonerNumber,
+      appointments = listOf(
+        Appointment(
+          type = AppointmentType.VLB_COURT_MAIN,
+          locationKey = "$prisonCode-A-1-001",
+          date = tomorrow(),
+          startTime = LocalTime.of(9, 30),
+          endTime = LocalTime.of(10, 0),
+        ),
+      ),
+    )
+
+    val overlappingAppointment: PrisonAppointment = mock {
+      on { startTime } doReturn LocalTime.of(9, 0)
+      on { endTime } doReturn LocalTime.of(10, 0)
+    }
+
+    val disabledCourt = court(courtBookingRequest.courtCode!!, enabled = false)
+
+    whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn disabledCourt
+    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
+    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+
+    assertDoesNotThrow {
+      service.create(courtBookingRequest, PRISON_USER)
+    }
+
+    whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn disabledCourt
+
+    assertDoesNotThrow {
+      service.create(courtBookingRequest, PRISON_USER)
+    }
   }
 
   @Test

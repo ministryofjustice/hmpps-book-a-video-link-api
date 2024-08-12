@@ -8,6 +8,8 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
@@ -34,13 +36,17 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
 
   @Sql("classpath:integration-test-data/seed-enabled-court-data.sql")
   @Test
-  fun `should return a list of enabled courts`() {
+  fun `should return filtered and unfiltered courts`() {
     courtRepository.findAll() hasSize 328
 
-    val listOfEnabledCourts = webTestClient.getEnabledCourts()
+    val enabledOnlyCourts = webTestClient.getCourts(true)
+    enabledOnlyCourts hasSize 327
+    enabledOnlyCourts.all { it.enabled } isBool true
 
-    assertThat(listOfEnabledCourts).extracting("code").contains("ENABLED")
-    assertThat(listOfEnabledCourts).extracting("code").doesNotContain("NOT_ENABLED")
+    val allCourts = webTestClient.getCourts(false)
+    allCourts hasSize 328
+    allCourts.count { it.enabled } isEqualTo 327
+    allCourts.count { !it.enabled } isEqualTo 1
   }
 
   @Sql("classpath:integration-test-data/seed-user-court-data.sql")
@@ -104,16 +110,16 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
     userCourtRepository.deleteAll()
   }
 
-  private fun WebTestClient.getEnabledCourts() =
+  private fun WebTestClient.getCourts(enabledOnly: Boolean) =
     get()
-      .uri("/courts/enabled")
+      .uri("/courts?enabledOnly=$enabledOnly")
       .accept(MediaType.APPLICATION_JSON)
       .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(Court::class.java)
-      .returnResult().responseBody
+      .returnResult().responseBody!!
 
   private fun WebTestClient.getUserPreferenceCourts(username: String = TEST_EXTERNAL_USER) =
     get()

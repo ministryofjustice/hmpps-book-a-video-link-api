@@ -14,8 +14,12 @@ class ProbationTeamsService(
   private val probationTeamRepository: ProbationTeamRepository,
   private val userProbationRepository: UserProbationRepository,
 ) {
-  fun getEnabledProbationTeams() =
-    probationTeamRepository.findAllByEnabledIsTrue().toModel()
+  fun getProbationTeams(enabledOnly: Boolean) =
+    if (enabledOnly) {
+      probationTeamRepository.findAllByEnabledIsTrue().toModel()
+    } else {
+      probationTeamRepository.findAll().toModel()
+    }
 
   fun getUserProbationTeamPreferences(user: User) =
     probationTeamRepository.findProbationTeamsByUsername(user.username).toModel()

@@ -6,7 +6,10 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserProbationRepository
@@ -26,31 +29,6 @@ class ProbationTeamsServiceTest {
   }
 
   @Test
-  fun `Should return a list of enabled probation teams`() {
-    val listOfEnabledTeams = listOf(
-      generateEntity(1L, "NORTH", "North"),
-      generateEntity(2L, "SOUTH", "South"),
-      generateEntity(3L, "EAST", "East"),
-      generateEntity(4L, "WEST", "West"),
-    )
-
-    whenever(probationTeamRepository.findAllByEnabledIsTrue()).thenReturn(listOfEnabledTeams)
-
-    assertThat(service.getEnabledProbationTeams()).isEqualTo(
-      listOfEnabledTeams.toModel(),
-    )
-
-    verify(probationTeamRepository).findAllByEnabledIsTrue()
-  }
-
-  @Test
-  fun `Should return an empty list when no probation teams are enabled`() {
-    whenever(probationTeamRepository.findAllByEnabledIsTrue()).thenReturn(emptyList())
-    assertThat(service.getEnabledProbationTeams()).isEmpty()
-    verify(probationTeamRepository).findAllByEnabledIsTrue()
-  }
-
-  @Test
   fun `Should get user-probation team preferences for a user`() {
     val listOfTeamsForUser = listOf(
       generateEntity(1L, "NORTH", "One"),
@@ -64,5 +42,49 @@ class ProbationTeamsServiceTest {
     )
 
     verify(probationTeamRepository).findProbationTeamsByUsername("user")
+  }
+
+  @Test
+  fun `Should return enabled teams only`() {
+    val enabledTeams = listOf(
+      generateEntity(1L, "NORTH", "North"),
+      generateEntity(2L, "SOUTH", "South"),
+      generateEntity(3L, "EAST", "East"),
+      generateEntity(4L, "WEST", "West"),
+    )
+
+    val disabledTeams = listOf(
+      generateEntity(5L, "NORTHWEST", "North West", enabled = false),
+    )
+
+    val allTeams = enabledTeams.plus(disabledTeams)
+
+    whenever(probationTeamRepository.findAllByEnabledIsTrue()) doReturn (enabledTeams)
+    whenever(probationTeamRepository.findAll()) doReturn allTeams
+
+    service.getProbationTeams(true) containsExactlyInAnyOrder enabledTeams.toModel()
+    verify(probationTeamRepository, never()).findAll()
+  }
+
+  @Test
+  fun `Should return all teams`() {
+    val enabledTeams = listOf(
+      generateEntity(1L, "NORTH", "North"),
+      generateEntity(2L, "SOUTH", "South"),
+      generateEntity(3L, "EAST", "East"),
+      generateEntity(4L, "WEST", "West"),
+    )
+
+    val disabledTeams = listOf(
+      generateEntity(5L, "NORTHWEST", "North West", enabled = false),
+    )
+
+    val allTeams = enabledTeams.plus(disabledTeams)
+
+    whenever(probationTeamRepository.findAllByEnabledIsTrue()) doReturn (enabledTeams)
+    whenever(probationTeamRepository.findAll()) doReturn allTeams
+
+    service.getProbationTeams(false) containsExactlyInAnyOrder allTeams.toModel()
+    verify(probationTeamRepository, never()).findAllByEnabledIsTrue()
   }
 }
