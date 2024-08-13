@@ -127,6 +127,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         prisonCode = prisonCode,
         sequenceNumber = 1,
         internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
+        timeSlot = AppointmentSearchResult.TimeSlot.AM,
       )
     }
 
