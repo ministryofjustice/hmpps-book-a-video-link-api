@@ -168,6 +168,7 @@ class ManageExternalAppointmentsServiceTest {
           courtAppointment.prisonCode,
           "VIDEO LINK",
         ),
+        timeSlot = AppointmentSearchResult.TimeSlot.AM,
       ),
     )
 
@@ -381,6 +382,7 @@ class ManageExternalAppointmentsServiceTest {
           courtAppointment.prisonCode,
           "VIDEO LINK",
         ),
+        timeSlot = AppointmentSearchResult.TimeSlot.AM,
       ),
     )
 
@@ -426,6 +428,7 @@ class ManageExternalAppointmentsServiceTest {
           courtAppointment.prisonCode,
           "VIDEO LINK",
         ),
+        timeSlot = AppointmentSearchResult.TimeSlot.AM,
       ),
     )
 
@@ -542,6 +545,7 @@ class ManageExternalAppointmentsServiceTest {
           courtAppointment.prisonCode,
           "VIDEO LINK",
         ),
+        timeSlot = AppointmentSearchResult.TimeSlot.AM,
       ),
     )
 
