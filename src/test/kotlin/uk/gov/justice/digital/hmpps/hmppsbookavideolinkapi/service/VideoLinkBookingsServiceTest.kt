@@ -12,13 +12,13 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.externalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoAppointment
@@ -49,7 +49,7 @@ class VideoLinkBookingsServiceTest {
 
   @BeforeEach
   fun before() {
-    addUserToRequestForCaseloadCheck(externalUser)
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
 
     val courtHearingTypeRefCode = ReferenceCode(
       referenceCodeId = 1L,
@@ -127,7 +127,7 @@ class VideoLinkBookingsServiceTest {
 
   @Test
   fun `should fail to get a Moorland court video link booking by ID for a Birmingham prison user`() {
-    addUserToRequestForCaseloadCheck(prisonUser.copy(activeCaseLoadId = BIRMINGHAM))
+    addUserToRequestForCaseloadCheck(PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM))
 
     val courtBookingAtMoorlandPrison = courtBooking(createdBy = "test_user")
       .addAppointment(

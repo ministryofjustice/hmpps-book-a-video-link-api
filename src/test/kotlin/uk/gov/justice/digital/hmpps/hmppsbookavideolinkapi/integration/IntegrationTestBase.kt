@@ -10,16 +10,15 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER_EMAIL
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_PRISON_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_PRISON_USER_EMAIL
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -44,7 +43,7 @@ abstract class IntegrationTestBase {
   protected lateinit var jwtAuthHelper: JwtAuthHelper
 
   protected fun setAuthorisation(
-    user: String = TEST_EXTERNAL_USER,
+    user: String = EXTERNAL_USER.username,
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles, scopes)
@@ -65,7 +64,7 @@ abstract class IntegrationTestBase {
 
   protected fun manageUsersApi() = ManageUsersApiExtension.server
 
-  protected fun stubUser(username: String = TEST_EXTERNAL_USER, name: String = "Test Users Name", userType: UserType = UserType.EXTERNAL, email: String? = TEST_EXTERNAL_USER_EMAIL) {
+  protected fun stubUser(username: String = EXTERNAL_USER.username, name: String = "Test Users Name", userType: UserType = UserType.EXTERNAL, email: String? = EXTERNAL_USER.email) {
     val authSource = when (userType) {
       UserType.EXTERNAL -> AuthSource.auth
       UserType.PRISON -> AuthSource.nomis
@@ -75,9 +74,20 @@ abstract class IntegrationTestBase {
     if (email != null) manageUsersApi().stubGetUserEmail(username, email)
   }
 
+  protected fun stubUser(user: User) {
+    val authSource = when {
+      user.isUserType(UserType.EXTERNAL) -> AuthSource.auth
+      user.isUserType(UserType.PRISON) -> AuthSource.nomis
+      else -> AuthSource.none
+    }
+
+    manageUsersApi().stubGetUserDetails(user.username, authSource, user.name, user.activeCaseLoadId)
+    user.email?.let { manageUsersApi().stubGetUserEmail(user.username, it) }
+  }
+
   @BeforeEach
   fun `stub user`() {
-    stubUser(TEST_EXTERNAL_USER, userType = UserType.EXTERNAL, email = TEST_EXTERNAL_USER_EMAIL)
-    stubUser(TEST_PRISON_USER, userType = UserType.PRISON, email = TEST_PRISON_USER_EMAIL)
+    stubUser(EXTERNAL_USER)
+    stubUser(PRISON_USER)
   }
 }
