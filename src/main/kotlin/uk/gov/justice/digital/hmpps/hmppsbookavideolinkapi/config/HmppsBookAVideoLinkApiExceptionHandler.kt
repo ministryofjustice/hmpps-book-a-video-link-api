@@ -71,10 +71,10 @@ class HmppsBookAVideoLinkApiExceptionHandler : ResponseEntityExceptionHandler() 
   fun handleCaseLoadAccessException(e: CaseloadAccessException): ResponseEntity<ErrorResponse> {
     log.info("Case load access exception: {}", e.message)
     return ResponseEntity
-      .status(HttpStatus.FORBIDDEN)
+      .status(NOT_FOUND)
       .body(
         ErrorResponse(
-          status = HttpStatus.FORBIDDEN.value(),
+          status = NOT_FOUND.value(),
           userMessage = "Not found: ${e.message}",
           developerMessage = e.message,
         ),

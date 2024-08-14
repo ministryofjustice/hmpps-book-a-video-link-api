@@ -229,7 +229,7 @@ class VideoLinkBookingControllerTest {
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(prisonUser.copy(activeCaseLoadId = RISLEY), LocalDateTime.now()))
     }
       .andExpect {
-        status { isForbidden() }
+        status { isNotFound() }
       }.andReturn()
 
     response.resolvedException isInstanceOf CaseloadAccessException::class.java
