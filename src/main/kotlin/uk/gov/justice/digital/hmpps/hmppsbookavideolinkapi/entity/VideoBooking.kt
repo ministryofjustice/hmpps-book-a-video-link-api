@@ -64,10 +64,15 @@ class VideoBooking private constructor(
 
   fun isCourtBooking() = bookingType == "COURT"
 
+  fun isProbationBooking() = isCourtBooking().not()
+
   fun appointments() = prisonAppointments.toList()
 
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
   fun prisoner() = appointments().map { it.prisonerNumber }.distinct().single()
+
+  // TODO: Assumes one person per booking, so revisit for co-defendant cases
+  fun prisonCode() = appointments().map { it.prisonCode }.distinct().single()
 
   fun isStatus(status: StatusCode) = statusCode == status
 

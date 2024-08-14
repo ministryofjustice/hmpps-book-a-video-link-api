@@ -10,12 +10,15 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.externalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoAppointment
@@ -26,6 +29,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.addUserToRequestForCaseloadCheck
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -44,6 +49,8 @@ class VideoLinkBookingsServiceTest {
 
   @BeforeEach
   fun before() {
+    addUserToRequestForCaseloadCheck(externalUser)
+
     val courtHearingTypeRefCode = ReferenceCode(
       referenceCodeId = 1L,
       groupCode = "COURT_HEARING_TYPE",
@@ -116,6 +123,26 @@ class VideoLinkBookingsServiceTest {
       assertThat(probationMeetingType).isNull()
       assertThat(probationMeetingTypeDescription).isNull()
     }
+  }
+
+  @Test
+  fun `should fail to get a Moorland court video link booking by ID for a Birmingham prison user`() {
+    addUserToRequestForCaseloadCheck(prisonUser.copy(activeCaseLoadId = BIRMINGHAM))
+
+    val courtBookingAtMoorlandPrison = courtBooking(createdBy = "test_user")
+      .addAppointment(
+        prisonCode = MOORLAND,
+        prisonerNumber = "A1234FF",
+        appointmentType = AppointmentType.VLB_COURT_MAIN.name,
+        locationKey = moorlandLocation.key,
+        date = tomorrow(),
+        startTime = LocalTime.MIDNIGHT.plusHours(1),
+        endTime = LocalTime.MIDNIGHT.plusHours(2),
+      )
+
+    whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBookingAtMoorlandPrison)
+
+    assertThrows<CaseloadAccessException> { service.getVideoLinkBookingById(1L) }
   }
 
   @Test
