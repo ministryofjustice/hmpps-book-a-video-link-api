@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
 
 @RestControllerAdvice
 class HmppsBookAVideoLinkApiExceptionHandler : ResponseEntityExceptionHandler() {
@@ -61,6 +62,20 @@ class HmppsBookAVideoLinkApiExceptionHandler : ResponseEntityExceptionHandler() 
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Exception: ${e.message}",
+          developerMessage = e.message,
+        ),
+      )
+  }
+
+  @ExceptionHandler(CaseloadAccessException::class)
+  fun handleCaseLoadAccessException(e: CaseloadAccessException): ResponseEntity<ErrorResponse> {
+    log.info("Case load access exception: {}", e.message)
+    return ResponseEntity
+      .status(NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = NOT_FOUND.value(),
+          userMessage = "Not found: ${e.message}",
           developerMessage = e.message,
         ),
       )

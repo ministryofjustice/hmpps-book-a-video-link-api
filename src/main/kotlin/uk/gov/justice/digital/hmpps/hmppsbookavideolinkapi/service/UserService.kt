@@ -40,11 +40,12 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
         userType = userType,
         name = userDetails.name,
         email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
+        activeCaseLoadId = userDetails.activeCaseLoadId?.takeIf { userType == UserType.PRISON },
       )
     }
 }
 
-data class User(val username: String, private val userType: UserType, val name: String, val email: String? = null) {
+data class User(val username: String, private val userType: UserType, val name: String, val email: String? = null, val activeCaseLoadId: String? = null) {
   fun isUserType(vararg types: UserType) = types.contains(userType)
 }
 

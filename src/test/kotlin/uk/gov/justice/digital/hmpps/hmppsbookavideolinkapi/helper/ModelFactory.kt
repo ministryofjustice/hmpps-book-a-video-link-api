@@ -34,6 +34,7 @@ val courtUser = user(userType = UserType.EXTERNAL, name = "Court User", email = 
 val prisonUser = user(userType = UserType.PRISON, name = "Prison User", email = "prison.user@prison.com")
 val probationUser = user(userType = UserType.EXTERNAL, name = "Probation User", email = "probation.user@probation.com")
 val serviceUser = user(userType = UserType.SERVICE, name = "service user")
+val externalUser = user(userType = UserType.EXTERNAL, name = "External User", email = "external.user@external.com")
 
 fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null) = Location(
   id = UUID.randomUUID(),
@@ -74,13 +75,14 @@ fun prisonerSearchPrisoner(
 
 fun userEmailAddress(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, verified, email)
 
-fun userDetails(username: String, name: String = "Test User", authSource: AuthSource = AuthSource.auth) =
+fun userDetails(username: String, name: String = "Test User", authSource: AuthSource = AuthSource.auth, activeCaseLoadId: String? = null) =
   UserDetailsDto(
     userId = "TEST",
     username = username,
     active = true,
     name = name,
     authSource = authSource,
+    activeCaseLoadId = activeCaseLoadId,
   )
 
 fun user(username: String = "user", userType: UserType = UserType.EXTERNAL, name: String = "Test User", email: String? = null) =

@@ -3,12 +3,15 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByCourtHearingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkCaseLoadAccess
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 
 @Service
@@ -21,24 +24,15 @@ class VideoLinkBookingsService(
   fun getVideoLinkBookingById(videoBookingId: Long): VideoLinkBooking {
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
+      .also { checkCaseLoadAccess(it.prisonCode()) }
 
-    // Get the optional court hearing type reference data (if a court booking)
-    val hearingType = when (booking.bookingType) {
-      BookingType.COURT.name -> {
-        referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", booking?.hearingType!!)
-      }
+    val hearingType = booking
+      .takeIf(VideoBooking::isCourtBooking)
+      ?.let { referenceCodeRepository.findByCourtHearingType(booking.hearingType!!) }
 
-      else -> null
-    }
-
-    // Get the optional probation meeting type reference data (if a probation booking)
-    val meetingType = when (booking.bookingType) {
-      BookingType.PROBATION.name -> {
-        referenceCodeRepository.findByGroupCodeAndCode("PROBATION_MEETING_TYPE", booking?.probationMeetingType!!)
-      }
-
-      else -> null
-    }
+    val meetingType = booking
+      .takeIf(VideoBooking::isProbationBooking)
+      ?.let { referenceCodeRepository.findByProbationMeetingType(booking.probationMeetingType!!) }
 
     return booking.toModel(
       prisonAppointments = booking.appointments(),
