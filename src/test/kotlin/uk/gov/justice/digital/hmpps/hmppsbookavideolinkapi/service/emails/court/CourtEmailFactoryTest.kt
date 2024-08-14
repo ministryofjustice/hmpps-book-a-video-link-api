@@ -6,10 +6,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
@@ -104,7 +104,7 @@ class CourtEmailFactoryTest {
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL) courtBooking.cancel(courtUser) else courtBooking,
+      booking = if (action == BookingAction.CANCEL) courtBooking.cancel(COURT_USER) else courtBooking,
       prison = prison,
       pre = null,
       main = courtBooking.appointments().single(),

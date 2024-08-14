@@ -7,11 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.TEST_EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetProbationTeamPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetProbationTeamPreferencesResponse
@@ -119,7 +119,7 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
       .expectBodyList(ProbationTeam::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.getUserPreferenceTeams(username: String = TEST_EXTERNAL_USER) =
+  private fun WebTestClient.getUserPreferenceTeams(username: String = EXTERNAL_USER.username) =
     get()
       .uri("/probation-teams/user-preferences")
       .accept(MediaType.APPLICATION_JSON)

@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.springframework.web.context.request.RequestContextHolder
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.externalUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 
 class CaseloadAccessKtTest {
 
@@ -28,7 +28,7 @@ class CaseloadAccessKtTest {
 
   @Test
   fun `should fail caseload check when does not match that of prison user`() {
-    addUserToRequestForCaseloadCheck(prisonUser.copy(activeCaseLoadId = "THIS"))
+    addUserToRequestForCaseloadCheck(PRISON_USER.copy(activeCaseLoadId = "THIS"))
 
     RequestContextHolder.getRequestAttributes() isNotEqualTo null
 
@@ -37,7 +37,7 @@ class CaseloadAccessKtTest {
 
   @Test
   fun `should succeed caseload check when does match that of prison user`() {
-    addUserToRequestForCaseloadCheck(prisonUser.copy(activeCaseLoadId = "MATCH"))
+    addUserToRequestForCaseloadCheck(PRISON_USER.copy(activeCaseLoadId = "MATCH"))
 
     RequestContextHolder.getRequestAttributes() isNotEqualTo null
 
@@ -46,7 +46,7 @@ class CaseloadAccessKtTest {
 
   @Test
   fun `should succeed caseload check when user is external user`() {
-    addUserToRequestForCaseloadCheck(externalUser)
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
 
     RequestContextHolder.getRequestAttributes() isNotEqualTo null
 

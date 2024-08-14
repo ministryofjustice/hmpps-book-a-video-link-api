@@ -28,15 +28,15 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.HmppsBookAVideoLinkApiExceptionHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtAppealReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.externalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -197,7 +197,7 @@ class VideoLinkBookingControllerTest {
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(externalUser, LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(EXTERNAL_USER, LocalDateTime.now()))
     }
       .andExpect {
         status { isOk() }
@@ -212,7 +212,7 @@ class VideoLinkBookingControllerTest {
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(prisonUser.copy(activeCaseLoadId = MOORLAND), LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PRISON_USER.copy(activeCaseLoadId = MOORLAND), LocalDateTime.now()))
     }
       .andExpect {
         status { isOk() }
@@ -226,7 +226,7 @@ class VideoLinkBookingControllerTest {
 
     val response = mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(prisonUser.copy(activeCaseLoadId = RISLEY), LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PRISON_USER.copy(activeCaseLoadId = RISLEY), LocalDateTime.now()))
     }
       .andExpect {
         status { isNotFound() }

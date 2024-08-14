@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepos
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkCaseLoadAccess
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
 
 @Service
@@ -39,6 +40,8 @@ class CreateVideoBookingService(
     }
 
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
+    checkCaseLoadAccess(request.prisoner().prisonCode!!)
+
     val court = courtRepository.findByCode(request.courtCode!!)
       ?.also { if (!createdBy.isUserType(UserType.PRISON)) require(it.enabled) { "Court with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")

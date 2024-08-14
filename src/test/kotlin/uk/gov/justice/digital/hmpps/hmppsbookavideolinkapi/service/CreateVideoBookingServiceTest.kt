@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -13,6 +14,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.springframework.web.context.request.RequestContextHolder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
@@ -22,6 +24,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
@@ -41,6 +44,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.addUserToRequestForCaseloadCheck
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -71,8 +76,15 @@ class CreateVideoBookingServiceTest {
 
   private var newBookingCaptor = argumentCaptor<VideoBooking>()
 
+  @BeforeEach
+  fun before() {
+    RequestContextHolder.resetRequestAttributes()
+  }
+
   @Test
-  fun `should create a court video booking`() {
+  fun `should create a court video booking for external user`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -164,7 +176,30 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
+  fun `should create a Birmingham prison court video booking for Risley prison user`() {
+    addUserToRequestForCaseloadCheck(PRISON_USER.copy(activeCaseLoadId = RISLEY))
+
+    val courtBookingRequest = courtBookingRequest(
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      appointments = listOf(
+        Appointment(
+          type = AppointmentType.VLB_COURT_MAIN,
+          locationKey = birminghamLocation.key,
+          date = tomorrow(),
+          startTime = LocalTime.of(9, 30),
+          endTime = LocalTime.of(10, 0),
+        ),
+      ),
+    )
+
+    assertThrows<CaseloadAccessException> { service.create(courtBookingRequest, PRISON_USER.copy(activeCaseLoadId = RISLEY)) }
+  }
+
+  @Test
   fun `should fail to create a court video booking when too many appointments`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -215,6 +250,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when pre-hearing overlaps hearing`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -251,6 +288,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when post-hearing overlaps hearing`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -287,6 +326,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when no hearing appointment`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = MOORLAND
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -323,6 +364,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when too many pre-hearing appointments`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -366,6 +409,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when too many post-hearing appointments`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -409,6 +454,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when wrong appointment type`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -452,6 +499,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when new appointment overlaps existing for external user`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -488,6 +537,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should succeed to create a court video booking when new appointment overlaps existing for prison user`() {
+    addUserToRequestForCaseloadCheck(PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM))
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -524,6 +575,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when court not enabled for court user`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val courtBookingRequest = courtBookingRequest()
     val disabledCourt = court(courtBookingRequest.courtCode!!, enabled = false)
 
@@ -538,6 +591,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should create a court video booking when court not enabled for prison user`() {
+    addUserToRequestForCaseloadCheck(PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM))
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
@@ -580,6 +635,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when prison not found`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val courtBookingRequest = courtBookingRequest(prisonCode = MOORLAND)
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn court(courtBookingRequest.courtCode!!)
@@ -594,6 +651,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when court not found`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val courtBookingRequest = courtBookingRequest()
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn null
@@ -606,7 +665,9 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
-  fun `should create a probation video booking`() {
+  fun `should create a probation video booking for external user`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, location = birminghamLocation)
@@ -656,6 +717,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a probation video booking when new appointment overlaps existing for external user`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(
@@ -685,6 +748,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a probation video booking when prison user`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(
@@ -704,6 +769,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a probation video booking when team not found`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val probationBookingRequest = probationBookingRequest()
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn null
@@ -717,6 +784,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a probation video booking when prison not found`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val probationBookingRequest = probationBookingRequest(prisonCode = BIRMINGHAM)
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn probationTeam()
@@ -731,6 +800,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a probation video booking when team not enabled`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val probationBookingRequest = probationBookingRequest()
     val disabledProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!, false)
 
@@ -745,6 +816,8 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a probation video booking when appointment type not probation specific`() {
+    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
+
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, appointmentType = AppointmentType.VLB_COURT_MAIN)

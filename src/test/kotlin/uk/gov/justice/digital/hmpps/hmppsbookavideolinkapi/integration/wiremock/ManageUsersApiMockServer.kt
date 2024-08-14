@@ -7,25 +7,26 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmailAddress
 import java.net.URLEncoder
 
 class ManageUsersApiMockServer : MockServer(8093) {
 
-  fun stubGetUserDetails(username: String = TEST_EXTERNAL_USER, authSource: AuthSource = AuthSource.auth, name: String) {
+  fun stubGetUserDetails(username: String = EXTERNAL_USER.username, authSource: AuthSource = AuthSource.auth, name: String, activeCaseload: String? = null) {
     stubFor(
       get("/users/${username.urlEncode()}")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(userDetails(username, name, authSource)))
+            .withBody(mapper.writeValueAsString(userDetails(username, name, authSource, activeCaseload)))
             .withStatus(200),
         ),
     )
   }
 
-  fun stubGetUserEmail(username: String = TEST_EXTERNAL_USER, email: String = TEST_EXTERNAL_USER_EMAIL, verified: Boolean = true) {
+  fun stubGetUserEmail(username: String = EXTERNAL_USER.username, email: String = EXTERNAL_USER.email!!, verified: Boolean = true) {
     stubFor(
       get("/users/${username.urlEncode()}/email?unverified=false")
         .willReturn(
