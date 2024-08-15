@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import software.amazon.awssdk.http.HttpStatusCode.FORBIDDEN
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
 
 @RestControllerAdvice
@@ -71,10 +72,10 @@ class HmppsBookAVideoLinkApiExceptionHandler : ResponseEntityExceptionHandler() 
   fun handleCaseLoadAccessException(e: CaseloadAccessException): ResponseEntity<ErrorResponse> {
     log.info("Case load access exception: {}", e.message)
     return ResponseEntity
-      .status(NOT_FOUND)
+      .status(FORBIDDEN)
       .body(
         ErrorResponse(
-          status = NOT_FOUND.value(),
+          status = FORBIDDEN,
           userMessage = "Not found: ${e.message}",
           developerMessage = e.message,
         ),

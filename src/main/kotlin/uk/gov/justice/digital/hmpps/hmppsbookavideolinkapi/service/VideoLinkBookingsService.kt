@@ -21,10 +21,10 @@ class VideoLinkBookingsService(
   private val referenceCodeRepository: ReferenceCodeRepository,
   private val videoAppointmentRepository: VideoAppointmentRepository,
 ) {
-  fun getVideoLinkBookingById(videoBookingId: Long): VideoLinkBooking {
+  fun getVideoLinkBookingById(videoBookingId: Long, user: User): VideoLinkBooking {
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
-      .also { checkCaseLoadAccess(it.prisonCode()) }
+      .also { checkCaseLoadAccess(user, it.prisonCode()) }
 
     val hearingType = booking
       .takeIf(VideoBooking::isCourtBooking)
@@ -43,7 +43,7 @@ class VideoLinkBookingsService(
     )
   }
 
-  fun findMatchingVideoLinkBooking(searchRequest: VideoBookingSearchRequest): VideoLinkBooking =
+  fun findMatchingVideoLinkBooking(searchRequest: VideoBookingSearchRequest, user: User): VideoLinkBooking =
     videoAppointmentRepository.findByPrisonerNumberAndAppointmentDateAndPrisonLocKeyAndStartTimeAndEndTime(
       prisonerNumber = searchRequest.prisonerNumber!!,
       appointmentDate = searchRequest.date!!,
@@ -51,6 +51,6 @@ class VideoLinkBookingsService(
       startTime = searchRequest.startTime!!,
       endTime = searchRequest.endTime!!,
     )
-      ?.let { getVideoLinkBookingById(it.videoBookingId) }
+      ?.let { getVideoLinkBookingById(it.videoBookingId, user) }
       ?: throw EntityNotFoundException("Video booking not found matching search criteria $searchRequest")
 }
