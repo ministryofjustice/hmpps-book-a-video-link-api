@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
@@ -51,6 +52,23 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
   createdByPrison = createdByPrison,
 )
 
+/**
+ * This adds a prison appointment to meet the basic needs of a test. We don't care about the details of the appointment.
+ */
+fun VideoBooking.withMainCourtPrisonAppointment(
+  prisonCode: String = BIRMINGHAM,
+  location: Location = birminghamLocation,
+) =
+  addAppointment(
+    prisonCode = prisonCode,
+    prisonerNumber = "123456",
+    appointmentType = "VLB_COURT_MAIN",
+    locationKey = location.key,
+    date = tomorrow(),
+    startTime = LocalTime.of(9, 30),
+    endTime = LocalTime.of(10, 0),
+  )
+
 fun probationBooking() = VideoBooking.newProbationBooking(
   probationTeam = probationTeam(),
   probationMeetingType = "PSR",
@@ -58,6 +76,22 @@ fun probationBooking() = VideoBooking.newProbationBooking(
   videoUrl = "https://probation.meeting.link",
   createdBy = "Probation team user",
   createdByPrison = false,
+)
+
+/**
+ * This adds a prison appointment to meet the basic needs of a test. We don't care about the details of the appointment.
+ */
+fun VideoBooking.withProbationPrisonAppointment(
+  prisonCode: String = BIRMINGHAM,
+  location: Location = birminghamLocation,
+) = addAppointment(
+  prisonCode = prisonCode,
+  prisonerNumber = "123456",
+  appointmentType = "VLB_PROBATION",
+  date = tomorrow(),
+  startTime = LocalTime.MIDNIGHT,
+  endTime = LocalTime.MIDNIGHT.plusHours(1),
+  locationKey = location.key,
 )
 
 fun appointment(
