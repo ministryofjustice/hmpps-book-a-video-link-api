@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -14,7 +13,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import org.springframework.web.context.request.RequestContextHolder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
@@ -75,11 +73,6 @@ class CreateVideoBookingServiceTest {
   )
 
   private var newBookingCaptor = argumentCaptor<VideoBooking>()
-
-  @BeforeEach
-  fun before() {
-    RequestContextHolder.resetRequestAttributes()
-  }
 
   @Test
   fun `should create a court video booking for external user`() {
