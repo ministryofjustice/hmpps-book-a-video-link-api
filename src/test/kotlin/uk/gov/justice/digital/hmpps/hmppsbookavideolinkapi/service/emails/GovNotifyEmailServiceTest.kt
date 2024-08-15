@@ -48,6 +48,7 @@ class GovNotifyEmailServiceTest {
     newCourtBookingPrisonCourtEmail = "newCourtBookingPrisonCourtEmail",
     newCourtBookingPrisonNoCourtEmail = "newCourtBookingPrisonNoCourtEmail",
     amendedCourtBookingUser = "amendedCourtBookingUser",
+    amendedCourtBookingCourtEmail = "amendedCourtBookingCourtEmail",
     amendedCourtBookingPrisonCourtEmail = "amendedCourtBookingPrisonCourtEmail",
     amendedCourtBookingPrisonNoCourtEmail = "amendedCourtBookingPrisonNoCourtEmail",
     cancelledCourtBookingUser = "cancelledCourtBookingUser",

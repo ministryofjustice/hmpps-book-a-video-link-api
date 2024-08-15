@@ -119,6 +119,7 @@ notify:
         prison-no-court-email: "d555929e-c8a5-4771-911b-4538ba259eba"
       amended-booking:
         user: "443760a3-e644-4228-8c60-ecb76fb39664"
+        court: "9507f9ee-670d-4715-b2ad-62eaa945e25b"
         prison-court-email: "9edef9a6-df69-462a-995c-010c2b4f2cbf"
         prison-no-court-email: "d756d798-bf1b-4651-85e5-6f42c741e33b"
       cancelled-booking:
