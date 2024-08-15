@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.GovNotifyEmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
@@ -63,6 +64,7 @@ class EmailConfiguration(
   @Value("\${notify.templates.court.new-booking.prison-court-email:}") private val newCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.court.new-booking.prison-no-court-email:}") private val newCourtBookingPrisonNoCourtEmail: String,
   @Value("\${notify.templates.court.amended-booking.user:}") private val amendedCourtBookingUser: String,
+  @Value("\${notify.templates.court.amended-booking.court:}") private val amendedCourtBookingCourtEmail: String,
   @Value("\${notify.templates.court.amended-booking.prison-court-email:}") private val amendedCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.court.amended-booking.prison-no-court-email:}") private val amendedCourtBookingPrisonNoCourtEmail: String,
   @Value("\${notify.templates.court.cancelled-booking.user:}") private val cancelledCourtBookingUser: String,
@@ -117,6 +119,7 @@ class EmailConfiguration(
     newCourtBookingPrisonCourtEmail = newCourtBookingPrisonCourtEmail,
     newCourtBookingPrisonNoCourtEmail = newCourtBookingPrisonNoCourtEmail,
     amendedCourtBookingUser = amendedCourtBookingUser,
+    amendedCourtBookingCourtEmail = amendedCourtBookingCourtEmail,
     amendedCourtBookingPrisonCourtEmail = amendedCourtBookingPrisonCourtEmail,
     amendedCourtBookingPrisonNoCourtEmail = amendedCourtBookingPrisonNoCourtEmail,
     cancelledCourtBookingUser = cancelledCourtBookingUser,
@@ -190,6 +193,7 @@ data class EmailTemplates(
   val newCourtBookingPrisonCourtEmail: String,
   val newCourtBookingPrisonNoCourtEmail: String,
   val amendedCourtBookingUser: String,
+  val amendedCourtBookingCourtEmail: String,
   val amendedCourtBookingPrisonCourtEmail: String,
   val amendedCourtBookingPrisonNoCourtEmail: String,
   val cancelledCourtBookingUser: String,
@@ -232,6 +236,7 @@ data class EmailTemplates(
     NewCourtBookingPrisonCourtEmail::class.java to newCourtBookingPrisonCourtEmail,
     NewCourtBookingPrisonNoCourtEmail::class.java to newCourtBookingPrisonNoCourtEmail,
     AmendedCourtBookingUserEmail::class.java to amendedCourtBookingUser,
+    AmendedCourtBookingCourtEmail::class.java to amendedCourtBookingCourtEmail,
     AmendedCourtBookingPrisonCourtEmail::class.java to amendedCourtBookingPrisonCourtEmail,
     AmendedCourtBookingPrisonNoCourtEmail::class.java to amendedCourtBookingPrisonNoCourtEmail,
     CancelledCourtBookingUserEmail::class.java to cancelledCourtBookingUser,

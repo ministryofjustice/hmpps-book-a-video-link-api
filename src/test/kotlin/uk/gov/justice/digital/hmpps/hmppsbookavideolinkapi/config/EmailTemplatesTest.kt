@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
@@ -51,6 +52,7 @@ class EmailTemplatesTest {
     NewCourtBookingPrisonCourtEmail::class.java to "newCourtBookingPrisonCourtEmail",
     NewCourtBookingPrisonNoCourtEmail::class.java to "newCourtBookingPrisonNoCourtEmail",
     AmendedCourtBookingUserEmail::class.java to "amendedCourtBookingUser",
+    AmendedCourtBookingCourtEmail::class.java to "amendedCourtBookingCourtEmail",
     AmendedCourtBookingPrisonCourtEmail::class.java to "amendedCourtBookingPrisonCourtEmail",
     AmendedCourtBookingPrisonNoCourtEmail::class.java to "amendedCourtBookingPrisonNoCourtEmail",
     CancelledCourtBookingUserEmail::class.java to "cancelledCourtBookingUser",
@@ -93,6 +95,7 @@ class EmailTemplatesTest {
     newCourtBookingPrisonCourtEmail = "newCourtBookingPrisonCourtEmail",
     newCourtBookingPrisonNoCourtEmail = "newCourtBookingPrisonNoCourtEmail",
     amendedCourtBookingUser = "amendedCourtBookingUser",
+    amendedCourtBookingCourtEmail = "amendedCourtBookingCourtEmail",
     amendedCourtBookingPrisonCourtEmail = "amendedCourtBookingPrisonCourtEmail",
     amendedCourtBookingPrisonNoCourtEmail = "amendedCourtBookingPrisonNoCourtEmail",
     cancelledCourtBookingUser = "cancelledCourtBookingUser",
@@ -180,6 +183,7 @@ class EmailTemplatesTest {
       "11",
       "12",
       "13",
+      "14",
     )
 
     val error = assertThrows<IllegalArgumentException> {
@@ -221,6 +225,7 @@ class EmailTemplatesTest {
         "9",
         "10",
         "11",
+        "12",
         "duplicate",
         "duplicate",
       )

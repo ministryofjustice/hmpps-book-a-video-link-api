@@ -167,6 +167,32 @@ class AmendedCourtBookingUserEmail(
   comments = comments,
 )
 
+class AmendedCourtBookingCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  appointmentDate: LocalDate = LocalDate.now(),
+  court: String,
+  prison: String,
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+) : CourtEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  appointmentDate = appointmentDate,
+  court = court,
+  prison = prison,
+  preAppointmentInfo = preAppointmentInfo,
+  mainAppointmentInfo = mainAppointmentInfo,
+  postAppointmentInfo = postAppointmentInfo,
+  comments = comments,
+)
+
 class AmendedCourtBookingPrisonCourtEmail(
   address: String,
   prisonerFirstName: String,

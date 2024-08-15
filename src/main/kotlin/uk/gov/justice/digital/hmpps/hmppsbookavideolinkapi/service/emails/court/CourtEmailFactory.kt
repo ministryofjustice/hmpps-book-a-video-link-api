@@ -115,39 +115,62 @@ object CourtEmailFactory {
         comments = booking.comments,
       )
 
-      BookingAction.AMEND -> null // TODO: Inform court when the prison amends a booking
-
-      BookingAction.CANCEL -> null // TODO: Inform court when the prison cancels a booking
-
-      BookingAction.RELEASED -> ReleasedCourtBookingCourtEmail(
+      BookingAction.AMEND -> AmendedCourtBookingCourtEmail(
         address = contact.email!!,
-        court = booking.court!!.description,
-        prison = prison.name,
         prisonerFirstName = prisoner.firstName,
         prisonerLastName = prisoner.lastName,
-        dateOfBirth = prisoner.dateOfBirth,
         prisonerNumber = prisoner.prisonerNumber,
-        date = main.appointmentDate,
+        appointmentDate = main.appointmentDate,
+        court = booking.court!!.description,
+        prison = prison.name,
         preAppointmentInfo = pre?.appointmentInformation(locations),
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
       )
 
-      BookingAction.TRANSFERRED -> TransferredCourtBookingCourtEmail(
-        address = contact.email!!,
-        court = booking.court!!.description,
-        prison = prison.name,
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        dateOfBirth = prisoner.dateOfBirth,
-        prisonerNumber = prisoner.prisonerNumber,
-        date = main.appointmentDate,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
-        comments = booking.comments,
-      )
+      BookingAction.CANCEL -> {
+        // TODO: Inform court when the prison cancels a booking
+        null
+      }
+
+      BookingAction.RELEASED -> {
+        booking.requireIsCancelled()
+
+        ReleasedCourtBookingCourtEmail(
+          address = contact.email!!,
+          court = booking.court!!.description,
+          prison = prison.name,
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          dateOfBirth = prisoner.dateOfBirth,
+          prisonerNumber = prisoner.prisonerNumber,
+          date = main.appointmentDate,
+          preAppointmentInfo = pre?.appointmentInformation(locations),
+          mainAppointmentInfo = main.appointmentInformation(locations),
+          postAppointmentInfo = post?.appointmentInformation(locations),
+          comments = booking.comments,
+        )
+      }
+
+      BookingAction.TRANSFERRED -> {
+        booking.requireIsCancelled()
+
+        TransferredCourtBookingCourtEmail(
+          address = contact.email!!,
+          court = booking.court!!.description,
+          prison = prison.name,
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          dateOfBirth = prisoner.dateOfBirth,
+          prisonerNumber = prisoner.prisonerNumber,
+          date = main.appointmentDate,
+          preAppointmentInfo = pre?.appointmentInformation(locations),
+          mainAppointmentInfo = main.appointmentInformation(locations),
+          postAppointmentInfo = post?.appointmentInformation(locations),
+          comments = booking.comments,
+        )
+      }
     }
   }
 
@@ -273,7 +296,9 @@ object CourtEmailFactory {
         }
       }
 
-      BookingAction.RELEASED ->
+      BookingAction.RELEASED -> {
+        booking.requireIsCancelled()
+
         if (primaryCourtContact != null) {
           // Note: primary contact is only used to determine which template to use, it is not used in the template.
           ReleasedCourtBookingPrisonCourtEmail(
@@ -306,8 +331,11 @@ object CourtEmailFactory {
             comments = booking.comments,
           )
         }
+      }
 
-      BookingAction.TRANSFERRED ->
+      BookingAction.TRANSFERRED -> {
+        booking.requireIsCancelled()
+
         // Note: primary contact is only used to determine which template to use, it is not used in the template.
         if (primaryCourtContact != null) {
           TransferredCourtBookingPrisonCourtEmail(
@@ -340,6 +368,7 @@ object CourtEmailFactory {
             comments = booking.comments,
           )
         }
+      }
     }
   }
 

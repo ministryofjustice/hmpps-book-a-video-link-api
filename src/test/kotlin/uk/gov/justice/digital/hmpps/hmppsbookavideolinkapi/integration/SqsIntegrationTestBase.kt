@@ -49,7 +49,7 @@ abstract class SqsIntegrationTestBase : IntegrationTestBase() {
   }
 
   protected fun waitForMessagesOnQueue(numberOfMessages: Int) {
-    await untilCallTo { countAllMessagesOnQueue().also { println("number messages a q $it") } } matches { it == numberOfMessages }
+    await untilCallTo { countAllMessagesOnQueue().also { println("number messages on queue - $it") } } matches { it == numberOfMessages }
   }
 
   protected fun countAllMessagesOnQueue(): Int = eventsClient.countAllMessagesOnQueue(eventsQueue.queueUrl).get()

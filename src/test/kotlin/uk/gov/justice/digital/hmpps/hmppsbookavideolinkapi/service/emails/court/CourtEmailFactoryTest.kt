@@ -80,9 +80,6 @@ class CourtEmailFactoryTest {
 
     @JvmStatic
     fun supportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.RELEASED, BookingAction.TRANSFERRED)
-
-    @JvmStatic
-    fun unsupportedCourtBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL)
   }
 
   private val userEmails = mapOf(
@@ -93,6 +90,7 @@ class CourtEmailFactoryTest {
 
   private val courtEmails = mapOf(
     BookingAction.CREATE to NewCourtBookingCourtEmail::class.java,
+    BookingAction.AMEND to AmendedCourtBookingCourtEmail::class.java,
     BookingAction.RELEASED to ReleasedCourtBookingCourtEmail::class.java,
     BookingAction.TRANSFERRED to TransferredCourtBookingCourtEmail::class.java,
   )
@@ -178,7 +176,7 @@ class CourtEmailFactoryTest {
       action = action,
       contact = courtBookingContact,
       prisoner = prisoner,
-      booking = courtBooking,
+      booking = if (action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) courtBooking.apply { cancel(COURT_USER) } else courtBooking,
       prison = prison,
       pre = null,
       main = courtBooking.appointments().single(),
@@ -187,24 +185,6 @@ class CourtEmailFactoryTest {
     )
 
     email isInstanceOf courtEmails[action]!!
-  }
-
-  @ParameterizedTest
-  @MethodSource("unsupportedCourtBookingActions")
-  fun `should return no email for unsupported court based actions`(action: BookingAction) {
-    val email = CourtEmailFactory.court(
-      action = action,
-      contact = courtBookingContact,
-      prisoner = prisoner,
-      booking = courtBooking,
-      prison = prison,
-      pre = null,
-      main = courtBooking.appointments().single(),
-      post = null,
-      locations = mapOf(moorlandLocation.key to moorlandLocation),
-    )
-
-    email isEqualTo null
   }
 
   @Test

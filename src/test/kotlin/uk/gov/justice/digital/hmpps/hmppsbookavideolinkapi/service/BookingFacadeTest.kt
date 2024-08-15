@@ -48,6 +48,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonNoCourtEmail
@@ -657,6 +658,76 @@ class BookingFacadeTest {
     }
 
     @Test
+    fun `should send events and emails on amendment of court booking by prison user`() {
+      setupCourtPrimaryContactsFor(PRISON_USER)
+
+      val bookingRequest = amendCourtBookingRequest(prisonCode = MOORLAND, prisonerNumber = "123456")
+
+      whenever(amendBookingService.amend(1, bookingRequest, PRISON_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
+      whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
+      whenever(emailService.send(any<AmendedCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
+
+      facade.amend(1, bookingRequest, PRISON_USER)
+
+      inOrder(amendBookingService, emailService, notificationRepository) {
+        verify(amendBookingService).amend(1, bookingRequest, PRISON_USER)
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      }
+
+      emailCaptor.allValues hasSize 2
+      with(emailCaptor.firstValue) {
+        this isInstanceOf AmendedCourtBookingUserEmail::class.java
+        address isEqualTo PRISON_USER.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "userName" to PRISON_USER.name,
+          "court" to DERBY_JUSTICE_CENTRE,
+          "offenderNo" to "123456",
+          "prisonerName" to "Fred Bloggs",
+          "date" to "1 Jan 2100",
+          "preAppointmentInfo" to "Not required",
+          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "postAppointmentInfo" to "Not required",
+          "comments" to "Court hearing comments",
+          "prison" to "Moorland",
+        )
+      }
+      with(emailCaptor.secondValue) {
+        this isInstanceOf AmendedCourtBookingCourtEmail::class.java
+        address isEqualTo COURT_USER.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "court" to DERBY_JUSTICE_CENTRE,
+          "prison" to "Moorland",
+          "offenderNo" to "123456",
+          "prisonerName" to "Fred Bloggs",
+          "date" to "1 Jan 2100",
+          "preAppointmentInfo" to "Not required",
+          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "postAppointmentInfo" to "Not required",
+          "comments" to "Court hearing comments",
+        )
+      }
+
+      notificationCaptor.allValues hasSize 2
+      with(notificationCaptor.firstValue) {
+        email isEqualTo PRISON_USER.email
+        templateName isEqualTo "user template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo courtBooking
+        reason isEqualTo "Amended court booking"
+      }
+      with(notificationCaptor.secondValue) {
+        email isEqualTo COURT_USER.email
+        templateName isEqualTo "court template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo courtBooking
+        reason isEqualTo "Amended court booking"
+      }
+    }
+
+    @Test
     fun `should send events and emails on amendment of probation booking by probation user`() {
       setupProbationPrimaryContacts(PROBATION_USER)
 
@@ -816,7 +887,7 @@ class BookingFacadeTest {
         bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
       )
 
-      whenever(cancelVideoBookingService.cancel(1, SERVICE_USER)) doReturn courtBooking
+      whenever(cancelVideoBookingService.cancel(1, SERVICE_USER)) doReturn courtBooking.apply { cancel(SERVICE_USER) }
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
       whenever(emailService.send(any<TransferredCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
@@ -951,7 +1022,7 @@ class BookingFacadeTest {
 
       setupCourtPrimaryContactsFor(SERVICE_USER)
 
-      whenever(cancelVideoBookingService.cancel(1, SERVICE_USER)) doReturn courtBooking
+      whenever(cancelVideoBookingService.cancel(1, SERVICE_USER)) doReturn courtBooking.apply { cancel(SERVICE_USER) }
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
       whenever(emailService.send(any<ReleasedCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
       whenever(emailService.send(any<ReleasedCourtBookingPrisonCourtEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
