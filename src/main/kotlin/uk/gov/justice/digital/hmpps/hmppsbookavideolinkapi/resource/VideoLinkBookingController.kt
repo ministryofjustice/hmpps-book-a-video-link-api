@@ -195,8 +195,11 @@ class VideoLinkBookingController(
   )
   @GetMapping(value = ["/id/{videoBookingId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
-  fun getVideoLinkBookingById(@PathVariable("videoBookingId") videoBookingId: Long) =
-    videoLinkBookingsService.getVideoLinkBookingById(videoBookingId)
+  fun getVideoLinkBookingById(
+    @PathVariable("videoBookingId") videoBookingId: Long,
+    httpRequest: HttpServletRequest,
+  ) =
+    videoLinkBookingsService.getVideoLinkBookingById(videoBookingId, httpRequest.getBvlsRequestContext().user)
 
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = ["/id/{videoBookingId}"])
@@ -340,5 +343,6 @@ class VideoLinkBookingController(
     @RequestBody
     @Parameter(description = "The request with the search criteria for a video booking", required = true)
     searchRequest: VideoBookingSearchRequest,
-  ) = videoLinkBookingsService.findMatchingVideoLinkBooking(searchRequest)
+    httpRequest: HttpServletRequest,
+  ) = videoLinkBookingsService.findMatchingVideoLinkBooking(searchRequest, httpRequest.getBvlsRequestContext().user)
 }

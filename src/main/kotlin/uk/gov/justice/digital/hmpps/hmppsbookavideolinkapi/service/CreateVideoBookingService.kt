@@ -40,7 +40,7 @@ class CreateVideoBookingService(
     }
 
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
-    checkCaseLoadAccess(request.prisoner().prisonCode!!)
+    checkCaseLoadAccess(createdBy, request.prisoner().prisonCode!!)
 
     val court = courtRepository.findByCode(request.courtCode!!)
       ?.also { if (!createdBy.isUserType(UserType.PRISON)) require(it.enabled) { "Court with code ${it.code} is not enabled" } }

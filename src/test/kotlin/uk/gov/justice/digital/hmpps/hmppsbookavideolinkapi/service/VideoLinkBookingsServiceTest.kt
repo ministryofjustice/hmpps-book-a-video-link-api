@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -30,7 +31,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.addUserToRequestForCaseloadCheck
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -49,8 +49,6 @@ class VideoLinkBookingsServiceTest {
 
   @BeforeEach
   fun before() {
-    addUserToRequestForCaseloadCheck(EXTERNAL_USER)
-
     val courtHearingTypeRefCode = ReferenceCode(
       referenceCodeId = 1L,
       groupCode = "COURT_HEARING_TYPE",
@@ -103,7 +101,7 @@ class VideoLinkBookingsServiceTest {
 
     whenever(videoBookingRepository.findById(1L)) doReturn Optional.of(courtBooking)
 
-    with(service.getVideoLinkBookingById(1L)) {
+    with(service.getVideoLinkBookingById(1L, EXTERNAL_USER)) {
       prisonAppointments hasSize 3
       prisonAppointments.first().appointmentType isEqualTo AppointmentType.VLB_COURT_PRE.name
       prisonAppointments.second().appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
@@ -127,8 +125,6 @@ class VideoLinkBookingsServiceTest {
 
   @Test
   fun `should fail to get a Moorland court video link booking by ID for a Birmingham prison user`() {
-    addUserToRequestForCaseloadCheck(PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM))
-
     val courtBookingAtMoorlandPrison = courtBooking(createdBy = "test_user")
       .addAppointment(
         prisonCode = MOORLAND,
@@ -142,7 +138,7 @@ class VideoLinkBookingsServiceTest {
 
     whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBookingAtMoorlandPrison)
 
-    assertThrows<CaseloadAccessException> { service.getVideoLinkBookingById(1L) }
+    assertThrows<CaseloadAccessException> { service.getVideoLinkBookingById(1L, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM)) }
   }
 
   @Test
@@ -183,7 +179,7 @@ class VideoLinkBookingsServiceTest {
       ),
     ) doReturn probationMeetingType
 
-    with(service.getVideoLinkBookingById(1L)) {
+    with(service.getVideoLinkBookingById(1L, EXTERNAL_USER)) {
       prisonAppointments.single().appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
 
       // Should be present for a probation booking
@@ -206,7 +202,7 @@ class VideoLinkBookingsServiceTest {
   fun `should throw error when video booking by ID - not found`() {
     whenever(videoBookingRepository.findById(1L)) doReturn Optional.empty()
 
-    val error = assertThrows<EntityNotFoundException> { service.getVideoLinkBookingById(1L) }
+    val error = assertThrows<EntityNotFoundException> { service.getVideoLinkBookingById(1L, EXTERNAL_USER) }
     error.message isEqualTo "Video booking with ID 1 not found"
   }
 
@@ -252,11 +248,62 @@ class VideoLinkBookingsServiceTest {
 
     whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
-    service.findMatchingVideoLinkBooking(searchRequest) isEqualTo booking.toModel(
+    service.findMatchingVideoLinkBooking(searchRequest, EXTERNAL_USER) isEqualTo booking.toModel(
       prisonAppointments = booking.appointments(),
       courtDescription = DERBY_JUSTICE_CENTRE,
       courtHearingTypeDescription = "Tribunal",
     )
+  }
+
+  @Test
+  fun `should fail to find a matching Moorland video link booking for Risley prison user`() {
+    val searchRequest = VideoBookingSearchRequest(
+      prisonerNumber = "123456",
+      locationKey = moorlandLocation.key,
+      date = tomorrow(),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(13, 0),
+    )
+
+    val booking = courtBooking()
+      .addAppointment(
+        prisonCode = MOORLAND,
+        prisonerNumber = searchRequest.prisonerNumber!!,
+        appointmentType = AppointmentType.VLB_COURT_PRE.name,
+        date = searchRequest.date!!,
+        startTime = LocalTime.of(11, 0),
+        endTime = LocalTime.of(12, 0),
+        locationKey = searchRequest.locationKey!!,
+      )
+      .addAppointment(
+        prisonCode = MOORLAND,
+        prisonerNumber = searchRequest.prisonerNumber!!,
+        appointmentType = AppointmentType.VLB_COURT_MAIN.name,
+        date = searchRequest.date!!,
+        startTime = searchRequest.startTime!!,
+        endTime = searchRequest.endTime!!,
+        locationKey = searchRequest.locationKey!!,
+      )
+
+    whenever(
+      videoAppointmentRepository.findByPrisonerNumberAndAppointmentDateAndPrisonLocKeyAndStartTimeAndEndTime(
+        prisonerNumber = "123456",
+        appointmentDate = tomorrow(),
+        prisonLocKey = moorlandLocation.key,
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+      ),
+    ) doReturn videoAppointment(booking, booking.appointments().second())
+
+    whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
+
+    assertThrows<CaseloadAccessException> {
+      service.findMatchingVideoLinkBooking(searchRequest, PRISON_USER.copy(activeCaseLoadId = RISLEY)) isEqualTo booking.toModel(
+        prisonAppointments = booking.appointments(),
+        courtDescription = DERBY_JUSTICE_CENTRE,
+        courtHearingTypeDescription = "Tribunal",
+      )
+    }
   }
 
   @Test
@@ -279,7 +326,7 @@ class VideoLinkBookingsServiceTest {
       ),
     ) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.findMatchingVideoLinkBooking(searchRequest) }
+    val error = assertThrows<EntityNotFoundException> { service.findMatchingVideoLinkBooking(searchRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Video booking not found matching search criteria $searchRequest"
   }
