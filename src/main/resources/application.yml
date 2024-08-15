@@ -124,6 +124,7 @@ notify:
         prison-no-court-email: "d756d798-bf1b-4651-85e5-6f42c741e33b"
       cancelled-booking:
         user: "946a129a-ed09-40ca-b0ac-a39ec6c1bc2b"
+        court: "cfac8ef0-dc03-403b-bf8b-bea6356561ff"
         prison-court-email: "9c80bb57-abed-4316-8404-cbdcd48b8f25"
         prison-no-court-email: "602981eb-cc7f-4a85-aba3-577167f1ee83"
       booking-request:

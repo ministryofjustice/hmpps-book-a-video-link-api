@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingUserEmail
@@ -56,6 +57,7 @@ class EmailTemplatesTest {
     AmendedCourtBookingPrisonCourtEmail::class.java to "amendedCourtBookingPrisonCourtEmail",
     AmendedCourtBookingPrisonNoCourtEmail::class.java to "amendedCourtBookingPrisonNoCourtEmail",
     CancelledCourtBookingUserEmail::class.java to "cancelledCourtBookingUser",
+    CancelledCourtBookingCourtEmail::class.java to "cancelledCourtBookingCourtEmail",
     CancelledCourtBookingPrisonCourtEmail::class.java to "cancelledCourtBookingPrisonCourtEmail",
     CancelledCourtBookingPrisonNoCourtEmail::class.java to "cancelledCourtBookingPrisonNoCourtEmail",
     CourtBookingRequestUserEmail::class.java to "courtBookingRequestUser",
@@ -99,6 +101,7 @@ class EmailTemplatesTest {
     amendedCourtBookingPrisonCourtEmail = "amendedCourtBookingPrisonCourtEmail",
     amendedCourtBookingPrisonNoCourtEmail = "amendedCourtBookingPrisonNoCourtEmail",
     cancelledCourtBookingUser = "cancelledCourtBookingUser",
+    cancelledCourtBookingCourtEmail = "cancelledCourtBookingCourtEmail",
     cancelledCourtBookingPrisonCourtEmail = "cancelledCourtBookingPrisonCourtEmail",
     cancelledCourtBookingPrisonNoCourtEmail = "cancelledCourtBookingPrisonNoCourtEmail",
     courtBookingRequestUser = "courtBookingRequestUser",
@@ -184,6 +187,7 @@ class EmailTemplatesTest {
       "12",
       "13",
       "14",
+      "15",
     )
 
     val error = assertThrows<IllegalArgumentException> {
@@ -226,6 +230,7 @@ class EmailTemplatesTest {
         "10",
         "11",
         "12",
+        "13",
         "duplicate",
         "duplicate",
       )

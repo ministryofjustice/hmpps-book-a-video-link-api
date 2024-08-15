@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingUserEmail
@@ -68,6 +69,7 @@ class EmailConfiguration(
   @Value("\${notify.templates.court.amended-booking.prison-court-email:}") private val amendedCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.court.amended-booking.prison-no-court-email:}") private val amendedCourtBookingPrisonNoCourtEmail: String,
   @Value("\${notify.templates.court.cancelled-booking.user:}") private val cancelledCourtBookingUser: String,
+  @Value("\${notify.templates.court.cancelled-booking.court:}") private val cancelledCourtBookingCourtEmail: String,
   @Value("\${notify.templates.court.cancelled-booking.prison-court-email:}") private val cancelledCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.court.cancelled-booking.prison-no-court-email:}") private val cancelledCourtBookingPrisonNoCourtEmail: String,
   @Value("\${notify.templates.court.booking-request.user:}") private val courtBookingRequestUser: String,
@@ -154,6 +156,7 @@ class EmailConfiguration(
     transferProbationBookingProbation = transferProbationBookingProbation,
     transferProbationBookingPrisonProbationEmail = transferProbationBookingPrisonProbationEmail,
     transferProbationBookingPrisonNoProbationEmail = transferProbationBookingPrisonNoProbationEmail,
+    cancelledCourtBookingCourtEmail = cancelledCourtBookingCourtEmail,
   )
 }
 
@@ -197,6 +200,7 @@ data class EmailTemplates(
   val amendedCourtBookingPrisonCourtEmail: String,
   val amendedCourtBookingPrisonNoCourtEmail: String,
   val cancelledCourtBookingUser: String,
+  val cancelledCourtBookingCourtEmail: String,
   val cancelledCourtBookingPrisonCourtEmail: String,
   val cancelledCourtBookingPrisonNoCourtEmail: String,
   val courtBookingRequestUser: String,
@@ -240,6 +244,7 @@ data class EmailTemplates(
     AmendedCourtBookingPrisonCourtEmail::class.java to amendedCourtBookingPrisonCourtEmail,
     AmendedCourtBookingPrisonNoCourtEmail::class.java to amendedCourtBookingPrisonNoCourtEmail,
     CancelledCourtBookingUserEmail::class.java to cancelledCourtBookingUser,
+    CancelledCourtBookingCourtEmail::class.java to cancelledCourtBookingCourtEmail,
     CancelledCourtBookingPrisonCourtEmail::class.java to cancelledCourtBookingPrisonCourtEmail,
     CancelledCourtBookingPrisonNoCourtEmail::class.java to cancelledCourtBookingPrisonNoCourtEmail,
     CourtBookingRequestUserEmail::class.java to courtBookingRequestUser,

@@ -130,8 +130,21 @@ object CourtEmailFactory {
       )
 
       BookingAction.CANCEL -> {
-        // TODO: Inform court when the prison cancels a booking
-        null
+        booking.requireIsCancelled()
+
+        CancelledCourtBookingCourtEmail(
+          address = contact.email!!,
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          prisonerNumber = prisoner.prisonerNumber,
+          appointmentDate = main.appointmentDate,
+          court = booking.court!!.description,
+          prison = prison.name,
+          preAppointmentInfo = pre?.appointmentInformation(locations),
+          mainAppointmentInfo = main.appointmentInformation(locations),
+          postAppointmentInfo = post?.appointmentInformation(locations),
+          comments = booking.comments,
+        )
       }
 
       BookingAction.RELEASED -> {
