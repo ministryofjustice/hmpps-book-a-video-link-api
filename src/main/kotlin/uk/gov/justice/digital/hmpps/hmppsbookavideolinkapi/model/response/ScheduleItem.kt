@@ -20,7 +20,7 @@ data class ScheduleItem(
   @Schema(description = "The booking type", example = "COURT")
   val bookingType: BookingType,
 
-  @Schema(description = "The booking status", allowableValues = ["ACTIVE", "CANCELLED"], example = "ACTIVE")
+  @Schema(description = "The booking status", example = "ACTIVE")
   val statusCode: BookingStatus,
 
   @Schema(description = "The video link URL to attend this event", example = "https://video.link.url")
