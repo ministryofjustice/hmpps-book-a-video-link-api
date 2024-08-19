@@ -5,10 +5,10 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.1"
-  id("org.openapi.generator") version "7.6.0"
-  kotlin("plugin.spring") version "2.0.0"
-  kotlin("plugin.jpa") version "2.0.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.3"
+  id("org.openapi.generator") version "7.7.0"
+  kotlin("plugin.spring") version "2.0.10"
+  kotlin("plugin.jpa") version "2.0.10"
 }
 
 allOpen {
@@ -27,7 +27,7 @@ dependencies {
   // Spring boot dependencies
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.4")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
 
@@ -42,7 +42,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
   // Gov Notify client
-  implementation("uk.gov.service.notify:notifications-java-client:5.1.0-RELEASE")
+  implementation("uk.gov.service.notify:notifications-java-client:5.2.0-RELEASE")
 
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
 
@@ -50,15 +50,15 @@ dependencies {
   testImplementation("com.h2database:h2")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
-  testImplementation("net.javacrumbs.json-unit:json-unit:3.3.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.3.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-json-path:3.3.0")
-  testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit:3.4.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.4.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit-json-path:3.4.1")
+  testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:localstack:1.19.8")
-  testImplementation("org.wiremock:wiremock-standalone:3.8.0")
+  testImplementation("org.testcontainers:localstack:1.20.1")
+  testImplementation("org.wiremock:wiremock-standalone:3.9.1")
 }
 
 kotlin {
