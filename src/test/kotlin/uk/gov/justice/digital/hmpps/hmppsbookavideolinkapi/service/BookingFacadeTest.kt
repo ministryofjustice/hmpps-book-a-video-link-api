@@ -208,14 +208,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "New court booking"
+        reason isEqualTo "CREATE"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PRISON_USER.email
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "New court booking"
+        reason isEqualTo "CREATE"
       }
     }
 
@@ -279,14 +279,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBookingCreatedByPrison
-        reason isEqualTo "New court booking"
+        reason isEqualTo "CREATE"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo COURT_USER.email
         templateName isEqualTo "court template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBookingCreatedByPrison
-        reason isEqualTo "New court booking"
+        reason isEqualTo "CREATE"
       }
     }
 
@@ -358,7 +358,7 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "New probation booking"
+        reason isEqualTo "CREATE"
       }
 
       with(notificationCaptor.secondValue) {
@@ -366,7 +366,7 @@ class BookingFacadeTest {
         templateName isEqualTo "probation template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "New probation booking"
+        reason isEqualTo "CREATE"
       }
     }
   }
@@ -435,14 +435,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled court booking"
+        reason isEqualTo "CANCEL"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PRISON_USER.email
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled court booking"
+        reason isEqualTo "CANCEL"
       }
     }
 
@@ -507,14 +507,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled court booking"
+        reason isEqualTo "CANCEL"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo COURT_USER.email
         templateName isEqualTo "court template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled court booking"
+        reason isEqualTo "CANCEL"
       }
     }
 
@@ -576,14 +576,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Cancelled probation booking"
+        reason isEqualTo "CANCEL"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PRISON_USER.email
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Cancelled probation booking"
+        reason isEqualTo "CANCEL"
       }
     }
 
@@ -645,14 +645,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Cancelled probation booking"
+        reason isEqualTo "CANCEL"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PROBATION_USER.email
         templateName isEqualTo "probation template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Cancelled probation booking"
+        reason isEqualTo "CANCEL"
       }
     }
   }
@@ -719,14 +719,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Amended court booking"
+        reason isEqualTo "AMEND"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PRISON_USER.email
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Amended court booking"
+        reason isEqualTo "AMEND"
       }
     }
 
@@ -789,14 +789,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Amended court booking"
+        reason isEqualTo "AMEND"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo COURT_USER.email
         templateName isEqualTo "court template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Amended court booking"
+        reason isEqualTo "AMEND"
       }
     }
 
@@ -860,14 +860,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Amended probation booking"
+        reason isEqualTo "AMEND"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PRISON_USER.email
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Amended probation booking"
+        reason isEqualTo "AMEND"
       }
     }
 
@@ -931,14 +931,14 @@ class BookingFacadeTest {
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Amended probation booking"
+        reason isEqualTo "AMEND"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PROBATION_USER.email
         templateName isEqualTo "probation template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Amended probation booking"
+        reason isEqualTo "AMEND"
       }
     }
   }
@@ -997,7 +997,7 @@ class BookingFacadeTest {
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled court booking due to transfer"
+        reason isEqualTo "TRANSFERRED"
       }
     }
 
@@ -1067,14 +1067,14 @@ class BookingFacadeTest {
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Cancelled probation booking due to transfer"
+        reason isEqualTo "TRANSFERRED"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PROBATION_USER.email
         templateName isEqualTo "probation template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
-        reason isEqualTo "Cancelled probation booking due to transfer"
+        reason isEqualTo "TRANSFERRED"
       }
     }
   }
@@ -1152,14 +1152,14 @@ class BookingFacadeTest {
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled court booking due to release"
+        reason isEqualTo "RELEASED"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo COURT_USER.email
         templateName isEqualTo "court template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled court booking due to release"
+        reason isEqualTo "RELEASED"
       }
     }
 
@@ -1229,14 +1229,14 @@ class BookingFacadeTest {
         templateName isEqualTo "prison template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled probation booking due to release"
+        reason isEqualTo "RELEASED"
       }
       with(notificationCaptor.secondValue) {
         email isEqualTo PROBATION_USER.email
         templateName isEqualTo "probation template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
-        reason isEqualTo "Cancelled probation booking due to release"
+        reason isEqualTo "RELEASED"
       }
     }
   }

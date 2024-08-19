@@ -129,16 +129,6 @@ class BookingFacade(
   }
 
   private fun sendEmailAndSaveNotification(email: Email, booking: VideoBooking, action: BookingAction) {
-    val bookingType = if (booking.isCourtBooking()) "court" else "probation"
-
-    val reason = when (action) {
-      BookingAction.CREATE -> "New $bookingType booking"
-      BookingAction.AMEND -> "Amended $bookingType booking"
-      BookingAction.CANCEL -> "Cancelled $bookingType booking"
-      BookingAction.RELEASED -> "Cancelled $bookingType booking due to release"
-      BookingAction.TRANSFERRED -> "Cancelled $bookingType booking due to transfer"
-    }
-
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(
         Notification(
@@ -146,11 +136,11 @@ class BookingFacade(
           email = email.address,
           govNotifyNotificationId = govNotifyId,
           templateName = templateId,
-          reason = reason,
+          reason = action.name,
         ),
       )
     }.onFailure {
-      log.info("BOOKINGS: Failed to send ${reason.lowercase()} email for video booking ID ${booking.videoBookingId}.")
+      log.info("BOOKINGS: Failed to send ${action.name} email for video booking ID ${booking.videoBookingId}.")
     }
   }
 
