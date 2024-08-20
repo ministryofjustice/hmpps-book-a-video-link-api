@@ -11,10 +11,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -23,6 +25,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -31,6 +34,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -125,20 +129,23 @@ class VideoLinkBookingsServiceTest {
 
   @Test
   fun `should fail to get a Moorland court video link booking by ID for a Birmingham prison user`() {
-    val courtBookingAtMoorlandPrison = courtBooking(createdBy = "test_user")
-      .addAppointment(
-        prisonCode = MOORLAND,
-        prisonerNumber = "A1234FF",
-        appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-        locationKey = moorlandLocation.key,
-        date = tomorrow(),
-        startTime = LocalTime.MIDNIGHT.plusHours(1),
-        endTime = LocalTime.MIDNIGHT.plusHours(2),
-      )
-
-    whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBookingAtMoorlandPrison)
+    whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment(MOORLAND))
 
     assertThrows<CaseloadAccessException> { service.getVideoLinkBookingById(1L, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM)) }
+  }
+
+  @Test
+  fun `should fail to get a court video link booking by ID for a probation user`() {
+    whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBooking())
+
+    assertThrows<VideoBookingAccessException> { service.getVideoLinkBookingById(1L, PROBATION_USER) }
+  }
+
+  @Test
+  fun `should fail to get a probation video link booking by ID for a court user`() {
+    whenever(videoBookingRepository.findById(any())) doReturn Optional.of(probationBooking())
+
+    assertThrows<VideoBookingAccessException> { service.getVideoLinkBookingById(1L, COURT_USER) }
   }
 
   @Test
