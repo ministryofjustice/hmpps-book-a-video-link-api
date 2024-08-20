@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserGroup
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmailAddress
@@ -14,13 +15,13 @@ import java.net.URLEncoder
 
 class ManageUsersApiMockServer : MockServer(8093) {
 
-  fun stubGetUserDetails(username: String = EXTERNAL_USER.username, authSource: AuthSource = AuthSource.auth, name: String, activeCaseload: String? = null) {
+  fun stubGetUserDetails(username: String = EXTERNAL_USER.username, authSource: AuthSource = AuthSource.auth, name: String, activeCaseload: String? = null, userId: String = "TEST") {
     stubFor(
       get("/users/${username.urlEncode()}")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(userDetails(username, name, authSource, activeCaseload)))
+            .withBody(mapper.writeValueAsString(userDetails(username, name, authSource, activeCaseload, userId)))
             .withStatus(200),
         ),
     )
@@ -39,6 +40,25 @@ class ManageUsersApiMockServer : MockServer(8093) {
   }
 
   private fun String.urlEncode() = URLEncoder.encode(this, "utf-8")
+
+  fun stubGetUserGroups(userId: String) {
+    stubFor(
+      get("/externalusers/$userId/groups")
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              mapper.writeValueAsString(
+                listOf(
+                  UserGroup("VIDEO_LINK_COURT_USER", "court user group"),
+                  UserGroup("VIDEO_LINK_PROBATION_USER", "probation user group"),
+                ),
+              ),
+            )
+            .withStatus(200),
+        ),
+    )
+  }
 }
 
 class ManageUsersApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {

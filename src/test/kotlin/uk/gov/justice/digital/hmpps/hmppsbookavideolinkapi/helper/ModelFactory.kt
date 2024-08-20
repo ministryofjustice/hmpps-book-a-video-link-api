@@ -69,9 +69,9 @@ fun prisonerSearchPrisoner(
 
 fun userEmailAddress(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, verified, email)
 
-fun userDetails(username: String, name: String = "Test User", authSource: AuthSource = AuthSource.auth, activeCaseLoadId: String? = null) =
+fun userDetails(username: String, name: String = "Test User", authSource: AuthSource = AuthSource.auth, activeCaseLoadId: String? = null, userId: String = "TEST") =
   UserDetailsDto(
-    userId = "TEST",
+    userId = userId,
     username = username,
     active = true,
     name = name,
@@ -85,6 +85,26 @@ fun user(username: String = "user", userType: UserType = UserType.EXTERNAL, name
     userType = userType,
     name = name,
     email = email,
+    isCourtUser = userType == UserType.EXTERNAL,
+    isProbationUser = userType == UserType.EXTERNAL,
+  )
+
+fun courtUser(username: String = "user", name: String = "Test User", email: String? = null) =
+  User(
+    username = username,
+    userType = UserType.EXTERNAL,
+    name = name,
+    email = email,
+    isCourtUser = true,
+  )
+
+fun probationUser(username: String = "user", name: String = "Test User", email: String? = null) =
+  User(
+    username = username,
+    userType = UserType.EXTERNAL,
+    name = name,
+    email = email,
+    isProbationUser = true,
   )
 
 fun prisoner(

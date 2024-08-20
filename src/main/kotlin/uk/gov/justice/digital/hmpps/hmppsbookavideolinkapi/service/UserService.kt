@@ -6,6 +6,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.Ma
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isEmail
 
+const val COURT_USER = "VIDEO_LINK_COURT_USER"
+const val PROBATION_USER = "VIDEO_LINK_PROBATION_USER"
+
 @Service
 class UserService(private val manageUsersClient: ManageUsersClient) {
 
@@ -29,23 +32,56 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
 
   fun getUser(username: String): User? =
     manageUsersClient.getUsersDetails(username)?.let { userDetails ->
-      val userType = when (userDetails.authSource) {
-        AuthSource.nomis -> UserType.PRISON
-        AuthSource.auth -> UserType.EXTERNAL
+      when (userDetails.authSource) {
+        AuthSource.nomis -> {
+          User(
+            username = username,
+            userType = UserType.PRISON,
+            name = userDetails.name,
+            email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
+            activeCaseLoadId = userDetails.activeCaseLoadId,
+          )
+        }
+
+        AuthSource.auth -> {
+          val userGroups = manageUsersClient.getUsersGroups(userDetails.userId)
+          val isCourtUser = userGroups.any { it.groupCode == COURT_USER }
+          val isProbationUser = userGroups.any { it.groupCode == PROBATION_USER }
+
+          User(
+            username = username,
+            userType = UserType.EXTERNAL,
+            name = userDetails.name,
+            email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
+            isCourtUser = isCourtUser,
+            isProbationUser = isProbationUser,
+          )
+        }
+
         else -> throw AccessDeniedException("Users with auth source ${userDetails.authSource} are not supported by this service")
       }
-
-      User(
-        username = username,
-        userType = userType,
-        name = userDetails.name,
-        email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
-        activeCaseLoadId = userDetails.activeCaseLoadId?.takeIf { userType == UserType.PRISON },
-      )
     }
 }
 
-data class User(val username: String, private val userType: UserType, val name: String, val email: String? = null, val activeCaseLoadId: String? = null) {
+data class User(
+  val username: String,
+  private val userType: UserType,
+  val name: String,
+  val email: String? = null,
+  val isCourtUser: Boolean = false,
+  val isProbationUser: Boolean = false,
+  val activeCaseLoadId: String? = null,
+) {
+  init {
+    require(userType != UserType.EXTERNAL || (isCourtUser || isProbationUser)) {
+      "External user must be a court or probation user"
+    }
+
+    require(userType == UserType.EXTERNAL || (!isCourtUser && !isProbationUser)) {
+      "Only external users can be court or probation users"
+    }
+  }
+
   fun isUserType(vararg types: UserType) = types.contains(userType)
 }
 
