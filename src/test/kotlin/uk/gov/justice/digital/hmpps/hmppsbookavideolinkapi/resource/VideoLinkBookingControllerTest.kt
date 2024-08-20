@@ -28,15 +28,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.HmppsBookAVideoLinkApiExceptionHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtAppealReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -45,6 +48,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.RequestBookingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBookingsService
@@ -233,5 +237,35 @@ class VideoLinkBookingControllerTest {
       }.andReturn()
 
     response.resolvedException isInstanceOf CaseloadAccessException::class.java
+  }
+
+  @Test
+  fun `should fail to get court video booking for probation user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking())
+
+    val response = mockMvc.get("/video-link-booking/id/1") {
+      contentType = MediaType.APPLICATION_JSON
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PROBATION_USER, LocalDateTime.now()))
+    }
+      .andExpect {
+        status { isForbidden() }
+      }.andReturn()
+
+    response.resolvedException isInstanceOf VideoBookingAccessException::class.java
+  }
+
+  @Test
+  fun `should fail to get probation video booking for court user`() {
+    whenever(videoBookingRepository.findById(2)) doReturn Optional.of(probationBooking())
+
+    val response = mockMvc.get("/video-link-booking/id/2") {
+      contentType = MediaType.APPLICATION_JSON
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(COURT_USER, LocalDateTime.now()))
+    }
+      .andExpect {
+        status { isForbidden() }
+      }.andReturn()
+
+    response.resolvedException isInstanceOf VideoBookingAccessException::class.java
   }
 }

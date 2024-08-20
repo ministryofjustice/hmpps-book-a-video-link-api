@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByCourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkCaseLoadAccess
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkVideoBookingAccess
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 
 @Service
@@ -24,6 +25,7 @@ class VideoLinkBookingsService(
   fun getVideoLinkBookingById(videoBookingId: Long, user: User): VideoLinkBooking {
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
+      .also { checkVideoBookingAccess(user, it) }
       .also { checkCaseLoadAccess(user, it.prisonCode()) }
 
     val hearingType = booking

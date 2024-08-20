@@ -6,8 +6,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.Ma
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isEmail
 
-const val COURT_USER = "VIDEO_LINK_COURT_USER"
-const val PROBATION_USER = "VIDEO_LINK_PROBATION_USER"
+const val COURT_USER_GROUP_CODE = "VIDEO_LINK_COURT_USER"
+const val PROBATION_USER_GROUP_CODE = "VIDEO_LINK_PROBATION_USER"
 
 @Service
 class UserService(private val manageUsersClient: ManageUsersClient) {
@@ -45,8 +45,8 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
 
         AuthSource.auth -> {
           val userGroups = manageUsersClient.getUsersGroups(userDetails.userId)
-          val isCourtUser = userGroups.any { it.groupCode == COURT_USER }
-          val isProbationUser = userGroups.any { it.groupCode == PROBATION_USER }
+          val isCourtUser = userGroups.any { it.groupCode == COURT_USER_GROUP_CODE }
+          val isProbationUser = userGroups.any { it.groupCode == PROBATION_USER_GROUP_CODE }
 
           User(
             username = username,

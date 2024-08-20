@@ -54,7 +54,7 @@ class UserServiceTest {
     val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.auth, activeCaseLoadId = BIRMINGHAM)
 
     whenever(manageUsersClient.getUsersDetails(userDetails.username)) doReturn userDetails
-    whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = PROBATION_USER, "group name"))
+    whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = PROBATION_USER_GROUP_CODE, "group name"))
 
     userService.getUser("testUser") isEqualTo User(username = userDetails.username, userType = UserType.EXTERNAL, name = "Test User", isProbationUser = true)
   }
@@ -64,7 +64,7 @@ class UserServiceTest {
     val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.auth, activeCaseLoadId = BIRMINGHAM)
 
     whenever(manageUsersClient.getUsersDetails(userDetails.username)) doReturn userDetails
-    whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER, "group name"))
+    whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER_GROUP_CODE, "group name"))
 
     userService.getUser("testUser") isEqualTo User(username = userDetails.username, userType = UserType.EXTERNAL, name = "Test User", isCourtUser = true)
   }
@@ -90,7 +90,7 @@ class UserServiceTest {
     val username = "test@example.com"
     val userDetails = userDetails(username, "Test User")
     whenever(manageUsersClient.getUsersDetails(username)) doReturn userDetails
-    whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER, "group name"))
+    whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER_GROUP_CODE, "group name"))
 
     userService.getUser(username)?.email isEqualTo "test@example.com"
   }
@@ -101,7 +101,7 @@ class UserServiceTest {
     val userDetails = userDetails(username, "Test User")
     whenever(manageUsersClient.getUsersDetails("testUser")) doReturn userDetails
     whenever(manageUsersClient.getUsersEmail(username)) doReturn userEmailAddress(username, "test@example.com")
-    whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER, "group name"))
+    whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER_GROUP_CODE, "group name"))
 
     userService.getUser(username)?.email isEqualTo "test@example.com"
   }
