@@ -42,6 +42,12 @@ abstract class IntegrationTestBase {
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthHelper
 
+  @BeforeEach
+  fun `stub default users`() {
+    stubUser(EXTERNAL_USER)
+    stubUser(PRISON_USER)
+  }
+
   protected fun setAuthorisation(
     user: String = EXTERNAL_USER.username,
     roles: List<String> = listOf(),
@@ -70,7 +76,15 @@ abstract class IntegrationTestBase {
       UserType.PRISON -> AuthSource.nomis
       else -> AuthSource.none
     }
-    manageUsersApi().stubGetUserDetails(username, authSource, name)
+
+    val userId = when (userType) {
+      UserType.EXTERNAL -> "external"
+      UserType.PRISON -> "nomis"
+      else -> "other"
+    }
+
+    manageUsersApi().stubGetUserDetails(username, authSource, name, null, userId)
+    manageUsersApi().stubGetUserGroups(userId)
     if (email != null) manageUsersApi().stubGetUserEmail(username, email)
   }
 
@@ -81,13 +95,14 @@ abstract class IntegrationTestBase {
       else -> AuthSource.none
     }
 
-    manageUsersApi().stubGetUserDetails(user.username, authSource, user.name, user.activeCaseLoadId)
-    user.email?.let { manageUsersApi().stubGetUserEmail(user.username, it) }
-  }
+    val userId = when {
+      user.isUserType(UserType.EXTERNAL) -> "external"
+      user.isUserType(UserType.PRISON) -> "nomis"
+      else -> "other"
+    }
 
-  @BeforeEach
-  fun `stub user`() {
-    stubUser(EXTERNAL_USER)
-    stubUser(PRISON_USER)
+    manageUsersApi().stubGetUserDetails(user.username, authSource, user.name, user.activeCaseLoadId, userId)
+    manageUsersApi().stubGetUserGroups(userId)
+    user.email?.let { manageUsersApi().stubGetUserEmail(user.username, it) }
   }
 }
