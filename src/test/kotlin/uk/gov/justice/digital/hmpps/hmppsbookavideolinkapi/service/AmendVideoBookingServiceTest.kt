@@ -22,10 +22,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
@@ -54,6 +56,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
@@ -746,6 +749,20 @@ class AmendVideoBookingServiceTest {
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendRequest, EXTERNAL_USER) }
 
     error.message isEqualTo "Appointment type VLB_COURT_MAIN is not valid for probation appointments"
+  }
+
+  @Test
+  fun `should fail to amend a court video booking when user is probation user`() {
+    withBookingFixture(2, courtBooking())
+
+    val error = assertThrows<VideoBookingAccessException> { service.amend(2, amendCourtBookingRequest(), PROBATION_USER) }
+  }
+
+  @Test
+  fun `should fail to amend a probation video booking when user is court user`() {
+    withBookingFixture(2, probationBooking())
+
+    val error = assertThrows<VideoBookingAccessException> { service.amend(2, amendProbationBookingRequest(), COURT_USER) }
   }
 
   private fun withBookingFixture(bookingId: Long, booking: VideoBooking) {

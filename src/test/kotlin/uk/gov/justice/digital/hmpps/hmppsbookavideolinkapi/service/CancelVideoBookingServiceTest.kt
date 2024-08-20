@@ -13,14 +13,18 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import java.util.Optional
 
 class CancelVideoBookingServiceTest {
@@ -83,5 +87,19 @@ class CancelVideoBookingServiceTest {
 
     verifyNoInteractions(bookingHistoryService)
     verify(videoBookingRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
+  fun `should fail to cancel a court video booking when user is probation user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking())
+
+    assertThrows<VideoBookingAccessException> { service.cancel(1, PROBATION_USER) }
+  }
+
+  @Test
+  fun `should fail to cancel a probation video booking when user is court user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(probationBooking())
+
+    assertThrows<VideoBookingAccessException> { service.cancel(1, COURT_USER) }
   }
 }

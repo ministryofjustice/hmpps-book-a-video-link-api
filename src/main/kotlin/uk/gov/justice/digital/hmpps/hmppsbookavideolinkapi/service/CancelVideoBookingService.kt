@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkCaseLoadAccess
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkVideoBookingAccess
 
 /**
  * Service to support the cancellation of future [VideoBooking]'s.
@@ -28,6 +29,7 @@ class CancelVideoBookingService(
     val booking = videoBookingRepository
       .findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
+      .also { checkVideoBookingAccess(cancelledBy, it) }
       .also { checkCaseLoadAccess(cancelledBy, it.prisonCode()) }
 
     return booking.cancel(cancelledBy)
