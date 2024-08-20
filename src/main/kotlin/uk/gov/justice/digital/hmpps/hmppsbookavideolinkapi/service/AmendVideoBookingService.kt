@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkCaseLoadAccess
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkVideoBookingAccess
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
 import java.time.LocalDateTime
 
@@ -38,6 +39,7 @@ class AmendVideoBookingService(
   fun amend(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
+      .also { checkVideoBookingAccess(amendedBy, it) }
       .also { checkCaseLoadAccess(amendedBy, it.prisonCode()) }
       .also {
         require(BookingType.valueOf(it.bookingType) == request.bookingType) {
