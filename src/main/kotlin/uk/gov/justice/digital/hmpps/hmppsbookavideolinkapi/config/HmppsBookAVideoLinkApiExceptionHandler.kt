@@ -84,8 +84,8 @@ class HmppsBookAVideoLinkApiExceptionHandler : ResponseEntityExceptionHandler() 
   }
 
   @ExceptionHandler(VideoBookingAccessException::class)
-  fun handleCaseLoadAccessException(e: VideoBookingAccessException): ResponseEntity<ErrorResponse> {
-    log.info("Case load access exception: {}", e.message)
+  fun handleVideoBookingAccessException(e: VideoBookingAccessException): ResponseEntity<ErrorResponse> {
+    log.info("Video booking access exception: {}", e.message)
     return ResponseEntity
       .status(FORBIDDEN)
       .body(
