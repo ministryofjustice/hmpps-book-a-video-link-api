@@ -26,7 +26,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_P
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
@@ -423,7 +422,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking")
       .bodyValue(clashingBookingRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -456,11 +455,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val originalBooking = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
-    webTestClient.cancelBooking(originalBooking)
+    webTestClient.cancelBooking(originalBooking, COURT_USER)
 
     videoBookingRepository.findById(originalBooking).orElseThrow().statusCode isEqualTo StatusCode.CANCELLED
 
-    val clashingBooking = webTestClient.createBooking(courtBookingRequest)
+    val clashingBooking = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     originalBooking isNotEqualTo clashingBooking
 
@@ -487,7 +486,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking")
       .bodyValue(courtBookingRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -639,7 +638,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking")
       .bodyValue(clashingBookingRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -673,7 +672,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking")
       .bodyValue(clashingBookingRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -720,11 +719,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     assertThat(bookingId).isGreaterThan(0L)
 
-    val bookingDetails = webTestClient.getBookingByIdRequest(bookingId)
+    val bookingDetails = webTestClient.getBookingByIdRequest(bookingId, COURT_USER)
 
     assertThat(bookingDetails).isNotNull
 
@@ -773,11 +772,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test probation",
     )
 
-    val bookingId = webTestClient.createBooking(probationBookingRequest)
+    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     assertThat(bookingId).isGreaterThan(0L)
 
-    val bookingDetails = webTestClient.getBookingByIdRequest(bookingId)
+    val bookingDetails = webTestClient.getBookingByIdRequest(bookingId, PROBATION_USER)
 
     assertThat(bookingDetails).isNotNull
 
@@ -825,11 +824,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test not found",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     assertThat(bookingId).isGreaterThan(0L)
 
-    val errorResponse = webTestClient.getBookingByIdNotFound(bookingId + 300)
+    val errorResponse = webTestClient.getBookingByIdNotFound(bookingId + 300, COURT_USER)
 
     assertThat(errorResponse).isNotNull
     assertThat(errorResponse.status).isEqualTo(404)
@@ -853,7 +852,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val amendBookingRequest = amendCourtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -866,7 +865,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     notificationRepository.deleteAll()
-    webTestClient.amendBooking(bookingId, amendBookingRequest)
+    webTestClient.amendBooking(bookingId, amendBookingRequest, COURT_USER)
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -877,9 +876,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "amended court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo EXTERNAL_USER.username
+      createdBy isEqualTo COURT_USER.username
       createdByPrison isEqualTo false
-      amendedBy isEqualTo EXTERNAL_USER.username
+      amendedBy isEqualTo COURT_USER.username
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -898,7 +897,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("t@t.com", "amended court booking prison template id with email address", persistedBooking)
-    notifications.isPresent(EXTERNAL_USER.email!!, "amended court booking user template id", persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, "amended court booking user template id", persistedBooking)
   }
 
   @Test
@@ -919,7 +918,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val amendBookingRequest = amendCourtBookingRequest(
       courtCode = CHESTERFIELD_JUSTICE_CENTRE,
@@ -932,7 +931,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     notificationRepository.deleteAll()
-    webTestClient.amendBooking(bookingId, amendBookingRequest)
+    webTestClient.amendBooking(bookingId, amendBookingRequest, COURT_USER)
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -943,9 +942,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "amended court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo EXTERNAL_USER.username
+      createdBy isEqualTo COURT_USER.username
       createdByPrison isEqualTo false
-      amendedBy isEqualTo EXTERNAL_USER.username
+      amendedBy isEqualTo COURT_USER.username
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -964,7 +963,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("j@j.com", "amended court booking prison template id no email address", persistedBooking)
-    notifications.isPresent(EXTERNAL_USER.email!!, "amended court booking user template id", persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, "amended court booking user template id", persistedBooking)
   }
 
   @Test
@@ -991,8 +990,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(16, 30),
     )
 
-    webTestClient.createBooking(courtBookingRequest1)
-    val videoBookingId = webTestClient.createBooking(courtBookingRequest2)
+    webTestClient.createBooking(courtBookingRequest1, COURT_USER)
+    val videoBookingId = webTestClient.createBooking(courtBookingRequest2, COURT_USER)
 
     val clashingBookingRequest = amendCourtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -1007,7 +1006,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking/id/$videoBookingId")
       .bodyValue(clashingBookingRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -1037,7 +1036,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(12, 30),
     )
 
-    val videoBookingId = webTestClient.createBooking(courtBookingRequest)
+    val videoBookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
@@ -1055,7 +1054,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking/id/$videoBookingId")
       .bodyValue(amendBookingRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -1089,7 +1088,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test probation booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(probationBookingRequest)
+    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     val amendBookingRequest = amendProbationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1104,7 +1103,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "amended probation booking comments",
     )
 
-    webTestClient.amendBooking(bookingId, amendBookingRequest)
+    webTestClient.amendBooking(bookingId, amendBookingRequest, PROBATION_USER)
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -1115,9 +1114,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
       comments isEqualTo "amended probation booking comments"
       videoUrl isEqualTo "https://probation.videolink.com"
-      createdBy isEqualTo EXTERNAL_USER.username
+      createdBy isEqualTo PROBATION_USER.username
       createdByPrison isEqualTo false
-      amendedBy isEqualTo EXTERNAL_USER.username
+      amendedBy isEqualTo PROBATION_USER.username
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -1165,8 +1164,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test probation booking comments",
     )
 
-    webTestClient.createBooking(probationBookingRequest1)
-    val videoBookingId = webTestClient.createBooking(probationBookingRequest2)
+    webTestClient.createBooking(probationBookingRequest1, PROBATION_USER)
+    val videoBookingId = webTestClient.createBooking(probationBookingRequest2, PROBATION_USER)
 
     val clashingBookingRequest = amendProbationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1185,7 +1184,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking/id/$videoBookingId")
       .bodyValue(clashingBookingRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -1219,7 +1218,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test probation booking comments",
     )
 
-    val videoBookingId = webTestClient.createBooking(probationBookingRequest)
+    val videoBookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
     locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
@@ -1241,7 +1240,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking/id/$videoBookingId")
       .bodyValue(amendBookingRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -1259,7 +1258,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should return a 404 not found when amending an invalid video booking ID`() {
     videoBookingRepository.findAll() hasSize 0
 
-    val errorResponse = webTestClient.getBookingByIdNotFound(1L)
+    val errorResponse = webTestClient.getBookingByIdNotFound(1L, COURT_USER)
 
     assertThat(errorResponse).isNotNull
     assertThat(errorResponse.status).isEqualTo(404)
@@ -1281,13 +1280,13 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val activeBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
     activeBooking.statusCode isEqualTo StatusCode.ACTIVE
 
-    webTestClient.cancelBooking(bookingId)
+    webTestClient.cancelBooking(bookingId, COURT_USER)
 
     thereShouldBe {
       3.publishedMessages {
@@ -1326,7 +1325,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("r@r.com", "requested court booking prison template id with email address")
-    notifications.isPresent(EXTERNAL_USER.email!!, "requested court booking user template id")
+    notifications.isPresent(PRISON_USER.email!!, "requested court booking user template id")
   }
 
   @Test
@@ -1353,7 +1352,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("j@j.com", "requested court booking prison template id with no email address")
-    notifications.isPresent(EXTERNAL_USER.email!!, "requested court booking user template id")
+    notifications.isPresent(PRISON_USER.email!!, "requested court booking user template id")
   }
 
   @Test
@@ -1372,7 +1371,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(12, 30),
     )
 
-    webTestClient.createBooking(courtBookingRequest)
+    webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val courtRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -1390,7 +1389,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking/request")
       .bodyValue(courtRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -1428,7 +1427,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("r@r.com", "requested probation booking prison template id with email address")
-    notifications.isPresent(EXTERNAL_USER.email!!, "requested probation booking user template id")
+    notifications.isPresent(PRISON_USER.email!!, "requested probation booking user template id")
   }
 
   @Test
@@ -1455,7 +1454,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("j@j.com", "requested probation booking prison template id with no email address")
-    notifications.isPresent(EXTERNAL_USER.email!!, "requested probation booking user template id")
+    notifications.isPresent(PRISON_USER.email!!, "requested probation booking user template id")
   }
 
   @Test
@@ -1474,7 +1473,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(12, 30),
     )
 
-    webTestClient.createBooking(probationBookingRequest)
+    webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     val probationRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1492,7 +1491,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking/request")
       .bodyValue(probationRequest)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -1508,7 +1507,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
-  fun `should find matching video link bookings`() {
+  fun `should find matching court video link bookings`() {
     webTestClient.searchForBooking(
       VideoBookingSearchRequest(
         prisonerNumber = "123456",
@@ -1517,6 +1516,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
       ),
+      COURT_USER,
     ).videoLinkBookingId isEqualTo 1000
 
     webTestClient.searchForBooking(
@@ -1527,6 +1527,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(10, 0),
       ),
+      COURT_USER,
     ).videoLinkBookingId isEqualTo 2000
   }
 
@@ -1546,20 +1547,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
-  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest, user: User = EXTERNAL_USER) =
-    this
-      .post()
-      .uri("/video-link-booking")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isCreated
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(Long::class.java)
-      .returnResult().responseBody!!
-
-  private fun WebTestClient.createBookingFails(request: CreateVideoBookingRequest, user: User = EXTERNAL_USER) =
+  private fun WebTestClient.createBookingFails(request: CreateVideoBookingRequest, user: User) =
     this
       .post()
       .uri("/video-link-booking")
@@ -1568,7 +1556,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
 
-  private fun WebTestClient.searchForBooking(request: VideoBookingSearchRequest, user: User = EXTERNAL_USER) =
+  private fun WebTestClient.searchForBooking(request: VideoBookingSearchRequest, user: User) =
     this
       .post()
       .uri("/video-link-booking/search")
@@ -1581,25 +1569,25 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .expectBody(VideoLinkBooking::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.amendBooking(videoBookingId: Long, request: AmendVideoBookingRequest) =
+  private fun WebTestClient.amendBooking(videoBookingId: Long, request: AmendVideoBookingRequest, user: User) =
     this
       .put()
       .uri("/video-link-booking/id/$videoBookingId")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.cancelBooking(videoBookingId: Long) =
+  private fun WebTestClient.cancelBooking(videoBookingId: Long, user: User) =
     this
       .delete()
       .uri("/video-link-booking/id/$videoBookingId")
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isNoContent
 
@@ -1609,28 +1597,28 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking/request")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = PRISON_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
 
-  private fun WebTestClient.getBookingByIdRequest(videoBookingId: Long) =
+  private fun WebTestClient.getBookingByIdRequest(videoBookingId: Long, user: User) =
     this
       .get()
       .uri("/video-link-booking/id/{videoBookinId}", videoBookingId)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(VideoLinkBooking::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.getBookingByIdNotFound(videoBookingId: Long) =
+  private fun WebTestClient.getBookingByIdNotFound(videoBookingId: Long, user: User) =
     this
       .get()
       .uri("/video-link-booking/id/{videoBookinId}", videoBookingId)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isNotFound
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

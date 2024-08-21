@@ -8,14 +8,13 @@ import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserGroup
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.userEmailAddress
 import java.net.URLEncoder
 
 class ManageUsersApiMockServer : MockServer(8093) {
 
-  fun stubGetUserDetails(username: String = EXTERNAL_USER.username, authSource: AuthSource = AuthSource.auth, name: String, activeCaseload: String? = null, userId: String = "TEST") {
+  fun stubGetUserDetails(username: String, authSource: AuthSource = AuthSource.auth, name: String, activeCaseload: String? = null, userId: String = "TEST") {
     stubFor(
       get("/users/${username.urlEncode()}")
         .willReturn(
@@ -27,7 +26,7 @@ class ManageUsersApiMockServer : MockServer(8093) {
     )
   }
 
-  fun stubGetUserEmail(username: String = EXTERNAL_USER.username, email: String = EXTERNAL_USER.email!!, verified: Boolean = true) {
+  fun stubGetUserEmail(username: String, email: String, verified: Boolean = true) {
     stubFor(
       get("/users/${username.urlEncode()}/email?unverified=false")
         .willReturn(

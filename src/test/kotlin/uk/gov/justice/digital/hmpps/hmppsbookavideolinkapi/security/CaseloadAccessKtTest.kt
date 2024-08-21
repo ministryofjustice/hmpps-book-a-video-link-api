@@ -3,8 +3,9 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 
 class CaseloadAccessKtTest {
@@ -20,7 +21,8 @@ class CaseloadAccessKtTest {
 
   @Test
   fun `should succeed caseload check when user is not a prison user`() {
-    assertDoesNotThrow { checkCaseLoadAccess(EXTERNAL_USER, "DONT_CARE") }
+    assertDoesNotThrow { checkCaseLoadAccess(COURT_USER, "DONT_CARE") }
+    assertDoesNotThrow { checkCaseLoadAccess(PROBATION_USER, "DONT_CARE") }
     assertDoesNotThrow { checkCaseLoadAccess(SERVICE_USER, "DONT_CARE") }
   }
 }

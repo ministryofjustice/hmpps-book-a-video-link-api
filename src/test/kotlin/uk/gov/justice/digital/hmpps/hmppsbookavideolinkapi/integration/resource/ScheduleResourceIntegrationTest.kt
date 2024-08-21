@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -19,7 +21,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.LocalDate
@@ -62,7 +63,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         comments = "integration test court booking comments",
       )
 
-      webTestClient.createBooking(courtBookingRequest)
+      webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getPrisonSchedule(
@@ -105,7 +106,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         comments = "integration test court booking comments",
       )
 
-      webTestClient.createBooking(courtBookingRequest)
+      webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
       // Will default to tomorrow's date
       val probationBookingRequest = probationBookingRequest(
@@ -120,7 +121,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = werringtonLocation,
       )
 
-      webTestClient.createBooking(probationBookingRequest)
+      webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getPrisonSchedule(
@@ -174,7 +175,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = werringtonLocation,
       )
 
-      webTestClient.createBooking(probationBookingRequest)
+      webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
       // Check for tomorrow's date for court bookings
       val scheduleResponse = webTestClient.getCourtSchedule(
@@ -204,7 +205,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         comments = "integration test court booking comments",
       )
 
-      webTestClient.createBooking(courtBookingRequest)
+      webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getCourtSchedule(
@@ -250,7 +251,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         comments = "integration test court booking comments",
       )
 
-      webTestClient.createBooking(courtBookingRequest)
+      webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getProbationSchedule(
@@ -282,7 +283,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = werringtonLocation,
       )
 
-      webTestClient.createBooking(probationBookingRequest)
+      webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getProbationSchedule(
@@ -304,19 +305,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       }
     }
   }
-
-  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =
-    this
-      .post()
-      .uri("/video-link-booking")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isCreated
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(Long::class.java)
-      .returnResult().responseBody!!
 
   private fun WebTestClient.getPrisonSchedule(prisonCode: String, date: LocalDate, cancelled: Boolean = false) =
     this
