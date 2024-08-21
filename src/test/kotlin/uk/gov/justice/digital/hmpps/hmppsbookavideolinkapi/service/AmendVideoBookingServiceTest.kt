@@ -755,14 +755,14 @@ class AmendVideoBookingServiceTest {
   fun `should fail to amend a court video booking when user is probation user`() {
     withBookingFixture(2, courtBooking())
 
-    val error = assertThrows<VideoBookingAccessException> { service.amend(2, amendCourtBookingRequest(), PROBATION_USER) }
+    assertThrows<VideoBookingAccessException> { service.amend(2, amendCourtBookingRequest(), PROBATION_USER) }
   }
 
   @Test
   fun `should fail to amend a probation video booking when user is court user`() {
     withBookingFixture(2, probationBooking())
 
-    val error = assertThrows<VideoBookingAccessException> { service.amend(2, amendProbationBookingRequest(), COURT_USER) }
+    assertThrows<VideoBookingAccessException> { service.amend(2, amendProbationBookingRequest(), COURT_USER) }
   }
 
   private fun withBookingFixture(bookingId: Long, booking: VideoBooking) {

@@ -42,6 +42,10 @@ class CreateVideoBookingService(
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
     checkCaseLoadAccess(createdBy, request.prisoner().prisonCode!!)
 
+    require(createdBy.isCourtUser || createdBy.isUserType(UserType.PRISON)) {
+      "Only court and prison users can create court bookings."
+    }
+
     val court = courtRepository.findByCode(request.courtCode!!)
       ?.also { if (!createdBy.isUserType(UserType.PRISON)) require(it.enabled) { "Court with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
@@ -63,8 +67,8 @@ class CreateVideoBookingService(
   }
 
   private fun createProbation(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
-    require(!createdBy.isUserType(UserType.PRISON)) {
-      "Prison users cannot create probation meetings."
+    require(createdBy.isProbationUser) {
+      "Only probation users can create probation bookings."
     }
 
     val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
