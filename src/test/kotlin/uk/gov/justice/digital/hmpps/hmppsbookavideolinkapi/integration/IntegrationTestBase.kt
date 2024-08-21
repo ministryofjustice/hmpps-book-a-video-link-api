@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiExtension
@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
 
@@ -46,14 +47,13 @@ abstract class IntegrationTestBase {
 
   @BeforeEach
   fun `stub default users`() {
-    stubUser(EXTERNAL_USER)
     stubUser(PRISON_USER)
     stubUser(COURT_USER)
     stubUser(PROBATION_USER)
   }
 
   protected fun setAuthorisation(
-    user: String = EXTERNAL_USER.username,
+    user: String = "AUTH_ADM",
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles, scopes)
@@ -74,24 +74,6 @@ abstract class IntegrationTestBase {
 
   protected fun manageUsersApi() = ManageUsersApiExtension.server
 
-  protected fun stubUser(username: String = EXTERNAL_USER.username, name: String = "Test Users Name", userType: UserType = UserType.EXTERNAL, email: String? = EXTERNAL_USER.email) {
-    val authSource = when (userType) {
-      UserType.EXTERNAL -> AuthSource.auth
-      UserType.PRISON -> AuthSource.nomis
-      else -> AuthSource.none
-    }
-
-    val userId = when (userType) {
-      UserType.EXTERNAL -> "external"
-      UserType.PRISON -> "nomis"
-      else -> "other"
-    }
-
-    manageUsersApi().stubGetUserDetails(username, authSource, name, null, userId)
-    manageUsersApi().stubGetUserGroups(userId)
-    if (email != null) manageUsersApi().stubGetUserEmail(username, email)
-  }
-
   protected fun stubUser(user: User) {
     val authSource = when {
       user.isUserType(UserType.EXTERNAL) -> AuthSource.auth
@@ -109,4 +91,17 @@ abstract class IntegrationTestBase {
     manageUsersApi().stubGetUserGroups(userId)
     user.email?.let { manageUsersApi().stubGetUserEmail(user.username, it) }
   }
+
+  protected fun WebTestClient.createBooking(request: CreateVideoBookingRequest, user: User) =
+    this
+      .post()
+      .uri("/video-link-booking")
+      .bodyValue(request)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().isCreated
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(Long::class.java)
+      .returnResult().responseBody!!
 }

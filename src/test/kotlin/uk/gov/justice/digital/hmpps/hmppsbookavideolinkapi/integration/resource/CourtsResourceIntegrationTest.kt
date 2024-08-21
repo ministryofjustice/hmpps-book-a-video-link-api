@@ -7,16 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserCourtRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 
 class CourtsResourceIntegrationTest : IntegrationTestBase() {
 
@@ -52,8 +54,8 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-user-court-data.sql")
   @Test
   fun `should return a list of preferred courts for a specified user`() {
-    stubUser("michael.horden@itv.com")
-    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts("michael.horden@itv.com")
+    stubUser(user("michael.horden@itv.com"))
+    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(user("michael.horden@itv.com"))
 
     // Check that the user-preferences as setup by the SQL above are returned
     assertThat(listOfPreferredCourts).extracting("courtId").containsExactlyInAnyOrder(1L, 2L)
@@ -114,30 +116,30 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
     get()
       .uri("/courts?enabledOnly=$enabledOnly")
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(Court::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.getUserPreferenceCourts(username: String = EXTERNAL_USER.username) =
+  private fun WebTestClient.getUserPreferenceCourts(user: User = COURT_USER) =
     get()
       .uri("/courts/user-preferences")
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(Court::class.java)
       .returnResult().responseBody
 
-  private fun WebTestClient.setUserPreferenceCourts(request: SetCourtPreferencesRequest) =
+  private fun WebTestClient.setUserPreferenceCourts(request: SetCourtPreferencesRequest, user: User = COURT_USER) =
     post()
       .uri("/courts/user-preferences/set")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

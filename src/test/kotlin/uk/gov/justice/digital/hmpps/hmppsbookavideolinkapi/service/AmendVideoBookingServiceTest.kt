@@ -24,7 +24,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
@@ -89,7 +88,7 @@ class AmendVideoBookingServiceTest {
   private var amendedBookingCaptor = argumentCaptor<VideoBooking>()
 
   @Test
-  fun `should amend an existing court video booking for external user`() {
+  fun `should amend an existing court video booking for court user`() {
     val prisonerNumber = "123456"
     val courtBooking = courtBooking(court = court(DERBY_JUSTICE_CENTRE)).withMainCourtPrisonAppointment()
     val amendCourtBookingRequest = amendCourtBookingRequest(
@@ -125,7 +124,7 @@ class AmendVideoBookingServiceTest {
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val (booking, prisoner) = service.amend(1, amendCourtBookingRequest, EXTERNAL_USER)
+    val (booking, prisoner) = service.amend(1, amendCourtBookingRequest, COURT_USER)
 
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
@@ -139,7 +138,7 @@ class AmendVideoBookingServiceTest {
       hearingType isEqualTo amendCourtBookingRequest.courtHearingType?.name
       comments isEqualTo "court booking comments"
       videoUrl isEqualTo amendCourtBookingRequest.videoLinkUrl
-      amendedBy isEqualTo EXTERNAL_USER.username
+      amendedBy isEqualTo COURT_USER.username
       amendedTime isCloseTo LocalDateTime.now()
 
       appointments() hasSize 3
@@ -179,25 +178,16 @@ class AmendVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail if booking is not found for external user`() {
+  fun `should fail if booking is not found for court user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.empty()
 
-    val error = assertThrows<EntityNotFoundException> { service.amend(1, amendCourtBookingRequest(), EXTERNAL_USER) }
+    val error = assertThrows<EntityNotFoundException> { service.amend(1, amendCourtBookingRequest(), COURT_USER) }
 
     error.message isEqualTo "Video booking with ID 1 not found."
   }
 
   @Test
-  fun `should fail if the requested booking type does not match the booking type on the existing booking for external user`() {
-    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(probationBooking().withProbationPrisonAppointment())
-
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest(), EXTERNAL_USER) }
-
-    error.message isEqualTo "The booking type PROBATION does not match the requested type COURT."
-  }
-
-  @Test
-  fun `should fail to amend a court video booking when too many appointments for external user`() {
+  fun `should fail to amend a court video booking when too many appointments for court user`() {
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -238,13 +228,13 @@ class AmendVideoBookingServiceTest {
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
 
   @Test
-  fun `should fail to amend a court video booking when pre-hearing overlaps hearing for external user`() {
+  fun `should fail to amend a court video booking when pre-hearing overlaps hearing for court user`() {
     val prisonerNumber = "678910"
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = WERRINGTON,
@@ -271,13 +261,13 @@ class AmendVideoBookingServiceTest {
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     withPrisonPrisonerFixture(WERRINGTON, prisonerNumber)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Requested court booking appointments must not overlap."
   }
 
   @Test
-  fun `should fail to amend a court video booking when post-hearing overlaps hearing for external user`() {
+  fun `should fail to amend a court video booking when post-hearing overlaps hearing for court user`() {
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -304,13 +294,13 @@ class AmendVideoBookingServiceTest {
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Requested court booking appointments must not overlap."
   }
 
   @Test
-  fun `should fail to amend a court video booking when no hearing appointment for external user`() {
+  fun `should fail to amend a court video booking when no hearing appointment for court user`() {
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -337,13 +327,13 @@ class AmendVideoBookingServiceTest {
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
 
   @Test
-  fun `should fail to amend a court video booking when too many pre-hearing appointments for external user`() {
+  fun `should fail to amend a court video booking when too many pre-hearing appointments for court user`() {
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -377,13 +367,13 @@ class AmendVideoBookingServiceTest {
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
 
   @Test
-  fun `should fail to amend a court video booking when too many post-hearing appointments for external user`() {
+  fun `should fail to amend a court video booking when too many post-hearing appointments for court user`() {
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -417,13 +407,13 @@ class AmendVideoBookingServiceTest {
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
 
   @Test
-  fun `should fail to amend a court video booking when wrong appointment type for external user`() {
+  fun `should fail to amend a court video booking when wrong appointment type for court user`() {
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -457,7 +447,7 @@ class AmendVideoBookingServiceTest {
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
   }
@@ -499,7 +489,7 @@ class AmendVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to amend a court video booking when new appointment overlaps existing for external user`() {
+  fun `should fail to amend a court video booking when new appointment overlaps existing for court user`() {
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -525,7 +515,7 @@ class AmendVideoBookingServiceTest {
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.key, tomorrow())) doReturn listOf(overlappingAppointment)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
   }
@@ -561,45 +551,44 @@ class AmendVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to amend a court video booking when court not enabled for external user`() {
+  fun `should fail to amend a court video booking when court not enabled for court user`() {
     val amendCourtBookingRequest = amendCourtBookingRequest()
-    val disabledCourt = court(amendCourtBookingRequest.courtCode!!, enabled = false)
 
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment())
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!, enabled = false))
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Court with code ${amendCourtBookingRequest.courtCode} is not enabled"
   }
 
   @Test
-  fun `should fail to amend a court video booking when prison not found for external user`() {
+  fun `should fail to amend a court video booking when prison not found for court user`() {
     val amendCourtBookingRequest = amendCourtBookingRequest(prisonCode = MOORLAND)
 
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment())
     withCourtFixture(court(amendCourtBookingRequest.courtCode!!))
     whenever(prisonRepository.findByCode(MOORLAND)) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<EntityNotFoundException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Prison with code $MOORLAND not found"
   }
 
   @Test
-  fun `should fail to amend a court video booking when court not found for external user`() {
+  fun `should fail to amend a court video booking when court not found for court user`() {
     val amendCourtBookingRequest = amendCourtBookingRequest()
 
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment())
     whenever(courtRepository.findByCode(amendCourtBookingRequest.courtCode!!)) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.amend(1, amendCourtBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<EntityNotFoundException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Court with code ${amendCourtBookingRequest.courtCode} not found"
   }
 
   @Test
-  fun `should amend a probation video booking`() {
+  fun `should amend a probation video booking for probation user`() {
     val probationBooking = probationBooking().withProbationPrisonAppointment()
     val prisonerNumber = "123456"
     val probationBookingRequest = amendProbationBookingRequest(prisonCode = BIRMINGHAM, prisonerNumber = prisonerNumber, location = birminghamLocation)
@@ -609,7 +598,7 @@ class AmendVideoBookingServiceTest {
     withProbationTeamFixture(requestedProbationTeam)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val (booking, prisoner) = service.amend(2, probationBookingRequest, EXTERNAL_USER)
+    val (booking, prisoner) = service.amend(2, probationBookingRequest, PROBATION_USER)
 
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
@@ -623,7 +612,7 @@ class AmendVideoBookingServiceTest {
       probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
       comments isEqualTo "probation booking comments"
       videoUrl isEqualTo probationBookingRequest.videoLinkUrl
-      amendedBy isEqualTo EXTERNAL_USER.username
+      amendedBy isEqualTo PROBATION_USER.username
       amendedTime isCloseTo LocalDateTime.now()
 
       appointments() hasSize 1
@@ -647,7 +636,7 @@ class AmendVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to amend a probation video booking when new appointment overlaps existing for external user`() {
+  fun `should fail to amend a probation video booking when new appointment overlaps existing for probation user`() {
     val prisonerNumber = "123456"
     val probationBookingRequest = amendProbationBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -667,7 +656,7 @@ class AmendVideoBookingServiceTest {
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-B-2-001", tomorrow())) doReturn listOf(overlappingAppointment)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(2, probationBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(2, probationBookingRequest, PROBATION_USER) }
 
     error.message isEqualTo "Requested probation appointment overlaps with an existing appointment at location $BIRMINGHAM-B-2-001"
   }
@@ -700,45 +689,45 @@ class AmendVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to amend a probation video booking when team not found for external user`() {
+  fun `should fail to amend a probation video booking when team not found for probation user`() {
     val probationBookingRequest = amendProbationBookingRequest()
 
     withBookingFixture(2, probationBooking().withProbationPrisonAppointment())
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.amend(2, probationBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<EntityNotFoundException> { service.amend(2, probationBookingRequest, PROBATION_USER) }
 
     error.message isEqualTo "Probation team with code ${probationBookingRequest.probationTeamCode} not found"
   }
 
   @Test
-  fun `should fail to amend a probation video booking when prison not found for external user`() {
+  fun `should fail to amend a probation video booking when prison not found for probation user`() {
     val probationBookingRequest = amendProbationBookingRequest(prisonCode = BIRMINGHAM)
 
     withBookingFixture(2, probationBooking().withProbationPrisonAppointment())
     withProbationTeamFixture(probationTeam(probationBookingRequest.probationTeamCode!!))
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn null
 
-    val error = assertThrows<EntityNotFoundException> { service.amend(2, probationBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<EntityNotFoundException> { service.amend(2, probationBookingRequest, PROBATION_USER) }
 
     error.message isEqualTo "Prison with code $BIRMINGHAM not found"
   }
 
   @Test
-  fun `should fail to amend a probation video booking when team not enabled for external user`() {
+  fun `should fail to amend a probation video booking when team not enabled for probation user`() {
     val probationBookingRequest = amendProbationBookingRequest()
     val disabledProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!, false)
 
     withBookingFixture(2, probationBooking().withProbationPrisonAppointment())
     withProbationTeamFixture(disabledProbationTeam)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(2, probationBookingRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(2, probationBookingRequest, PROBATION_USER) }
 
     error.message isEqualTo "Probation team with code ${probationBookingRequest.probationTeamCode} is not enabled"
   }
 
   @Test
-  fun `should fail to amend a probation video booking when appointment type not probation specific for external user`() {
+  fun `should fail to amend a probation video booking when appointment type not probation specific for probation user`() {
     val prisonerNumber = "123456"
     val amendRequest = amendProbationBookingRequest(prisonCode = BIRMINGHAM, prisonerNumber = prisonerNumber, appointmentType = AppointmentType.VLB_COURT_MAIN)
 
@@ -746,7 +735,7 @@ class AmendVideoBookingServiceTest {
     withProbationTeamFixture(probationTeam(amendRequest.probationTeamCode!!))
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendRequest, EXTERNAL_USER) }
+    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendRequest, PROBATION_USER) }
 
     error.message isEqualTo "Appointment type VLB_COURT_MAIN is not valid for probation appointments"
   }

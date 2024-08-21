@@ -8,8 +8,9 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
@@ -20,7 +21,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.LocalTime
@@ -46,7 +46,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     videoBookingRepository.findAll() hasSize 1
 
@@ -59,7 +59,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.PROBATION)
     assertThat(listOfContacts).hasSize(7)
-    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", EXTERNAL_USER.email!!))
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", COURT_USER.email!!))
   }
 
   @Test
@@ -79,7 +79,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       location = werringtonLocation,
     )
 
-    val bookingId = webTestClient.createBooking(probationBookingRequest)
+    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     videoBookingRepository.findAll() hasSize 1
 
@@ -92,7 +92,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.COURT)
     assertThat(listOfContacts).hasSize(7)
-    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", EXTERNAL_USER.email!!))
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", PROBATION_USER.email!!))
   }
 
   @Test
@@ -112,7 +112,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     videoBookingRepository.findAll() hasSize 1
 
@@ -140,7 +140,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     videoBookingRepository.findAll() hasSize 1
 
@@ -171,7 +171,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     videoBookingRepository.findAll() hasSize 1
 
@@ -189,13 +189,13 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     // Check that the contact addresses are present
     assertThat(listOfContacts).extracting("email").containsAll(
-      listOf("m@m.com", "t@t.com", "s@s.com", EXTERNAL_USER.email!!),
+      listOf("m@m.com", "t@t.com", "s@s.com", COURT_USER.email!!),
     )
 
     // Check the user email and name are as expected
     val userObject = listOfContacts.find { it.contactType == ContactType.USER }
-    assertThat(userObject?.email).isEqualTo(EXTERNAL_USER.email!!)
-    assertThat(userObject?.name).isEqualTo(EXTERNAL_USER.name)
+    assertThat(userObject?.email).isEqualTo(COURT_USER.email!!)
+    assertThat(userObject?.name).isEqualTo(COURT_USER.name)
   }
 
   @Test
@@ -224,18 +224,5 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(BookingContact::class.java)
-      .returnResult().responseBody!!
-
-  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =
-    this
-      .post()
-      .uri("/video-link-booking")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isCreated
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(Long::class.java)
       .returnResult().responseBody!!
 }

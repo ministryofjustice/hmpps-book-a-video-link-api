@@ -7,16 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetProbationTeamPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetProbationTeamPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserProbationRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 
 class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
@@ -52,8 +54,8 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-user-probation-team-data.sql")
   @Test
   fun `should return a list of preferred probation teams for a specified user`() {
-    stubUser("michael.horden@channel4.com")
-    val listOfPreferredTeams = webTestClient.getUserPreferenceTeams("michael.horden@channel4.com")
+    stubUser(user("michael.horden@channel4.com"))
+    val listOfPreferredTeams = webTestClient.getUserPreferenceTeams(user("michael.horden@channel4.com"))
 
     // Check that the user-preferences as setup by the SQL above are returned
     assertThat(listOfPreferredTeams).extracting("probationTeamId").containsExactlyInAnyOrder(1L, 2L)
@@ -71,12 +73,12 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
     userProbationRepository.findAll() hasSize 0
 
-    val response = webTestClient.setUserPreferenceTeams(request)
+    val response = webTestClient.setUserPreferenceTeams(request, PROBATION_USER)
 
     assertThat(response?.probationTeamsSaved).isEqualTo(3)
     userProbationRepository.findAll() hasSize 3
 
-    val listOfPreferredTeams = webTestClient.getUserPreferenceTeams()
+    val listOfPreferredTeams = webTestClient.getUserPreferenceTeams(PROBATION_USER)
     assertThat(listOfPreferredTeams).extracting("code").containsAll(newTeams)
 
     userProbationRepository.deleteAll()
@@ -87,55 +89,55 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     val teams1 = listOf("BLKPPP", "BARSPP", "PPOCFD")
     val request1 = SetProbationTeamPreferencesRequest(probationTeamCodes = teams1)
 
-    val response = webTestClient.setUserPreferenceTeams(request1)
+    val response = webTestClient.setUserPreferenceTeams(request1, PROBATION_USER)
     assertThat(response?.probationTeamsSaved).isEqualTo(3)
 
     userProbationRepository.findAll() hasSize 3
 
-    val listOfPreferredTeams = webTestClient.getUserPreferenceTeams()
+    val listOfPreferredTeams = webTestClient.getUserPreferenceTeams(PROBATION_USER)
     assertThat(listOfPreferredTeams).extracting("code").containsAll(teams1)
 
     // Replace originals with this set of different teams
     val teams2 = listOf("PRESPC", "PRESPM", "BURNPC")
     val request2 = SetProbationTeamPreferencesRequest(probationTeamCodes = teams2)
 
-    webTestClient.setUserPreferenceTeams(request2)
+    webTestClient.setUserPreferenceTeams(request2, PROBATION_USER)
 
-    val newPreferredTeams = webTestClient.getUserPreferenceTeams()
+    val newPreferredTeams = webTestClient.getUserPreferenceTeams(PROBATION_USER)
     assertThat(newPreferredTeams).extracting("code").containsAll(teams2)
 
     userProbationRepository.findAll() hasSize 3
     userProbationRepository.deleteAll()
   }
 
-  private fun WebTestClient.getProbationTeams(enabledOnly: Boolean) =
+  private fun WebTestClient.getProbationTeams(enabledOnly: Boolean, user: User = PROBATION_USER) =
     get()
       .uri("/probation-teams?enabledOnly=$enabledOnly")
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(ProbationTeam::class.java)
       .returnResult().responseBody!!
 
-  private fun WebTestClient.getUserPreferenceTeams(username: String = EXTERNAL_USER.username) =
+  private fun WebTestClient.getUserPreferenceTeams(user: User) =
     get()
       .uri("/probation-teams/user-preferences")
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBodyList(ProbationTeam::class.java)
       .returnResult().responseBody
 
-  private fun WebTestClient.setUserPreferenceTeams(request: SetProbationTeamPreferencesRequest) =
+  private fun WebTestClient.setUserPreferenceTeams(request: SetProbationTeamPreferencesRequest, user: User) =
     post()
       .uri("/probation-teams/user-preferences/set")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
       .expectHeader().contentType(MediaType.APPLICATION_JSON)

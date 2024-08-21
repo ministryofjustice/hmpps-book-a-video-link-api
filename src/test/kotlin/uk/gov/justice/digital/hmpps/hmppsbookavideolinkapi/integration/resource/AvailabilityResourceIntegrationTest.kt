@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -14,7 +16,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.LocationAndInterval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -72,7 +73,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    webTestClient.createBooking(courtBookingRequest)
+    webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     // Do the availability check for a booking at the same time as the existing booking above
     val availabilityRequest = AvailabilityRequest(
@@ -115,7 +116,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val id = webTestClient.createBooking(courtBookingRequest)
+    val id = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     // Do the availability check for a booking at the same time as the existing booking above
     val availabilityRequest = AvailabilityRequest(
@@ -188,7 +189,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       location = werringtonLocation,
     )
 
-    webTestClient.createBooking(probationBookingRequest)
+    webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     videoBookingRepository.findAll() hasSize 1
 
@@ -215,19 +216,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       assertThat(alternatives).hasSize(3)
     }
   }
-
-  private fun WebTestClient.createBooking(request: CreateVideoBookingRequest) =
-    this
-      .post()
-      .uri("/video-link-booking")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isCreated
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(Long::class.java)
-      .returnResult().responseBody!!
 
   private fun WebTestClient.availabilityCheck(request: AvailabilityRequest) =
     this
