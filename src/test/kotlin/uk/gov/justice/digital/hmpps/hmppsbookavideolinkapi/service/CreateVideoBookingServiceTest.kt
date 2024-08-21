@@ -19,10 +19,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecis
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
@@ -621,6 +624,14 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
+  fun `should fail to create a court video booking when not court or prison user`() {
+    assertThrows<IllegalArgumentException> { service.create(courtBookingRequest(), PROBATION_USER) }.message isEqualTo "Only court and prison users can create court bookings."
+    assertThrows<IllegalArgumentException> { service.create(courtBookingRequest(), SERVICE_USER) }.message isEqualTo "Only court and prison users can create court bookings."
+
+    verify(videoBookingRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
   fun `should create a probation video booking for external user`() {
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
@@ -699,20 +710,10 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to create a probation video booking when prison user`() {
-    val prisonCode = BIRMINGHAM
-    val prisonerNumber = "123456"
-    val probationBookingRequest = probationBookingRequest(
-      prisonCode = prisonCode,
-      prisonerNumber = prisonerNumber,
-      startTime = LocalTime.of(8, 30),
-      endTime = LocalTime.of(9, 30),
-      locationSuffix = "B-2-001",
-    )
-
-    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, PRISON_USER) }
-
-    error.message isEqualTo "Prison users cannot create probation meetings."
+  fun `should fail to create a probation video booking when not probation user`() {
+    assertThrows<IllegalArgumentException> { service.create(probationBookingRequest(), PRISON_USER) }.message isEqualTo "Only probation users can create probation bookings."
+    assertThrows<IllegalArgumentException> { service.create(probationBookingRequest(), COURT_USER) }.message isEqualTo "Only probation users can create probation bookings."
+    assertThrows<IllegalArgumentException> { service.create(probationBookingRequest(), SERVICE_USER) }.message isEqualTo "Only probation users can create probation bookings."
 
     verify(videoBookingRepository, never()).saveAndFlush(any())
   }

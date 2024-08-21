@@ -24,12 +24,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.EXTERNAL_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
@@ -128,7 +130,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   private lateinit var bookingHistoryRepository: BookingHistoryRepository
 
   @Test
-  fun `should create a Derby court booking and emails sent to Werrington prison`() {
+  fun `should create a Derby court booking as court users and emails sent to Werrington prison`() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
@@ -145,7 +147,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -156,7 +158,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo EXTERNAL_USER.username
+      createdBy isEqualTo COURT_USER.username
       createdByPrison isEqualTo false
     }
 
@@ -187,7 +189,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
-    notifications.isPresent(EXTERNAL_USER.email!!, "new court booking user template id", persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, "new court booking user template id", persistedBooking)
 
     thereShouldBe {
       2.publishedMessages {
@@ -339,7 +341,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should create a Chesterfield court booking and emails sent to Birmingham prison`() {
+  fun `should create a Chesterfield court booking as court user and emails sent to Birmingham prison`() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
@@ -356,7 +358,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest)
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -367,7 +369,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo EXTERNAL_USER.username
+      createdBy isEqualTo COURT_USER.username
       createdByPrison isEqualTo false
     }
 
@@ -387,11 +389,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("j@j.com", "new court booking prison template id no email address", persistedBooking)
-    notifications.isPresent(EXTERNAL_USER.email!!, "new court booking user template id", persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, "new court booking user template id", persistedBooking)
   }
 
   @Test
-  fun `should fail to create a clashing court booking`() {
+  fun `should fail to create a clashing court booking as court user`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
@@ -406,7 +408,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(12, 30),
     )
 
-    webTestClient.createBooking(courtBookingRequest)
+    webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val clashingBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -436,7 +438,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should create a court booking which clashes with a future cancelled booking`() {
+  fun `should create a court booking which clashes with a future cancelled booking as court user`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
@@ -452,7 +454,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(12, 30),
     )
 
-    val originalBooking = webTestClient.createBooking(courtBookingRequest)
+    val originalBooking = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     webTestClient.cancelBooking(originalBooking)
 
@@ -500,7 +502,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should create a probation booking`() {
+  fun `should create a probation booking as probation user`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
@@ -519,7 +521,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test probation booking comments",
     )
 
-    val bookingId = webTestClient.createBooking(probationBookingRequest)
+    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -530,7 +532,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
       comments isEqualTo "integration test probation booking comments"
       videoUrl isEqualTo "https://probation.videolink.com"
-      createdBy isEqualTo EXTERNAL_USER.username
+      createdBy isEqualTo PROBATION_USER.username
       createdByPrison isEqualTo false
     }
 
@@ -557,7 +559,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should create two probation bookings in same location at different times`() {
+  fun `should create two probation bookings in same location at different times as probation user`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
@@ -575,7 +577,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = birminghamLocation,
     )
 
-    val bookingId = webTestClient.createBooking(probationBookingRequest)
+    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     videoBookingRepository.findById(bookingId).orElseThrow()
 
@@ -593,7 +595,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = birminghamLocation,
     )
 
-    val secondBookingId = webTestClient.createBooking(secondProbationBookingRequest)
+    val secondBookingId = webTestClient.createBooking(secondProbationBookingRequest, PROBATION_USER)
 
     videoBookingRepository.findById(secondBookingId).orElseThrow()
 
@@ -601,7 +603,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should fail to create a clashing probation booking`() {
+  fun `should fail to create a clashing probation booking as probation user`() {
     prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
     locationsInsidePrisonApi().stubGetLocationByKey(moorlandLocation.key, MOORLAND)
 
@@ -617,7 +619,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = moorlandLocation,
     )
 
-    webTestClient.createBooking(probationBookingRequest)
+    webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     prisonSearchApi().stubGetPrisoner("789012", MOORLAND)
 
@@ -696,8 +698,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Prison users cannot create probation meetings."
-      developerMessage isEqualTo "Prison users cannot create probation meetings."
+      userMessage isEqualTo "Exception: Only probation users can create probation bookings."
+      developerMessage isEqualTo "Only probation users can create probation bookings."
     }
   }
 
