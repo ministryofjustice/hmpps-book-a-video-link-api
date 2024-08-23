@@ -34,9 +34,7 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
       createdBy = booking.createdBy,
     ).apply {
       addBookingHistoryAppointments(getAppointmentsForHistory(this, booking))
-    }.apply {
-      bookingHistoryRepository.saveAndFlush(this)
-    }
+    }.also(bookingHistoryRepository::saveAndFlush)
 
   private fun getAppointmentsForHistory(history: BookingHistory, booking: VideoBooking) =
     booking.appointments().map { appointment ->

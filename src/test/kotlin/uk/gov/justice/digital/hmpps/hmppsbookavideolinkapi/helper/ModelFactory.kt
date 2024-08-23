@@ -308,7 +308,6 @@ fun amendCourtBookingRequest(
 
   return AmendVideoBookingRequest(
     bookingType = BookingType.COURT,
-    courtCode = courtCode,
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
     comments = comments,
@@ -317,10 +316,9 @@ fun amendCourtBookingRequest(
 }
 
 fun amendProbationBookingRequest(
-  probationTeamCode: String = "BLKPPP",
   probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
   videoLinkUrl: String = "https://video.link.com",
-  prisonCode: String = "MDI",
+  prisonCode: String = MOORLAND,
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
   location: Location? = null,
@@ -346,7 +344,6 @@ fun amendProbationBookingRequest(
 
   return AmendVideoBookingRequest(
     bookingType = BookingType.PROBATION,
-    probationTeamCode = probationTeamCode,
     probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
     comments = comments,

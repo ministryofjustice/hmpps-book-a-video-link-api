@@ -5,16 +5,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkCaseLoadAccess
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkVideoBookingAccess
@@ -23,8 +20,6 @@ import java.time.LocalDateTime
 
 @Service
 class AmendVideoBookingService(
-  private val courtRepository: CourtRepository,
-  private val probationTeamRepository: ProbationTeamRepository,
   private val videoBookingRepository: VideoBookingRepository,
   private val prisonRepository: PrisonRepository,
   private val appointmentsService: AppointmentsService,
@@ -54,18 +49,9 @@ class AmendVideoBookingService(
   }
 
   private fun amendCourt(existingBooking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
-    val requestedCourt = courtRepository.findByCode(request.courtCode!!)
-      ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
-
-    requireNot(amendedBy.isUserType(UserType.PRISON) && existingBooking.court != requestedCourt) {
-      "Prison users cannot change the court on a booking."
-    }
-
     val prisoner = request.prisoner().validate()
 
     return existingBooking.apply {
-      this.court = requestedCourt
       hearingType = request.courtHearingType!!.name
       comments = request.comments
       videoUrl = request.videoLinkUrl
@@ -80,14 +66,9 @@ class AmendVideoBookingService(
   }
 
   private fun amendProbation(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
-    val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
-      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
-
     val prisoner = request.prisoner().validate()
 
     return booking.apply {
-      this.probationTeam = probationTeam
       probationMeetingType = request.probationMeetingType!!.name
       comments = request.comments
       videoUrl = request.videoLinkUrl

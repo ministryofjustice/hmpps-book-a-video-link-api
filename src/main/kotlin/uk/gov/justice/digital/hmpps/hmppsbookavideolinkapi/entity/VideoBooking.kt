@@ -30,13 +30,13 @@ class VideoBooking private constructor(
 
   @OneToOne
   @JoinColumn(name = "court_id")
-  var court: Court?,
+  val court: Court?,
 
   var hearingType: String?,
 
   @OneToOne
   @JoinColumn(name = "probation_team_id")
-  var probationTeam: ProbationTeam?,
+  val probationTeam: ProbationTeam?,
 
   var probationMeetingType: String?,
 

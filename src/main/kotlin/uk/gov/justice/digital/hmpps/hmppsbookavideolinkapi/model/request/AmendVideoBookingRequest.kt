@@ -9,6 +9,12 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.net.URI
 
+@Schema(
+  description =
+  """
+  Amend an existing court or probation team meeting video link booking.
+  """,
+)
 data class AmendVideoBookingRequest(
 
   @field:NotNull(message = "The video link booking type is mandatory")
@@ -17,23 +23,31 @@ data class AmendVideoBookingRequest(
 
   @field:Valid
   @field:NotEmpty(message = "At least one prisoner must be supplied for a video link booking")
-  @Schema(description = "The prisoner or prisoners associated with the video link booking")
+  @Schema(
+    description = """
+    One or more prisoners associated with the video link booking.
+    
+    A probation booking should only ever have one prisoner whilst a court booking can have multiple e.g. for co-defendants.
+     
+    NOTE: CO-DEFENDANTS ARE NOT YET SUPPORTED BY THE SERVICE.
+  """,
+  )
   val prisoners: List<PrisonerDetails>,
-
-  @Schema(description = "The court code is needed if booking type is COURT, otherwise null. This cannot be changed by prison users.", example = "DRBYMC")
-  val courtCode: String? = null,
 
   @Schema(description = "The court hearing type is needed if booking type is COURT, otherwise null", example = "APPEAL")
   val courtHearingType: CourtHearingType? = null,
 
-  @Schema(description = "The probation team code is needed if booking type is PROBATION, otherwise null", example = "BLKPPP")
-  val probationTeamCode: String? = null,
-
-  @Schema(description = "The probation meeting type is needed if booking type is PROBATION, otherwise null", example = "PSR")
+  @Schema(
+    description = "The probation meeting type is needed if booking type is PROBATION, otherwise null",
+    example = "PSR",
+  )
   val probationMeetingType: ProbationMeetingType? = null,
 
   @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
-  @Schema(description = "Free text comments for the video link booking", example = "Waiting to hear on legal representation")
+  @Schema(
+    description = "Free text comments for the video link booking",
+    example = "Waiting to hear on legal representation",
+  )
   val comments: String?,
 
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
@@ -41,12 +55,12 @@ data class AmendVideoBookingRequest(
   val videoLinkUrl: String?,
 ) {
   @JsonIgnore
-  @AssertTrue(message = "The court code and court hearing type are mandatory for court bookings")
-  private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtCode != null && courtHearingType != null)
+  @AssertTrue(message = "The court hearing type is mandatory for court bookings")
+  private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtHearingType != null)
 
   @JsonIgnore
-  @AssertTrue(message = "The probation team code and probation meeting type are mandatory for probation bookings")
-  private fun isInvalidProbationBooking() = (BookingType.PROBATION != bookingType) || (probationTeamCode != null && probationMeetingType != null)
+  @AssertTrue(message = "The probation probation meeting type is mandatory for probation bookings")
+  private fun isInvalidProbationBooking() = (BookingType.PROBATION != bookingType) || (probationMeetingType != null)
 
   @JsonIgnore
   @AssertTrue(message = "The supplied video link for the appointment is not a valid URL")
