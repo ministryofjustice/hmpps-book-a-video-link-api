@@ -16,6 +16,12 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+@Schema(
+  description =
+  """
+  Create a court or probation team meeting video link booking.
+  """,
+)
 data class CreateVideoBookingRequest(
 
   @field:NotNull(message = "The video link booking type is mandatory")
@@ -24,7 +30,15 @@ data class CreateVideoBookingRequest(
 
   @field:Valid
   @field:NotEmpty(message = "At least one prisoner must be supplied for a video link booking")
-  @Schema(description = "The prisoner or prisoners associated with the video link booking")
+  @Schema(
+    description = """
+    One or more prisoners associated with the video link booking.
+    
+    A probation booking should only ever have one prisoner whilst a court booking can have multiple e.g.for co-defendants.
+     
+    NOTE: CO-DEFENDANTS ARE NOT YET SUPPORTED BY THE SERVICE.
+  """,
+  )
   val prisoners: List<PrisonerDetails>,
 
   @Schema(description = "The court code is needed if booking type is COURT, otherwise null", example = "DRBYMC")
@@ -33,14 +47,23 @@ data class CreateVideoBookingRequest(
   @Schema(description = "The court hearing type is needed if booking type is COURT, otherwise null", example = "APPEAL")
   val courtHearingType: CourtHearingType? = null,
 
-  @Schema(description = "The probation team code is needed if booking type is PROBATION, otherwise null", example = "BLKPPP")
+  @Schema(
+    description = "The probation team code is needed if booking type is PROBATION, otherwise null",
+    example = "BLKPPP",
+  )
   val probationTeamCode: String? = null,
 
-  @Schema(description = "The probation meeting type is needed if booking type is PROBATION, otherwise null", example = "PSR")
+  @Schema(
+    description = "The probation meeting type is needed if booking type is PROBATION, otherwise null",
+    example = "PSR",
+  )
   val probationMeetingType: ProbationMeetingType? = null,
 
   @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
-  @Schema(description = "Free text comments for the video link booking", example = "Waiting to hear on legal representation")
+  @Schema(
+    description = "Free text comments for the video link booking",
+    example = "Waiting to hear on legal representation",
+  )
   val comments: String?,
 
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
@@ -49,11 +72,13 @@ data class CreateVideoBookingRequest(
 ) {
   @JsonIgnore
   @AssertTrue(message = "The court code and court hearing type are mandatory for court bookings")
-  private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtCode != null && courtHearingType != null)
+  private fun isInvalidCourtBooking() =
+    (BookingType.COURT != bookingType) || (courtCode != null && courtHearingType != null)
 
   @JsonIgnore
   @AssertTrue(message = "The probation team code and probation meeting type are mandatory for probation bookings")
-  private fun isInvalidProbationBooking() = (BookingType.PROBATION != bookingType) || (probationTeamCode != null && probationMeetingType != null)
+  private fun isInvalidProbationBooking() =
+    (BookingType.PROBATION != bookingType) || (probationTeamCode != null && probationMeetingType != null)
 
   @JsonIgnore
   @AssertTrue(message = "The supplied video link for the appointment is not a valid URL")
@@ -155,12 +180,19 @@ data class Appointment(
   val endTime: LocalTime?,
 ) {
   @JsonIgnore
-  @AssertTrue(message = "The end time must be after the start time for the appointment", groups = [DateValidationExtension::class])
+  @AssertTrue(
+    message = "The end time must be after the start time for the appointment",
+    groups = [DateValidationExtension::class],
+  )
   private fun isInvalidTime() = (startTime == null || endTime == null) || startTime.isBefore(endTime)
 
   @JsonIgnore
-  @AssertTrue(message = "The combination of date and start time for the appointment must be in the future", groups = [DateValidationExtension::class])
-  private fun isInvalidStart() = (date == null || startTime == null) || date.atTime(startTime).isAfter(LocalDateTime.now())
+  @AssertTrue(
+    message = "The combination of date and start time for the appointment must be in the future",
+    groups = [DateValidationExtension::class],
+  )
+  private fun isInvalidStart() =
+    (date == null || startTime == null) || date.atTime(startTime).isAfter(LocalDateTime.now())
 }
 
 private interface DateValidationExtension
