@@ -6,10 +6,10 @@ orbs:
 parameters:
   alerts-slack-channel:
     type: string
-    default: book-a-video-link-dev
+    default: book-a-video-link-alerts
   releases-slack-channel:
     type: string
-    default: book-a-video-link-dev
+    default: book-a-video-link-alerts
   java-version:
     type: string
     default: "21.0"
