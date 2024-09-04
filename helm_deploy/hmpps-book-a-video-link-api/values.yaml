@@ -24,7 +24,7 @@ generic-service:
         }
 
   # Used to access resources like SQS queues and SNS topics
-  serviceAccountName: hmpps-book-a-video-link-api
+  serviceAccountName: hmpps-book-a-video-link
 
   # Environment variables to load into the deployment
   env:
