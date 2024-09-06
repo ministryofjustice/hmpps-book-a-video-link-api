@@ -31,7 +31,7 @@ class InboundEventsListener(
   }
 
   @SqsListener("bvls", factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "farsight-devs-book_a_video_link_queue", kind = SpanKind.SERVER)
+  @WithSpan(value = "hmpps-book-a-video-link-hmpps_book_a_video_link_queue", kind = SpanKind.SERVER)
   fun onMessage(rawMessage: String) {
     if (features.isEnabled(Feature.SNS_ENABLED)) {
       val message: Message = mapper.readValue(rawMessage)
