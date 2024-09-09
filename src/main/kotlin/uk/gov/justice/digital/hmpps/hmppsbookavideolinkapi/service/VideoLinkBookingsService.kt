@@ -46,7 +46,7 @@ class VideoLinkBookingsService(
   }
 
   fun findMatchingVideoLinkBooking(searchRequest: VideoBookingSearchRequest, user: User): VideoLinkBooking =
-    videoAppointmentRepository.findByPrisonerNumberAndAppointmentDateAndPrisonLocKeyAndStartTimeAndEndTime(
+    videoAppointmentRepository.findActiveVideoAppointment(
       prisonerNumber = searchRequest.prisonerNumber!!,
       appointmentDate = searchRequest.date!!,
       prisonLocKey = searchRequest.locationKey!!,
