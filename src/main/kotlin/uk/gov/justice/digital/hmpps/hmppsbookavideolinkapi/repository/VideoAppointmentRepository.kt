@@ -24,7 +24,18 @@ interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long
     forLocationKeys: List<String>,
   ): List<VideoAppointment>
 
-  fun findByPrisonerNumberAndAppointmentDateAndPrisonLocKeyAndStartTimeAndEndTime(
+  @Query(
+    value = """
+      FROM VideoAppointment va 
+      WHERE va.prisonerNumber = :prisonerNumber
+      AND va.appointmentDate = :appointmentDate
+      AND va.prisonLocKey = :prisonLocKey
+      AND va.startTime = :startTime
+      AND va.endTime = :endTime
+      AND va.statusCode = 'ACTIVE'
+    """,
+  )
+  fun findActiveVideoAppointment(
     prisonerNumber: String,
     appointmentDate: LocalDate,
     prisonLocKey: String,

@@ -254,7 +254,7 @@ class VideoLinkBookingsServiceTest {
         )
 
       whenever(
-        videoAppointmentRepository.findByPrisonerNumberAndAppointmentDateAndPrisonLocKeyAndStartTimeAndEndTime(
+        videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
           prisonLocKey = moorlandLocation.key,
@@ -303,7 +303,7 @@ class VideoLinkBookingsServiceTest {
         )
 
       whenever(
-        videoAppointmentRepository.findByPrisonerNumberAndAppointmentDateAndPrisonLocKeyAndStartTimeAndEndTime(
+        videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
           prisonLocKey = moorlandLocation.key,
@@ -334,7 +334,7 @@ class VideoLinkBookingsServiceTest {
       )
 
       whenever(
-        videoAppointmentRepository.findByPrisonerNumberAndAppointmentDateAndPrisonLocKeyAndStartTimeAndEndTime(
+        videoAppointmentRepository.findActiveVideoAppointment(
           any(),
           any(),
           any(),

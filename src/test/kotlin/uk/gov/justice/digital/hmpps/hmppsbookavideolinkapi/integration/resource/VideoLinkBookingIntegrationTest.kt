@@ -1525,7 +1525,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         endTime = LocalTime.of(10, 0),
       ),
       COURT_USER,
-    ).videoLinkBookingId isEqualTo 2000
+    ).videoLinkBookingId isEqualTo 3000
   }
 
   // This is to just aid readability
