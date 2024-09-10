@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toOffsetString
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEvent
 import java.time.LocalDateTime
 
 abstract class DomainEvent<T : AdditionalInformation>(
@@ -109,6 +110,10 @@ enum class DomainEventType(val eventType: String, val description: String = "") 
   PRISONER_MERGED("prison-offender-events.prisoner.merged") {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =
       mapper.readValue<PrisonerMergedEvent>(message)
+  },
+  MIGRATE_VIDEO_BOOKING("whereabouts-api.videolink.migrate") {
+    override fun toInboundEvent(mapper: ObjectMapper, message: String) =
+      mapper.readValue<MigrateVideoBookingEvent>(message)
   },
   ;
 
