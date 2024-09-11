@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
@@ -144,13 +143,13 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   }
 
   @Test
-  fun `should fail when appointment video link URL is too long`() {
-    courtBooking.copy(videoLinkUrl = "https://".plus("a".repeat(120).plus(".com"))) failsWithSingle ModelError("videoLinkUrl", "The video link should not exceed 120 characters")
+  fun `should fail when appointment video link URL is invalid`() {
+    courtBooking.copy(videoLinkUrl = "   ") failsWithSingle ModelError("invalidUrl", "The supplied video link is blank")
   }
 
   @Test
-  fun `should convert a whitespace video link URL to null`() {
-    courtBooking.copy(videoLinkUrl = "        ").videoLinkUrl isEqualTo null
+  fun `should fail when appointment video link URL is too long`() {
+    courtBooking.copy(videoLinkUrl = "https://".plus("a".repeat(120).plus(".com"))) failsWithSingle ModelError("videoLinkUrl", "The video link should not exceed 120 characters")
   }
 
   @Test
