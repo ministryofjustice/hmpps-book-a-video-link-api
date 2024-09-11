@@ -144,7 +144,7 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
 
   @Test
   fun `should fail when appointment video link URL is invalid`() {
-    courtBooking.copy(videoLinkUrl = "blah") failsWithSingle ModelError("invalidUrl", "The supplied video link for the appointment is not a valid URL")
+    courtBooking.copy(videoLinkUrl = "   ") failsWithSingle ModelError("invalidUrl", "The supplied video link is blank")
   }
 
   @Test

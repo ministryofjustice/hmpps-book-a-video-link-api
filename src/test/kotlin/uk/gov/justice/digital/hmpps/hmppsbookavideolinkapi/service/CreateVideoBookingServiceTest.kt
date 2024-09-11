@@ -631,7 +631,7 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
-  fun `should create a probation video booking for probatiob user`() {
+  fun `should create a probation video booking for probation user`() {
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, location = birminghamLocation)

@@ -11,7 +11,6 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
-import java.net.URI
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -67,7 +66,7 @@ data class CreateVideoBookingRequest(
   val comments: String?,
 
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
-  @Schema(description = "The video link for the appointment. Must be a valid URL", example = "https://video.here.com")
+  @Schema(description = "The video link for the appointment.", example = "https://video.here.com")
   val videoLinkUrl: String?,
 ) {
   @JsonIgnore
@@ -81,8 +80,8 @@ data class CreateVideoBookingRequest(
     (BookingType.PROBATION != bookingType) || (probationTeamCode != null && probationMeetingType != null)
 
   @JsonIgnore
-  @AssertTrue(message = "The supplied video link for the appointment is not a valid URL")
-  private fun isInvalidUrl() = videoLinkUrl == null || runCatching { URI(videoLinkUrl!!).toURL() }.isSuccess
+  @AssertTrue(message = "The supplied video link is blank")
+  private fun isInvalidUrl() = videoLinkUrl == null || videoLinkUrl.isNotBlank()
 }
 
 enum class BookingType {
