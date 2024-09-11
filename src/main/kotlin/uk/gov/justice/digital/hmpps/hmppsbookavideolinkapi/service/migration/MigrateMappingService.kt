@@ -15,8 +15,11 @@ class MigrateMappingService(
   private val probationTeamRepository: ProbationTeamRepository,
   private val courtRepository: CourtRepository,
 ) {
-  fun mapBookingIdToPrisonerNumber(bookingId: Long): String = TODO()
-  fun mapInternalLocationIdToLocationBusinessKey(internalLocationId: Long): String = TODO()
-  fun mapCourtCodeToCourt(courtCode: String): Court = TODO()
-  fun mapProbationTeamCodeToProbationTeam(probationTeamCode: String): ProbationTeam = TODO()
+  fun mapBookingIdToPrisonerNumber(bookingId: Long): String? =
+    prisonerSearchClient.getPrisoner(bookingId)?.prisonerNumber
+  fun mapInternalLocationIdsToLocations(vararg internalLocationId: Long): Map<Long, String> = TODO()
+  fun mapCourtCodeToCourt(courtCode: String): Court? =
+    courtRepository.findByCode(courtCode)
+  fun mapProbationTeamCodeToProbationTeam(probationTeamCode: String): ProbationTeam? =
+    probationTeamRepository.findByCode(probationTeamCode)
 }

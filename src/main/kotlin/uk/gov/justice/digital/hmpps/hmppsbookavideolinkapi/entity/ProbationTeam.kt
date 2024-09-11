@@ -39,7 +39,7 @@ class ProbationTeam(
 
     other as ProbationTeam
 
-    return probationTeamId == other.probationTeamId
+    return probationTeamId == other.probationTeamId && code == other.code
   }
 
   override fun hashCode(): Int {

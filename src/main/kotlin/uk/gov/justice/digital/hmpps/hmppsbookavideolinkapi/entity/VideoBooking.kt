@@ -49,6 +49,8 @@ class VideoBooking private constructor(
   val createdBy: String,
 
   val createdTime: LocalDateTime = now(),
+
+  val migratedVideoBookingId: Long? = null,
 ) {
 
   @OneToMany(mappedBy = "videoBooking", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -75,6 +77,8 @@ class VideoBooking private constructor(
   fun prisonCode() = appointments().map { it.prisonCode }.distinct().single()
 
   fun isStatus(status: StatusCode) = statusCode == status
+
+  fun isMigrated() = migratedVideoBookingId != null
 
   fun addAppointment(
     prisonCode: String,
@@ -172,6 +176,45 @@ class VideoBooking private constructor(
         videoUrl = videoUrl,
         createdBy = createdBy,
         createdByPrison = createdByPrison,
+      )
+
+    fun migratedCourtBooking(
+      court: Court,
+      hearingType: String,
+      comments: String?,
+      createdBy: String,
+      createdByPrison: Boolean,
+      migratedVideoBookingId: Long,
+    ): VideoBooking = VideoBooking(
+      bookingType = "COURT",
+      court = court,
+      hearingType = hearingType,
+      probationTeam = null,
+      probationMeetingType = null,
+      comments = comments,
+      createdBy = createdBy,
+      createdByPrison = createdByPrison,
+      migratedVideoBookingId = migratedVideoBookingId,
+    )
+
+    fun migratedProbationBooking(
+      probationTeam: ProbationTeam,
+      probationMeetingType: String,
+      comments: String?,
+      createdBy: String,
+      createdByPrison: Boolean,
+      migratedVideoBookingId: Long,
+    ): VideoBooking =
+      VideoBooking(
+        bookingType = "PROBATION",
+        court = null,
+        hearingType = null,
+        probationTeam = probationTeam,
+        probationMeetingType = probationMeetingType,
+        comments = comments,
+        createdBy = createdBy,
+        createdByPrison = createdByPrison,
+        migratedVideoBookingId = migratedVideoBookingId,
       )
   }
 }
