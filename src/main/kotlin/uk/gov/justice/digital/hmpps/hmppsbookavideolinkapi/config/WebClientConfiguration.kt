@@ -17,6 +17,8 @@ class WebClientConfiguration(
   @Value("\${api.base.url.manage-users}") private val manageUsersBaseUri: String,
   @Value("\${api.base.url.prison-api}") val prisonApiBaseUri: String,
   @Value("\${api.base.url.prisoner-search}") val prisonerSearchBaseUri: String,
+  @Value("\${api.base.url.whereabouts}") val whereaboutsBaseUri: String,
+  @Value("\${api.base.url.nomis-mapping}") val nomisMappingBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @Value("\${api.timeout:60s}") val timeout: Duration,
 ) {
@@ -58,4 +60,12 @@ class WebClientConfiguration(
   @Bean
   fun prisonerSearchApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
     builder.authorisedWebClient(authorizedClientManager, "prisoner-search", prisonerSearchBaseUri, timeout)
+
+  @Bean
+  fun whereaboutsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
+    builder.authorisedWebClient(authorizedClientManager, "whereabouts-api", whereaboutsBaseUri, timeout)
+
+  @Bean
+  fun nomisMappingApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
+    builder.authorisedWebClient(authorizedClientManager, "nomis-mapping-api", nomisMappingBaseUri, timeout)
 }

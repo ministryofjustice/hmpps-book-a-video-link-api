@@ -18,8 +18,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.NomisMappingApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.WhereaboutsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
@@ -33,6 +35,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
   ManageUsersApiExtension::class,
   PrisonApiExtension::class,
   PrisonerSearchApiExtension::class,
+  WhereaboutsApiExtension::class,
+  NomisMappingApiExtension::class,
 )
 @Sql(
   "classpath:test_data/clean-all-data.sql",
@@ -65,6 +69,7 @@ abstract class IntegrationTestBase {
     manageUsersApi().stubHealthPing(status)
     prisonerApi().stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
+    WhereaboutsApiExtension.server.stubHealthPing(status)
   }
 
   protected fun prisonerApi() = PrisonApiExtension.server

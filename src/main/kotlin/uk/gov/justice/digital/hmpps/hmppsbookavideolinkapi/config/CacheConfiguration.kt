@@ -21,12 +21,16 @@ class CacheConfiguration {
 
     const val VIDEO_LINK_LOCATIONS_CACHE_NAME: String = "video_link_locations"
     const val NON_RESIDENTIAL_LOCATIONS_CACHE_NAME: String = "non_residential_locations"
+    const val LOCATIONS_BY_INTERNAL_ID: String = "locations_by_internal_id"
   }
 
   @Bean
-  fun cacheManager(): CacheManager {
-    return ConcurrentMapCacheManager(VIDEO_LINK_LOCATIONS_CACHE_NAME, NON_RESIDENTIAL_LOCATIONS_CACHE_NAME)
-  }
+  fun cacheManager(): CacheManager =
+    ConcurrentMapCacheManager(
+      VIDEO_LINK_LOCATIONS_CACHE_NAME,
+      NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
+      LOCATIONS_BY_INTERNAL_ID,
+    )
 
   @CacheEvict(value = [VIDEO_LINK_LOCATIONS_CACHE_NAME])
   @Scheduled(fixedDelay = 12, timeUnit = TimeUnit.HOURS)
@@ -38,5 +42,11 @@ class CacheConfiguration {
   @Scheduled(fixedDelay = 12, timeUnit = TimeUnit.HOURS)
   fun cacheEvictNonResidentialLocations() {
     log.info("Evicting cache: $NON_RESIDENTIAL_LOCATIONS_CACHE_NAME after 12 hours")
+  }
+
+  @CacheEvict(value = [LOCATIONS_BY_INTERNAL_ID])
+  @Scheduled(fixedDelay = 12, timeUnit = TimeUnit.HOURS)
+  fun cacheEvictLocationsById() {
+    log.info("Evicting cache: $LOCATIONS_BY_INTERNAL_ID after 12 hours")
   }
 }

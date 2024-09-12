@@ -96,7 +96,6 @@ class VideoBookingTest {
       createdBy = "migrated court user",
       createdByPrison = false,
       comments = "migrated court comments",
-      hearingType = "APPEAL",
       migratedVideoBookingId = 100,
     )
 
@@ -108,7 +107,7 @@ class VideoBookingTest {
       createdBy isEqualTo "migrated court user"
       createdByPrison isBool false
       comments isEqualTo "migrated court comments"
-      hearingType isEqualTo "APPEAL"
+      hearingType isEqualTo "UNKNOWN"
       migratedVideoBookingId isEqualTo 100
     }
   }
@@ -120,7 +119,6 @@ class VideoBookingTest {
       createdBy = "migrated probation user",
       createdByPrison = false,
       comments = "migrated probation comments",
-      probationMeetingType = "PSR",
       migratedVideoBookingId = 100,
     )
 
@@ -132,7 +130,7 @@ class VideoBookingTest {
       createdBy isEqualTo "migrated probation user"
       createdByPrison isBool false
       comments isEqualTo "migrated probation comments"
-      probationMeetingType isEqualTo "PSR"
+      probationMeetingType isEqualTo "UNKNOWN"
       migratedVideoBookingId isEqualTo 100
     }
   }

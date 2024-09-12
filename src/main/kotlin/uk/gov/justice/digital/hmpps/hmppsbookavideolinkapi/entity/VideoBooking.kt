@@ -180,7 +180,6 @@ class VideoBooking private constructor(
 
     fun migratedCourtBooking(
       court: Court,
-      hearingType: String,
       comments: String?,
       createdBy: String,
       createdByPrison: Boolean,
@@ -188,10 +187,12 @@ class VideoBooking private constructor(
     ): VideoBooking = VideoBooking(
       bookingType = "COURT",
       court = court,
-      hearingType = hearingType,
+      // TODO sort out hearing type currently not compatible with UI
+      hearingType = "UNKNOWN",
       probationTeam = null,
       probationMeetingType = null,
-      comments = comments,
+      // TODO comments size needs sorting ...
+      comments = comments?.take(400),
       createdBy = createdBy,
       createdByPrison = createdByPrison,
       migratedVideoBookingId = migratedVideoBookingId,
@@ -199,7 +200,6 @@ class VideoBooking private constructor(
 
     fun migratedProbationBooking(
       probationTeam: ProbationTeam,
-      probationMeetingType: String,
       comments: String?,
       createdBy: String,
       createdByPrison: Boolean,
@@ -210,8 +210,10 @@ class VideoBooking private constructor(
         court = null,
         hearingType = null,
         probationTeam = probationTeam,
-        probationMeetingType = probationMeetingType,
-        comments = comments,
+        // TODO sort out meeting type currently not compatible with UI
+        probationMeetingType = "UNKNOWN",
+        // TODO comments size needs sorting ...
+        comments = comments?.take(400),
         createdBy = createdBy,
         createdByPrison = createdByPrison,
         migratedVideoBookingId = migratedVideoBookingId,

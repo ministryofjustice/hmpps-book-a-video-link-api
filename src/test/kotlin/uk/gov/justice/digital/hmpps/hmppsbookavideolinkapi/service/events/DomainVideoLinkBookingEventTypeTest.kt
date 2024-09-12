@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Domain
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.VIDEO_BOOKING_CREATED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEvent
 
-class DomainEventTypeTest {
+class DomainVideoLinkBookingEventTypeTest {
 
   private val mapper = jacksonObjectMapper().registerModules(JavaTimeModule())
 

@@ -4,23 +4,26 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.stub
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.MigrationClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 
 class MigrateMappingServiceTest {
   private val prisonerSearchClient: PrisonerSearchClient = mock()
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val migrationClient: MigrationClient = mock()
   private val probationTeamRepository: ProbationTeamRepository = mock()
   private val courtRepository: CourtRepository = mock()
   private val service =
-    MigrateMappingService(prisonerSearchClient, locationsInsidePrisonClient, probationTeamRepository, courtRepository)
+    MigrateMappingService(prisonerSearchClient, migrationClient, probationTeamRepository, courtRepository)
 
   @Test
   fun `should map prisoner booking id to prisoner number`() {
@@ -59,5 +62,18 @@ class MigrateMappingServiceTest {
     service.mapProbationTeamCodeToProbationTeam("ABC") isEqualTo probationTeam(code = "ABC")
     service.mapProbationTeamCodeToProbationTeam("DEF") isEqualTo probationTeam(code = "DEF")
     service.mapProbationTeamCodeToProbationTeam("GHI") isEqualTo probationTeam(code = "GHI")
+  }
+
+  @Test
+  fun `should map internal location id to DPS location`() {
+    migrationClient.stub {
+      on { getLocationByInternalId(1) } doReturn moorlandLocation
+      on { getLocationByInternalId(2) } doReturn birminghamLocation
+      on { getLocationByInternalId(3) } doReturn werringtonLocation
+    }
+
+    service.mapInternalLocationIdToLocation(1) isEqualTo moorlandLocation
+    service.mapInternalLocationIdToLocation(2) isEqualTo birminghamLocation
+    service.mapInternalLocationIdToLocation(3) isEqualTo werringtonLocation
   }
 }
