@@ -58,10 +58,11 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
 fun VideoBooking.withMainCourtPrisonAppointment(
   prisonCode: String = BIRMINGHAM,
   location: Location = birminghamLocation,
+  prisonerNumber: String = "123456",
 ) =
   addAppointment(
     prisonCode = prisonCode,
-    prisonerNumber = "123456",
+    prisonerNumber = prisonerNumber,
     appointmentType = "VLB_COURT_MAIN",
     locationKey = location.key,
     date = tomorrow(),

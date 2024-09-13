@@ -83,8 +83,8 @@ data class VideoBookingEvent(
   val madeByTheCourt: Boolean,
   val comment: String?,
   val mainLocationId: Long,
-  val mainStartTime: LocalDateTime?,
-  val mainEndTime: LocalDateTime?,
+  val mainStartTime: LocalDateTime,
+  val mainEndTime: LocalDateTime,
   val preLocationId: Long?,
   val preStartTime: LocalDateTime?,
   val preEndTime: LocalDateTime?,
@@ -92,6 +92,34 @@ data class VideoBookingEvent(
   val postStartTime: LocalDateTime?,
   val postEndTime: LocalDateTime?,
 )
+
+fun VideoBookingEvent.preAppointment(): AppointmentLocationTimeSlot? =
+  preLocationId?.let {
+    AppointmentLocationTimeSlot(
+      locationId = preLocationId,
+      date = preStartTime!!.toLocalDate(),
+      startTime = preStartTime.toLocalTime(),
+      endTime = preEndTime!!.toLocalTime(),
+    )
+  }
+
+fun VideoBookingEvent.mainAppointment(): AppointmentLocationTimeSlot =
+  AppointmentLocationTimeSlot(
+    locationId = mainLocationId,
+    date = mainStartTime.toLocalDate(),
+    startTime = mainStartTime.toLocalTime(),
+    endTime = mainEndTime.toLocalTime(),
+  )
+
+fun VideoBookingEvent.postAppointment(): AppointmentLocationTimeSlot? =
+  postLocationId?.let {
+    AppointmentLocationTimeSlot(
+      locationId = postLocationId,
+      date = postStartTime!!.toLocalDate(),
+      startTime = postStartTime.toLocalTime(),
+      endTime = postEndTime!!.toLocalTime(),
+    )
+  }
 
 enum class VideoLinkBookingEventType {
   CREATE,
