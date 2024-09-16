@@ -62,6 +62,7 @@ data class VideoBookingMigrateResponse(
   val offenderBookingId: Long,
   val courtCode: String,
   val probation: Boolean,
+  val cancelled: Boolean,
   val prisonCode: String,
   val madeByTheCourt: Boolean,
   val createdBy: String,
@@ -92,6 +93,26 @@ data class VideoBookingEvent(
   val postStartTime: LocalDateTime?,
   val postEndTime: LocalDateTime?,
 )
+
+fun VideoBookingMigrateResponse.cancelledAt(): LocalDateTime? =
+  if (cancelled) {
+    events
+      .sortedBy(VideoBookingEvent::eventId)
+      .last { it.eventType == VideoLinkBookingEventType.DELETE }
+      .let(VideoBookingEvent::eventTime)
+  } else {
+    null
+  }
+
+fun VideoBookingMigrateResponse.cancelledBy(): String? =
+  if (cancelled) {
+    events
+      .sortedBy(VideoBookingEvent::eventId)
+      .last { it.eventType == VideoLinkBookingEventType.DELETE }
+      .let(VideoBookingEvent::createdByUsername)
+  } else {
+    null
+  }
 
 fun VideoBookingEvent.preAppointment(): AppointmentLocationTimeSlot? =
   preLocationId?.let {

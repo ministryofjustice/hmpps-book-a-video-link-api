@@ -5,6 +5,8 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingMigrateResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoLinkBookingEventType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.cancelledAt
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.cancelledBy
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.mainAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.postAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.preAppointment
@@ -65,6 +67,8 @@ class MigrateVideoBookingService(
       createdBy = bookingToMigrate.createdBy,
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
       migratedVideoBookingId = bookingToMigrate.videoBookingId,
+      cancelledBy = bookingToMigrate.cancelledBy(),
+      cancelledAt = bookingToMigrate.cancelledAt(),
     ).apply {
       if (bookingToMigrate.pre != null) {
         addAppointment(
@@ -104,36 +108,38 @@ class MigrateVideoBookingService(
     createHistoryFor(bookingToMigrate.events, migratedBooking)
   }
 
-  private fun migrateProbationTeam(booking: VideoBookingMigrateResponse) {
-    val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(booking.offenderBookingId)
-      ?: throw NullPointerException("Unable to find prisoner number for booking ${booking.videoBookingId}")
+  private fun migrateProbationTeam(bookingToMigrate: VideoBookingMigrateResponse) {
+    val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
+      ?: throw NullPointerException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
 
     val mainLocation =
-      mappingService.mapInternalLocationIdToLocation(booking.main.locationId) ?: throw NullPointerException(
-        "Main location not found for internal location ID ${booking.main.locationId} for probation booking ${booking.videoBookingId}",
+      mappingService.mapInternalLocationIdToLocation(bookingToMigrate.main.locationId) ?: throw NullPointerException(
+        "Main location not found for internal location ID ${bookingToMigrate.main.locationId} for probation booking ${bookingToMigrate.videoBookingId}",
       )
 
     // TODO still need to migrate if probation not found
-    val probationTeam = mappingService.mapProbationTeamCodeToProbationTeam(booking.courtCode)
-      ?: throw NullPointerException("Probation team not found for code ${booking.courtCode} for probation booking ${booking.videoBookingId}")
+    val probationTeam = mappingService.mapProbationTeamCodeToProbationTeam(bookingToMigrate.courtCode)
+      ?: throw NullPointerException("Probation team not found for code ${bookingToMigrate.courtCode} for probation booking ${bookingToMigrate.videoBookingId}")
 
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam,
-      comments = booking.comments,
-      createdBy = booking.createdBy,
-      createdByPrison = booking.madeByTheCourt.not(),
-      migratedVideoBookingId = booking.videoBookingId,
+      comments = bookingToMigrate.comments,
+      createdBy = bookingToMigrate.createdBy,
+      createdByPrison = bookingToMigrate.madeByTheCourt.not(),
+      migratedVideoBookingId = bookingToMigrate.videoBookingId,
+      cancelledBy = bookingToMigrate.cancelledBy(),
+      cancelledAt = bookingToMigrate.cancelledAt(),
     ).addAppointment(
-      prisonCode = booking.prisonCode,
+      prisonCode = bookingToMigrate.prisonCode,
       prisonerNumber = prisonerNumber,
       appointmentType = APPOINTMENT_TYPE_PROBATION,
-      date = booking.main.date,
-      startTime = booking.main.startTime,
-      endTime = booking.main.endTime,
+      date = bookingToMigrate.main.date,
+      startTime = bookingToMigrate.main.startTime,
+      endTime = bookingToMigrate.main.endTime,
       locationKey = mainLocation.key,
     ).let(videoBookingRepository::saveAndFlush)
 
-    createHistoryFor(booking.events, migratedBooking)
+    createHistoryFor(bookingToMigrate.events, migratedBooking)
   }
 
   private fun createHistoryFor(events: List<VideoBookingEvent>, migratedBooking: VideoBooking) {

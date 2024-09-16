@@ -184,6 +184,8 @@ class VideoBooking private constructor(
       createdBy: String,
       createdByPrison: Boolean,
       migratedVideoBookingId: Long,
+      cancelledBy: String?,
+      cancelledAt: LocalDateTime?,
     ): VideoBooking = VideoBooking(
       bookingType = "COURT",
       court = court,
@@ -196,7 +198,13 @@ class VideoBooking private constructor(
       createdBy = createdBy,
       createdByPrison = createdByPrison,
       migratedVideoBookingId = migratedVideoBookingId,
-    )
+    ).apply {
+      if (cancelledBy != null && cancelledAt != null) {
+        statusCode = StatusCode.CANCELLED
+        amendedBy = cancelledBy
+        amendedTime = cancelledAt
+      }
+    }
 
     fun migratedProbationBooking(
       probationTeam: ProbationTeam,
@@ -204,6 +212,8 @@ class VideoBooking private constructor(
       createdBy: String,
       createdByPrison: Boolean,
       migratedVideoBookingId: Long,
+      cancelledBy: String?,
+      cancelledAt: LocalDateTime?,
     ): VideoBooking =
       VideoBooking(
         bookingType = "PROBATION",
@@ -217,7 +227,13 @@ class VideoBooking private constructor(
         createdBy = createdBy,
         createdByPrison = createdByPrison,
         migratedVideoBookingId = migratedVideoBookingId,
-      )
+      ).apply {
+        if (cancelledBy != null && cancelledAt != null) {
+          statusCode = StatusCode.CANCELLED
+          amendedBy = cancelledBy
+          amendedTime = cancelledAt
+        }
+      }
   }
 }
 

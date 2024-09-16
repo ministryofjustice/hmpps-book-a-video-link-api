@@ -34,6 +34,7 @@ class MigrateVideoBookingEventHandlerTest {
     createdBy = "TEST",
     madeByTheCourt = true,
     main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
+    cancelled = false,
     events = emptyList(),
   )
   private val videoBookingRepository: VideoBookingRepository = mock()
