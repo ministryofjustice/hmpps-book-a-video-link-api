@@ -84,6 +84,11 @@ class BookingHistory(
  * create and amend cannot have more than one prisoner per booking, but this is future-proofing it.
  */
 
+const val APPOINTMENT_TYPE_COURT_PRE = "VLB_COURT_PRE"
+const val APPOINTMENT_TYPE_COURT_MAIN = "VLB_COURT_MAIN"
+const val APPOINTMENT_TYPE_COURT_POST = "VLB_COURT_POST"
+const val APPOINTMENT_TYPE_PROBATION = "VLB_PROBATION"
+
 @Entity
 @Table(name = "booking_history_appointment")
 data class BookingHistoryAppointment(

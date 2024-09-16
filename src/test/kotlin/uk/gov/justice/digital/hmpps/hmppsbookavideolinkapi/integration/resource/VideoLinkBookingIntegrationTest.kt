@@ -190,14 +190,12 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
     notifications.isPresent(COURT_USER.email!!, "new court booking user template id", persistedBooking)
 
-    thereShouldBe {
-      2.publishedMessages {
-        firstValue isInstanceOf VideoBookingCreatedEvent::class.java
-        firstValue.additionalInformation isEqualTo VideoBookingInformation(persistedBooking.videoBookingId)
+    2.messagesShouldBePublished {
+      firstValue isInstanceOf VideoBookingCreatedEvent::class.java
+      firstValue.additionalInformation isEqualTo VideoBookingInformation(persistedBooking.videoBookingId)
 
-        secondValue isInstanceOf AppointmentCreatedEvent::class.java
-        secondValue.additionalInformation isEqualTo AppointmentInformation(persistedAppointment.prisonAppointmentId)
-      }
+      secondValue isInstanceOf AppointmentCreatedEvent::class.java
+      secondValue.additionalInformation isEqualTo AppointmentInformation(persistedAppointment.prisonAppointmentId)
     }
   }
 
@@ -266,14 +264,12 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent("j@j.com", "new court booking court template id", persistedBooking)
     notifications.isPresent(prisonUser.email!!, "new court booking user template id", persistedBooking)
 
-    thereShouldBe {
-      2.publishedMessages {
-        firstValue isInstanceOf VideoBookingCreatedEvent::class.java
-        firstValue.additionalInformation isEqualTo VideoBookingInformation(persistedBooking.videoBookingId)
+    2.messagesShouldBePublished {
+      firstValue isInstanceOf VideoBookingCreatedEvent::class.java
+      firstValue.additionalInformation isEqualTo VideoBookingInformation(persistedBooking.videoBookingId)
 
-        secondValue isInstanceOf AppointmentCreatedEvent::class.java
-        secondValue.additionalInformation isEqualTo AppointmentInformation(persistedAppointment.prisonAppointmentId)
-      }
+      secondValue isInstanceOf AppointmentCreatedEvent::class.java
+      secondValue.additionalInformation isEqualTo AppointmentInformation(persistedAppointment.prisonAppointmentId)
     }
   }
 
@@ -1285,12 +1281,10 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     webTestClient.cancelBooking(bookingId, COURT_USER)
 
-    thereShouldBe {
-      3.publishedMessages {
-        firstValue isInstanceOf VideoBookingCreatedEvent::class.java
-        secondValue isInstanceOf AppointmentCreatedEvent::class.java
-        thirdValue isInstanceOf VideoBookingCancelledEvent::class.java
-      }
+    3.messagesShouldBePublished {
+      firstValue isInstanceOf VideoBookingCreatedEvent::class.java
+      secondValue isInstanceOf AppointmentCreatedEvent::class.java
+      thirdValue isInstanceOf VideoBookingCancelledEvent::class.java
     }
 
     val cancelledBooking = videoBookingRepository.findById(bookingId).orElseThrow()
@@ -1528,12 +1522,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     ).videoLinkBookingId isEqualTo 3000
   }
 
-  // This is to just aid readability
-  private fun thereShouldBe(f: () -> Unit) {
-    f()
-  }
-
-  private fun Int.publishedMessages(f: KArgumentCaptor<DomainEvent<*>>.() -> Unit) {
+  private fun Int.messagesShouldBePublished(f: KArgumentCaptor<DomainEvent<*>>.() -> Unit) {
     waitForMessagesOnQueue(this)
 
     val times = this

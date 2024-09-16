@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.APPOINTMENT_CREATED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType.VIDEO_BOOKING_AMENDED
@@ -9,10 +8,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Domain
 
 @Service
 class OutboundEventsService(private val outboundEventsPublisher: OutboundEventsPublisher) {
-
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 
   fun send(domainEventType: DomainEventType, identifier: Long) {
     when (domainEventType) {

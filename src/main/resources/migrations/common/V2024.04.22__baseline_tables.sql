@@ -173,20 +173,21 @@ CREATE INDEX idx_prison_contact_email ON prison_contact(email);
 
 CREATE TABLE video_booking
 (
-    video_booking_id       bigserial NOT NULL CONSTRAINT video_booking_pk PRIMARY KEY,
-    booking_type           varchar(40) NOT NULL,  -- COURT, PROBATION
-    status_code            varchar(20) NOT NULL,  -- ACTIVE, COMPLETED, EXPIRED, CANCELLED
-    court_id               bigint REFERENCES court(court_id), -- Nullable
-    hearing_type           varchar(40), -- Nullable
-    probation_team_id      bigint REFERENCES probation_team(probation_team_id), -- Nullable
-    probation_meeting_type varchar(40), -- Nullable
-    video_url              varchar(120),
-    comments               varchar(400),
-    created_by_prison      boolean NOT NULL DEFAULT false,
-    created_by             varchar(100) NOT NULL, 
-    created_time           timestamp    NOT NULL,
-    amended_by             varchar(100), 
-    amended_time           timestamp
+    video_booking_id          bigserial NOT NULL CONSTRAINT video_booking_pk PRIMARY KEY,
+    booking_type              varchar(40) NOT NULL,  -- COURT, PROBATION
+    status_code               varchar(20) NOT NULL,  -- ACTIVE, COMPLETED, EXPIRED, CANCELLED
+    court_id                  bigint REFERENCES court(court_id), -- Nullable
+    hearing_type              varchar(40), -- Nullable
+    probation_team_id         bigint REFERENCES probation_team(probation_team_id), -- Nullable
+    probation_meeting_type    varchar(40), -- Nullable
+    video_url                 varchar(120),
+    comments                  varchar(400),
+    created_by_prison         boolean NOT NULL DEFAULT false,
+    created_by                varchar(100) NOT NULL,
+    created_time              timestamp    NOT NULL,
+    amended_by                varchar(100),
+    amended_time              timestamp,
+    migrated_video_booking_id bigint
 );
 
 CREATE INDEX idx_video_booking_type ON video_booking(booking_type);
@@ -195,6 +196,7 @@ CREATE INDEX idx_video_booking_court_id ON video_booking(court_id);
 CREATE INDEX idx_video_booking_probation_team_id ON video_booking(probation_team_id);
 CREATE INDEX idx_video_booking_hearing_type ON video_booking(hearing_type);
 CREATE INDEX idx_video_booking_meeting_type ON video_booking(probation_meeting_type);
+CREATE UNIQUE INDEX idx_migrated_video_booking_id on video_booking(migrated_video_booking_id);
 
 ---------------------------------------------------------------------------------------
 -- This is the prison appointments related to the video booking

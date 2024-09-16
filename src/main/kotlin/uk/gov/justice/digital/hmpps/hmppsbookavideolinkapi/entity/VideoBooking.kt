@@ -49,6 +49,8 @@ class VideoBooking private constructor(
   val createdBy: String,
 
   val createdTime: LocalDateTime = now(),
+
+  val migratedVideoBookingId: Long? = null,
 ) {
 
   @OneToMany(mappedBy = "videoBooking", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -75,6 +77,8 @@ class VideoBooking private constructor(
   fun prisonCode() = appointments().map { it.prisonCode }.distinct().single()
 
   fun isStatus(status: StatusCode) = statusCode == status
+
+  fun isMigrated() = migratedVideoBookingId != null
 
   fun addAppointment(
     prisonCode: String,
@@ -173,6 +177,63 @@ class VideoBooking private constructor(
         createdBy = createdBy,
         createdByPrison = createdByPrison,
       )
+
+    fun migratedCourtBooking(
+      court: Court,
+      comments: String?,
+      createdBy: String,
+      createdByPrison: Boolean,
+      migratedVideoBookingId: Long,
+      cancelledBy: String?,
+      cancelledAt: LocalDateTime?,
+    ): VideoBooking = VideoBooking(
+      bookingType = "COURT",
+      court = court,
+      // TODO sort out hearing type currently not compatible with UI
+      hearingType = "UNKNOWN",
+      probationTeam = null,
+      probationMeetingType = null,
+      // TODO comments size needs sorting ...
+      comments = comments?.take(400),
+      createdBy = createdBy,
+      createdByPrison = createdByPrison,
+      migratedVideoBookingId = migratedVideoBookingId,
+    ).apply {
+      if (cancelledBy != null && cancelledAt != null) {
+        statusCode = StatusCode.CANCELLED
+        amendedBy = cancelledBy
+        amendedTime = cancelledAt
+      }
+    }
+
+    fun migratedProbationBooking(
+      probationTeam: ProbationTeam,
+      comments: String?,
+      createdBy: String,
+      createdByPrison: Boolean,
+      migratedVideoBookingId: Long,
+      cancelledBy: String?,
+      cancelledAt: LocalDateTime?,
+    ): VideoBooking =
+      VideoBooking(
+        bookingType = "PROBATION",
+        court = null,
+        hearingType = null,
+        probationTeam = probationTeam,
+        // TODO sort out meeting type currently not compatible with UI
+        probationMeetingType = "UNKNOWN",
+        // TODO comments size needs sorting ...
+        comments = comments?.take(400),
+        createdBy = createdBy,
+        createdByPrison = createdByPrison,
+        migratedVideoBookingId = migratedVideoBookingId,
+      ).apply {
+        if (cancelledBy != null && cancelledAt != null) {
+          statusCode = StatusCode.CANCELLED
+          amendedBy = cancelledBy
+          amendedTime = cancelledAt
+        }
+      }
   }
 }
 
