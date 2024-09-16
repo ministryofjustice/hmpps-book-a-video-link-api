@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
@@ -39,6 +40,11 @@ class AmendVideoBookingService(
       .also {
         require(BookingType.valueOf(it.bookingType) == request.bookingType) {
           "The booking type ${it.bookingType} does not match the requested type ${request.bookingType}."
+        }
+      }
+      .also {
+        require(it.statusCode != StatusCode.CANCELLED) {
+          "Video booking $videoBookingId is already cancelled, and so cannot be amended"
         }
       }
 
