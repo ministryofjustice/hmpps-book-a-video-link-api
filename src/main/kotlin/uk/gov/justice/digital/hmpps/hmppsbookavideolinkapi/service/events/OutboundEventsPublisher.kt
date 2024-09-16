@@ -5,10 +5,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.publish
 
 @Component
 class OutboundEventsPublisher(
@@ -37,13 +37,11 @@ class OutboundEventsPublisher(
       log.info("PUBLISHER: publishing domain event $event")
 
       runCatching {
-        domainEventsTopic.snsClient.publish(
-          PublishRequest.builder()
-            .topicArn(domainEventsTopic.arn)
-            .message(mapper.writeValueAsString(event))
-            .messageAttributes(event.attributes())
-            .build(),
-        ).get()
+        domainEventsTopic.publish(
+          eventType = event.eventType,
+          event = mapper.writeValueAsString(event),
+          attributes = event.attributes(),
+        )
       }.onFailure { log.error("PUBLISHER: error publishing event $event", it) }
     } else {
       log.info("PUBLISHER: domain event $event not published, publishing is disabled ")
