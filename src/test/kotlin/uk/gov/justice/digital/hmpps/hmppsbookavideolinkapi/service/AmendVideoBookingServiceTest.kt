@@ -646,6 +646,21 @@ class AmendVideoBookingServiceTest {
   }
 
   @Test
+  fun `should fail to amend a cancelled video booking`() {
+    val prisonerNumber = "123456"
+    val amendRequest = amendCourtBookingRequest()
+
+    val cancelledBooking = courtBooking().withMainCourtPrisonAppointment().cancel(COURT_USER)
+
+    withBookingFixture(2, cancelledBooking)
+    withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
+
+    val error = assertThrows<IllegalArgumentException> { service.amend(2, amendRequest, COURT_USER) }
+
+    error.message isEqualTo "Video booking 2 is already cancelled, and so cannot be amended"
+  }
+
+  @Test
   fun `should fail to amend a court video booking when user is probation user`() {
     withBookingFixture(2, courtBooking())
 
