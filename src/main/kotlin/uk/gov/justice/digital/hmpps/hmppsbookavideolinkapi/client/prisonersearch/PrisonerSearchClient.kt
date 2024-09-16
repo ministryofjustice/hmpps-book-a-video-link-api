@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 
 import jakarta.validation.ValidationException
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import java.time.LocalDate
+
+inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 @Component
 class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
@@ -18,6 +21,15 @@ class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
       .bodyToMono(Prisoner::class.java)
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
+
+  fun getPrisoner(bookingId: Long): Prisoner? =
+    prisonerSearchApiWebClient.post()
+      .uri("/prisoner-search/booking-ids")
+      .bodyValue(BookingIds(listOf(bookingId)))
+      .retrieve()
+      .bodyToMono(typeReference<List<Prisoner>>())
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()?.singleOrNull()
 }
 
 @Component
@@ -39,3 +51,5 @@ data class Prisoner(
   val bookingId: String? = null,
   val lastPrisonId: String? = null,
 )
+
+data class BookingIds(val bookingIds: List<Long>)

@@ -27,6 +27,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as Mod
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG", localName = "Birmingham room")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
 val moorlandLocation = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG", localName = "Moorland room")
+val moorlandLocation2 = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG2", localName = "Moorland room 2")
+val moorlandLocation3 = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG3", localName = "Moorland room 3")
 val werringtonLocation = location(prisonCode = WERRINGTON, locationKeySuffix = "ABCDEFG")
 val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
 
