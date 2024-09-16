@@ -648,7 +648,7 @@ class AmendVideoBookingServiceTest {
   @Test
   fun `should fail to amend a cancelled video booking`() {
     val prisonerNumber = "123456"
-    val amendRequest =  amendCourtBookingRequest()
+    val amendRequest = amendCourtBookingRequest()
 
     val cancelledBooking = courtBooking().withMainCourtPrisonAppointment().cancel(COURT_USER)
 
