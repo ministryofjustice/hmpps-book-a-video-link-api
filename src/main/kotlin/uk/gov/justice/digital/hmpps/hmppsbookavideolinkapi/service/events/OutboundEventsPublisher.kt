@@ -5,7 +5,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -41,7 +40,7 @@ class OutboundEventsPublisher(
         domainEventsTopic.publish(
           eventType = event.eventType,
           event = mapper.writeValueAsString(event),
-          attributes = event.attributes()
+          attributes = event.attributes(),
         )
       }.onFailure { log.error("PUBLISHER: error publishing event $event", it) }
     } else {
