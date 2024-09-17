@@ -669,6 +669,114 @@ class MigrateVideoBookingServiceTest {
   }
 
   @Test
+  fun `should migrate AMENDED booking history for a probation booking`() {
+    migrateMappingService.stub {
+      on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
+      on { mapInternalLocationIdToLocation(1) } doReturn werringtonLocation
+      on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
+    }
+
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withMainCourtPrisonAppointment(
+      prisonCode = WERRINGTON,
+      prisonerNumber = "DEF123",
+    )
+
+    service.migrate(
+      VideoBookingMigrateResponse(
+        videoBookingId = 5,
+        offenderBookingId = 1,
+        prisonCode = WERRINGTON,
+        courtCode = BLACKPOOL_MC_PPOC,
+        probation = true,
+        createdBy = "MIGRATION PROBATION USER",
+        madeByTheCourt = true,
+        comments = "Migrated probation comments",
+        main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        cancelled = false,
+        events = listOf(
+          VideoBookingEvent(
+            eventId = 1,
+            eventTime = 2.daysAgo().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Probation booking create event comments",
+            courtCode = BLACKPOOL_MC_PPOC,
+            preStartTime = null,
+            preEndTime = null,
+            mainStartTime = yesterday().atTime(10, 0),
+            mainEndTime = yesterday().atTime(11, 0),
+            postStartTime = null,
+            postEndTime = null,
+            prisonCode = WERRINGTON,
+            createdByUsername = "MIGRATION PROBATION CREATE USER",
+            courtName = null,
+            madeByTheCourt = true,
+            preLocationId = null,
+            mainLocationId = 1,
+            postLocationId = null,
+          ),
+          VideoBookingEvent(
+            eventId = 2,
+            eventTime = 1.daysAgo().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.UPDATE,
+            comment = "Probation booking updated event comments",
+            courtCode = BLACKPOOL_MC_PPOC,
+            preStartTime = null,
+            preEndTime = null,
+            mainStartTime = yesterday().atTime(10, 0),
+            mainEndTime = yesterday().atTime(11, 0),
+            postStartTime = null,
+            postEndTime = null,
+            prisonCode = WERRINGTON,
+            createdByUsername = "MIGRATION PROBATION UPDATE USER",
+            courtName = null,
+            madeByTheCourt = true,
+            preLocationId = null,
+            mainLocationId = 1,
+            postLocationId = null,
+          ),
+        ),
+      ),
+    )
+
+    inOrder(videoBookingRepository, bookingHistoryRepository) {
+      verify(videoBookingRepository).saveAndFlush(videoBookingCaptor.capture())
+      verify(bookingHistoryRepository, times(2)).saveAndFlush(bookingHistoryCaptor.capture())
+    }
+
+    bookingHistoryCaptor.allValues hasSize 2
+
+    with(bookingHistoryCaptor.firstValue) {
+      historyType isEqualTo HistoryType.CREATE
+      createdBy isEqualTo "MIGRATION PROBATION CREATE USER"
+      createdTime isEqualTo 2.daysAgo().atStartOfDay()
+
+      appointments().single()
+        .isAtPrison(WERRINGTON)
+        .isForPrisonerNumber("DEF123")
+        .isOnDate(yesterday())
+        .startsAt(LocalTime.of(10, 0))
+        .endsAt(LocalTime.of(11, 0))
+        .isForAppointmentType("VLB_PROBATION")
+        .isAtLocation(werringtonLocation)
+    }
+
+    with(bookingHistoryCaptor.secondValue) {
+      historyType isEqualTo HistoryType.AMEND
+      createdBy isEqualTo "MIGRATION PROBATION UPDATE USER"
+      createdTime isEqualTo 1.daysAgo().atStartOfDay()
+
+      appointments().single()
+        .isAtPrison(WERRINGTON)
+        .isForPrisonerNumber("DEF123")
+        .isOnDate(yesterday())
+        .startsAt(LocalTime.of(10, 0))
+        .endsAt(LocalTime.of(11, 0))
+        .isForAppointmentType("VLB_PROBATION")
+        .isAtLocation(werringtonLocation)
+    }
+  }
+
+  @Test
   fun `should migrate CANCELLED booking history for a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
@@ -777,22 +885,12 @@ class MigrateVideoBookingServiceTest {
   }
 
   private fun BookingHistoryAppointment.isAtPrison(prisonCode: String) = also { it.prisonCode isEqualTo prisonCode }
-
-  private fun BookingHistoryAppointment.isForPrisonerNumber(prisonerNumber: String) =
-    also { it.prisonerNumber isEqualTo prisonerNumber }
-
-  private fun BookingHistoryAppointment.isOnDate(appointmentDate: LocalDate) =
-    also { it.appointmentDate isEqualTo appointmentDate }
-
+  private fun BookingHistoryAppointment.isForPrisonerNumber(prisonerNumber: String) = also { it.prisonerNumber isEqualTo prisonerNumber }
+  private fun BookingHistoryAppointment.isOnDate(appointmentDate: LocalDate) = also { it.appointmentDate isEqualTo appointmentDate }
   private fun BookingHistoryAppointment.startsAt(startTime: LocalTime) = also { it.startTime isEqualTo startTime }
-
   private fun BookingHistoryAppointment.endsAt(endTime: LocalTime) = also { it.endTime isEqualTo endTime }
-
-  private fun BookingHistoryAppointment.isForAppointmentType(appointmentType: String) =
-    also { it.appointmentType isEqualTo appointmentType }
-
-  private fun BookingHistoryAppointment.isAtLocation(location: Location) =
-    also { it.prisonLocKey isEqualTo location.key }
+  private fun BookingHistoryAppointment.isForAppointmentType(appointmentType: String) = also { it.appointmentType isEqualTo appointmentType }
+  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocKey isEqualTo location.key }
 
   // TODO more tests needed e.g. error conditions, history.
 }

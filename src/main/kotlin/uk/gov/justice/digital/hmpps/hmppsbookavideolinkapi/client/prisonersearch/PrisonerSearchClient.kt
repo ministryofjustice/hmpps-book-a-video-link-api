@@ -21,15 +21,6 @@ class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
       .bodyToMono(Prisoner::class.java)
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
-
-  fun getPrisoner(bookingId: Long): Prisoner? =
-    prisonerSearchApiWebClient.post()
-      .uri("/prisoner-search/booking-ids")
-      .bodyValue(BookingIds(listOf(bookingId)))
-      .retrieve()
-      .bodyToMono(typeReference<List<Prisoner>>())
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()?.singleOrNull()
 }
 
 @Component
@@ -51,5 +42,3 @@ data class Prisoner(
   val bookingId: String? = null,
   val lastPrisonId: String? = null,
 )
-
-data class BookingIds(val bookingIds: List<Long>)

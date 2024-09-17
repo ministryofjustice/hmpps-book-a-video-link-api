@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHis
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 
 @Service
+@Deprecated(message = "Can be removed when migration is completed")
 class MigrateVideoBookingService(
   private val mappingService: MigrateMappingService,
   private val videoBookingRepository: VideoBookingRepository,

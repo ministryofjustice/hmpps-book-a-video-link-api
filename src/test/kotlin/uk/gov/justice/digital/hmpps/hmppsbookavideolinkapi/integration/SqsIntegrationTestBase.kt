@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.awaitility.Awaitility
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -30,7 +27,8 @@ import java.util.concurrent.TimeUnit
 @ActiveProfiles("test-localstack", inheritProfiles = false)
 abstract class SqsIntegrationTestBase : IntegrationTestBase() {
 
-  private val mapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
+  @Autowired
+  protected lateinit var mapper: ObjectMapper
 
   @Autowired
   protected lateinit var hmppsQueueService: HmppsQueueService

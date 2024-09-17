@@ -5,7 +5,6 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.stub
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.MigrationClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
@@ -18,16 +17,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepos
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 
 class MigrateMappingServiceTest {
-  private val prisonerSearchClient: PrisonerSearchClient = mock()
   private val migrationClient: MigrationClient = mock()
   private val probationTeamRepository: ProbationTeamRepository = mock()
   private val courtRepository: CourtRepository = mock()
   private val service =
-    MigrateMappingService(prisonerSearchClient, migrationClient, probationTeamRepository, courtRepository)
+    MigrateMappingService(migrationClient, probationTeamRepository, courtRepository)
 
   @Test
   fun `should map prisoner booking id to prisoner number`() {
-    prisonerSearchClient.stub {
+    migrationClient.stub {
       on { getPrisoner(1) } doReturn prisonerSearchPrisoner("ABC123", MOORLAND)
       on { getPrisoner(2) } doReturn prisonerSearchPrisoner("DEF456", MOORLAND)
       on { getPrisoner(3) } doReturn prisonerSearchPrisoner("GHI789", MOORLAND)

@@ -164,7 +164,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
-    prisonSearchApi().stubGetPrisoner(prisonNumber = "YD1234", prisonCode = "TRN", lastPrisonCode = WERRINGTON)
+    prisonSearchApi().stubGetPrisoner(prisonerNumber = "YD1234", prisonCode = "TRN", lastPrisonCode = WERRINGTON)
 
     inboundEventsListener.onMessage(
       raw(
