@@ -12,7 +12,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.AppointmentLocationTimeSlot
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingMigrateEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingMigrateResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoLinkBookingEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -59,7 +60,7 @@ class MigrateVideoBookingServiceTest {
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking()
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
 
     service.migrate(
       VideoBookingMigrateResponse(
@@ -67,13 +68,31 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = MOORLAND,
         courtCode = DERBY_JUSTICE_CENTRE,
+        courtName = null,
         probation = false,
-        createdBy = "MIGRATION COURT USER",
+        createdByUsername = "MIGRATION COURT USER",
         madeByTheCourt = true,
-        comments = "Migrated court comments",
+        comment = "Migrated court comments",
+        pre = null,
         main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
+        post = null,
         cancelled = false,
-        events = emptyList(),
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = yesterday().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Court booking create event comments",
+            courtCode = DERBY_JUSTICE_CENTRE,
+            courtName = null,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
+            post = null,
+            prisonCode = MOORLAND,
+            createdByUsername = "MIGRATION COURT CREATE USER",
+            madeByTheCourt = true,
+          ),
+        ),
       ),
     )
 
@@ -109,7 +128,7 @@ class MigrateVideoBookingServiceTest {
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking()
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
 
     service.migrate(
       VideoBookingMigrateResponse(
@@ -117,14 +136,31 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = MOORLAND,
         courtCode = DERBY_JUSTICE_CENTRE,
+        courtName = null,
         probation = false,
-        createdBy = "MIGRATION COURT USER",
+        createdByUsername = "MIGRATION COURT USER",
         madeByTheCourt = true,
-        comments = "Migrated court comments",
+        comment = "Migrated court comments",
         pre = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
         main = AppointmentLocationTimeSlot(2, today(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        post = null,
         cancelled = false,
-        events = emptyList(),
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = yesterday().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Court booking create event comments",
+            courtCode = DERBY_JUSTICE_CENTRE,
+            courtName = null,
+            pre = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
+            main = AppointmentLocationTimeSlot(2, today(), LocalTime.of(10, 0), LocalTime.of(10, 0)),
+            post = null,
+            prisonCode = MOORLAND,
+            createdByUsername = "MIGRATION COURT CREATE USER",
+            madeByTheCourt = true,
+          ),
+        ),
       ),
     )
 
@@ -174,7 +210,7 @@ class MigrateVideoBookingServiceTest {
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking()
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
 
     service.migrate(
       VideoBookingMigrateResponse(
@@ -182,15 +218,31 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = MOORLAND,
         courtCode = DERBY_JUSTICE_CENTRE,
+        courtName = null,
         probation = false,
-        createdBy = "MIGRATION COURT USER",
+        createdByUsername = "MIGRATION COURT USER",
         madeByTheCourt = true,
-        comments = "Migrated court comments",
+        comment = "Migrated court comments",
         pre = AppointmentLocationTimeSlot(1, today(), LocalTime.of(8, 0), LocalTime.of(9, 0)),
         main = AppointmentLocationTimeSlot(2, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
         post = AppointmentLocationTimeSlot(3, today(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
         cancelled = false,
-        events = emptyList(),
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = yesterday().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Court booking create event comments",
+            courtCode = DERBY_JUSTICE_CENTRE,
+            courtName = null,
+            pre = AppointmentLocationTimeSlot(1, today(), LocalTime.of(8, 0), LocalTime.of(9, 0)),
+            main = AppointmentLocationTimeSlot(2, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
+            post = AppointmentLocationTimeSlot(3, today(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            prisonCode = MOORLAND,
+            createdByUsername = "MIGRATION COURT CREATE USER",
+            madeByTheCourt = true,
+          ),
+        ),
       ),
     )
 
@@ -250,7 +302,7 @@ class MigrateVideoBookingServiceTest {
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking()
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
 
     service.migrate(
       VideoBookingMigrateResponse(
@@ -258,14 +310,31 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = MOORLAND,
         courtCode = DERBY_JUSTICE_CENTRE,
+        courtName = null,
         probation = false,
-        createdBy = "MIGRATION COURT USER",
+        createdByUsername = "MIGRATION COURT USER",
         madeByTheCourt = true,
-        comments = "Migrated court comments",
+        comment = "Migrated court comments",
+        pre = null,
         main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(8, 0), LocalTime.of(9, 0)),
         post = AppointmentLocationTimeSlot(2, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
         cancelled = false,
-        events = emptyList(),
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = yesterday().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Court booking create event comments",
+            courtCode = DERBY_JUSTICE_CENTRE,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(8, 0), LocalTime.of(9, 0)),
+            post = AppointmentLocationTimeSlot(2, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
+            prisonCode = MOORLAND,
+            createdByUsername = "MIGRATION COURT CREATE USER",
+            courtName = null,
+            madeByTheCourt = true,
+          ),
+        ),
       ),
     )
 
@@ -313,7 +382,7 @@ class MigrateVideoBookingServiceTest {
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking()
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withProbationPrisonAppointment(prisonCode = WERRINGTON)
 
     service.migrate(
       VideoBookingMigrateResponse(
@@ -321,13 +390,31 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = WERRINGTON,
         courtCode = BLACKPOOL_MC_PPOC,
+        courtName = null,
         probation = true,
-        createdBy = "MIGRATION PROBATION USER",
+        createdByUsername = "MIGRATION PROBATION USER",
         madeByTheCourt = true,
-        comments = "Migrated probation comments",
+        comment = "Migrated probation comments",
+        pre = null,
         main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
+        post = null,
         cancelled = false,
-        events = emptyList(),
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = yesterday().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Probation booking create event comments",
+            courtCode = BLACKPOOL_MC_PPOC,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
+            post = null,
+            prisonCode = WERRINGTON,
+            createdByUsername = "MIGRATION PROBATION CREATE USER",
+            courtName = null,
+            madeByTheCourt = true,
+          ),
+        ),
       ),
     )
 
@@ -375,32 +462,29 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = MOORLAND,
         courtCode = DERBY_JUSTICE_CENTRE,
+        courtName = null,
         probation = false,
-        createdBy = "MIGRATION COURT USER",
+        createdByUsername = "MIGRATION COURT USER",
         madeByTheCourt = true,
-        comments = "Migrated court comments",
+        comment = "Migrated court comments",
+        pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
         main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        post = AppointmentLocationTimeSlot(3, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
         cancelled = false,
         events = listOf(
-          VideoBookingEvent(
+          VideoBookingMigrateEvent(
             eventId = 1,
             eventTime = yesterday().atStartOfDay(),
             eventType = VideoLinkBookingEventType.CREATE,
             comment = "Court booking create event comments",
             courtCode = DERBY_JUSTICE_CENTRE,
-            preStartTime = yesterday().atTime(9, 0),
-            preEndTime = yesterday().atTime(10, 0),
-            mainStartTime = yesterday().atTime(10, 0),
-            mainEndTime = yesterday().atTime(11, 0),
-            postStartTime = yesterday().atTime(11, 0),
-            postEndTime = yesterday().atTime(12, 0),
+            pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
+            main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = AppointmentLocationTimeSlot(3, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
             prisonCode = MOORLAND,
             createdByUsername = "MIGRATION COURT CREATE USER",
             courtName = null,
             madeByTheCourt = true,
-            preLocationId = 1,
-            mainLocationId = 2,
-            postLocationId = 3,
           ),
         ),
       ),
@@ -468,52 +552,43 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = MOORLAND,
         courtCode = DERBY_JUSTICE_CENTRE,
+        courtName = null,
         probation = false,
-        createdBy = "MIGRATION COURT USER",
+        createdByUsername = "MIGRATION COURT USER",
         madeByTheCourt = true,
-        comments = "Migrated court comments",
+        comment = "Migrated court comments",
+        pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
         main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        post = AppointmentLocationTimeSlot(3, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
         cancelled = false,
         events = listOf(
-          VideoBookingEvent(
+          VideoBookingMigrateEvent(
             eventId = 1,
             eventTime = yesterday().atStartOfDay(),
             eventType = VideoLinkBookingEventType.CREATE,
             comment = "Court booking create event comments",
             courtCode = DERBY_JUSTICE_CENTRE,
-            preStartTime = yesterday().atTime(9, 0),
-            preEndTime = yesterday().atTime(10, 0),
-            mainStartTime = yesterday().atTime(10, 0),
-            mainEndTime = yesterday().atTime(11, 0),
-            postStartTime = yesterday().atTime(11, 0),
-            postEndTime = yesterday().atTime(12, 0),
+            pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
+            main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = AppointmentLocationTimeSlot(3, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
             prisonCode = MOORLAND,
             createdByUsername = "MIGRATION COURT CREATE USER",
             courtName = null,
             madeByTheCourt = true,
-            preLocationId = 1,
-            mainLocationId = 2,
-            postLocationId = 3,
           ),
-          VideoBookingEvent(
+          VideoBookingMigrateEvent(
             eventId = 2,
             eventTime = yesterday().atStartOfDay().plusHours(1),
             eventType = VideoLinkBookingEventType.DELETE,
             comment = "Court booking delete event comments",
             courtCode = DERBY_JUSTICE_CENTRE,
-            preStartTime = yesterday().atTime(9, 0),
-            preEndTime = yesterday().atTime(10, 0),
-            mainStartTime = yesterday().atTime(10, 0),
-            mainEndTime = yesterday().atTime(11, 0),
-            postStartTime = yesterday().atTime(11, 0),
-            postEndTime = yesterday().atTime(12, 0),
+            pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
+            main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = AppointmentLocationTimeSlot(3, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
             prisonCode = MOORLAND,
             createdByUsername = "MIGRATION COURT DELETE USER",
             courtName = null,
             madeByTheCourt = true,
-            preLocationId = 1,
-            mainLocationId = 2,
-            postLocationId = 3,
           ),
         ),
       ),
@@ -616,32 +691,29 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = WERRINGTON,
         courtCode = BLACKPOOL_MC_PPOC,
+        courtName = null,
         probation = true,
-        createdBy = "MIGRATION PROBATION USER",
+        createdByUsername = "MIGRATION PROBATION USER",
         madeByTheCourt = true,
-        comments = "Migrated probation comments",
+        comment = "Migrated probation comments",
+        pre = null,
         main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        post = null,
         cancelled = false,
         events = listOf(
-          VideoBookingEvent(
+          VideoBookingMigrateEvent(
             eventId = 1,
             eventTime = 2.daysAgo().atStartOfDay(),
             eventType = VideoLinkBookingEventType.CREATE,
             comment = "Probation booking create event comments",
             courtCode = BLACKPOOL_MC_PPOC,
-            preStartTime = null,
-            preEndTime = null,
-            mainStartTime = yesterday().atTime(10, 0),
-            mainEndTime = yesterday().atTime(11, 0),
-            postStartTime = null,
-            postEndTime = null,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = null,
             prisonCode = WERRINGTON,
             createdByUsername = "MIGRATION PROBATION USER",
             courtName = null,
             madeByTheCourt = true,
-            preLocationId = null,
-            mainLocationId = 1,
-            postLocationId = null,
           ),
         ),
       ),
@@ -687,52 +759,43 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = WERRINGTON,
         courtCode = BLACKPOOL_MC_PPOC,
+        courtName = null,
         probation = true,
-        createdBy = "MIGRATION PROBATION USER",
+        createdByUsername = "MIGRATION PROBATION USER",
         madeByTheCourt = true,
-        comments = "Migrated probation comments",
+        comment = "Migrated probation comments",
+        pre = null,
         main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        post = null,
         cancelled = false,
         events = listOf(
-          VideoBookingEvent(
+          VideoBookingMigrateEvent(
             eventId = 1,
             eventTime = 2.daysAgo().atStartOfDay(),
             eventType = VideoLinkBookingEventType.CREATE,
             comment = "Probation booking create event comments",
             courtCode = BLACKPOOL_MC_PPOC,
-            preStartTime = null,
-            preEndTime = null,
-            mainStartTime = yesterday().atTime(10, 0),
-            mainEndTime = yesterday().atTime(11, 0),
-            postStartTime = null,
-            postEndTime = null,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = null,
             prisonCode = WERRINGTON,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
             courtName = null,
             madeByTheCourt = true,
-            preLocationId = null,
-            mainLocationId = 1,
-            postLocationId = null,
           ),
-          VideoBookingEvent(
+          VideoBookingMigrateEvent(
             eventId = 2,
             eventTime = 1.daysAgo().atStartOfDay(),
             eventType = VideoLinkBookingEventType.UPDATE,
             comment = "Probation booking updated event comments",
             courtCode = BLACKPOOL_MC_PPOC,
-            preStartTime = null,
-            preEndTime = null,
-            mainStartTime = yesterday().atTime(10, 0),
-            mainEndTime = yesterday().atTime(11, 0),
-            postStartTime = null,
-            postEndTime = null,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = null,
             prisonCode = WERRINGTON,
             createdByUsername = "MIGRATION PROBATION UPDATE USER",
             courtName = null,
             madeByTheCourt = true,
-            preLocationId = null,
-            mainLocationId = 1,
-            postLocationId = null,
           ),
         ),
       ),
@@ -795,52 +858,43 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = WERRINGTON,
         courtCode = BLACKPOOL_MC_PPOC,
+        courtName = null,
         probation = true,
-        createdBy = "MIGRATION PROBATION USER",
+        createdByUsername = "MIGRATION PROBATION USER",
         madeByTheCourt = true,
-        comments = "Migrated probation comments",
+        comment = "Migrated probation comments",
+        pre = null,
         main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        post = null,
         cancelled = true,
         events = listOf(
-          VideoBookingEvent(
+          VideoBookingMigrateEvent(
             eventId = 1,
             eventTime = 2.daysAgo().atStartOfDay(),
             eventType = VideoLinkBookingEventType.CREATE,
             comment = "Probation booking create event comments",
             courtCode = BLACKPOOL_MC_PPOC,
-            preStartTime = null,
-            preEndTime = null,
-            mainStartTime = yesterday().atTime(10, 0),
-            mainEndTime = yesterday().atTime(11, 0),
-            postStartTime = null,
-            postEndTime = null,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = null,
             prisonCode = WERRINGTON,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
             courtName = null,
             madeByTheCourt = true,
-            preLocationId = null,
-            mainLocationId = 1,
-            postLocationId = null,
           ),
-          VideoBookingEvent(
+          VideoBookingMigrateEvent(
             eventId = 2,
             eventTime = 1.daysAgo().atStartOfDay(),
             eventType = VideoLinkBookingEventType.DELETE,
             comment = "Probation booking delete event comments",
             courtCode = BLACKPOOL_MC_PPOC,
-            preStartTime = null,
-            preEndTime = null,
-            mainStartTime = yesterday().atTime(10, 0),
-            mainEndTime = yesterday().atTime(11, 0),
-            postStartTime = null,
-            postEndTime = null,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = null,
             prisonCode = WERRINGTON,
             createdByUsername = "MIGRATION PROBATION DELETE USER",
             courtName = null,
             madeByTheCourt = true,
-            preLocationId = null,
-            mainLocationId = 1,
-            postLocationId = null,
           ),
         ),
       ),

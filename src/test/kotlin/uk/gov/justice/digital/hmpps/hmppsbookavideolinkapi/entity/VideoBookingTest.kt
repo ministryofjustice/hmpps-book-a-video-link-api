@@ -95,11 +95,14 @@ class VideoBookingTest {
     val migratedBooking = VideoBooking.migratedCourtBooking(
       court = court(code = "migrated_court_code"),
       createdBy = "migrated court user",
+      createdTime = yesterday().atStartOfDay(),
       createdByPrison = false,
       comments = "migrated court comments",
       migratedVideoBookingId = 100,
       cancelledBy = null,
       cancelledAt = null,
+      updatedAt = null,
+      updatedBy = null,
     )
 
     with(migratedBooking) {
@@ -108,6 +111,7 @@ class VideoBookingTest {
       isProbationBooking() isBool false
       court isEqualTo court(code = "migrated_court_code")
       createdBy isEqualTo "migrated court user"
+      createdTime isEqualTo yesterday().atStartOfDay()
       createdByPrison isBool false
       comments isEqualTo "migrated court comments"
       hearingType isEqualTo "UNKNOWN"
@@ -120,11 +124,14 @@ class VideoBookingTest {
     val migratedBooking = VideoBooking.migratedCourtBooking(
       court = court(code = "migrated_court_code"),
       createdBy = "migrated court user",
+      createdTime = 2.daysAgo().atStartOfDay(),
       createdByPrison = false,
       comments = "migrated court comments",
       migratedVideoBookingId = 100,
       cancelledBy = "COURT CANCELLATION USER",
       cancelledAt = 1.daysAgo().atStartOfDay(),
+      updatedAt = 2.daysAgo().atStartOfDay().plusHours(1),
+      updatedBy = "COURT UPDATE USER",
     )
 
     with(migratedBooking) {
@@ -133,6 +140,7 @@ class VideoBookingTest {
       isProbationBooking() isBool false
       court isEqualTo court(code = "migrated_court_code")
       createdBy isEqualTo "migrated court user"
+      createdTime isEqualTo 2.daysAgo().atStartOfDay()
       createdByPrison isBool false
       comments isEqualTo "migrated court comments"
       hearingType isEqualTo "UNKNOWN"
@@ -144,15 +152,50 @@ class VideoBookingTest {
   }
 
   @Test
+  fun `should create an updated migrated court booking`() {
+    val migratedBooking = VideoBooking.migratedCourtBooking(
+      court = court(code = "migrated_court_code"),
+      createdBy = "migrated court user",
+      createdTime = 2.daysAgo().atStartOfDay(),
+      createdByPrison = false,
+      comments = "migrated court comments",
+      migratedVideoBookingId = 100,
+      cancelledBy = null,
+      cancelledAt = null,
+      updatedAt = 2.daysAgo().atStartOfDay().plusHours(1),
+      updatedBy = "COURT UPDATE USER",
+    )
+
+    with(migratedBooking) {
+      isMigrated() isBool true
+      isCourtBooking() isBool true
+      isProbationBooking() isBool false
+      court isEqualTo court(code = "migrated_court_code")
+      createdBy isEqualTo "migrated court user"
+      createdTime isEqualTo 2.daysAgo().atStartOfDay()
+      createdByPrison isBool false
+      comments isEqualTo "migrated court comments"
+      hearingType isEqualTo "UNKNOWN"
+      migratedVideoBookingId isEqualTo 100
+      statusCode isEqualTo StatusCode.ACTIVE
+      amendedBy isEqualTo "COURT UPDATE USER"
+      amendedTime isEqualTo 2.daysAgo().atStartOfDay().plusHours(1)
+    }
+  }
+
+  @Test
   fun `should create a migrated probation booking`() {
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam(code = "migrated_team_code"),
       createdBy = "migrated probation user",
+      createdTime = 3.daysAgo().atStartOfDay(),
       createdByPrison = false,
       comments = "migrated probation comments",
       migratedVideoBookingId = 100,
       cancelledBy = null,
       cancelledAt = null,
+      updatedAt = null,
+      updatedBy = null,
     )
 
     with(migratedBooking) {
@@ -161,6 +204,7 @@ class VideoBookingTest {
       isCourtBooking() isBool false
       probationTeam isEqualTo probationTeam(code = "migrated_team_code")
       createdBy isEqualTo "migrated probation user"
+      createdTime isEqualTo 3.daysAgo().atStartOfDay()
       createdByPrison isBool false
       comments isEqualTo "migrated probation comments"
       probationMeetingType isEqualTo "UNKNOWN"
@@ -173,11 +217,14 @@ class VideoBookingTest {
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam(code = "migrated_team_code"),
       createdBy = "migrated probation user",
+      createdTime = 4.daysAgo().atStartOfDay(),
       createdByPrison = false,
       comments = "migrated probation comments",
       migratedVideoBookingId = 100,
       cancelledBy = "PROBATION CANCELLATION USER",
       cancelledAt = 2.daysAgo().atStartOfDay(),
+      updatedAt = 3.daysAgo().atStartOfDay(),
+      updatedBy = "PROBATION UPDATE USER",
     )
 
     with(migratedBooking) {
@@ -186,6 +233,7 @@ class VideoBookingTest {
       isCourtBooking() isBool false
       probationTeam isEqualTo probationTeam(code = "migrated_team_code")
       createdBy isEqualTo "migrated probation user"
+      createdTime isEqualTo 4.daysAgo().atStartOfDay()
       createdByPrison isBool false
       comments isEqualTo "migrated probation comments"
       probationMeetingType isEqualTo "UNKNOWN"
@@ -193,6 +241,38 @@ class VideoBookingTest {
       statusCode isEqualTo StatusCode.CANCELLED
       amendedBy isEqualTo "PROBATION CANCELLATION USER"
       amendedTime isEqualTo 2.daysAgo().atStartOfDay()
+    }
+  }
+
+  @Test
+  fun `should create an updated migrated probation booking`() {
+    val migratedBooking = VideoBooking.migratedProbationBooking(
+      probationTeam = probationTeam(code = "migrated_team_code"),
+      createdBy = "migrated probation user",
+      createdTime = 4.daysAgo().atStartOfDay(),
+      createdByPrison = false,
+      comments = "migrated probation comments",
+      migratedVideoBookingId = 100,
+      cancelledBy = null,
+      cancelledAt = null,
+      updatedAt = 3.daysAgo().atStartOfDay(),
+      updatedBy = "PROBATION UPDATE USER",
+    )
+
+    with(migratedBooking) {
+      isMigrated() isBool true
+      isProbationBooking() isBool true
+      isCourtBooking() isBool false
+      probationTeam isEqualTo probationTeam(code = "migrated_team_code")
+      createdBy isEqualTo "migrated probation user"
+      createdTime isEqualTo 4.daysAgo().atStartOfDay()
+      createdByPrison isBool false
+      comments isEqualTo "migrated probation comments"
+      probationMeetingType isEqualTo "UNKNOWN"
+      migratedVideoBookingId isEqualTo 100
+      statusCode isEqualTo StatusCode.ACTIVE
+      amendedBy isEqualTo "PROBATION UPDATE USER"
+      amendedTime isEqualTo 3.daysAgo().atStartOfDay()
     }
   }
 }

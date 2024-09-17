@@ -67,51 +67,60 @@ class MigrationClient(
     .block()
 }
 
-// TODO temporary placeholder type until we the complated response object from the whereabouts-api
-@Deprecated(message = "temporary placeholder type until we the complated response object from the whereabouts-api")
 data class VideoBookingMigrateResponse(
   val videoBookingId: Long,
   val offenderBookingId: Long,
-  val courtCode: String,
+  val courtCode: String?,
+  val courtName: String?,
+  val madeByTheCourt: Boolean,
+  val createdByUsername: String,
+  val prisonCode: String,
   val probation: Boolean,
   val cancelled: Boolean,
-  val prisonCode: String,
-  val madeByTheCourt: Boolean,
-  val createdBy: String,
-  val comments: String? = null,
+  val comment: String?,
+  val pre: AppointmentLocationTimeSlot?,
   val main: AppointmentLocationTimeSlot,
-  val pre: AppointmentLocationTimeSlot? = null,
-  val post: AppointmentLocationTimeSlot? = null,
-  val events: List<VideoBookingEvent>,
+  val post: AppointmentLocationTimeSlot?,
+  val events: List<VideoBookingMigrateEvent> = emptyList(),
 )
 
-data class VideoBookingEvent(
+data class VideoBookingMigrateEvent(
   val eventId: Long,
   val eventTime: LocalDateTime,
   val eventType: VideoLinkBookingEventType,
   val createdByUsername: String,
-  val prisonCode: String?,
+  val prisonCode: String,
   val courtCode: String?,
   val courtName: String?,
   val madeByTheCourt: Boolean,
   val comment: String?,
-  val mainLocationId: Long,
-  val mainStartTime: LocalDateTime,
-  val mainEndTime: LocalDateTime,
-  val preLocationId: Long?,
-  val preStartTime: LocalDateTime?,
-  val preEndTime: LocalDateTime?,
-  val postLocationId: Long?,
-  val postStartTime: LocalDateTime?,
-  val postEndTime: LocalDateTime?,
+  val pre: AppointmentLocationTimeSlot?,
+  val main: AppointmentLocationTimeSlot,
+  val post: AppointmentLocationTimeSlot?,
 )
+
+data class AppointmentLocationTimeSlot(
+  val locationId: Long,
+  val date: LocalDate,
+  val startTime: LocalTime,
+  val endTime: LocalTime,
+)
+
+fun VideoBookingMigrateResponse.createdAt() =
+  events.single { it.eventType == VideoLinkBookingEventType.CREATE }.eventTime
+
+fun VideoBookingMigrateResponse.updatedAt() =
+  events.sortedBy(VideoBookingMigrateEvent::eventId).lastOrNull { it.eventType != VideoLinkBookingEventType.CREATE }?.eventTime
+
+fun VideoBookingMigrateResponse.updatedBy() =
+  events.sortedBy(VideoBookingMigrateEvent::eventId).lastOrNull { it.eventType != VideoLinkBookingEventType.CREATE }?.createdByUsername
 
 fun VideoBookingMigrateResponse.cancelledAt(): LocalDateTime? =
   if (cancelled) {
     events
-      .sortedBy(VideoBookingEvent::eventId)
+      .sortedBy(VideoBookingMigrateEvent::eventId)
       .last { it.eventType == VideoLinkBookingEventType.DELETE }
-      .let(VideoBookingEvent::eventTime)
+      .let(VideoBookingMigrateEvent::eventTime)
   } else {
     null
   }
@@ -119,39 +128,11 @@ fun VideoBookingMigrateResponse.cancelledAt(): LocalDateTime? =
 fun VideoBookingMigrateResponse.cancelledBy(): String? =
   if (cancelled) {
     events
-      .sortedBy(VideoBookingEvent::eventId)
+      .sortedBy(VideoBookingMigrateEvent::eventId)
       .last { it.eventType == VideoLinkBookingEventType.DELETE }
-      .let(VideoBookingEvent::createdByUsername)
+      .let(VideoBookingMigrateEvent::createdByUsername)
   } else {
     null
-  }
-
-fun VideoBookingEvent.preAppointment(): AppointmentLocationTimeSlot? =
-  preLocationId?.let {
-    AppointmentLocationTimeSlot(
-      locationId = preLocationId,
-      date = preStartTime!!.toLocalDate(),
-      startTime = preStartTime.toLocalTime(),
-      endTime = preEndTime!!.toLocalTime(),
-    )
-  }
-
-fun VideoBookingEvent.mainAppointment(): AppointmentLocationTimeSlot =
-  AppointmentLocationTimeSlot(
-    locationId = mainLocationId,
-    date = mainStartTime.toLocalDate(),
-    startTime = mainStartTime.toLocalTime(),
-    endTime = mainEndTime.toLocalTime(),
-  )
-
-fun VideoBookingEvent.postAppointment(): AppointmentLocationTimeSlot? =
-  postLocationId?.let {
-    AppointmentLocationTimeSlot(
-      locationId = postLocationId,
-      date = postStartTime!!.toLocalDate(),
-      startTime = postStartTime.toLocalTime(),
-      endTime = postEndTime!!.toLocalTime(),
-    )
   }
 
 enum class VideoLinkBookingEventType {
@@ -159,13 +140,6 @@ enum class VideoLinkBookingEventType {
   UPDATE,
   DELETE,
 }
-
-class AppointmentLocationTimeSlot(
-  val locationId: Long,
-  val date: LocalDate,
-  val startTime: LocalTime,
-  val endTime: LocalTime,
-)
 
 data class NomisDpsLocationMapping(
   val dpsLocationId: String,

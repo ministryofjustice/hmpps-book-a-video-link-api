@@ -182,10 +182,13 @@ class VideoBooking private constructor(
       court: Court,
       comments: String?,
       createdBy: String,
+      createdTime: LocalDateTime,
       createdByPrison: Boolean,
       migratedVideoBookingId: Long,
       cancelledBy: String?,
       cancelledAt: LocalDateTime?,
+      updatedBy: String?,
+      updatedAt: LocalDateTime?,
     ): VideoBooking = VideoBooking(
       bookingType = "COURT",
       court = court,
@@ -196,6 +199,7 @@ class VideoBooking private constructor(
       // TODO comments size needs sorting ...
       comments = comments?.take(400),
       createdBy = createdBy,
+      createdTime = createdTime,
       createdByPrison = createdByPrison,
       migratedVideoBookingId = migratedVideoBookingId,
     ).apply {
@@ -203,6 +207,9 @@ class VideoBooking private constructor(
         statusCode = StatusCode.CANCELLED
         amendedBy = cancelledBy
         amendedTime = cancelledAt
+      } else {
+        amendedBy = updatedBy
+        amendedTime = updatedAt
       }
     }
 
@@ -210,10 +217,13 @@ class VideoBooking private constructor(
       probationTeam: ProbationTeam,
       comments: String?,
       createdBy: String,
+      createdTime: LocalDateTime,
       createdByPrison: Boolean,
       migratedVideoBookingId: Long,
       cancelledBy: String?,
       cancelledAt: LocalDateTime?,
+      updatedBy: String?,
+      updatedAt: LocalDateTime?,
     ): VideoBooking =
       VideoBooking(
         bookingType = "PROBATION",
@@ -225,6 +235,7 @@ class VideoBooking private constructor(
         // TODO comments size needs sorting ...
         comments = comments?.take(400),
         createdBy = createdBy,
+        createdTime = createdTime,
         createdByPrison = createdByPrison,
         migratedVideoBookingId = migratedVideoBookingId,
       ).apply {
@@ -232,6 +243,9 @@ class VideoBooking private constructor(
           statusCode = StatusCode.CANCELLED
           amendedBy = cancelledBy
           amendedTime = cancelledAt
+        } else {
+          amendedBy = updatedBy
+          amendedTime = updatedAt
         }
       }
   }

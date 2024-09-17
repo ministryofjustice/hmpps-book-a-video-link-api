@@ -2,14 +2,14 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingMigrateEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingMigrateResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoLinkBookingEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.cancelledAt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.cancelledBy
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.mainAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.postAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.preAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.createdAt
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.updatedAt
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.updatedBy
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.APPOINTMENT_TYPE_COURT_MAIN
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.APPOINTMENT_TYPE_COURT_POST
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.APPOINTMENT_TYPE_COURT_PRE
@@ -59,17 +59,20 @@ class MigrateVideoBookingService(
     }
 
     // TODO still need to migrate if court not found
-    val court = mappingService.mapCourtCodeToCourt(bookingToMigrate.courtCode)
+    val court = mappingService.mapCourtCodeToCourt(bookingToMigrate.courtCode!!)
       ?: throw NullPointerException("Court not found for code ${bookingToMigrate.courtCode} for court booking ${bookingToMigrate.videoBookingId}")
 
     val migratedBooking = VideoBooking.migratedCourtBooking(
       court = court,
-      comments = bookingToMigrate.comments,
-      createdBy = bookingToMigrate.createdBy,
+      comments = bookingToMigrate.comment,
+      createdBy = bookingToMigrate.createdByUsername,
+      createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
       migratedVideoBookingId = bookingToMigrate.videoBookingId,
       cancelledBy = bookingToMigrate.cancelledBy(),
       cancelledAt = bookingToMigrate.cancelledAt(),
+      updatedBy = bookingToMigrate.updatedBy(),
+      updatedAt = bookingToMigrate.updatedAt(),
     ).apply {
       if (bookingToMigrate.pre != null) {
         addAppointment(
@@ -119,17 +122,20 @@ class MigrateVideoBookingService(
       )
 
     // TODO still need to migrate if probation not found
-    val probationTeam = mappingService.mapProbationTeamCodeToProbationTeam(bookingToMigrate.courtCode)
+    val probationTeam = mappingService.mapProbationTeamCodeToProbationTeam(bookingToMigrate.courtCode!!)
       ?: throw NullPointerException("Probation team not found for code ${bookingToMigrate.courtCode} for probation booking ${bookingToMigrate.videoBookingId}")
 
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam,
-      comments = bookingToMigrate.comments,
-      createdBy = bookingToMigrate.createdBy,
+      comments = bookingToMigrate.comment,
+      createdBy = bookingToMigrate.createdByUsername,
+      createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
       migratedVideoBookingId = bookingToMigrate.videoBookingId,
       cancelledBy = bookingToMigrate.cancelledBy(),
       cancelledAt = bookingToMigrate.cancelledAt(),
+      updatedBy = bookingToMigrate.updatedBy(),
+      updatedAt = bookingToMigrate.updatedAt(),
     ).addAppointment(
       prisonCode = bookingToMigrate.prisonCode,
       prisonerNumber = prisonerNumber,
@@ -143,11 +149,11 @@ class MigrateVideoBookingService(
     createHistoryFor(bookingToMigrate.events, migratedBooking)
   }
 
-  private fun createHistoryFor(events: List<VideoBookingEvent>, migratedBooking: VideoBooking) {
+  private fun createHistoryFor(events: List<VideoBookingMigrateEvent>, migratedBooking: VideoBooking) {
     events.sortedBy { it.eventId }.forEach { event -> migrateBookingHistory(event, migratedBooking) }
   }
 
-  private fun migrateBookingHistory(event: VideoBookingEvent, migratedBooking: VideoBooking) {
+  private fun migrateBookingHistory(event: VideoBookingMigrateEvent, migratedBooking: VideoBooking) {
     val historyType = when (event.eventType) {
       VideoLinkBookingEventType.CREATE -> HistoryType.CREATE
       VideoLinkBookingEventType.UPDATE -> HistoryType.AMEND
@@ -169,9 +175,9 @@ class MigrateVideoBookingService(
     }.also(bookingHistoryRepository::saveAndFlush)
   }
 
-  private fun getAppointmentsForHistory(history: BookingHistory, event: VideoBookingEvent, migratedBooking: VideoBooking): List<BookingHistoryAppointment> {
+  private fun getAppointmentsForHistory(history: BookingHistory, event: VideoBookingMigrateEvent, migratedBooking: VideoBooking): List<BookingHistoryAppointment> {
     // If not null, this will only be present for a court booking
-    val pre = event.preAppointment()?.let {
+    val pre = event.pre?.let {
       BookingHistoryAppointment(
         bookingHistory = history,
         prisonCode = migratedBooking.prisonCode(),
@@ -184,7 +190,7 @@ class MigrateVideoBookingService(
       )
     }
 
-    val main = event.mainAppointment().let {
+    val main = event.main.let {
       BookingHistoryAppointment(
         bookingHistory = history,
         prisonCode = migratedBooking.prisonCode(),
@@ -198,7 +204,7 @@ class MigrateVideoBookingService(
     }
 
     // If not null, this will only be present for a court booking
-    val post = event.postAppointment()?.let {
+    val post = event.post?.let {
       BookingHistoryAppointment(
         bookingHistory = history,
         prisonCode = migratedBooking.prisonCode(),

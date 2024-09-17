@@ -30,11 +30,15 @@ class MigrateVideoBookingEventHandlerTest {
     offenderBookingId = 1,
     prisonCode = MOORLAND,
     courtCode = DERBY_JUSTICE_CENTRE,
+    courtName = null,
     probation = false,
-    createdBy = "TEST",
+    createdByUsername = "TEST",
     madeByTheCourt = true,
+    pre = null,
     main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
+    post = null,
     cancelled = false,
+    comment = "some comments",
     events = emptyList(),
   )
   private val videoBookingRepository: VideoBookingRepository = mock()
