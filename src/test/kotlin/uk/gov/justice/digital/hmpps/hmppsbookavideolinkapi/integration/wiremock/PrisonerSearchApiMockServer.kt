@@ -1,25 +1,52 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock
 
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.BookingIds
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 
 class PrisonerSearchApiMockServer : MockServer(8092) {
 
-  fun stubGetPrisoner(prisonNumber: String, prisonCode: String = "MDI", lastPrisonCode: String? = null) {
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated(message = "Can be removed when migration is completed")
+  fun stubPostGetPrisonerByBookingId(bookingId: Long, prisonerNumber: String, prisonCode: String) {
     stubFor(
-      get("/prisoner/$prisonNumber")
+      WireMock.post("/prisoner-search/booking-ids")
+        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(BookingIds(listOf(bookingId)))))
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              mapper.writeValueAsString(
+                listOf(
+                  prisonerSearchPrisoner(
+                    prisonerNumber = prisonerNumber,
+                    prisonCode = prisonCode,
+                    lastPrisonCode = null,
+                  ),
+                ),
+              ),
+            )
+            .withStatus(200),
+        ),
+    )
+  }
+
+  fun stubGetPrisoner(prisonerNumber: String, prisonCode: String = "MDI", lastPrisonCode: String? = null) {
+    stubFor(
+      get("/prisoner/$prisonerNumber")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(
               mapper.writeValueAsString(
                 prisonerSearchPrisoner(
-                  prisonerNumber = prisonNumber,
+                  prisonerNumber = prisonerNumber,
                   prisonCode = prisonCode,
                   lastPrisonCode = lastPrisonCode,
                 ),

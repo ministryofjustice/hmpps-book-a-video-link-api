@@ -18,10 +18,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.NomisMappingApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.WhereaboutsApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.migration.NomisMappingApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.migration.WhereaboutsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
@@ -69,7 +69,8 @@ abstract class IntegrationTestBase {
     manageUsersApi().stubHealthPing(status)
     prisonerApi().stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
-    WhereaboutsApiExtension.server.stubHealthPing(status)
+    whereaboutsApi().stubHealthPing(status)
+    nomisMappingApi().stubHealthPing(status)
   }
 
   protected fun prisonerApi() = PrisonApiExtension.server
@@ -78,6 +79,10 @@ abstract class IntegrationTestBase {
   protected fun locationsInsidePrisonApi() = LocationsInsidePrisonApiExtension.server
 
   protected fun manageUsersApi() = ManageUsersApiExtension.server
+
+  protected fun whereaboutsApi() = WhereaboutsApiExtension.server
+
+  protected fun nomisMappingApi() = NomisMappingApiExtension.server
 
   protected fun stubUser(user: User) {
     val authSource = when {

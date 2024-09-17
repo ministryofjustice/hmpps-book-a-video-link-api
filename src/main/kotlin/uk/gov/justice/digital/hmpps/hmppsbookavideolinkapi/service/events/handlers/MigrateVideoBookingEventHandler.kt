@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoB
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrateVideoBookingService
 
 @Component
+@Deprecated(message = "Can be removed when migration is completed")
 class MigrateVideoBookingEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
   private val migrationClient: MigrationClient,

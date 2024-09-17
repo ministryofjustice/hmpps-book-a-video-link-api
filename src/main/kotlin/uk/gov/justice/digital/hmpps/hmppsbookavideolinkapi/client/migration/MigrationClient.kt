@@ -6,6 +6,8 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.typeReference
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -18,11 +20,21 @@ import java.time.LocalTime
  * files.
  */
 @Component
+@Deprecated(message = "Can be removed when migration is completed")
 class MigrationClient(
+  private val prisonerSearchApiWebClient: WebClient,
   private val locationsInsidePrisonApiWebClient: WebClient,
   private val whereaboutsApiWebClient: WebClient,
   private val nomisMappingApiWebClient: WebClient,
 ) {
+  fun getPrisoner(bookingId: Long): Prisoner? =
+    prisonerSearchApiWebClient.post()
+      .uri("/prisoner-search/booking-ids")
+      .bodyValue(BookingIds(listOf(bookingId)))
+      .retrieve()
+      .bodyToMono(typeReference<List<Prisoner>>())
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()?.singleOrNull()
 
   // Unsure how effective this will be as requests will spread out over the pods unless we reduce number of pods.
   @Cacheable(CacheConfiguration.LOCATIONS_BY_INTERNAL_ID)
@@ -159,3 +171,5 @@ data class NomisDpsLocationMapping(
   val dpsLocationId: String,
   val nomisLocationId: Long,
 )
+
+data class BookingIds(val bookingIds: List<Long>)
