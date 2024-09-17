@@ -7,9 +7,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.Vide
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoLinkBookingEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.cancelledAt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.cancelledBy
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.createdAt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.mainAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.postAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.preAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.updatedAt
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.updatedBy
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.APPOINTMENT_TYPE_COURT_MAIN
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.APPOINTMENT_TYPE_COURT_POST
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.APPOINTMENT_TYPE_COURT_PRE
@@ -66,10 +69,13 @@ class MigrateVideoBookingService(
       court = court,
       comments = bookingToMigrate.comments,
       createdBy = bookingToMigrate.createdBy,
+      createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
       migratedVideoBookingId = bookingToMigrate.videoBookingId,
       cancelledBy = bookingToMigrate.cancelledBy(),
       cancelledAt = bookingToMigrate.cancelledAt(),
+      updatedBy = bookingToMigrate.updatedBy(),
+      updatedAt = bookingToMigrate.updatedAt(),
     ).apply {
       if (bookingToMigrate.pre != null) {
         addAppointment(
@@ -126,10 +132,13 @@ class MigrateVideoBookingService(
       probationTeam = probationTeam,
       comments = bookingToMigrate.comments,
       createdBy = bookingToMigrate.createdBy,
+      createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
       migratedVideoBookingId = bookingToMigrate.videoBookingId,
       cancelledBy = bookingToMigrate.cancelledBy(),
       cancelledAt = bookingToMigrate.cancelledAt(),
+      updatedBy = bookingToMigrate.updatedBy(),
+      updatedAt = bookingToMigrate.updatedAt(),
     ).addAppointment(
       prisonCode = bookingToMigrate.prisonCode,
       prisonerNumber = prisonerNumber,

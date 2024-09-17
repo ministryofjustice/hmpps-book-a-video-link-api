@@ -106,6 +106,15 @@ data class VideoBookingEvent(
   val postEndTime: LocalDateTime?,
 )
 
+fun VideoBookingMigrateResponse.createdAt() =
+  events.single { it.eventType == VideoLinkBookingEventType.CREATE }.eventTime
+
+fun VideoBookingMigrateResponse.updatedAt() =
+  events.sortedBy(VideoBookingEvent::eventId).lastOrNull { it.eventType != VideoLinkBookingEventType.CREATE }?.eventTime
+
+fun VideoBookingMigrateResponse.updatedBy() =
+  events.sortedBy(VideoBookingEvent::eventId).lastOrNull { it.eventType != VideoLinkBookingEventType.CREATE }?.createdByUsername
+
 fun VideoBookingMigrateResponse.cancelledAt(): LocalDateTime? =
   if (cancelled) {
     events
