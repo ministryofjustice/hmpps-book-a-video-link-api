@@ -8,6 +8,8 @@ import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import java.time.LocalDateTime
 
+const val UNKNOWN_PROBATION_TEAM_CODE = "UNKNOWN"
+
 @Entity
 @Table(name = "probation_team")
 class ProbationTeam(
