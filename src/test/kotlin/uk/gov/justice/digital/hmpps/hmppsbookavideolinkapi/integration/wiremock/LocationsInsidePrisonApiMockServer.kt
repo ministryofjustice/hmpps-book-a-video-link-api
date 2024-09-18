@@ -20,7 +20,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
   @Deprecated(message = "Can be removed when migration is completed")
   fun stubGetLocationById(id: UUID, location: Location) {
     stubFor(
-      get("/locations/locations/$id").willReturn(
+      get("/locations/$id").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(mapper.writeValueAsString(location))

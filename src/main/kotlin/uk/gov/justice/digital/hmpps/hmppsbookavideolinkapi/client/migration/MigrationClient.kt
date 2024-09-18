@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration
 
+import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -27,6 +28,10 @@ class MigrationClient(
   private val whereaboutsApiWebClient: WebClient,
   private val nomisMappingApiWebClient: WebClient,
 ) {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
   fun getPrisoner(bookingId: Long): Prisoner? =
     prisonerSearchApiWebClient.post()
       .uri("/prisoner-search/booking-ids")
@@ -47,14 +52,16 @@ class MigrationClient(
     .uri("/api/locations/nomis/{id}", internalLocationId)
     .retrieve()
     .bodyToMono(NomisDpsLocationMapping::class.java)
+    .doOnError { error -> log.info("Error looking up internal location mapping $internalLocationId in mapping service", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()
 
   private fun getLocationByDpsId(id: String): Location? = locationsInsidePrisonApiWebClient
     .get()
-    .uri("/locations/locations/{id}", id)
+    .uri("/locations/{id}", id)
     .retrieve()
     .bodyToMono(Location::class.java)
+    .doOnError { error -> log.info("Error looking up location by id $id in location service", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()
 
