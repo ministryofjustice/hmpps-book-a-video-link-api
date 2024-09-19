@@ -16,7 +16,8 @@ CREATE TABLE reference_code
     created_by          varchar(100) NOT NULL,
     created_time        timestamp NOT NULL,
     amended_by          varchar(100),
-    amended_time        timestamp           
+    amended_time        timestamp,
+    enabled             boolean NOT NULL
 );
 
 CREATE UNIQUE INDEX idx_reference_code_group ON reference_code(group_code, code);
