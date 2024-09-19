@@ -384,7 +384,8 @@ values (1, 'DRBYMC', 'Derby Justice Centre', true, null, 'TIM', current_timestam
 (323, 'PORTFC', 'Port Talbot Family', true, null, 'TIM', current_timestamp),
 (324, 'SWANCV', 'Swansea Civil', true, null, 'TIM', current_timestamp),
 (325, 'SWANFC', 'Swansea Family', true, null, 'TIM', current_timestamp),
-(326, 'ABERMC', 'Aberystwyth Magistrates', true, null, 'TIM', current_timestamp);
+(326, 'ABERMC', 'Aberystwyth Magistrates', true, null, 'TIM', current_timestamp),
+(327, 'UNKNOWN', 'Unknown Court', false, 'When the court is not known.', 'MATT', current_timestamp);
 
 alter sequence if exists court_court_id_seq restart with 327;
 
@@ -427,7 +428,8 @@ values (1, 'BLKPPP', 'Blackpool MC (PPOC)', true, null, 'TIM', current_timestamp
        (25, 'LANCPM', 'Lancaster MC (PPOC)', true, null, 'TIM', current_timestamp),
        (26, 'LANCNW', 'NW Lancashire (PPOC)', true, null, 'TIM', current_timestamp),
        (27, 'LANCEA', 'East Lancashire (PPOC)', true, null, 'TIM', current_timestamp),
-       (28, 'LANCCE', 'Central Lancashire (PPOC)', true, null, 'TIM', current_timestamp);
+       (28, 'LANCCE', 'Central Lancashire (PPOC)', true, null, 'TIM', current_timestamp),
+       (29, 'UNKNOWN', 'Unknown Probation Team', false, 'When the probation team is not known.', 'MATT', current_timestamp);
 
 alter sequence if exists probation_team_probation_team_id_seq restart with 29;
 
