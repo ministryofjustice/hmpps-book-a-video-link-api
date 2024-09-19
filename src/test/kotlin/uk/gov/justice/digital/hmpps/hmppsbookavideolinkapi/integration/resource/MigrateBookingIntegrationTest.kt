@@ -125,6 +125,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
     // Assertions on the migrated probation booking
     with(migratedCourtBooking) {
       bookingType isEqualTo "COURT"
+      court?.code isEqualTo DERBY_JUSTICE_CENTRE
       statusCode isEqualTo StatusCode.ACTIVE
       hearingType isEqualTo "UNKNOWN"
       createdBy isEqualTo "MIGRATION COURT USER"
@@ -279,6 +280,102 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
   @Test
   @Transactional
+  fun `should migrate an unknown court booking`() {
+    whereaboutsApi().stubGetVideoBookingToMigrate(
+      1,
+      VideoBookingMigrateResponse(
+        videoBookingId = 1,
+        offenderBookingId = 1,
+        prisonCode = MOORLAND,
+        courtCode = null,
+        courtName = "Unknown court name",
+        probation = false,
+        createdByUsername = "MIGRATION COURT USER",
+        madeByTheCourt = true,
+        comment = "Migrated court comments",
+        pre = null,
+        main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        post = null,
+        cancelled = false,
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = yesterday().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Court booking create event comments",
+            courtCode = null,
+            courtName = "Unknown court name",
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = null,
+            prisonCode = MOORLAND,
+            createdByUsername = "MIGRATION COURT CREATE USER",
+            madeByTheCourt = true,
+          ),
+        ),
+      ),
+    )
+
+    prisonSearchApi().stubPostGetPrisonerByBookingId(1, "ABC123", MOORLAND)
+
+    // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
+    UUID.randomUUID().also { dpsLocationId ->
+      nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
+      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, moorlandLocation)
+    }
+
+    videoBookingRepository.findAll().filter(VideoBooking::isCourtBooking) hasSize 0
+
+    inboundEventsService.process(MigrateVideoBookingEvent(1))
+
+    val migratedCourtBooking = videoBookingRepository.findAll().single(VideoBooking::isCourtBooking)
+
+    // Assertions on the migrated probation booking
+    with(migratedCourtBooking) {
+      bookingType isEqualTo "COURT"
+      court?.code isEqualTo "UNKNOWN"
+      statusCode isEqualTo StatusCode.ACTIVE
+      hearingType isEqualTo "UNKNOWN"
+      createdBy isEqualTo "MIGRATION COURT USER"
+      createdTime isEqualTo yesterday().atStartOfDay()
+      createdByPrison isBool false
+      migratedVideoBookingId isEqualTo 1
+    }
+
+    // Assertions on the migrated court bookings appointments
+    val migratedPrisonAppointment = migratedCourtBooking.appointments().sortedBy(PrisonAppointment::prisonAppointmentId).single()
+
+    migratedPrisonAppointment
+      .isAtPrison(MOORLAND)
+      .isForPrisoner("ABC123")
+      .isAppointmentType("VLB_COURT_MAIN")
+      .isOnDate(yesterday())
+      .startsAt(10, 0)
+      .endsAt(11, 0)
+      .hasComments("Migrated court comments")
+
+    val migratedBookingHistory = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(migratedCourtBooking.videoBookingId).single()
+
+    with(migratedBookingHistory) {
+      historyType isEqualTo HistoryType.CREATE
+      comments isEqualTo "Court booking create event comments"
+
+      appointments().single()
+        .isAtPrison(MOORLAND)
+        .isForPrisoner("ABC123")
+        .isAtLocation(moorlandLocation)
+        .isOnDate(yesterday())
+        .isForAppointmentType("VLB_COURT_MAIN")
+        .startsAt(10, 0)
+        .endsAt(11, 0)
+    }
+
+    // Assertions on the migrated event history taken from the booking that has been migrated
+    // TODO what to do about event history. Events are only available for enabled courts, the hidden court is disabled.
+  }
+
+  @Test
+  @Transactional
   fun `should migrate probation booking with an update event`() {
     whereaboutsApi().stubGetVideoBookingToMigrate(
       2,
@@ -352,6 +449,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
     // Assertions on the migrated probation booking
     with(migratedProbationBooking) {
       bookingType isEqualTo "PROBATION"
+      probationTeam?.code isEqualTo BLACKPOOL_MC_PPOC
       statusCode isEqualTo StatusCode.ACTIVE
       probationMeetingType isEqualTo "UNKNOWN"
       createdBy isEqualTo "MIGRATION PROBATION USER"
@@ -453,6 +551,104 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       postStartTime isEqualTo null
       postEndTime isEqualTo null
     }
+  }
+
+  @Test
+  @Transactional
+  fun `should migrate an unknown probation booking`() {
+    whereaboutsApi().stubGetVideoBookingToMigrate(
+      2,
+      VideoBookingMigrateResponse(
+        videoBookingId = 2,
+        offenderBookingId = 2,
+        prisonCode = WERRINGTON,
+        courtCode = null,
+        courtName = "Unknown probation team",
+        probation = true,
+        createdByUsername = "MIGRATION PROBATION USER",
+        madeByTheCourt = true,
+        comment = "Migrated probation comments",
+        pre = null,
+        main = AppointmentLocationTimeSlot(1, 2.daysAgo(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+        post = null,
+        cancelled = false,
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = 3.daysAgo().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Probation booking create event comments",
+            courtCode = null,
+            courtName = "Unknown probation team",
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, 2.daysAgo(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+            post = null,
+            prisonCode = WERRINGTON,
+            createdByUsername = "MIGRATION PROBATION CREATE USER",
+            madeByTheCourt = true,
+          ),
+        ),
+      ),
+    )
+
+    prisonSearchApi().stubPostGetPrisonerByBookingId(2, "DEF123", WERRINGTON)
+
+    // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
+    UUID.randomUUID().also { dpsLocationId ->
+      nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
+      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, moorlandLocation)
+    }
+
+    videoBookingRepository.findAll().filter(VideoBooking::isProbationBooking) hasSize 0
+
+    inboundEventsService.process(MigrateVideoBookingEvent(2))
+
+    val migratedProbationBooking = videoBookingRepository.findAll().single(VideoBooking::isProbationBooking)
+
+    // Assertions on the migrated probation booking
+    with(migratedProbationBooking) {
+      bookingType isEqualTo "PROBATION"
+      probationTeam?.code isEqualTo "UNKNOWN"
+      statusCode isEqualTo StatusCode.ACTIVE
+      probationMeetingType isEqualTo "UNKNOWN"
+      createdBy isEqualTo "MIGRATION PROBATION USER"
+      createdTime isEqualTo 3.daysAgo().atStartOfDay()
+      createdByPrison isBool false
+      migratedVideoBookingId isEqualTo 2
+    }
+
+    val migratedPrisonAppointment = migratedProbationBooking.appointments().sortedBy(PrisonAppointment::prisonAppointmentId).single()
+
+    // Assertions on the migrated probation bookings appointment
+    migratedPrisonAppointment
+      .isAtPrison(WERRINGTON)
+      .isForPrisoner("DEF123")
+      .isAppointmentType("VLB_PROBATION")
+      .isOnDate(2.daysAgo())
+      .startsAt(10, 0)
+      .endsAt(11, 0)
+      .hasComments("Migrated probation comments")
+
+    // Assertions on the migrated booking history and booking history appointment entries
+    val migratedBookingHistory = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(migratedProbationBooking.videoBookingId).single()
+
+    with(migratedBookingHistory) {
+      historyType isEqualTo HistoryType.CREATE
+      comments isEqualTo "Probation booking create event comments"
+
+      appointments()
+        .single()
+        .isAtPrison(WERRINGTON)
+        .isForPrisoner("DEF123")
+        .isForAppointmentType("VLB_PROBATION")
+        .isAtLocation(moorlandLocation)
+        .isOnDate(2.daysAgo())
+        .startsAt(10, 0)
+        .endsAt(11, 0)
+    }
+
+    // Assertions on the migrated event history taken from the booking that has been migrated
+    // TODO what to do about event history. Events are only available for enabled probation teams, the hidden court is disabled.
   }
 
   private fun PrisonAppointment.isAtPrison(prison: String) = also { it.prisonCode isEqualTo prison }

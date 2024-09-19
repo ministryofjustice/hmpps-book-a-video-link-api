@@ -17,6 +17,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.APPOINTMENT_TY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_COURT_CODE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_PROBATION_TEAM_CODE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -58,9 +60,13 @@ class MigrateVideoBookingService(
       )
     }
 
-    // TODO still need to migrate if court not found
-    val court = mappingService.mapCourtCodeToCourt(bookingToMigrate.courtCode!!)
-      ?: throw NullPointerException("Court not found for code ${bookingToMigrate.courtCode} for court booking ${bookingToMigrate.videoBookingId}")
+    val court = if (bookingToMigrate.courtCode != null) {
+      mappingService.mapCourtCodeToCourt(bookingToMigrate.courtCode)
+        ?: throw NullPointerException("Court not found for code ${bookingToMigrate.courtCode} for court booking ${bookingToMigrate.videoBookingId}")
+    } else {
+      // TODO this assumes we have a court name.  Where does this go/get recorded, could potentially include/add to the comments?
+      mappingService.mapCourtCodeToCourt(UNKNOWN_COURT_CODE)!!
+    }
 
     val migratedBooking = VideoBooking.migratedCourtBooking(
       court = court,
@@ -121,9 +127,13 @@ class MigrateVideoBookingService(
         "Main location not found for internal location ID ${bookingToMigrate.main.locationId} for probation booking ${bookingToMigrate.videoBookingId}",
       )
 
-    // TODO still need to migrate if probation not found
-    val probationTeam = mappingService.mapProbationTeamCodeToProbationTeam(bookingToMigrate.courtCode!!)
-      ?: throw NullPointerException("Probation team not found for code ${bookingToMigrate.courtCode} for probation booking ${bookingToMigrate.videoBookingId}")
+    val probationTeam = if (bookingToMigrate.courtCode != null) {
+      mappingService.mapProbationTeamCodeToProbationTeam(bookingToMigrate.courtCode)
+        ?: throw NullPointerException("Probation team not found for code ${bookingToMigrate.courtCode} for probation booking ${bookingToMigrate.videoBookingId}")
+    } else {
+      // TODO this assumes we have a probation team name.  Where does this go/get recorded, could potentially include/add to the comments?
+      mappingService.mapProbationTeamCodeToProbationTeam(UNKNOWN_PROBATION_TEAM_CODE)!!
+    }
 
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam,
