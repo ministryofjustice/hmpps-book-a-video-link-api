@@ -218,7 +218,7 @@ class AmendVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
-    error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
+    error.message isEqualTo "Court bookings can only have one pre hearing, one hearing and one post hearing."
   }
 
   @Test
@@ -317,7 +317,7 @@ class AmendVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
-    error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
+    error.message isEqualTo "Court bookings can only have one pre hearing, one hearing and one post hearing."
   }
 
   @Test
@@ -357,7 +357,7 @@ class AmendVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
-    error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
+    error.message isEqualTo "Court bookings can only have one pre hearing, one hearing and one post hearing."
   }
 
   @Test
@@ -397,7 +397,7 @@ class AmendVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
-    error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
+    error.message isEqualTo "Court bookings can only have one pre hearing, one hearing and one post hearing."
   }
 
   @Test
@@ -437,7 +437,7 @@ class AmendVideoBookingServiceTest {
 
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
-    error.message isEqualTo "Court bookings can only have one pre-conference, one hearing and one post-conference."
+    error.message isEqualTo "Court bookings can only have one pre hearing, one hearing and one post hearing."
   }
 
   @Test

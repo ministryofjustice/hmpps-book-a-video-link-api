@@ -49,7 +49,7 @@ data class AvailabilityRequest(
   val date: LocalDate?,
 
   @Schema(
-    description = "If present, the prison location and start/end time of the requested pre-conference, else null",
+    description = "If present, the prison location and start/end time of the requested pre hearing, else null",
     requiredMode = RequiredMode.NOT_REQUIRED,
   )
   val preAppointment: LocationAndInterval? = null,
@@ -62,7 +62,7 @@ data class AvailabilityRequest(
   val mainAppointment: LocationAndInterval?,
 
   @Schema(
-    description = "If present, the prison location and start/end time of the post-conference, else null",
+    description = "If present, the prison location and start/end time of the post hearing, else null",
     requiredMode = RequiredMode.NOT_REQUIRED,
   )
   val postAppointment: LocationAndInterval? = null,

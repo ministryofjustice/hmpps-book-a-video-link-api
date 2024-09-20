@@ -56,7 +56,7 @@ class AppointmentsService(
         count { it.type == AppointmentType.VLB_COURT_MAIN } == 1 &&
         all { it.type!!.isCourt },
     ) {
-      "Court bookings can only have one pre-conference, one hearing and one post-conference."
+      "Court bookings can only have one pre hearing, one hearing and one post hearing."
     }
   }
 
