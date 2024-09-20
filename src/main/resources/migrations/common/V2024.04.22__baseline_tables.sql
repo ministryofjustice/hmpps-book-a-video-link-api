@@ -202,7 +202,7 @@ CREATE UNIQUE INDEX idx_migrated_video_booking_id on video_booking(migrated_vide
 ---------------------------------------------------------------------------------------
 -- This is the prison appointments related to the video booking
 -- Probation will have 1 - RR or PSR
--- Courts 1-3  - PRE_CONFERENCE, HEARING, POST_CONFERENCE per person.
+-- Courts 1-3  - PRE_HEARING, HEARING, POST_HEARING per person.
 ----------------------------------------------------------------------------------------
 
 CREATE TABLE prison_appointment
