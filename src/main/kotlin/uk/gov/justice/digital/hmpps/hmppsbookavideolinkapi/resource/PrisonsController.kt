@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
@@ -24,6 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonsServic
 @Tag(name = "Prisons Controller")
 @RestController
 @RequestMapping(value = ["prisons"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@AuthApiResponses
 class PrisonsController(
   private val prisonsService: PrisonsService,
   private val locationsService: LocationsService,
@@ -39,26 +39,6 @@ class PrisonsController(
           Content(
             mediaType = "application/json",
             array = ArraySchema(schema = Schema(implementation = Prison::class)),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
@@ -82,26 +62,6 @@ class PrisonsController(
           Content(
             mediaType = "application/json",
             array = ArraySchema(schema = Schema(implementation = Location::class)),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),

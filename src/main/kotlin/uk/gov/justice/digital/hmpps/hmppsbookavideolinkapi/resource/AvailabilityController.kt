@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AvailabilityService
@@ -22,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AvailabilityS
 @Tag(name = "Availability Controller")
 @RestController
 @RequestMapping(value = ["availability"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@AuthApiResponses
 class AvailabilityController(val availabilityService: AvailabilityService) {
 
   @Operation(summary = "Endpoint to assess booking availability and to suggest alternatives")
@@ -34,26 +34,6 @@ class AvailabilityController(val availabilityService: AvailabilityService) {
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = AvailabilityResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),

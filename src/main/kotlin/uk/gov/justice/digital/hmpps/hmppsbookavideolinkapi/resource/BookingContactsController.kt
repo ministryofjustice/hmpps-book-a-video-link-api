@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 @Tag(name = "Booking Contacts Controller")
 @RestController
 @RequestMapping(value = ["booking-contacts"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@AuthApiResponses
 class BookingContactsController(val contactsService: ContactsService) {
   @Operation(summary = "Endpoint to return a list of contacts associated with a booking")
   @ApiResponses(
@@ -32,26 +33,6 @@ class BookingContactsController(val contactsService: ContactsService) {
           Content(
             mediaType = "application/json",
             array = ArraySchema(schema = Schema(implementation = BookingContact::class)),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
