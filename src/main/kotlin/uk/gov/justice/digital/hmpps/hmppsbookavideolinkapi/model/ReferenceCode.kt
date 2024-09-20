@@ -16,4 +16,7 @@ data class ReferenceCode(
 
   @Schema(description = "A fuller description of the reference code", example = "Sentencing hearing")
   val description: String?,
+
+  @Schema(description = "A boolean value to show whether enabled or not.", example = "true")
+  val enabled: Boolean,
 )

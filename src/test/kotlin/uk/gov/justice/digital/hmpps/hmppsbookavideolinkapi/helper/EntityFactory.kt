@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
 
-val courtAppealReferenceCode = ReferenceCode(1, "COURT_HEARING_TYPE", "APPEAL", "Appeal", "TEST")
+val courtAppealReferenceCode = ReferenceCode(1, "COURT_HEARING_TYPE", "APPEAL", "Appeal", "TEST", enabled = true)
 
 fun court(code: String = DERBY_JUSTICE_CENTRE, enabled: Boolean = true) = Court(
   courtId = 0,
@@ -141,6 +141,7 @@ fun courtHearingType(description: String) = ReferenceCode(
   code = "code",
   description = description,
   createdBy = "Test User",
+  enabled = true,
 )
 
 fun videoAppointment(

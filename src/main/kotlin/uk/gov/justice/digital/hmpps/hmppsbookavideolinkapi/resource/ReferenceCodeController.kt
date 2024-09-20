@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ReferenceCode
@@ -63,5 +64,8 @@ class ReferenceCodeController(private val referenceCodeService: ReferenceCodeSer
   fun getReferenceDataByGroup(
     @Parameter(description = "EnabledOnly true or false. Defaults to false if not supplied.")
     @PathVariable("groupCode", required = true) groupCode: String,
-  ): List<ReferenceCode> = referenceCodeService.getReferenceDataByGroup(groupCode)
+    @Parameter(description = "Enabled only, true or false. When true only enabled values will be returned. Defaults to true if not supplied.")
+    @RequestParam(name = "enabledOnly", required = false)
+    enabledOnly: Boolean = true,
+  ): List<ReferenceCode> = referenceCodeService.getReferenceDataByGroup(groupCode, enabledOnly)
 }

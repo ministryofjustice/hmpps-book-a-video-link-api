@@ -115,11 +115,13 @@ enum class CourtHearingType {
   SEN,
   TRIBUNAL,
   OTHER,
+  UNKNOWN,
 }
 
 enum class ProbationMeetingType {
   PSR,
   RR,
+  UNKNOWN,
 }
 
 data class PrisonerDetails(

@@ -7,6 +7,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 
 @Service
 class ReferenceCodeService(private val referenceCodeRepository: ReferenceCodeRepository) {
-  fun getReferenceDataByGroup(groupCode: String): List<ReferenceCode> =
-    referenceCodeRepository.findAllByGroupCodeEquals(groupCode).toModel()
+  fun getReferenceDataByGroup(groupCode: String, enabled: Boolean): List<ReferenceCode> =
+    referenceCodeRepository.findAllByGroupCodeEquals(groupCode).filter { !enabled || it.enabled }.toModel()
 }

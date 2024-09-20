@@ -61,6 +61,7 @@ class VideoLinkBookingsServiceTest {
       description = "Tribunal",
       createdBy = "test",
       createdTime = LocalDateTime.now(),
+      enabled = true,
     )
 
     whenever(
@@ -181,6 +182,7 @@ class VideoLinkBookingsServiceTest {
         description = "Pre-sentence report",
         createdBy = createdBy,
         createdTime = createdTime,
+        enabled = true,
       )
 
       whenever(videoBookingRepository.findById(1L)) doReturn Optional.of(probationBooking)

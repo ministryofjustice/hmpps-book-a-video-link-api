@@ -8,6 +8,7 @@ fun ReferenceCodeEntity.toModel() = ReferenceCode(
   groupCode = groupCode,
   code = code,
   description = description,
+  enabled = enabled,
 )
 
 fun List<ReferenceCodeEntity>.toModel() = map { it.toModel() }.sortedBy { it.description }

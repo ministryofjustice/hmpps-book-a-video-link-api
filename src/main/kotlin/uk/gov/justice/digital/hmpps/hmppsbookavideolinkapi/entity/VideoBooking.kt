@@ -192,7 +192,6 @@ class VideoBooking private constructor(
     ): VideoBooking = VideoBooking(
       bookingType = "COURT",
       court = court,
-      // TODO sort out hearing type currently not compatible with UI
       hearingType = "UNKNOWN",
       probationTeam = null,
       probationMeetingType = null,
@@ -230,7 +229,6 @@ class VideoBooking private constructor(
         court = null,
         hearingType = null,
         probationTeam = probationTeam,
-        // TODO sort out meeting type currently not compatible with UI
         probationMeetingType = "UNKNOWN",
         // TODO comments size needs sorting ...
         comments = comments?.take(400),

@@ -32,7 +32,6 @@ class PrisonerValidator(val prisonerSearchClient: PrisonerSearchClient) {
 
 // Ideally this model would be generated and not hard coded, however at time of writing the Open API generator did not
 // play nicely with the JSON api spec for this service
-// TODO add additional fields as and when needed e.g. ACTIVE/NOT ACTIVE in prison
 data class Prisoner(
   val prisonerNumber: String,
   val prisonId: String? = null,
