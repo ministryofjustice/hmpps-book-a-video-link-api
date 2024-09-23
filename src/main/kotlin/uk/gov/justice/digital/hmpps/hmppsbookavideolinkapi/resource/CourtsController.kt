@@ -30,6 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.CourtsService
 @Tag(name = "Courts Controller")
 @RestController
 @RequestMapping(value = ["courts"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@AuthApiResponses
 class CourtsController(private val courtsService: CourtsService) {
 
   @Operation(summary = "Endpoint to return a list of courts for video link bookings")
@@ -42,26 +43,6 @@ class CourtsController(private val courtsService: CourtsService) {
           Content(
             mediaType = "application/json",
             array = ArraySchema(schema = Schema(implementation = Court::class)),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
@@ -85,26 +66,6 @@ class CourtsController(private val courtsService: CourtsService) {
           Content(
             mediaType = "application/json",
             array = ArraySchema(schema = Schema(implementation = Court::class)),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
@@ -132,26 +93,6 @@ class CourtsController(private val courtsService: CourtsService) {
       ApiResponse(
         responseCode = "400",
         description = "Invalid request provided",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
         content = [
           Content(
             mediaType = "application/json",

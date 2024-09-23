@@ -23,6 +23,7 @@ import java.time.LocalDate
 @Tag(name = "Schedule Controller")
 @RestController
 @RequestMapping(value = ["schedule"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@AuthApiResponses
 class ScheduleController(
   val prisonScheduleService: ScheduleService,
 ) {
@@ -43,26 +44,6 @@ class ScheduleController(
       ApiResponse(
         responseCode = "400",
         description = "Bad request. Message contains the detail.",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
         content = [
           Content(
             mediaType = "application/json",
@@ -109,26 +90,6 @@ class ScheduleController(
           ),
         ],
       ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
     ],
   )
   @GetMapping(value = ["/court/{courtCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -161,26 +122,6 @@ class ScheduleController(
       ApiResponse(
         responseCode = "400",
         description = "Bad request. Message contains the detail.",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
         content = [
           Content(
             mediaType = "application/json",

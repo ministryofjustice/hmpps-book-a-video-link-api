@@ -30,6 +30,7 @@ import java.time.temporal.ChronoUnit
 @Tag(name = "CSV Data Extraction Controller")
 @RestController
 @RequestMapping(value = ["download-csv"], produces = ["text/csv", MediaType.APPLICATION_JSON_VALUE])
+@AuthApiResponses
 class CsvDataExtractionController(private val service: CsvDataExtractionService) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

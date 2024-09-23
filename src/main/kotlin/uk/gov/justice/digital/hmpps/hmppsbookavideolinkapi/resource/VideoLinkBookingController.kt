@@ -35,6 +35,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBook
 @Tag(name = "Video Link Booking Controller")
 @RestController
 @RequestMapping(value = ["video-link-booking"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@AuthApiResponses
 class VideoLinkBookingController(
   val bookingFacade: BookingFacade,
   val requestBookingService: RequestBookingService,
@@ -54,26 +55,6 @@ class VideoLinkBookingController(
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = Long::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
@@ -100,26 +81,6 @@ class VideoLinkBookingController(
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = Long::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
@@ -158,26 +119,6 @@ class VideoLinkBookingController(
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = VideoLinkBooking::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
@@ -221,26 +162,6 @@ class VideoLinkBookingController(
         ],
       ),
       ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
         responseCode = "404",
         description = "The video booking ID was not found.",
         content = [
@@ -267,26 +188,6 @@ class VideoLinkBookingController(
         responseCode = "200",
         description = "The video link booking has been requested",
       ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
     ],
   )
   @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], path = ["/request"])
@@ -310,26 +211,6 @@ class VideoLinkBookingController(
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = VideoLinkBooking::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),

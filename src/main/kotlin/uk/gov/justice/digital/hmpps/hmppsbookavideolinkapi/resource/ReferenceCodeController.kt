@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ReferenceCodeService
 
 @Tag(name = "Reference Codes Controller")
 @RestController
 @RequestMapping(value = ["reference-codes"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@AuthApiResponses
 class ReferenceCodeController(private val referenceCodeService: ReferenceCodeService) {
 
   @Operation(summary = "Endpoint to return reference data for a provided group key")
@@ -34,26 +34,6 @@ class ReferenceCodeController(private val referenceCodeService: ReferenceCodeSer
           Content(
             mediaType = "application/json",
             array = ArraySchema(schema = Schema(implementation = ReferenceCode::class)),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
