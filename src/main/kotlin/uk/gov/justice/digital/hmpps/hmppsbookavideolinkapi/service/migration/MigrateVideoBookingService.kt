@@ -31,15 +31,15 @@ class MigrateVideoBookingService(
   private val bookingHistoryRepository: BookingHistoryRepository,
 ) {
   @Transactional
-  fun migrate(booking: VideoBookingMigrateResponse) {
-    if (booking.probation) {
+  fun migrate(booking: VideoBookingMigrateResponse): VideoBooking {
+    return if (booking.probation) {
       migrateProbationTeam(booking)
     } else {
       migrateCourt(booking)
     }
   }
 
-  private fun migrateCourt(bookingToMigrate: VideoBookingMigrateResponse) {
+  private fun migrateCourt(bookingToMigrate: VideoBookingMigrateResponse): VideoBooking {
     val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
       ?: throw NullPointerException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
 
@@ -116,9 +116,11 @@ class MigrateVideoBookingService(
     }.let(videoBookingRepository::saveAndFlush)
 
     createHistoryFor(bookingToMigrate.events, migratedBooking)
+
+    return migratedBooking
   }
 
-  private fun migrateProbationTeam(bookingToMigrate: VideoBookingMigrateResponse) {
+  private fun migrateProbationTeam(bookingToMigrate: VideoBookingMigrateResponse): VideoBooking {
     val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
       ?: throw NullPointerException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
 
@@ -157,6 +159,8 @@ class MigrateVideoBookingService(
     ).let(videoBookingRepository::saveAndFlush)
 
     createHistoryFor(bookingToMigrate.events, migratedBooking)
+
+    return migratedBooking
   }
 
   private fun createHistoryFor(events: List<VideoBookingMigrateEvent>, migratedBooking: VideoBooking) {
