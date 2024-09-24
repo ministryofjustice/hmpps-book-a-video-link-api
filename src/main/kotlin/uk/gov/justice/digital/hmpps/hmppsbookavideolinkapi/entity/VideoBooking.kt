@@ -195,8 +195,7 @@ class VideoBooking private constructor(
       hearingType = "UNKNOWN",
       probationTeam = null,
       probationMeetingType = null,
-      // TODO comments size needs sorting ...
-      comments = comments?.take(400),
+      comments = comments?.take(1000),
       createdBy = createdBy,
       createdTime = createdTime,
       createdByPrison = createdByPrison,
@@ -230,8 +229,7 @@ class VideoBooking private constructor(
         hearingType = null,
         probationTeam = probationTeam,
         probationMeetingType = "UNKNOWN",
-        // TODO comments size needs sorting ...
-        comments = comments?.take(400),
+        comments = comments?.take(1000),
         createdBy = createdBy,
         createdTime = createdTime,
         createdByPrison = createdByPrison,

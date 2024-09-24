@@ -184,6 +184,24 @@ class VideoBookingTest {
   }
 
   @Test
+  fun `should truncate comments for migrated court booking to 1000 character`() {
+    val migratedBooking = VideoBooking.migratedCourtBooking(
+      court = court(code = "migrated_court_code"),
+      createdBy = "migrated court user",
+      createdTime = yesterday().atStartOfDay(),
+      createdByPrison = false,
+      comments = "x".repeat(2000),
+      migratedVideoBookingId = 100,
+      cancelledBy = null,
+      cancelledAt = null,
+      updatedAt = null,
+      updatedBy = null,
+    )
+
+    migratedBooking.comments?.length isEqualTo 1000
+  }
+
+  @Test
   fun `should create a migrated probation booking`() {
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam(code = "migrated_team_code"),
@@ -274,5 +292,23 @@ class VideoBookingTest {
       amendedBy isEqualTo "PROBATION UPDATE USER"
       amendedTime isEqualTo 3.daysAgo().atStartOfDay()
     }
+  }
+
+  @Test
+  fun `should truncate comments for migrated probation booking to 1000 characters`() {
+    val migratedBooking = VideoBooking.migratedProbationBooking(
+      probationTeam = probationTeam(code = "migrated_team_code"),
+      createdBy = "migrated probation user",
+      createdTime = yesterday().atStartOfDay(),
+      createdByPrison = false,
+      comments = "z".repeat(2000),
+      migratedVideoBookingId = 100,
+      cancelledBy = null,
+      cancelledAt = null,
+      updatedAt = null,
+      updatedBy = null,
+    )
+
+    migratedBooking.comments?.length isEqualTo 1000
   }
 }
