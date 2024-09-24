@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.inOrder
@@ -15,11 +16,16 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.AppointmentLocationTimeSlot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.MigrationClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingMigrateResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrateVideoBookingService
 import java.time.LocalTime
@@ -41,15 +47,25 @@ class MigrateVideoBookingEventHandlerTest {
     comment = "some comments",
     events = emptyList(),
   )
+  private val migratedBooking: VideoBooking = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val whereaboutsApiClient: MigrationClient = mock()
   private val migrationService: MigrateVideoBookingService = mock()
   private val telemetryService: TelemetryService = mock()
+  private val telemetryCaptor = argumentCaptor<TelemetryEvent>()
   private val handler = MigrateVideoBookingEventHandler(videoBookingRepository, whereaboutsApiClient, migrationService, telemetryService)
 
   @Test
   fun `should capture telemetry information for successful migration`() {
     whenever(whereaboutsApiClient.findBookingToMigrate(1)) doReturn videoBookingMigrateResponse
+    whenever(migrationService.migrate(videoBookingMigrateResponse)) doReturn migratedBooking
+
+    migratedBooking.stub {
+      on { videoBookingId } doReturn 99
+      on { court } doReturn court(DERBY_JUSTICE_CENTRE)
+      on { migratedVideoBookingId } doReturn 1
+      on { prisonCode() } doReturn MOORLAND
+    }
 
     handler.handle(MigrateVideoBookingEvent(1))
 
@@ -57,8 +73,18 @@ class MigrateVideoBookingEventHandlerTest {
       verify(videoBookingRepository).existsByMigratedVideoBookingId(1)
       verify(whereaboutsApiClient).findBookingToMigrate(1)
       verify(migrationService).migrate(videoBookingMigrateResponse)
-      verify(telemetryService).capture("Succeeded migration of booking 1 from whereabouts-api")
+      verify(telemetryService).track(telemetryCaptor.capture())
     }
+
+    val successfulTelemetryEvent = telemetryCaptor.firstValue as MigratedBookingSuccessTelemetryEvent
+
+    successfulTelemetryEvent.eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_SUCCESS
+    successfulTelemetryEvent.properties() containsEntriesExactlyInAnyOrder mapOf(
+      "video_booking_id" to "99",
+      "migrated_video_booking_id" to "1",
+      "court" to DERBY_JUSTICE_CENTRE,
+      "prison" to MOORLAND,
+    )
   }
 
   @Test
@@ -70,7 +96,12 @@ class MigrateVideoBookingEventHandlerTest {
     inOrder(videoBookingRepository, whereaboutsApiClient, telemetryService) {
       verify(videoBookingRepository).existsByMigratedVideoBookingId(2)
       verify(whereaboutsApiClient).findBookingToMigrate(2)
-      verify(telemetryService).capture("Failed migration of booking 2 from whereabouts-api")
+      verify(telemetryService).track(telemetryCaptor.capture())
+    }
+
+    with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
+      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2")
     }
 
     verify(migrationService, never()).migrate(anyOrNull())
@@ -87,7 +118,12 @@ class MigrateVideoBookingEventHandlerTest {
       verify(videoBookingRepository).existsByMigratedVideoBookingId(3)
       verify(whereaboutsApiClient).findBookingToMigrate(3)
       verify(migrationService).migrate(videoBookingMigrateResponse)
-      verify(telemetryService).capture("Failed migration of booking 3 from whereabouts-api")
+      verify(telemetryService).track(telemetryCaptor.capture())
+    }
+
+    with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
+      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3")
     }
   }
 

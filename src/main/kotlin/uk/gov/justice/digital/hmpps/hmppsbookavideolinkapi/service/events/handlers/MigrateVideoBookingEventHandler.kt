@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.MigrationClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
@@ -18,6 +20,7 @@ class MigrateVideoBookingEventHandler(
   private val telemetryService: TelemetryService,
 ) :
   DomainEventHandler<MigrateVideoBookingEvent> {
+
   override fun handle(event: MigrateVideoBookingEvent) {
     if (bookingToMigrateDoesNotAlreadyExist(event)) {
       runCatching {
@@ -30,12 +33,17 @@ class MigrateVideoBookingEventHandler(
         migrateVideoBookingService.migrate(bookingToMigrate)
       }
         .onFailure {
-          // TODO temporary telemetry details
-          telemetryService.capture("Failed migration of booking ${event.additionalInformation.videoBookingId} from whereabouts-api")
+          telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoBookingId))
         }
         .onSuccess {
-          // TODO temporary telemetry details
-          telemetryService.capture("Succeeded migration of booking ${event.additionalInformation.videoBookingId} from whereabouts-api")
+          telemetryService.track(
+            MigratedBookingSuccessTelemetryEvent(
+              videoBookingId = it.videoBookingId,
+              migratedVideoBookingId = it.migratedVideoBookingId!!,
+              court = it.court?.code ?: it.probationTeam?.code!!,
+              prison = it.prisonCode(),
+            ),
+          )
         }.getOrThrow()
     }
   }
@@ -47,4 +55,24 @@ class MigrateVideoBookingEventHandler(
 class MigrateVideoBookingEvent(additionalInformation: VideoBookingInformation) :
   DomainEvent<VideoBookingInformation>(DomainEventType.MIGRATE_VIDEO_BOOKING, additionalInformation) {
   constructor(id: Long) : this(VideoBookingInformation(id))
+}
+
+class MigratedBookingFailureTelemetryEvent(
+  private val videoBookingId: Long,
+) : TelemetryEvent(TelemetryEventType.MIGRATED_BOOKING_FAILURE) {
+  override fun properties(): Map<String, String> = mapOf("video_booking_id" to videoBookingId.toString())
+}
+
+class MigratedBookingSuccessTelemetryEvent(
+  val videoBookingId: Long,
+  val migratedVideoBookingId: Long,
+  val court: String,
+  val prison: String,
+) : TelemetryEvent(TelemetryEventType.MIGRATED_BOOKING_SUCCESS) {
+  override fun properties(): Map<String, String> = mapOf(
+    "video_booking_id" to videoBookingId.toString(),
+    "migrated_video_booking_id" to migratedVideoBookingId.toString(),
+    "court" to court,
+    "prison" to prison,
+  )
 }
