@@ -182,7 +182,7 @@ CREATE TABLE video_booking
     probation_team_id         bigint REFERENCES probation_team(probation_team_id), -- Nullable
     probation_meeting_type    varchar(40), -- Nullable
     video_url                 varchar(120),
-    comments                  varchar(400),
+    comments                  varchar(1000),
     created_by_prison         boolean NOT NULL DEFAULT false,
     created_by                varchar(100) NOT NULL,
     created_time              timestamp    NOT NULL,
@@ -212,7 +212,7 @@ CREATE TABLE prison_appointment
     prison_code            varchar(5) NOT NULL REFERENCES prison(code),
     prisoner_number        varchar(7) NOT NULL,  -- NOMS number
     appointment_type       varchar(40) NOT NULL,
-    comments               varchar(200),
+    comments               varchar(1000),
     prison_loc_key         varchar(160) NOT NULL,  -- from locations API
     appointment_date       date NOT NULL,
     start_time             time without time zone NOT NULL,
@@ -322,7 +322,7 @@ CREATE TABLE booking_history
     probation_team_id      bigint REFERENCES probation_team(probation_team_id), -- Nullable
     probation_meeting_type varchar(40), -- Nullable
     video_url              varchar(120),
-    comments               varchar(400),
+    comments               varchar(1000),
     created_by             varchar(100) NOT NULL,
     created_time           timestamp NOT NULL
 );
