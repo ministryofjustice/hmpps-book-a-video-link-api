@@ -10,6 +10,7 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.never
 import org.mockito.kotlin.stub
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -101,7 +102,7 @@ class MigrateVideoBookingEventHandlerTest {
 
     with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
       eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
-      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2")
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2", "ignored" to "false")
     }
 
     verify(migrationService, never()).migrate(anyOrNull())
@@ -123,7 +124,7 @@ class MigrateVideoBookingEventHandlerTest {
 
     with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
       eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
-      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3")
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3", "ignored" to "false")
     }
   }
 
@@ -142,8 +143,22 @@ class MigrateVideoBookingEventHandlerTest {
     verify(videoBookingRepository).existsByMigratedVideoBookingId(1)
     verify(videoBookingRepository).existsByMigratedVideoBookingId(2)
     verify(videoBookingRepository).existsByMigratedVideoBookingId(3)
+    verify(telemetryService, times(3)).track(telemetryCaptor.capture())
+
+    with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
+      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "1", "ignored" to "true")
+    }
+    with(telemetryCaptor.secondValue as MigratedBookingFailureTelemetryEvent) {
+      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2", "ignored" to "true")
+    }
+    with(telemetryCaptor.thirdValue as MigratedBookingFailureTelemetryEvent) {
+      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3", "ignored" to "true")
+    }
+
     verifyNoInteractions(whereaboutsApiClient)
     verifyNoInteractions(migrationService)
-    verifyNoInteractions(telemetryService)
   }
 }

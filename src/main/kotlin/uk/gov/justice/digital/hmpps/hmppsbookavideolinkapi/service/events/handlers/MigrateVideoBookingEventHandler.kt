@@ -45,6 +45,8 @@ class MigrateVideoBookingEventHandler(
             ),
           )
         }.getOrThrow()
+    } else {
+      telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoBookingId, true))
     }
   }
 
@@ -59,8 +61,13 @@ class MigrateVideoBookingEvent(additionalInformation: VideoBookingInformation) :
 
 class MigratedBookingFailureTelemetryEvent(
   private val videoBookingId: Long,
+  private val ignored: Boolean = false,
 ) : TelemetryEvent(TelemetryEventType.MIGRATED_BOOKING_FAILURE) {
-  override fun properties(): Map<String, String> = mapOf("video_booking_id" to videoBookingId.toString())
+  override fun properties(): Map<String, String> =
+    mapOf(
+      "video_booking_id" to videoBookingId.toString(),
+      "ignored" to ignored.toString(),
+    )
 }
 
 class MigratedBookingSuccessTelemetryEvent(
