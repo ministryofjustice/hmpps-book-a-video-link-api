@@ -6,9 +6,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AdditionalInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrateVideoBookingService
 
 @Component
@@ -25,15 +25,15 @@ class MigrateVideoBookingEventHandler(
     if (bookingToMigrateDoesNotAlreadyExist(event)) {
       runCatching {
         val bookingToMigrate =
-          migrationClient.findBookingToMigrate(event.additionalInformation.videoBookingId)
+          migrationClient.findBookingToMigrate(event.additionalInformation.videoLinkBookingId)
             ?: throw NullPointerException(
-              "Video booking ${event.additionalInformation.videoBookingId} not found in whereabouts-api",
+              "Video booking ${event.additionalInformation.videoLinkBookingId} not found in whereabouts-api",
             )
 
         migrateVideoBookingService.migrate(bookingToMigrate)
       }
         .onFailure {
-          telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoBookingId))
+          telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoLinkBookingId))
         }
         .onSuccess {
           telemetryService.track(
@@ -46,18 +46,19 @@ class MigrateVideoBookingEventHandler(
           )
         }.getOrThrow()
     } else {
-      telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoBookingId, true))
+      telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoLinkBookingId, true))
     }
   }
 
   private fun bookingToMigrateDoesNotAlreadyExist(event: MigrateVideoBookingEvent) =
-    videoBookingRepository.existsByMigratedVideoBookingId(event.additionalInformation.videoBookingId).not()
+    videoBookingRepository.existsByMigratedVideoBookingId(event.additionalInformation.videoLinkBookingId).not()
 }
 
-class MigrateVideoBookingEvent(additionalInformation: VideoBookingInformation) :
-  DomainEvent<VideoBookingInformation>(DomainEventType.MIGRATE_VIDEO_BOOKING, additionalInformation) {
-  constructor(id: Long) : this(VideoBookingInformation(id))
+class MigrateVideoBookingEvent(additionalInformation: VideoLinkBookingMigrate) :
+  DomainEvent<VideoLinkBookingMigrate>(DomainEventType.MIGRATE_VIDEO_BOOKING, additionalInformation) {
+  constructor(id: Long) : this(VideoLinkBookingMigrate(id))
 }
+data class VideoLinkBookingMigrate(val videoLinkBookingId: Long) : AdditionalInformation
 
 class MigratedBookingFailureTelemetryEvent(
   private val videoBookingId: Long,
