@@ -352,7 +352,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       .isOnDate(yesterday())
       .startsAt(10, 0)
       .endsAt(11, 0)
-      .hasComments("Migrated court comments")
+      .hasComments("Court Unknown court name\nMigrated court comments")
 
     val migratedBookingHistory = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(migratedCourtBooking.videoBookingId).single()
 
@@ -627,7 +627,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       .isOnDate(2.daysAgo())
       .startsAt(10, 0)
       .endsAt(11, 0)
-      .hasComments("Migrated probation comments")
+      .hasComments("Probation team Unknown probation team\nMigrated probation comments")
 
     // Assertions on the migrated booking history and booking history appointment entries
     val migratedBookingHistory = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(migratedProbationBooking.videoBookingId).single()

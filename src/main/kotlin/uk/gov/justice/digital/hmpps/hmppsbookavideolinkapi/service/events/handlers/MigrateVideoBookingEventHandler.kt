@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Additi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrateVideoBookingService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrationException
 
 @Component
 @Deprecated(message = "Can be removed when migration is completed")
@@ -26,14 +27,16 @@ class MigrateVideoBookingEventHandler(
       runCatching {
         val bookingToMigrate =
           migrationClient.findBookingToMigrate(event.additionalInformation.videoLinkBookingId)
-            ?: throw NullPointerException(
-              "Video booking ${event.additionalInformation.videoLinkBookingId} not found in whereabouts-api",
-            )
+            ?: throw MigrationException("booking not found in whereabouts-api")
 
         migrateVideoBookingService.migrate(bookingToMigrate)
       }
         .onFailure {
-          telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoLinkBookingId))
+          telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoLinkBookingId, message = it.message))
+
+          if (it !is MigrationException) {
+            throw it
+          }
         }
         .onSuccess {
           telemetryService.track(
@@ -44,9 +47,9 @@ class MigrateVideoBookingEventHandler(
               prison = it.prisonCode(),
             ),
           )
-        }.getOrThrow()
+        }
     } else {
-      telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoLinkBookingId, true))
+      telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoLinkBookingId, "booking already migrated"))
     }
   }
 
@@ -62,12 +65,12 @@ data class VideoLinkBookingMigrate(val videoLinkBookingId: Long) : AdditionalInf
 
 class MigratedBookingFailureTelemetryEvent(
   private val videoBookingId: Long,
-  private val ignored: Boolean = false,
+  private val message: String? = null,
 ) : TelemetryEvent(TelemetryEventType.MIGRATED_BOOKING_FAILURE) {
   override fun properties(): Map<String, String> =
     mapOf(
       "video_booking_id" to videoBookingId.toString(),
-      "ignored" to ignored.toString(),
+      "message" to "".plus(message),
     )
 }
 
