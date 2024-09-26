@@ -44,6 +44,8 @@ class Court(
     return courtId == other.courtId && code == other.code
   }
 
+  fun isUnknown() = code == UNKNOWN_COURT_CODE
+
   override fun hashCode(): Int {
     return courtId.hashCode()
   }

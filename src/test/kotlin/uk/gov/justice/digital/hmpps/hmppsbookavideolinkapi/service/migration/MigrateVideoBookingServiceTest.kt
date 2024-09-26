@@ -18,6 +18,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.Vide
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_COURT_CODE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_PROBATION_TEAM_CODE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -116,6 +118,73 @@ class MigrateVideoBookingServiceTest {
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
       prisonLocKey isEqualTo moorlandLocation.key
       comments isEqualTo "Migrated court comments"
+    }
+  }
+
+  @Test
+  fun `should migrate booking to an unknown court booking`() {
+    migrateMappingService.stub {
+      on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
+      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
+      on { mapCourtCodeToCourt(UNKNOWN_COURT_CODE) } doReturn court(UNKNOWN_COURT_CODE)
+    }
+
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
+
+    service.migrate(
+      VideoBookingMigrateResponse(
+        videoBookingId = 1,
+        offenderBookingId = 1,
+        prisonCode = MOORLAND,
+        courtCode = null,
+        courtName = "Unknown court",
+        probation = false,
+        createdByUsername = "MIGRATION COURT USER",
+        madeByTheCourt = true,
+        comment = "Migrated court comments",
+        pre = null,
+        main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
+        post = null,
+        cancelled = false,
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = yesterday().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Court booking create event comments",
+            courtCode = null,
+            courtName = "Unknown court",
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
+            post = null,
+            prisonCode = MOORLAND,
+            createdByUsername = "MIGRATION COURT CREATE USER",
+            madeByTheCourt = true,
+          ),
+        ),
+      ),
+    )
+
+    verify(videoBookingRepository).saveAndFlush(videoBookingCaptor.capture())
+
+    with(videoBookingCaptor.firstValue) {
+      bookingType isEqualTo "COURT"
+      hearingType isEqualTo "UNKNOWN"
+      court isEqualTo court(UNKNOWN_COURT_CODE)
+      comments isEqualTo "Court Unknown court\nMigrated court comments"
+      createdBy isEqualTo "MIGRATION COURT USER"
+      migratedVideoBookingId isEqualTo 1
+    }
+
+    with(videoBookingCaptor.firstValue.appointments().single()) {
+      prisonCode isEqualTo MOORLAND
+      prisonerNumber isEqualTo "ABC123"
+      appointmentType isEqualTo "VLB_COURT_MAIN"
+      appointmentDate isEqualTo today()
+      startTime isEqualTo LocalTime.MIDNIGHT
+      endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
+      prisonLocKey isEqualTo moorlandLocation.key
+      comments isEqualTo "Court Unknown court\nMigrated court comments"
     }
   }
 
@@ -438,6 +507,73 @@ class MigrateVideoBookingServiceTest {
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
       prisonLocKey isEqualTo werringtonLocation.key
       comments isEqualTo "Migrated probation comments"
+    }
+  }
+
+  @Test
+  fun `should migrate booking to an unknown probation booking`() {
+    migrateMappingService.stub {
+      on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
+      on { mapInternalLocationIdToLocation(1) } doReturn werringtonLocation
+      on { mapProbationTeamCodeToProbationTeam(UNKNOWN_PROBATION_TEAM_CODE) } doReturn probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
+    }
+
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withProbationPrisonAppointment(prisonCode = WERRINGTON)
+
+    service.migrate(
+      VideoBookingMigrateResponse(
+        videoBookingId = 5,
+        offenderBookingId = 1,
+        prisonCode = WERRINGTON,
+        courtCode = null,
+        courtName = "Unknown probation team",
+        probation = true,
+        createdByUsername = "MIGRATION PROBATION USER",
+        madeByTheCourt = true,
+        comment = "Migrated probation comments",
+        pre = null,
+        main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
+        post = null,
+        cancelled = false,
+        events = listOf(
+          VideoBookingMigrateEvent(
+            eventId = 1,
+            eventTime = yesterday().atStartOfDay(),
+            eventType = VideoLinkBookingEventType.CREATE,
+            comment = "Probation booking create event comments",
+            courtCode = null,
+            pre = null,
+            main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
+            post = null,
+            prisonCode = WERRINGTON,
+            createdByUsername = "MIGRATION PROBATION CREATE USER",
+            courtName = "Unknown probation team",
+            madeByTheCourt = true,
+          ),
+        ),
+      ),
+    )
+
+    verify(videoBookingRepository).saveAndFlush(videoBookingCaptor.capture())
+
+    with(videoBookingCaptor.firstValue) {
+      bookingType isEqualTo "PROBATION"
+      probationMeetingType isEqualTo "UNKNOWN"
+      probationTeam isEqualTo probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
+      comments isEqualTo "Probation team Unknown probation team\nMigrated probation comments"
+      createdBy isEqualTo "MIGRATION PROBATION USER"
+      migratedVideoBookingId isEqualTo 5
+    }
+
+    with(videoBookingCaptor.firstValue.appointments().single()) {
+      prisonCode isEqualTo WERRINGTON
+      prisonerNumber isEqualTo "DEF123"
+      appointmentType isEqualTo "VLB_PROBATION"
+      appointmentDate isEqualTo today()
+      startTime isEqualTo LocalTime.MIDNIGHT
+      endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
+      prisonLocKey isEqualTo werringtonLocation.key
+      comments isEqualTo "Probation team Unknown probation team\nMigrated probation comments"
     }
   }
 

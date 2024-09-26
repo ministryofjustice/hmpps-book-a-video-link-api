@@ -41,7 +41,7 @@ class MigrateVideoBookingService(
 
   private fun migrateCourt(bookingToMigrate: VideoBookingMigrateResponse): VideoBooking {
     val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
-      ?: throw NullPointerException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
+      ?: throw MigrationException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
 
     val preLocation = bookingToMigrate.pre?.let {
       mappingService.mapInternalLocationIdToLocation(it.locationId) ?: throw NullPointerException(
@@ -62,15 +62,14 @@ class MigrateVideoBookingService(
 
     val court = if (bookingToMigrate.courtCode != null) {
       mappingService.mapCourtCodeToCourt(bookingToMigrate.courtCode)
-        ?: throw NullPointerException("Court not found for code ${bookingToMigrate.courtCode} for court booking ${bookingToMigrate.videoBookingId}")
+        ?: throw MigrationException("Court not found for code ${bookingToMigrate.courtCode} for court booking ${bookingToMigrate.videoBookingId}")
     } else {
-      // TODO this assumes we have a court name.  Where does this go/get recorded, could potentially include/add to the comments?
       mappingService.mapCourtCodeToCourt(UNKNOWN_COURT_CODE)!!
     }
 
     val migratedBooking = VideoBooking.migratedCourtBooking(
       court = court,
-      comments = bookingToMigrate.comment,
+      comments = if (court.isUnknown()) "Court ${bookingToMigrate.courtName}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
       createdBy = bookingToMigrate.createdByUsername,
       createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
@@ -122,7 +121,7 @@ class MigrateVideoBookingService(
 
   private fun migrateProbationTeam(bookingToMigrate: VideoBookingMigrateResponse): VideoBooking {
     val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
-      ?: throw NullPointerException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
+      ?: throw MigrationException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
 
     val mainLocation =
       mappingService.mapInternalLocationIdToLocation(bookingToMigrate.main.locationId) ?: throw NullPointerException(
@@ -131,15 +130,14 @@ class MigrateVideoBookingService(
 
     val probationTeam = if (bookingToMigrate.courtCode != null) {
       mappingService.mapProbationTeamCodeToProbationTeam(bookingToMigrate.courtCode)
-        ?: throw NullPointerException("Probation team not found for code ${bookingToMigrate.courtCode} for probation booking ${bookingToMigrate.videoBookingId}")
+        ?: throw MigrationException("Probation team not found for code ${bookingToMigrate.courtCode} for probation booking ${bookingToMigrate.videoBookingId}")
     } else {
-      // TODO this assumes we have a probation team name.  Where does this go/get recorded, could potentially include/add to the comments?
       mappingService.mapProbationTeamCodeToProbationTeam(UNKNOWN_PROBATION_TEAM_CODE)!!
     }
 
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam,
-      comments = bookingToMigrate.comment,
+      comments = if (probationTeam.isUnknown()) "Probation team ${bookingToMigrate.courtName}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
       createdBy = bookingToMigrate.createdByUsername,
       createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),

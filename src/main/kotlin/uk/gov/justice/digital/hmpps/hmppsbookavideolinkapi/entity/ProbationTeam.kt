@@ -35,6 +35,8 @@ class ProbationTeam(
   var amendedTime: LocalDateTime? = null
     private set
 
+  fun isUnknown() = code == UNKNOWN_PROBATION_TEAM_CODE
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false

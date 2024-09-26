@@ -92,7 +92,7 @@ class MigrateVideoBookingEventHandlerTest {
   fun `should capture telemetry information for failed migration when booking not found`() {
     whenever(whereaboutsApiClient.findBookingToMigrate(2)) doReturn null
 
-    assertThrows<NullPointerException> { handler.handle(MigrateVideoBookingEvent(2)) }.message isEqualTo "Video booking 2 not found in whereabouts-api"
+    handler.handle(MigrateVideoBookingEvent(2))
 
     inOrder(videoBookingRepository, whereaboutsApiClient, telemetryService) {
       verify(videoBookingRepository).existsByMigratedVideoBookingId(2)
@@ -102,7 +102,7 @@ class MigrateVideoBookingEventHandlerTest {
 
     with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
       eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
-      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2", "ignored" to "false")
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2", "message" to "booking not found in whereabouts-api")
     }
 
     verify(migrationService, never()).migrate(anyOrNull())
@@ -124,7 +124,7 @@ class MigrateVideoBookingEventHandlerTest {
 
     with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
       eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
-      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3", "ignored" to "false")
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3", "message" to "failed to migrate booking")
     }
   }
 
@@ -147,15 +147,15 @@ class MigrateVideoBookingEventHandlerTest {
 
     with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
       eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
-      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "1", "ignored" to "true")
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "1", "message" to "booking already migrated")
     }
     with(telemetryCaptor.secondValue as MigratedBookingFailureTelemetryEvent) {
       eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
-      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2", "ignored" to "true")
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2", "message" to "booking already migrated")
     }
     with(telemetryCaptor.thirdValue as MigratedBookingFailureTelemetryEvent) {
       eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
-      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3", "ignored" to "true")
+      properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3", "message" to "booking already migrated")
     }
 
     verifyNoInteractions(whereaboutsApiClient)
