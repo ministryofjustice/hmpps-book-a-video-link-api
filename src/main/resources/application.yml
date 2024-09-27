@@ -191,3 +191,7 @@ video-link-booking:
     day-end: "17:00"
     step: "PT15M"
     max-alternatives: 3
+
+hmpps:
+  sqs:
+    queueAdminRole: BVLS_ADMIN
