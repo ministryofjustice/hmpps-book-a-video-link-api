@@ -194,4 +194,4 @@ video-link-booking:
 
 hmpps:
   sqs:
-    queueAdminRole: BVLS_ADMIN
+    queueAdminRole: BOOK_A_VIDEO_LINK_ADMIN
