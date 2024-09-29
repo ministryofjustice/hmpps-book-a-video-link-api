@@ -18,7 +18,11 @@ generic-service:
       # Secure the endpoints related to k8s jobs from outside the Kubernetes ingress
       nginx.ingress.kubernetes.io/server-snippet: |
         server_tokens off;
-        location /queue-admin/retry-all-dlqs {
+        location /queue-admin/ {
+          deny all;
+          return 401;
+        }
+        location /job-admin/ {
           deny all;
           return 401;
         }
