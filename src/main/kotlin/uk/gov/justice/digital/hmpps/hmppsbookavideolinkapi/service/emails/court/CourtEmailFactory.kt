@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
+import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
@@ -13,6 +14,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 
 object CourtEmailFactory {
+
+  @Value("\${bvls.frontend.url}")
+  lateinit var bvlsFrontendUrl: String
 
   fun user(
     contact: BookingContact,
@@ -184,6 +188,20 @@ object CourtEmailFactory {
           comments = booking.comments,
         )
       }
+
+      BookingAction.COURT_HEARING_LINK_REMINDER -> CourtHearingLinkReminderEmail(
+        address = contact.email!!,
+        court = booking.court!!.description,
+        prison = prison.name,
+        prisonerFirstName = prisoner.firstName,
+        prisonerLastName = prisoner.lastName,
+        prisonerNumber = prisoner.prisonerNumber,
+        date = main.appointmentDate,
+        preAppointmentInfo = pre?.appointmentInformation(locations),
+        mainAppointmentInfo = main.appointmentInformation(locations),
+        postAppointmentInfo = post?.appointmentInformation(locations),
+        bookingUrl = booking.viewBookingUrl()
+      )
     }
   }
 
@@ -198,7 +216,7 @@ object CourtEmailFactory {
     post: PrisonAppointment?,
     locations: Map<String, Location>,
     action: BookingAction,
-  ): Email {
+  ): Email? {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.PRISON) {
@@ -382,6 +400,8 @@ object CourtEmailFactory {
           )
         }
       }
+
+      else -> null
     }
   }
 
@@ -399,4 +419,6 @@ object CourtEmailFactory {
   private fun VideoBooking.requireIsCancelled() {
     require(isStatus(StatusCode.CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
+
+  private fun VideoBooking.viewBookingUrl() = "${bvlsFrontendUrl}/view-booking/${videoBookingId}"
 }

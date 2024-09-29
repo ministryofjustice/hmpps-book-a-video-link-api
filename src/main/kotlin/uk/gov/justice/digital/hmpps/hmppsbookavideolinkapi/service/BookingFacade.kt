@@ -63,6 +63,10 @@ class BookingFacade(
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
   }
 
+  fun courtHearingLinkReminder(videoBooking: VideoBooking, user: User) {
+    sendBookingEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
+  }
+
   fun prisonerTransferred(videoBookingId: Long, user: User) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
@@ -162,6 +166,7 @@ enum class BookingAction {
   CREATE,
   AMEND,
   CANCEL,
+  COURT_HEARING_LINK_REMINDER,
   RELEASED,
   TRANSFERRED,
 }

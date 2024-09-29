@@ -31,3 +31,6 @@ api:
       prisoner-search: https://prisoner-search-dev.prison.service.justice.gov.uk
       whereabouts: https://whereabouts-api-dev.service.justice.gov.uk
       nomis-mapping: https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk
+bvls:
+  frontend:
+    url: http://localhost:3000

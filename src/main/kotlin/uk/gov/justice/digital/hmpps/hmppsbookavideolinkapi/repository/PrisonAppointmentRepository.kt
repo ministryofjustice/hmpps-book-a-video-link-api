@@ -36,6 +36,15 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   @Query(
     value = """
     SELECT pa FROM PrisonAppointment pa 
+     WHERE pa.videoBooking.statusCode = 'ACTIVE'
+       AND pa.appointmentDate = :date
+  """,
+  )
+  fun findAllActivePrisonAppointmentsOnDate(date: LocalDate): List<PrisonAppointment>
+
+  @Query(
+    value = """
+    SELECT pa FROM PrisonAppointment pa 
      WHERE pa.prisonCode = :prisonCode
        AND pa.prisonLocKey = :key
        AND pa.videoBooking.statusCode = 'ACTIVE'
