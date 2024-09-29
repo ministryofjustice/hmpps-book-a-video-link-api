@@ -332,6 +332,8 @@ object ProbationEmailFactory {
           )
         }
       }
+
+      else -> null
     }
   }
 
