@@ -89,7 +89,9 @@ data class VideoBookingMigrateResponse(
   val main: AppointmentLocationTimeSlot,
   val post: AppointmentLocationTimeSlot?,
   val events: List<VideoBookingMigrateEvent> = emptyList(),
-)
+) {
+  fun isOtherCourt() = courtCode != null && courtCode.uppercase() == "OTHER"
+}
 
 data class VideoBookingMigrateEvent(
   val eventId: Long,

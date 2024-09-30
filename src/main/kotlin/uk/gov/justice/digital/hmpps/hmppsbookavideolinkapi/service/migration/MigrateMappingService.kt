@@ -18,5 +18,6 @@ class MigrateMappingService(
   fun mapInternalLocationIdToLocation(id: Long) = migrationClient.getLocationByInternalId(id)
 
   fun mapCourtCodeToCourt(code: String) = courtRepository.findByCode(code)
+
   fun mapProbationTeamCodeToProbationTeam(code: String) = probationTeamRepository.findByCode(code)
 }
