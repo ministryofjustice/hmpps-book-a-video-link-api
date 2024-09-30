@@ -45,7 +45,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     probationResponse contains "video-links-by-probation-booking-date-from-2024-01-01-for-2-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-3000,2024-01-01T01:00:00,-3000,CREATE,WNI,\"Blackpool MC (PPOC)\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
+      "-3000,2024-01-01T01:00:00,-3000,CREATE,WNI,\"Blackpool MC - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
   }
 
   @Sql("classpath:integration-test-data/seed-probation-events-by-meeting-date-data.sql")
@@ -55,7 +55,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-24-for-365-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-4000,2024-01-01T01:00:00,-4000,CREATE,WNI,\"Blackpool MC (PPOC)\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
+      "-4000,2024-01-01T01:00:00,-4000,CREATE,WNI,\"Blackpool MC - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
   }
 
   @Test

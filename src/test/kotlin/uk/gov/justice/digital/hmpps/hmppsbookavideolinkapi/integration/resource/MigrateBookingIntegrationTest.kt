@@ -513,7 +513,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       videoBookingId isEqualTo migratedProbationBooking.videoBookingId
       eventType isEqualTo "CREATE"
       prisonCode isEqualTo WERRINGTON
-      probationTeamDescription isEqualTo "Blackpool MC (PPOC)"
+      probationTeamDescription isEqualTo "Blackpool MC - Probation"
       probationTeamCode isEqualTo BLACKPOOL_MC_PPOC
       courtBooking isBool false
       createdByPrison isBool false
@@ -536,7 +536,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       videoBookingId isEqualTo migratedProbationBooking.videoBookingId
       eventType isEqualTo "AMEND"
       prisonCode isEqualTo WERRINGTON
-      probationTeamDescription isEqualTo "Blackpool MC (PPOC)"
+      probationTeamDescription isEqualTo "Blackpool MC - Probation"
       probationTeamCode isEqualTo BLACKPOOL_MC_PPOC
       courtBooking isBool false
       createdByPrison isBool false
