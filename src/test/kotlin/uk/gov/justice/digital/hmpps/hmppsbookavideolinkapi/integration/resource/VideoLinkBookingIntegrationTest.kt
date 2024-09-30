@@ -779,7 +779,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     with(bookingDetails) {
       // Verify probation details present
       assertThat(probationTeamCode).isEqualTo(BLACKPOOL_MC_PPOC)
-      assertThat(probationTeamDescription).isEqualTo("Blackpool MC (PPOC)")
+      assertThat(probationTeamDescription).isEqualTo("Blackpool MC - Probation")
       assertThat(probationMeetingType).isEqualTo(ProbationMeetingType.PSR)
       assertThat(probationMeetingTypeDescription).isEqualTo("Pre-sentence report")
 
