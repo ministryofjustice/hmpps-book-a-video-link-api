@@ -151,6 +151,8 @@ notify:
         court: "55817f53-211c-442d-ac6f-f3fda3adee84"
         prison-court-email: "e5bbd8a8-f59c-4670-9ba3-fd4cda922a21"
         prison-no-court-email: "da59e795-aef6-4cb9-be68-54435df8c8b1"
+      hearing-link-reminder:
+        court: "2a067470-bc6b-4169-8c94-4733ed28a203"
     probation:
       booking-request:
         user: "d401c074-6914-4910-b29c-92b328951925"
