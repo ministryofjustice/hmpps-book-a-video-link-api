@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
@@ -33,6 +34,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -54,6 +56,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
@@ -109,6 +112,26 @@ class BookingFacadeTest {
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      locationKey = moorlandLocation.key,
+    )
+  private val courtBookingAtDisabledCourt = courtBooking(court = court(enabled = false))
+    .addAppointment(
+      prisonCode = MOORLAND,
+      prisonerNumber = "123456",
+      appointmentType = "VLB_COURT_MAIN",
+      date = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      locationKey = moorlandLocation.key,
+    )
+  private val courtBookingInThePast = courtBooking()
+    .addAppointment(
+      prisonCode = MOORLAND,
+      prisonerNumber = "123456",
+      appointmentType = "VLB_COURT_MAIN",
+      date = LocalDate.now().minusDays(1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       locationKey = moorlandLocation.key,
@@ -1238,6 +1261,85 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "RELEASED"
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("Court hearing link reminder")
+  inner class CourtHearingLinkReminder {
+    @Test
+    fun `should send an email to the court contact to remind them to add a court hearing link`() {
+      val prisoner = Prisoner(
+        prisonerNumber = courtBooking.prisoner(),
+        prisonId = "MDI",
+        firstName = "Bob",
+        lastName = "Builder",
+        dateOfBirth = LocalDate.EPOCH,
+        lastPrisonId = MOORLAND,
+      )
+
+      setupCourtPrimaryContactsFor(SERVICE_USER)
+
+      whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+      whenever(emailService.send(any<CourtHearingLinkReminderEmail>())) doReturn Result.success(emailNotificationId to "court template id")
+
+      facade.courtHearingLinkReminder(courtBooking.apply { videoUrl = null }, SERVICE_USER)
+
+      inOrder(emailService, notificationRepository) {
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      }
+
+      emailCaptor.allValues hasSize 1
+      with(emailCaptor.firstValue) {
+        this isInstanceOf CourtHearingLinkReminderEmail::class.java
+        address isEqualTo COURT_USER.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "court" to DERBY_JUSTICE_CENTRE,
+          "prison" to "Moorland",
+          "offenderNo" to "123456",
+          "prisonerName" to "Bob Builder",
+          "date" to "1 Jan 2100",
+          "preAppointmentInfo" to "Not required",
+          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "postAppointmentInfo" to "Not required",
+          "comments" to "None entered",
+          "bookingId" to "0",
+        )
+      }
+
+      notificationCaptor.allValues hasSize 1
+      with(notificationCaptor.firstValue) {
+        email isEqualTo COURT_USER.email
+        templateName isEqualTo "court template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo courtBooking
+        reason isEqualTo "COURT_HEARING_LINK_REMINDER"
+      }
+    }
+
+    @Test
+    fun `should throw an exception if the booking is not a court booking`() {
+      val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(probationBookingAtBirminghamPrison, SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 is not a court booking"
+    }
+
+    @Test
+    fun `should throw an exception if the court is not enabled`() {
+      val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(courtBookingAtDisabledCourt, SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 is not with an enabled court"
+    }
+
+    @Test
+    fun `should throw an exception if booking has already taken place`() {
+      val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(courtBookingInThePast, SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 has already taken place"
+    }
+
+    @Test
+    fun `should throw an exception if booking already has a court hearing link`() {
+      val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(courtBooking, SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 already has a court hearing link"
     }
   }
 

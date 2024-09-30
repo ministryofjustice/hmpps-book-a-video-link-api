@@ -84,9 +84,10 @@ class GovNotifyEmailServiceTest {
     transferProbationBookingProbation = "transferProbationBookingProbation",
     transferProbationBookingPrisonProbationEmail = "transferProbationBookingPrisonProbationEmail",
     transferProbationBookingPrisonNoProbationEmail = "transferProbationBookingPrisonNoProbationEmail",
+    courtHearingLinkReminderEmail = "courtHearingLinkReminderEmail",
   )
 
-  private val service = GovNotifyEmailService(client, emailTemplates)
+  private val service = GovNotifyEmailService(client, emailTemplates, "http://localhost:3000")
 
   @Test
   fun `should send user new booking email and return a notification ID`() {
@@ -123,6 +124,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -163,6 +165,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "Not required",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "Not required",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -201,6 +204,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -241,6 +245,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -279,6 +284,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -319,6 +325,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -359,6 +366,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -397,6 +405,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -437,6 +446,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -477,6 +487,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -515,6 +526,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -557,6 +569,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -599,6 +612,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -639,6 +653,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -677,6 +692,7 @@ class GovNotifyEmailServiceTest {
         "prison" to "the prison",
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -715,6 +731,7 @@ class GovNotifyEmailServiceTest {
         "prison" to "the prison",
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -751,6 +768,7 @@ class GovNotifyEmailServiceTest {
         "prison" to "the prison",
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -825,6 +843,7 @@ class GovNotifyEmailServiceTest {
         "probationTeam" to "the probation team",
         "prison" to "the prison",
         "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )
@@ -861,6 +880,7 @@ class GovNotifyEmailServiceTest {
         "prison" to "the prison",
         "appointmentInfo" to "bobs appointment info",
         "probationEmailAddress" to "jim@probation.com",
+        "frontendDomain" to "http://localhost:3000",
       ),
       null,
     )

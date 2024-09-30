@@ -32,16 +32,16 @@ class JobFailureTelemetryEvent(
     mapOf(
       "jobType" to jobType.name,
       "message" to "".plus(message),
-      "timeElapsed" to timeElapsed.toString().plus("ms")
+      "timeElapsed" to timeElapsed.toString().plus("ms"),
     )
 }
 
 class JobSuccessTelemetryEvent(
   private val jobType: JobType,
-  private val timeElapsed: Long
+  private val timeElapsed: Long,
 ) : TelemetryEvent(TelemetryEventType.JOB_SUCCESS) {
   override fun properties(): Map<String, String> = mapOf(
     "jobType" to jobType.name,
-    "timeElapsed" to timeElapsed.toString().plus("ms")
+    "timeElapsed" to timeElapsed.toString().plus("ms"),
   )
 }

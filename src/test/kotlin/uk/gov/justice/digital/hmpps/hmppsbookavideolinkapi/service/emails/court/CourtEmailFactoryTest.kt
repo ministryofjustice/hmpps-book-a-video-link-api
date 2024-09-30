@@ -76,10 +76,10 @@ class CourtEmailFactoryTest {
     fun supportedUserBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL)
 
     @JvmStatic
-    fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED)
+    fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED, BookingAction.COURT_HEARING_LINK_REMINDER)
 
     @JvmStatic
-    fun supportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED)
+    fun supportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED, BookingAction.COURT_HEARING_LINK_REMINDER)
   }
 
   private val userEmails = mapOf(
@@ -94,6 +94,7 @@ class CourtEmailFactoryTest {
     BookingAction.CANCEL to CancelledCourtBookingCourtEmail::class.java,
     BookingAction.RELEASED to ReleasedCourtBookingCourtEmail::class.java,
     BookingAction.TRANSFERRED to TransferredCourtBookingCourtEmail::class.java,
+    BookingAction.COURT_HEARING_LINK_REMINDER to CourtHearingLinkReminderEmail::class.java,
   )
 
   @ParameterizedTest

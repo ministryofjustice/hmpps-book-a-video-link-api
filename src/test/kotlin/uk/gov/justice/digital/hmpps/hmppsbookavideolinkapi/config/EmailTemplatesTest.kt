@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
@@ -89,6 +90,7 @@ class EmailTemplatesTest {
     TransferredProbationBookingProbationEmail::class.java to "transferProbationBookingProbation",
     TransferredProbationBookingPrisonProbationEmail::class.java to "transferProbationBookingPrisonProbationEmail",
     TransferredProbationBookingPrisonNoProbationEmail::class.java to "transferProbationBookingPrisonNoProbationEmail",
+    CourtHearingLinkReminderEmail::class.java to "courtHearingLinkReminderEmail"
   )
 
   private val templates = EmailTemplates(
@@ -133,6 +135,7 @@ class EmailTemplatesTest {
     transferProbationBookingProbation = "transferProbationBookingProbation",
     transferProbationBookingPrisonProbationEmail = "transferProbationBookingPrisonProbationEmail",
     transferProbationBookingPrisonNoProbationEmail = "transferProbationBookingPrisonNoProbationEmail",
+    courtHearingLinkReminderEmail = "courtHearingLinkReminderEmail",
   )
 
   @Test
@@ -188,6 +191,7 @@ class EmailTemplatesTest {
       "13",
       "14",
       "15",
+      courtHearingLinkReminderEmail = "16",
     )
 
     val error = assertThrows<IllegalArgumentException> {
@@ -233,6 +237,7 @@ class EmailTemplatesTest {
         "13",
         "duplicate",
         "duplicate",
+        courtHearingLinkReminderEmail = "14",
       )
     }
 

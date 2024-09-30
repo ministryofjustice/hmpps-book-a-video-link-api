@@ -17,12 +17,14 @@ class EndpointSecurityCheck {
 
   @Test
   fun `Ensure checks are working by referencing fake unprotected controller`() {
-    getAllUnprotectedControllers().map(ControllerInfo::clazz) containsExactlyInAnyOrder listOf(FakeUnprotectedController::class.java)
+    getAllUnprotectedControllers().map(ControllerInfo::clazz) containsExactlyInAnyOrder listOf(JobController::class.java)
   }
 
   @Test
   fun `Ensure endpoints are secured`() {
-    val controllers = getAllUnprotectedControllers().filterNot { it.clazz == FakeUnprotectedController::class.java }
+    val controllers = getAllUnprotectedControllers().filterNot {
+      it.clazz == JobController::class.java
+    }
 
     if (controllers.isNotEmpty()) {
       fail("The following controllers are not secured: ${controllers.joinToString("\n")}\n")
@@ -36,13 +38,6 @@ class EndpointSecurityCheck {
     .filterNot(Class<*>::isProtected)
     .map(::ControllerInfo)
     .filter { it.unprotectedEndpoints.isNotEmpty() }
-}
-
-@RestController
-@RequestMapping("/unprotected", produces = [MediaType.APPLICATION_JSON_VALUE])
-internal class FakeUnprotectedController {
-  @GetMapping
-  fun getNothing(): Nothing = TODO()
 }
 
 private data class EndpointInfo(val method: String, val hasEndpointLevelProtection: Boolean) {

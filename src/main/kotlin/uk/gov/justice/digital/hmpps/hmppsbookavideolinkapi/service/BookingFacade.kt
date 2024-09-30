@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import java.time.LocalDate
 
 /**
  * This facade exists to ensure all booking related transactions are fully committed prior to sending any events or emails.
@@ -65,6 +66,10 @@ class BookingFacade(
   }
 
   fun courtHearingLinkReminder(videoBooking: VideoBooking, user: User) {
+    require(videoBooking.isCourtBooking()) { "Video booking with id ${videoBooking.videoBookingId} is not a court booking" }
+    require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
+    require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} has already taken place" }
+    require(videoBooking.videoUrl == null) { "Video booking with id ${videoBooking.videoBookingId} already has a court hearing link" }
     sendBookingEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 

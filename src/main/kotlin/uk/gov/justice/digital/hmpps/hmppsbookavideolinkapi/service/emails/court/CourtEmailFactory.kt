@@ -195,7 +195,7 @@ object CourtEmailFactory {
         preAppointmentInfo = pre?.appointmentInformation(locations),
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
-        bookingId = booking.videoBookingId.toString()
+        bookingId = booking.videoBookingId.toString(),
       )
     }
   }

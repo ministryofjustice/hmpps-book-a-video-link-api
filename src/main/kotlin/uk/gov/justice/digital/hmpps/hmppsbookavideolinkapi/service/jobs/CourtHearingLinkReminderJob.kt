@@ -6,14 +6,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
 import java.time.LocalDate
 
-
 /**
  * This job will email the court for any court booking taking place tomorrow, which still does not have a court hearing link
  */
 @Component
 class CourtHearingLinkReminderJob(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
-  private val bookingFacade: BookingFacade
+  private val bookingFacade: BookingFacade,
 ) : JobDefinition(
   jobType = JobType.COURT_HEARING_LINK_REMINDER,
   block = {
@@ -23,5 +22,5 @@ class CourtHearingLinkReminderJob(
       .distinct()
       .filter { it.isCourtBooking() && it.videoUrl == null && it.court!!.enabled }
       .forEach { bookingFacade.courtHearingLinkReminder(it, getServiceAsUser()) }
-  }
+  },
 )

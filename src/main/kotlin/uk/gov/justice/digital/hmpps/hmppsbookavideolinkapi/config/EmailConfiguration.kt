@@ -159,7 +159,7 @@ class EmailConfiguration(
     transferProbationBookingPrisonProbationEmail = transferProbationBookingPrisonProbationEmail,
     transferProbationBookingPrisonNoProbationEmail = transferProbationBookingPrisonNoProbationEmail,
     cancelledCourtBookingCourtEmail = cancelledCourtBookingCourtEmail,
-    courtHearingLinkReminderEmail = courtHearingLinkReminderEmail
+    courtHearingLinkReminderEmail = courtHearingLinkReminderEmail,
   )
 }
 
@@ -235,7 +235,7 @@ data class EmailTemplates(
   val transferProbationBookingProbation: String,
   val transferProbationBookingPrisonProbationEmail: String,
   val transferProbationBookingPrisonNoProbationEmail: String,
-  val courtHearingLinkReminderEmail: String
+  val courtHearingLinkReminderEmail: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
