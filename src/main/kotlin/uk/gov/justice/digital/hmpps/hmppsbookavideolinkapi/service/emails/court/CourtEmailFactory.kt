@@ -420,5 +420,5 @@ object CourtEmailFactory {
     require(isStatus(StatusCode.CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
 
-  private fun VideoBooking.viewBookingUrl() = "${bvlsFrontendUrl}/view-booking/${videoBookingId}"
+  private fun VideoBooking.viewBookingUrl() = "${bvlsFrontendUrl}/court/view-booking/${videoBookingId}"
 }
