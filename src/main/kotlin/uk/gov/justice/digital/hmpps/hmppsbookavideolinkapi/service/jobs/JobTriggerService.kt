@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType.
 
 @Service
 class JobTriggerService(
-  private val jobRunner: SafeJobRunner,
+  private val jobRunner: JobRunner,
   private val courtHearingLinkReminderJob: CourtHearingLinkReminderJob,
 ) {
   fun run(job: JobType) = when (job) {
