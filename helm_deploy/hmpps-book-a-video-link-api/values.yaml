@@ -68,4 +68,4 @@ generic-service:
 
 generic-prometheus-alerts:
   targetApplication: hmpps-book-a-video-link-api
-  sqsAlertsTotalMessagesThreshold: 0
+  sqsAlertsTotalMessagesThreshold: "0"
