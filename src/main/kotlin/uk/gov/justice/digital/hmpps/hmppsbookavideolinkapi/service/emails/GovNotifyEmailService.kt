@@ -16,7 +16,7 @@ import java.util.UUID
 class GovNotifyEmailService(
   private val client: NotificationClient,
   private val emailTemplates: EmailTemplates,
-  @Value("\${bvls.frontend.url}") private val frontendDomain: String
+  private val frontendDomain: String,
 ) : EmailService {
 
   companion object {
