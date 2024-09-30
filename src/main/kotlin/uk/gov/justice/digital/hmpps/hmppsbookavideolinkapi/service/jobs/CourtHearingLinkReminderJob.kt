@@ -21,7 +21,7 @@ class CourtHearingLinkReminderJob(
     prisonAppointmentRepository.findAllActivePrisonAppointmentsOnDate(tomorrow)
       .map { it.videoBooking }
       .distinct()
-      .filter { it.isCourtBooking() && it.videoUrl == null }
+      .filter { it.isCourtBooking() && it.videoUrl == null && it.court!!.enabled }
       .forEach {
         bookingFacade.courtHearingLinkReminder(it, getServiceAsUser())
       }

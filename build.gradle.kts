@@ -31,10 +31,6 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.4.3")
 
-  // Spring framework retryable dependencies
-  implementation("org.springframework.retry:spring-retry")
-  implementation("org.springframework:spring-aspects")
-
   // CSV dependencies
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.2")
 
