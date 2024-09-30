@@ -60,7 +60,7 @@ class MigrateVideoBookingService(
       )
     }
 
-    val court = if (bookingToMigrate.courtCode != null) {
+    val court = if (bookingToMigrate.courtCode != null && !bookingToMigrate.isOtherCourt()) {
       mappingService.mapCourtCodeToCourt(bookingToMigrate.courtCode)
         ?: throw MigrationException("Court not found for code ${bookingToMigrate.courtCode} for court booking ${bookingToMigrate.videoBookingId}")
     } else {
@@ -69,7 +69,7 @@ class MigrateVideoBookingService(
 
     val migratedBooking = VideoBooking.migratedCourtBooking(
       court = court,
-      comments = if (court.isUnknown()) "Court ${bookingToMigrate.courtName}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
+      comments = if (court.isUnknown()) "Court ${bookingToMigrate.courtName ?: "UNKNOWN"}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
       createdBy = bookingToMigrate.createdByUsername,
       createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
@@ -128,7 +128,7 @@ class MigrateVideoBookingService(
         "Main location not found for internal location ID ${bookingToMigrate.main.locationId} for probation booking ${bookingToMigrate.videoBookingId}",
       )
 
-    val probationTeam = if (bookingToMigrate.courtCode != null) {
+    val probationTeam = if (bookingToMigrate.courtCode != null && !bookingToMigrate.isOtherCourt()) {
       mappingService.mapProbationTeamCodeToProbationTeam(bookingToMigrate.courtCode)
         ?: throw MigrationException("Probation team not found for code ${bookingToMigrate.courtCode} for probation booking ${bookingToMigrate.videoBookingId}")
     } else {
@@ -137,7 +137,7 @@ class MigrateVideoBookingService(
 
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam,
-      comments = if (probationTeam.isUnknown()) "Probation team ${bookingToMigrate.courtName}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
+      comments = if (probationTeam.isUnknown()) "Probation team ${bookingToMigrate.courtName ?: "UNKNOWN"}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
       createdBy = bookingToMigrate.createdByUsername,
       createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
@@ -179,7 +179,8 @@ class MigrateVideoBookingService(
       hearingType = migratedBooking.hearingType.takeIf { migratedBooking.isCourtBooking() },
       probationTeamId = migratedBooking.probationTeam?.probationTeamId.takeIf { migratedBooking.isProbationBooking() },
       probationMeetingType = migratedBooking.probationMeetingType.takeIf { migratedBooking.isProbationBooking() },
-      comments = event.comment,
+      // Max allowed length for comments is 1000 characters
+      comments = event.comment?.take(1000),
       createdBy = event.createdByUsername,
       createdTime = event.eventTime,
     ).apply {
