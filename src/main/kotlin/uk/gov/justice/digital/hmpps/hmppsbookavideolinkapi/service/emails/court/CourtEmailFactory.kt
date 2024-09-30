@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
-import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
@@ -14,10 +13,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 
 object CourtEmailFactory {
-
-  @Value("\${bvls.frontend.url}")
-  lateinit var bvlsFrontendUrl: String
-
   fun user(
     contact: BookingContact,
     prisoner: Prisoner,
@@ -200,7 +195,7 @@ object CourtEmailFactory {
         preAppointmentInfo = pre?.appointmentInformation(locations),
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
-        bookingUrl = booking.viewBookingUrl()
+        bookingId = booking.videoBookingId.toString()
       )
     }
   }
@@ -419,6 +414,4 @@ object CourtEmailFactory {
   private fun VideoBooking.requireIsCancelled() {
     require(isStatus(StatusCode.CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
-
-  private fun VideoBooking.viewBookingUrl() = "${bvlsFrontendUrl}/court/view-booking/${videoBookingId}"
 }

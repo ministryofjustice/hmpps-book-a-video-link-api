@@ -595,7 +595,7 @@ class CourtHearingLinkReminderEmail(
   preAppointmentInfo: String?,
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
-  bookingUrl: String
+  bookingId: String,
 ) : Email(address, prisonerFirstName, prisonerLastName, date) {
   init {
     addPersonalisation("offenderNo", prisonerNumber)
@@ -604,6 +604,6 @@ class CourtHearingLinkReminderEmail(
     addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
     addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
     addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
-    addPersonalisation("bookingUrl", bookingUrl)
+    addPersonalisation("bookingId", bookingId)
   }
 }

@@ -37,6 +37,7 @@ class BookingFacade(
   private val outboundEventsService: OutboundEventsService,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val prisonerSearchClient: PrisonerSearchClient,
+
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
