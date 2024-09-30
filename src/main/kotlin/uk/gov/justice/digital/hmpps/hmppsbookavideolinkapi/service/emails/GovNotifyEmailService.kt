@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
 
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailTemplates
@@ -14,6 +16,7 @@ import java.util.UUID
 class GovNotifyEmailService(
   private val client: NotificationClient,
   private val emailTemplates: EmailTemplates,
+  @Value("\${bvls.frontend.url}") private val frontendDomain: String
 ) : EmailService {
 
   companion object {
@@ -25,7 +28,11 @@ class GovNotifyEmailService(
       val templateId = emailTemplates.templateFor(email::class.java)
         ?: throw RuntimeException("EMAIL: Missing template ID for email type ${email.javaClass.simpleName}.")
 
-      client.sendEmail(templateId, email.address, email.personalisation(), null).notificationId!! to templateId
+      val personalisation = email.personalisation().plus(mapOf(
+        "frontendDomain" to frontendDomain,
+      ))
+
+      client.sendEmail(templateId, email.address, personalisation, null).notificationId!! to templateId
     }
       .onSuccess { log.info("EMAIL: sent ${email.javaClass.simpleName} email.") }
       .onFailure { exception -> log.info("EMAIL: failed to send ${email.javaClass.simpleName} email.", exception) }
