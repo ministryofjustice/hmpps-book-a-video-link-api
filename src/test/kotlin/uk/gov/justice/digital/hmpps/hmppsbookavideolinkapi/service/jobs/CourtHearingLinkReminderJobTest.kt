@@ -2,10 +2,10 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs
 
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -14,8 +14,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtP
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
-import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
+import java.time.LocalDate
 
 class CourtHearingLinkReminderJobTest {
 
@@ -71,4 +71,3 @@ class CourtHearingLinkReminderJobTest {
     verify(bookingFacade, never()).courtHearingLinkReminder(any(), any())
   }
 }
-
