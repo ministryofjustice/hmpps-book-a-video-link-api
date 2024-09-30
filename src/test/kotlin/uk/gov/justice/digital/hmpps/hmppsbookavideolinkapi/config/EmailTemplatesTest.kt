@@ -90,7 +90,7 @@ class EmailTemplatesTest {
     TransferredProbationBookingProbationEmail::class.java to "transferProbationBookingProbation",
     TransferredProbationBookingPrisonProbationEmail::class.java to "transferProbationBookingPrisonProbationEmail",
     TransferredProbationBookingPrisonNoProbationEmail::class.java to "transferProbationBookingPrisonNoProbationEmail",
-    CourtHearingLinkReminderEmail::class.java to "courtHearingLinkReminderEmail"
+    CourtHearingLinkReminderEmail::class.java to "courtHearingLinkReminderEmail",
   )
 
   private val templates = EmailTemplates(
