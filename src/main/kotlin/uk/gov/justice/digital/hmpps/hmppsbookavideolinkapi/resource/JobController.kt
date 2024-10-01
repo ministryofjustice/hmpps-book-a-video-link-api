@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType
 
 @Tag(name = "Job Controller")
 @RestController
-@RequestMapping(value = ["job-admin"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping(value = ["job-admin"], produces = [MediaType.TEXT_PLAIN_VALUE])
 class JobController(
   private val jobTriggerService: JobTriggerService,
 ) {

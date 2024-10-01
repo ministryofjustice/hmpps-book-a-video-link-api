@@ -12,6 +12,5 @@ class JobTriggerService(
 ) {
   fun run(job: JobType) = when (job) {
     COURT_HEARING_LINK_REMINDER -> jobRunner.runJob(courtHearingLinkReminderJob)
-    else -> throw IllegalArgumentException("Unsupported job type ${job.javaClass.name}")
   }
 }

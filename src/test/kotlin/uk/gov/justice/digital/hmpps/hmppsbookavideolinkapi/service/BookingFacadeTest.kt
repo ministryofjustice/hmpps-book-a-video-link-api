@@ -1303,7 +1303,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "None entered",
+          "comments" to "Court hearing comments",
           "bookingId" to "0",
         )
       }
