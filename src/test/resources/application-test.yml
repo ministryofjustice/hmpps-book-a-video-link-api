@@ -36,3 +36,7 @@ api:
       prison-api: http://localhost:8094
       whereabouts: http://localhost:8095
       nomis-mapping: http://localhost:8096
+
+bvls:
+  frontend:
+    url: http://localhost:3000

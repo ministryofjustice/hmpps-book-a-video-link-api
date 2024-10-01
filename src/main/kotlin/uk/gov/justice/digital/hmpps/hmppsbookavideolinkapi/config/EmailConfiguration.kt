@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
@@ -101,6 +102,7 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation.transfer-booking.probation:}") private val transferProbationBookingProbation: String,
   @Value("\${notify.templates.probation.transfer-booking.prison-probation-email:}") private val transferProbationBookingPrisonProbationEmail: String,
   @Value("\${notify.templates.probation.transfer-booking.prison-no-probation-email:}") private val transferProbationBookingPrisonNoProbationEmail: String,
+  @Value("\${notify.templates.court.hearing-link-reminder.court:}") private val courtHearingLinkReminderEmail: String,
 ) {
 
   companion object {
@@ -108,11 +110,11 @@ class EmailConfiguration(
   }
 
   @Bean
-  fun emailService() =
+  fun emailService(@Value("\${bvls.frontend.url}") frontendDomain: String) =
     if (apiKey.isBlank()) {
       EmailService { email -> Result.success(UUID.randomUUID() to "fake template id").also { log.info("Email ${email.javaClass.simpleName} not sent.") } }.also { log.info("Gov Notify emails are disabled") }
     } else {
-      GovNotifyEmailService(NotificationClient(apiKey), emailTemplates()).also { log.info("Gov Notify emails are enabled") }
+      GovNotifyEmailService(NotificationClient(apiKey), emailTemplates(), frontendDomain).also { log.info("Gov Notify emails are enabled") }
     }
 
   private fun emailTemplates() = EmailTemplates(
@@ -157,6 +159,7 @@ class EmailConfiguration(
     transferProbationBookingPrisonProbationEmail = transferProbationBookingPrisonProbationEmail,
     transferProbationBookingPrisonNoProbationEmail = transferProbationBookingPrisonNoProbationEmail,
     cancelledCourtBookingCourtEmail = cancelledCourtBookingCourtEmail,
+    courtHearingLinkReminderEmail = courtHearingLinkReminderEmail,
   )
 }
 
@@ -232,6 +235,7 @@ data class EmailTemplates(
   val transferProbationBookingProbation: String,
   val transferProbationBookingPrisonProbationEmail: String,
   val transferProbationBookingPrisonNoProbationEmail: String,
+  val courtHearingLinkReminderEmail: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
@@ -276,6 +280,7 @@ data class EmailTemplates(
     TransferredProbationBookingProbationEmail::class.java to transferProbationBookingProbation,
     TransferredProbationBookingPrisonProbationEmail::class.java to transferProbationBookingPrisonProbationEmail,
     TransferredProbationBookingPrisonNoProbationEmail::class.java to transferProbationBookingPrisonNoProbationEmail,
+    CourtHearingLinkReminderEmail::class.java to courtHearingLinkReminderEmail,
   )
 
   init {

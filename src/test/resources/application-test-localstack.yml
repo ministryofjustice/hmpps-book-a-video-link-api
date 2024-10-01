@@ -52,3 +52,7 @@ feature:
   events:
     sns:
       enabled: true
+
+bvls:
+  frontend:
+    url: http://localhost:3000

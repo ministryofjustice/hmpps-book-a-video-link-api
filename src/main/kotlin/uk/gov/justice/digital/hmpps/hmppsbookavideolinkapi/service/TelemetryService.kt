@@ -18,4 +18,6 @@ abstract class TelemetryEvent(val eventType: TelemetryEventType) {
 enum class TelemetryEventType(val label: String) {
   MIGRATED_BOOKING_FAILURE("BVLS-migrated-booking-failure"),
   MIGRATED_BOOKING_SUCCESS("BVLS-migrated-booking-success"),
+  JOB_FAILURE("BVLS-job-failure"),
+  JOB_SUCCESS("BVLS-job-success"),
 }

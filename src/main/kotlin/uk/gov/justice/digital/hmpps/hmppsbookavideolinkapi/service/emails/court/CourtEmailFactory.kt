@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 
 object CourtEmailFactory {
-
   fun user(
     contact: BookingContact,
     prisoner: Prisoner,
@@ -184,6 +183,21 @@ object CourtEmailFactory {
           comments = booking.comments,
         )
       }
+
+      BookingAction.COURT_HEARING_LINK_REMINDER -> CourtHearingLinkReminderEmail(
+        address = contact.email!!,
+        court = booking.court!!.description,
+        prison = prison.name,
+        prisonerFirstName = prisoner.firstName,
+        prisonerLastName = prisoner.lastName,
+        prisonerNumber = prisoner.prisonerNumber,
+        date = main.appointmentDate,
+        preAppointmentInfo = pre?.appointmentInformation(locations),
+        mainAppointmentInfo = main.appointmentInformation(locations),
+        postAppointmentInfo = post?.appointmentInformation(locations),
+        comments = booking.comments,
+        bookingId = booking.videoBookingId.toString(),
+      )
     }
   }
 
@@ -198,7 +212,7 @@ object CourtEmailFactory {
     post: PrisonAppointment?,
     locations: Map<String, Location>,
     action: BookingAction,
-  ): Email {
+  ): Email? {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.PRISON) {
@@ -382,6 +396,8 @@ object CourtEmailFactory {
           )
         }
       }
+
+      else -> null
     }
   }
 

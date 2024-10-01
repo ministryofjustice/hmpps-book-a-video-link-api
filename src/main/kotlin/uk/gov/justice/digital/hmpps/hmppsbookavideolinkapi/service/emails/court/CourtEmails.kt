@@ -583,3 +583,34 @@ class TransferredCourtBookingPrisonNoCourtEmail(
     addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
   }
 }
+
+class CourtHearingLinkReminderEmail(
+  address: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  court: String,
+  date: LocalDate = LocalDate.now(),
+  preAppointmentInfo: String?,
+  mainAppointmentInfo: String,
+  postAppointmentInfo: String?,
+  comments: String?,
+  bookingId: String,
+) : CourtEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  appointmentDate = date,
+  court = court,
+  prison = prison,
+  preAppointmentInfo = preAppointmentInfo,
+  mainAppointmentInfo = mainAppointmentInfo,
+  postAppointmentInfo = postAppointmentInfo,
+  comments = comments,
+) {
+  init {
+    addPersonalisation("bookingId", bookingId)
+  }
+}

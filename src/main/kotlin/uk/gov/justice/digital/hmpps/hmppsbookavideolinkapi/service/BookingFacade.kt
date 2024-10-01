@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import java.time.LocalDate
 
 /**
  * This facade exists to ensure all booking related transactions are fully committed prior to sending any events or emails.
@@ -37,6 +38,7 @@ class BookingFacade(
   private val outboundEventsService: OutboundEventsService,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val prisonerSearchClient: PrisonerSearchClient,
+
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -61,6 +63,14 @@ class BookingFacade(
     log.info("Video booking ${booking.videoBookingId} cancelled by user")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
+  }
+
+  fun courtHearingLinkReminder(videoBooking: VideoBooking, user: User) {
+    require(videoBooking.isCourtBooking()) { "Video booking with id ${videoBooking.videoBookingId} is not a court booking" }
+    require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
+    require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} has already taken place" }
+    require(videoBooking.videoUrl == null) { "Video booking with id ${videoBooking.videoBookingId} already has a court hearing link" }
+    sendBookingEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
   fun prisonerTransferred(videoBookingId: Long, user: User) {
@@ -162,6 +172,7 @@ enum class BookingAction {
   CREATE,
   AMEND,
   CANCEL,
+  COURT_HEARING_LINK_REMINDER,
   RELEASED,
   TRANSFERRED,
 }

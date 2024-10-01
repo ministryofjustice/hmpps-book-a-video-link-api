@@ -14,6 +14,7 @@ import java.util.UUID
 class GovNotifyEmailService(
   private val client: NotificationClient,
   private val emailTemplates: EmailTemplates,
+  private val frontendDomain: String,
 ) : EmailService {
 
   companion object {
@@ -25,7 +26,13 @@ class GovNotifyEmailService(
       val templateId = emailTemplates.templateFor(email::class.java)
         ?: throw RuntimeException("EMAIL: Missing template ID for email type ${email.javaClass.simpleName}.")
 
-      client.sendEmail(templateId, email.address, email.personalisation(), null).notificationId!! to templateId
+      val personalisation = email.personalisation().plus(
+        mapOf(
+          "frontendDomain" to frontendDomain,
+        ),
+      )
+
+      client.sendEmail(templateId, email.address, personalisation, null).notificationId!! to templateId
     }
       .onSuccess { log.info("EMAIL: sent ${email.javaClass.simpleName} email.") }
       .onFailure { exception -> log.info("EMAIL: failed to send ${email.javaClass.simpleName} email.", exception) }

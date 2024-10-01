@@ -5,4 +5,5 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration
  *
  * In the event of a migration exception it will require further independent investigation e.g. looking at logs etc.
  */
+@Deprecated(message = "Can be removed when migration is completed")
 class MigrationException(message: String) : RuntimeException(message)
