@@ -21,7 +21,8 @@ class CacheConfiguration {
 
     const val VIDEO_LINK_LOCATIONS_CACHE_NAME: String = "video_link_locations"
     const val NON_RESIDENTIAL_LOCATIONS_CACHE_NAME: String = "non_residential_locations"
-    const val LOCATIONS_BY_INTERNAL_ID: String = "locations_by_internal_id"
+    const val MIGRATION_LOCATIONS_CACHE_NAME: String = "locations_by_internal_id"
+    const val MIGRATION_PRISONERS_CACHE_NAME: String = "prisoners_by_booking_id"
   }
 
   @Bean
@@ -29,7 +30,8 @@ class CacheConfiguration {
     ConcurrentMapCacheManager(
       VIDEO_LINK_LOCATIONS_CACHE_NAME,
       NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
-      LOCATIONS_BY_INTERNAL_ID,
+      MIGRATION_LOCATIONS_CACHE_NAME,
+      MIGRATION_PRISONERS_CACHE_NAME,
     )
 
   @CacheEvict(value = [VIDEO_LINK_LOCATIONS_CACHE_NAME])
@@ -44,9 +46,17 @@ class CacheConfiguration {
     log.info("Evicting cache: $NON_RESIDENTIAL_LOCATIONS_CACHE_NAME after 12 hours")
   }
 
-  @CacheEvict(value = [LOCATIONS_BY_INTERNAL_ID])
-  @Scheduled(fixedDelay = 12, timeUnit = TimeUnit.HOURS)
+  @Deprecated(message = "Can be removed when migration is completed")
+  @CacheEvict(value = [MIGRATION_LOCATIONS_CACHE_NAME])
+  @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.HOURS)
   fun cacheEvictLocationsById() {
-    log.info("Evicting cache: $LOCATIONS_BY_INTERNAL_ID after 12 hours")
+    log.info("Evicting cache: $MIGRATION_LOCATIONS_CACHE_NAME after 3 hours")
+  }
+
+  @Deprecated(message = "Can be removed when migration is completed")
+  @CacheEvict(value = [MIGRATION_PRISONERS_CACHE_NAME])
+  @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.HOURS)
+  fun cacheEvictPrisonersByBookingId() {
+    log.info("Evicting cache: $MIGRATION_PRISONERS_CACHE_NAME after 3 hours")
   }
 }

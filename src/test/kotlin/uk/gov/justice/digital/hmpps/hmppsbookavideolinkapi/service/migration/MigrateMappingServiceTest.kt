@@ -5,12 +5,10 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.stub
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.MigrationClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
@@ -26,9 +24,9 @@ class MigrateMappingServiceTest {
   @Test
   fun `should map prisoner booking id to prisoner number`() {
     migrationClient.stub {
-      on { getPrisoner(1) } doReturn prisonerSearchPrisoner("ABC123", MOORLAND)
-      on { getPrisoner(2) } doReturn prisonerSearchPrisoner("DEF456", MOORLAND)
-      on { getPrisoner(3) } doReturn prisonerSearchPrisoner("GHI789", MOORLAND)
+      on { getPrisonerByBookingId(1) } doReturn MigrationClient.Prisoner("ABC123")
+      on { getPrisonerByBookingId(2) } doReturn MigrationClient.Prisoner("DEF456")
+      on { getPrisonerByBookingId(3) } doReturn MigrationClient.Prisoner("GHI789")
     }
 
     service.mapBookingIdToPrisonerNumber(1) isEqualTo "ABC123"
