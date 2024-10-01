@@ -102,7 +102,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    prisonSearchApi().stubPostGetPrisonerByBookingId(1, "ABC123", MOORLAND)
+    prisonerApi().stubGetPrisonerByBookingId(1, "ABC123")
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
@@ -316,7 +316,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    prisonSearchApi().stubPostGetPrisonerByBookingId(1, "ABC123", MOORLAND)
+    prisonerApi().stubGetPrisonerByBookingId(1, "ABC123")
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
@@ -426,7 +426,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    prisonSearchApi().stubPostGetPrisonerByBookingId(2, "DEF123", WERRINGTON)
+    prisonerApi().stubGetPrisonerByBookingId(2, "DEF123")
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
@@ -591,7 +591,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    prisonSearchApi().stubPostGetPrisonerByBookingId(2, "DEF123", WERRINGTON)
+    prisonerApi().stubGetPrisonerByBookingId(2, "DEF123")
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->

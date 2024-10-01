@@ -7,8 +7,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.typeReference
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -23,26 +21,30 @@ import java.time.LocalTime
 @Component
 @Deprecated(message = "Can be removed when migration is completed")
 class MigrationClient(
-  private val prisonerSearchApiWebClient: WebClient,
   private val locationsInsidePrisonApiWebClient: WebClient,
   private val whereaboutsApiWebClient: WebClient,
   private val nomisMappingApiWebClient: WebClient,
+  private val prisonApiWebClient: WebClient,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getPrisoner(bookingId: Long): Prisoner? =
-    prisonerSearchApiWebClient.post()
-      .uri("/prisoner-search/booking-ids")
-      .bodyValue(BookingIds(listOf(bookingId)))
+  // Unsure how effective this will be as requests will spread out over the pods unless we reduce number of pods.
+  @Cacheable(CacheConfiguration.MIGRATION_PRISONERS_CACHE_NAME)
+  fun getPrisonerByBookingId(bookingId: Long): Prisoner? =
+    prisonApiWebClient
+      .get()
+      .uri("/api/bookings/{bookingId}?basicInfo=true", bookingId)
       .retrieve()
-      .bodyToMono(typeReference<List<Prisoner>>())
+      .bodyToMono(Prisoner::class.java)
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()?.singleOrNull()
+      .block()
+
+  data class Prisoner(val offenderNo: String)
 
   // Unsure how effective this will be as requests will spread out over the pods unless we reduce number of pods.
-  @Cacheable(CacheConfiguration.LOCATIONS_BY_INTERNAL_ID)
+  @Cacheable(CacheConfiguration.MIGRATION_LOCATIONS_CACHE_NAME)
   fun getLocationByInternalId(id: Long): Location? =
     // We have to do two trips to get the location, the NOMIS mapping service followed by the locations API.
     getNomisLocationMappingBy(id)?.let { getLocationByDpsId(it.dpsLocationId) }
