@@ -7,15 +7,15 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import java.time.LocalDate
 import java.time.LocalTime
@@ -49,27 +49,27 @@ class CourtEmailFactoryTest {
 
   private val courtBooking = courtBooking()
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
     )
 
   private val probationBooking = probationBooking()
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
       appointmentType = "VLB_PROBATION",
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
     )
 
-  private val prison = prison(prisonCode = MOORLAND)
+  private val prison = prison(prisonCode = WANDSWORTH)
 
   companion object {
     @JvmStatic
@@ -109,7 +109,7 @@ class CourtEmailFactoryTest {
       pre = null,
       main = courtBooking.appointments().single(),
       post = null,
-      locations = mapOf(moorlandLocation.key to moorlandLocation),
+      locations = mapOf(wandsworthLocation.key to wandsworthLocation),
     )
 
     email isInstanceOf userEmails[action]!!
@@ -127,7 +127,7 @@ class CourtEmailFactoryTest {
       pre = null,
       main = courtBooking.appointments().single(),
       post = null,
-      locations = mapOf(moorlandLocation.key to moorlandLocation),
+      locations = mapOf(wandsworthLocation.key to wandsworthLocation),
     )
 
     email isEqualTo null
@@ -145,7 +145,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = courtBooking.appointments().single(),
         post = null,
-        locations = mapOf(moorlandLocation.key to moorlandLocation),
+        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
       )
     }
 
@@ -164,7 +164,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = probationBooking.appointments().single(),
         post = null,
-        locations = mapOf(moorlandLocation.key to moorlandLocation),
+        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
       )
     }
 
@@ -183,7 +183,7 @@ class CourtEmailFactoryTest {
       pre = null,
       main = courtBooking.appointments().single(),
       post = null,
-      locations = mapOf(moorlandLocation.key to moorlandLocation),
+      locations = mapOf(wandsworthLocation.key to wandsworthLocation),
     )
 
     email isInstanceOf courtEmails[action]!!
@@ -201,7 +201,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = courtBooking.appointments().single(),
         post = null,
-        locations = mapOf(moorlandLocation.key to moorlandLocation),
+        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
       )
     }
 
@@ -220,7 +220,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = probationBooking.appointments().single(),
         post = null,
-        locations = mapOf(moorlandLocation.key to moorlandLocation),
+        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
       )
     }
 
@@ -239,7 +239,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = courtBooking.appointments().single(),
         post = null,
-        locations = mapOf(moorlandLocation.key to moorlandLocation),
+        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),
       )
     }
@@ -259,7 +259,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = probationBooking.appointments().single(),
         post = null,
-        locations = mapOf(moorlandLocation.key to moorlandLocation),
+        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),
       )
     }

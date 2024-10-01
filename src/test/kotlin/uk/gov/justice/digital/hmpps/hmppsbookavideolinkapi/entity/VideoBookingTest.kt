@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.daysAgo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
@@ -29,7 +30,7 @@ class VideoBookingTest {
   @Test
   fun `should cancel booking when active`() {
     booking.addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "ABC123",
       appointmentType = "VLB_COURT_MAIN",
       date = tomorrow(),
@@ -48,7 +49,7 @@ class VideoBookingTest {
   @Test
   fun `should reject booking cancellation if already cancelled`() {
     booking.addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "ABC123",
       appointmentType = "VLB_COURT_MAIN",
       date = tomorrow(),
@@ -69,7 +70,7 @@ class VideoBookingTest {
   @Test
   fun `should reject booking cancellation if appointments in past`() {
     booking.addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "ABC123",
       appointmentType = "VLB_COURT_MAIN",
       date = yesterday(),

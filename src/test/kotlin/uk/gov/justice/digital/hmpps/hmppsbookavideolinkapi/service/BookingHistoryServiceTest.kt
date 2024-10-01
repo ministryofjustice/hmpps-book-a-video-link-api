@@ -11,17 +11,18 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 import java.time.LocalDateTime
@@ -43,13 +44,13 @@ class BookingHistoryServiceTest {
   fun `Should create history for a court booking`() {
     val courtBooking = courtBooking(COURT_USER.username)
       .addAppointment(
-        prisonCode = MOORLAND,
+        prison = prison(prisonCode = WANDSWORTH),
         prisonerNumber = "A1234AA",
         appointmentType = AppointmentType.VLB_COURT_MAIN.name,
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = moorlandLocation.key,
+        locationKey = wandsworthLocation.key,
       )
 
     service.createBookingHistory(HistoryType.CREATE, courtBooking)
@@ -66,12 +67,12 @@ class BookingHistoryServiceTest {
       createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
       with(appointments().first()) {
-        prisonCode isEqualTo MOORLAND
+        prisonCode isEqualTo WANDSWORTH
         prisonerNumber isEqualTo "A1234AA"
         appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
         startTime isEqualTo LocalTime.of(9, 30)
         endTime isEqualTo LocalTime.of(10, 30)
-        prisonLocKey isEqualTo moorlandLocation.key
+        prisonLocKey isEqualTo wandsworthLocation.key
       }
     }
   }
@@ -80,13 +81,13 @@ class BookingHistoryServiceTest {
   fun `Should create history for a probation booking`() {
     val probationBooking = probationBooking()
       .addAppointment(
-        prisonCode = MOORLAND,
+        prison = prison(prisonCode = WANDSWORTH),
         prisonerNumber = "A1234AA",
         appointmentType = AppointmentType.VLB_PROBATION.name,
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = moorlandLocation.key,
+        locationKey = wandsworthLocation.key,
       )
 
     service.createBookingHistory(HistoryType.CREATE, probationBooking)
@@ -103,12 +104,12 @@ class BookingHistoryServiceTest {
       createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
       with(appointments().first()) {
-        prisonCode isEqualTo MOORLAND
+        prisonCode isEqualTo WANDSWORTH
         prisonerNumber isEqualTo "A1234AA"
         appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
         startTime isEqualTo LocalTime.of(9, 30)
         endTime isEqualTo LocalTime.of(10, 30)
-        prisonLocKey isEqualTo moorlandLocation.key
+        prisonLocKey isEqualTo wandsworthLocation.key
       }
     }
   }
@@ -117,13 +118,13 @@ class BookingHistoryServiceTest {
   fun `Should create history for a court booking amendment`() {
     val courtBooking = courtBooking(COURT_USER.username)
       .addAppointment(
-        prisonCode = MOORLAND,
+        prison = prison(prisonCode = WANDSWORTH),
         prisonerNumber = "A1234AA",
         appointmentType = AppointmentType.VLB_COURT_MAIN.name,
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = moorlandLocation.key,
+        locationKey = wandsworthLocation.key,
       )
 
     service.createBookingHistory(HistoryType.AMEND, courtBooking)
@@ -140,13 +141,13 @@ class BookingHistoryServiceTest {
   fun `Should create a booking history for a probation booking amendment`() {
     val probationBooking = probationBooking()
       .addAppointment(
-        prisonCode = MOORLAND,
+        prison = prison(prisonCode = WANDSWORTH),
         prisonerNumber = "A1234AA",
         appointmentType = AppointmentType.VLB_PROBATION.name,
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = moorlandLocation.key,
+        locationKey = wandsworthLocation.key,
       )
 
     service.createBookingHistory(HistoryType.AMEND, probationBooking)
@@ -163,25 +164,25 @@ class BookingHistoryServiceTest {
   fun `Should cater for multiple prisoners at different prisons on the same booking`() {
     val courtBooking = courtBooking(COURT_USER.username)
       .addAppointment(
-        prisonCode = MOORLAND,
+        prison = prison(prisonCode = WANDSWORTH),
         prisonerNumber = "A1111AA",
         appointmentType = AppointmentType.VLB_COURT_MAIN.name,
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = moorlandLocation.key,
+        locationKey = wandsworthLocation.key,
       )
       .addAppointment(
-        prisonCode = WERRINGTON,
+        prison = prison(prisonCode = PENTONVILLE),
         prisonerNumber = "A2222AA",
         appointmentType = AppointmentType.VLB_COURT_MAIN.name,
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = werringtonLocation.key,
+        locationKey = pentonvilleLocation.key,
       )
       .addAppointment(
-        prisonCode = BIRMINGHAM,
+        prison = prison(prisonCode = BIRMINGHAM),
         prisonerNumber = "A3333AA",
         appointmentType = AppointmentType.VLB_COURT_MAIN.name,
         date = tomorrow(),
@@ -200,7 +201,7 @@ class BookingHistoryServiceTest {
       appointments() hasSize 3
       assertThat(appointments())
         .extracting("prisonCode")
-        .containsAll(listOf(MOORLAND, WERRINGTON, BIRMINGHAM))
+        .containsAll(listOf(WANDSWORTH, PENTONVILLE, BIRMINGHAM))
 
       assertThat(appointments())
         .extracting("prisonerNumber")
@@ -208,7 +209,7 @@ class BookingHistoryServiceTest {
 
       assertThat(appointments())
         .extracting("prisonLocKey")
-        .containsAll(listOf(moorlandLocation.key, werringtonLocation.key, birminghamLocation.key))
+        .containsAll(listOf(wandsworthLocation.key, pentonvilleLocation.key, birminghamLocation.key))
     }
   }
 }

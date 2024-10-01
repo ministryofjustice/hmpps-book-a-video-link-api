@@ -15,17 +15,18 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -82,28 +83,28 @@ class VideoLinkBookingsServiceTest {
 
       val courtBooking = courtBooking(createdBy = "test_user")
         .addAppointment(
-          prisonCode = MOORLAND,
+          prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_PRE.name,
-          locationKey = moorlandLocation.key,
+          locationKey = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT,
           endTime = LocalTime.MIDNIGHT.plusHours(1),
         )
         .addAppointment(
-          prisonCode = MOORLAND,
+          prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-          locationKey = moorlandLocation.key,
+          locationKey = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(1),
           endTime = LocalTime.MIDNIGHT.plusHours(2),
         )
         .addAppointment(
-          prisonCode = MOORLAND,
+          prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_POST.name,
-          locationKey = moorlandLocation.key,
+          locationKey = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(3),
           endTime = LocalTime.MIDNIGHT.plusHours(4),
@@ -134,8 +135,8 @@ class VideoLinkBookingsServiceTest {
     }
 
     @Test
-    fun `should fail to get a Moorland court video link booking by ID for a Birmingham prison user`() {
-      whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment(MOORLAND))
+    fun `should fail to get a Wandsworth court video link booking by ID for a Birmingham prison user`() {
+      whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment(WANDSWORTH))
 
       assertThrows<CaseloadAccessException> { service.getVideoLinkBookingById(1L, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM)) }
     }
@@ -165,10 +166,10 @@ class VideoLinkBookingsServiceTest {
       // Mock response for findById
       val probationBooking = probationBooking()
         .addAppointment(
-          prisonCode = MOORLAND,
+          prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_PROBATION.name,
-          locationKey = moorlandLocation.key,
+          locationKey = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT,
           endTime = LocalTime.MIDNIGHT.plusHours(1),
@@ -229,7 +230,7 @@ class VideoLinkBookingsServiceTest {
     fun `should find a matching court video link booking for court user`() {
       val searchRequest = VideoBookingSearchRequest(
         prisonerNumber = "123456",
-        locationKey = moorlandLocation.key,
+        locationKey = wandsworthLocation.key,
         date = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
@@ -237,7 +238,7 @@ class VideoLinkBookingsServiceTest {
 
       val booking = courtBooking()
         .addAppointment(
-          prisonCode = MOORLAND,
+          prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = searchRequest.prisonerNumber!!,
           appointmentType = AppointmentType.VLB_COURT_PRE.name,
           date = searchRequest.date!!,
@@ -246,7 +247,7 @@ class VideoLinkBookingsServiceTest {
           locationKey = searchRequest.locationKey!!,
         )
         .addAppointment(
-          prisonCode = MOORLAND,
+          prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = searchRequest.prisonerNumber!!,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
           date = searchRequest.date!!,
@@ -259,7 +260,7 @@ class VideoLinkBookingsServiceTest {
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
-          prisonLocKey = moorlandLocation.key,
+          prisonLocKey = wandsworthLocation.key,
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 0),
         ),
@@ -275,10 +276,10 @@ class VideoLinkBookingsServiceTest {
     }
 
     @Test
-    fun `should fail to find a matching Moorland video link booking for Risley prison user`() {
+    fun `should fail to find a matching Wandsworth video link booking for Risley prison user`() {
       val searchRequest = VideoBookingSearchRequest(
         prisonerNumber = "123456",
-        locationKey = moorlandLocation.key,
+        locationKey = wandsworthLocation.key,
         date = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
@@ -286,7 +287,7 @@ class VideoLinkBookingsServiceTest {
 
       val booking = courtBooking()
         .addAppointment(
-          prisonCode = MOORLAND,
+          prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = searchRequest.prisonerNumber!!,
           appointmentType = AppointmentType.VLB_COURT_PRE.name,
           date = searchRequest.date!!,
@@ -295,7 +296,7 @@ class VideoLinkBookingsServiceTest {
           locationKey = searchRequest.locationKey!!,
         )
         .addAppointment(
-          prisonCode = MOORLAND,
+          prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = searchRequest.prisonerNumber!!,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
           date = searchRequest.date!!,
@@ -308,7 +309,7 @@ class VideoLinkBookingsServiceTest {
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
-          prisonLocKey = moorlandLocation.key,
+          prisonLocKey = wandsworthLocation.key,
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 0),
         ),
@@ -329,7 +330,7 @@ class VideoLinkBookingsServiceTest {
     fun `should throw entity not found when no matching video link booking`() {
       val searchRequest = VideoBookingSearchRequest(
         prisonerNumber = "123456",
-        locationKey = moorlandLocation.key,
+        locationKey = wandsworthLocation.key,
         date = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),

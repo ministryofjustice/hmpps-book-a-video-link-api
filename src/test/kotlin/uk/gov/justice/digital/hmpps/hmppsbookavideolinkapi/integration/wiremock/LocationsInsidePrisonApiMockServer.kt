@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -29,7 +29,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubGetLocationByKey(key: String, prisonId: String = "MDI") {
+  fun stubGetLocationByKey(key: String, prisonId: String = "WWI") {
     val id = UUID.randomUUID()
 
     stubFor(
@@ -63,7 +63,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubPostLocationByKeys(keys: Set<String>, prisonCode: String = MOORLAND) {
+  fun stubPostLocationByKeys(keys: Set<String>, prisonCode: String = WANDSWORTH) {
     stubFor(
       post("/locations/keys")
         .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(keys)))
@@ -102,7 +102,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
   fun stubNonResidentialAppointmentLocationsAtPrison(
     keys: Set<String>,
     enabled: Boolean = true,
-    prisonCode: String = MOORLAND,
+    prisonCode: String = WANDSWORTH,
     leafLevel: Boolean = true,
   ) {
     stubFor(
@@ -143,7 +143,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
   fun stubVideoLinkLocationsAtPrison(
     keys: Set<String>,
     enabled: Boolean = true,
-    prisonCode: String = MOORLAND,
+    prisonCode: String = WANDSWORTH,
     leafLevel: Boolean = true,
   ) {
     stubFor(

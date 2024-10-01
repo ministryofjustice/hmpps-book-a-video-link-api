@@ -10,14 +10,14 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -38,7 +38,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       val scheduleResponse = webTestClient.getPrisonSchedule(
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         date = LocalDate.now(),
       )
 
@@ -49,15 +49,15 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     fun `Prison - return items when a booking is present for the prison`() {
       videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
         courtCode = DERBY_JUSTICE_CENTRE,
         prisonerNumber = "A1111AA",
-        prisonCode = WERRINGTON,
-        location = werringtonLocation,
+        prisonCode = PENTONVILLE,
+        location = pentonvilleLocation,
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
         comments = "integration test court booking comments",
@@ -67,7 +67,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getPrisonSchedule(
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         date = tomorrow(),
       )
 
@@ -77,7 +77,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       with(scheduleResponse.first()) {
         assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
         assertThat(courtDescription).isEqualTo("Derby Justice Centre")
-        assertThat(prisonCode).isEqualTo(WERRINGTON)
+        assertThat(prisonCode).isEqualTo(PENTONVILLE)
         assertThat(appointmentType).isEqualTo(AppointmentType.VLB_COURT_MAIN.name)
         assertThat(prisonerNumber).isEqualTo("A1111AA")
         assertThat(appointmentDate).isEqualTo(tomorrow())
@@ -91,16 +91,16 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     fun `Prison - return court and probation bookings for the prison`() {
       videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
-      locationsInsidePrisonApi().stubGetLocationByKey(werringtonLocation.key, WERRINGTON)
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
+      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
         courtCode = DERBY_JUSTICE_CENTRE,
         prisonerNumber = "A1111AA",
-        prisonCode = WERRINGTON,
-        location = werringtonLocation,
+        prisonCode = PENTONVILLE,
+        location = pentonvilleLocation,
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
         comments = "integration test court booking comments",
@@ -113,19 +113,19 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         probationTeamCode = "BLKPPP",
         probationMeetingType = ProbationMeetingType.PSR,
         videoLinkUrl = "https://probation.videolink.com",
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         prisonerNumber = "A1111AA",
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
         appointmentType = AppointmentType.VLB_PROBATION,
-        location = werringtonLocation,
+        location = pentonvilleLocation,
       )
 
       webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
       // Check for tomorrow's date
       val scheduleResponse = webTestClient.getPrisonSchedule(
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         date = tomorrow(),
       )
 
@@ -159,20 +159,20 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     fun `Court - return no items when only probation bookings are present`() {
       videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-      locationsInsidePrisonApi().stubGetLocationByKey(werringtonLocation.key, WERRINGTON)
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
 
       // Will default to tomorrow's date
       val probationBookingRequest = probationBookingRequest(
         probationTeamCode = "BLKPPP",
         probationMeetingType = ProbationMeetingType.PSR,
         videoLinkUrl = "https://probation.videolink.com",
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         prisonerNumber = "A1111AA",
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
         appointmentType = AppointmentType.VLB_PROBATION,
-        location = werringtonLocation,
+        location = pentonvilleLocation,
       )
 
       webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -191,15 +191,15 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     fun `Court - return items when bookings are present for this court`() {
       videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
         courtCode = DERBY_JUSTICE_CENTRE,
         prisonerNumber = "A1111AA",
-        prisonCode = WERRINGTON,
-        location = werringtonLocation,
+        prisonCode = PENTONVILLE,
+        location = pentonvilleLocation,
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
         comments = "integration test court booking comments",
@@ -219,7 +219,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       with(scheduleResponse.first()) {
         assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
         assertThat(courtDescription).isEqualTo("Derby Justice Centre")
-        assertThat(prisonCode).isEqualTo(WERRINGTON)
+        assertThat(prisonCode).isEqualTo(PENTONVILLE)
         assertThat(appointmentType).isEqualTo(AppointmentType.VLB_COURT_MAIN.name)
         assertThat(prisonerNumber).isEqualTo("A1111AA")
         assertThat(appointmentDate).isEqualTo(tomorrow())
@@ -237,15 +237,15 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     fun `Probation - return no items when only court bookings are present`() {
       videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
         courtCode = DERBY_JUSTICE_CENTRE,
         prisonerNumber = "A1111AA",
-        prisonCode = WERRINGTON,
-        location = werringtonLocation,
+        prisonCode = PENTONVILLE,
+        location = pentonvilleLocation,
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
         comments = "integration test court booking comments",
@@ -267,20 +267,20 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     fun `Probation - return items when bookings are present for this probation team`() {
       videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-      locationsInsidePrisonApi().stubGetLocationByKey(werringtonLocation.key, WERRINGTON)
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
 
       // Will default to tomorrow's date
       val probationBookingRequest = probationBookingRequest(
         probationTeamCode = "BLKPPP",
         probationMeetingType = ProbationMeetingType.PSR,
         videoLinkUrl = "https://probation.videolink.com",
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         prisonerNumber = "A1111AA",
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
         appointmentType = AppointmentType.VLB_PROBATION,
-        location = werringtonLocation,
+        location = pentonvilleLocation,
       )
 
       webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -296,7 +296,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
       with(scheduleResponse.first()) {
         assertThat(probationTeamCode).isEqualTo("BLKPPP")
-        assertThat(prisonCode).isEqualTo(WERRINGTON)
+        assertThat(prisonCode).isEqualTo(PENTONVILLE)
         assertThat(appointmentType).isEqualTo(AppointmentType.VLB_PROBATION.name)
         assertThat(prisonerNumber).isEqualTo("A1111AA")
         assertThat(appointmentDate).isEqualTo(tomorrow())

@@ -74,14 +74,14 @@ class VideoBooking private constructor(
   fun prisoner() = appointments().map { it.prisonerNumber }.distinct().single()
 
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
-  fun prisonCode() = appointments().map { it.prisonCode }.distinct().single()
+  fun prisonCode() = appointments().map { it.prison }.distinct().single().code
 
   fun isStatus(status: StatusCode) = statusCode == status
 
   fun isMigrated() = migratedVideoBookingId != null
 
   fun addAppointment(
-    prisonCode: String,
+    prison: Prison,
     prisonerNumber: String,
     appointmentType: String,
     date: LocalDate,
@@ -93,7 +93,7 @@ class VideoBooking private constructor(
       prisonAppointments.add(
         PrisonAppointment.newAppointment(
           videoBooking = this,
-          prisonCode = prisonCode,
+          prison = prison,
           prisonerNumber = prisonerNumber,
           appointmentType = appointmentType,
           appointmentDate = date,

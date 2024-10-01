@@ -209,7 +209,7 @@ CREATE TABLE prison_appointment
 (
     prison_appointment_id  bigserial NOT NULL CONSTRAINT prison_appointment_pk PRIMARY KEY,
     video_booking_id       bigint NOT NULL REFERENCES video_booking(video_booking_id), 
-    prison_code            varchar(5) NOT NULL REFERENCES prison(code),
+    prison_id              varchar(5) NOT NULL REFERENCES prison(prison_id),
     prisoner_number        varchar(7) NOT NULL,  -- NOMS number
     appointment_type       varchar(40) NOT NULL,
     comments               varchar(1000),
@@ -220,7 +220,7 @@ CREATE TABLE prison_appointment
 );
 
 CREATE INDEX idx_prison_appointment_video_booking_id ON prison_appointment(video_booking_id);
-CREATE INDEX idx_prison_appointment_prison_code ON prison_appointment(prison_code);
+CREATE INDEX idx_prison_appointment_prison_id ON prison_appointment(prison_id);
 CREATE INDEX idx_prison_appointment_prisoner_number ON prison_appointment(prisoner_number);
 CREATE INDEX idx_prison_appointment_loc_key ON prison_appointment(prison_loc_key);
 CREATE INDEX idx_prison_appointment_date ON prison_appointment(appointment_date);

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
@@ -8,10 +9,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appoint
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 
 @Service
 class AppointmentsService(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
+  private val prisonRepository: PrisonRepository,
   private val locationValidator: LocationValidator,
 ) {
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
@@ -22,10 +25,14 @@ class AppointmentsService(
       prisoner.checkForDuplicateAppointment(AppointmentType.VLB_COURT_MAIN)
     }
 
+    val prison = prisonRepository.findByCode(prisoner.prisonCode)
+      ?.also { if (!user.isUserType(UserType.PRISON)) require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
+
     // Add all appointments to the booking - they will be saved when the booking is saved
     prisoner.appointments.forEach {
       videoBooking.addAppointment(
-        prisonCode = prisoner.prisonCode,
+        prison = prison,
         prisonerNumber = prisoner.prisonerNumber!!,
         appointmentType = it.type!!.name,
         date = it.date!!,
@@ -101,9 +108,13 @@ class AppointmentsService(
       prisoner.checkForDuplicateAppointment(AppointmentType.VLB_PROBATION)
     }
 
+    val prison = prisonRepository.findByCode(prisoner.prisonCode)
+      ?.also { if (!user.isUserType(UserType.PRISON)) require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
+      ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
+
     with(prisoner.appointments.single()) {
       videoBooking.addAppointment(
-        prisonCode = prisoner.prisonCode,
+        prison = prison,
         prisonerNumber = prisoner.prisonerNumber!!,
         appointmentType = this.type!!.name,
         date = this.date!!,

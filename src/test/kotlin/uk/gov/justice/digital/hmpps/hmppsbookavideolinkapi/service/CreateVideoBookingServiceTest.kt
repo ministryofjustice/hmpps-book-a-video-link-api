@@ -20,11 +20,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
@@ -61,7 +61,7 @@ class CreateVideoBookingServiceTest {
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val locationValidator: LocationValidator = mock()
 
-  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, locationValidator)
+  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationValidator)
 
   private val service = CreateVideoBookingService(
     courtRepository,
@@ -134,7 +134,7 @@ class CreateVideoBookingServiceTest {
       appointments() hasSize 3
 
       with(appointments()) {
-        assertThat(this).extracting("prisonCode").containsOnly(prisonCode)
+        assertThat(this).extracting("prison").extracting("code").containsOnly(prisonCode)
         assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
         assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
         assertThat(this).extracting("prisonLocKey").containsOnly("$BIRMINGHAM-ABCEDFG")
@@ -310,7 +310,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a court video booking when no hearing appointment for court user`() {
-    val prisonCode = MOORLAND
+    val prisonCode = WANDSWORTH
     val prisonerNumber = "123456"
     val courtBookingRequest = courtBookingRequest(
       prisonCode = prisonCode,
@@ -336,8 +336,8 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn requestedCourt
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
-    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, MOORLAND)) doReturn prisonerSearchPrisoner(prisonerNumber, MOORLAND)
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
+    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, WANDSWORTH)) doReturn prisonerSearchPrisoner(prisonerNumber, WANDSWORTH)
 
     val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, COURT_USER) }
 
@@ -560,51 +560,15 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
-  fun `should create a court video booking when court not enabled for prison user`() {
-    val prisonCode = BIRMINGHAM
-    val prisonerNumber = "123456"
-    val courtBookingRequest = courtBookingRequest(
-      prisonCode = prisonCode,
-      prisonerNumber = prisonerNumber,
-      appointments = listOf(
-        Appointment(
-          type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
-          date = tomorrow(),
-          startTime = LocalTime.of(9, 30),
-          endTime = LocalTime.of(10, 0),
-        ),
-      ),
-    )
-
-    val overlappingAppointment: PrisonAppointment = mock {
-      on { startTime } doReturn LocalTime.of(9, 0)
-      on { endTime } doReturn LocalTime.of(10, 0)
-    }
-
-    val disabledCourt = court(courtBookingRequest.courtCode!!, enabled = false)
-
-    whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn disabledCourt
-    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
-    whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
-    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
-
-    assertDoesNotThrow {
-      service.create(courtBookingRequest, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM))
-    }
-  }
-
-  @Test
   fun `should fail to create a court video booking when prison not found for court user`() {
-    val courtBookingRequest = courtBookingRequest(prisonCode = MOORLAND)
+    val courtBookingRequest = courtBookingRequest(prisonCode = WANDSWORTH)
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn court(courtBookingRequest.courtCode!!)
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn null
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn null
 
     val error = assertThrows<EntityNotFoundException> { service.create(courtBookingRequest, COURT_USER) }
 
-    error.message isEqualTo "Prison with code $MOORLAND not found"
+    error.message isEqualTo "Prison with code $WANDSWORTH not found"
 
     verifyNoInteractions(videoBookingRepository)
   }

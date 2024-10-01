@@ -13,7 +13,7 @@ CREATE OR REPLACE VIEW v_booking_contacts
     select vlb.video_booking_id, 'PRISON' as contact_type, pc.name, pc.position, pc.email, pc.telephone, pc.primary_contact
     from video_booking vlb, prison_appointment pa, prison p, prison_contact pc
     where pa.video_booking_id = vlb.video_booking_id
-    and pa.prison_code = p.code
+    and pa.prison_id = p.prison_id
     and pc.prison_id = p.prison_id
   UNION
     select vlb.video_booking_id, 'THIRD_PARTY' as contact_type, tp.name, tp.organisation as position, tp.email, tp.telephone, tp.primary_contact

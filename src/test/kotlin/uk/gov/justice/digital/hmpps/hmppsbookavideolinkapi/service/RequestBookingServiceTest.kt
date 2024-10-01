@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
@@ -29,13 +29,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtHearingTy
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -76,10 +76,10 @@ class RequestBookingServiceTest {
   fun before() {
     whenever(courtRepository.findByCode(DERBY_JUSTICE_CENTRE)) doReturn court(DERBY_JUSTICE_CENTRE)
     whenever(probationTeamRepository.findByCode(BLACKPOOL_MC_PPOC)) doReturn probationTeam(BLACKPOOL_MC_PPOC)
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("COURT_HEARING_TYPE"), any())) doReturn courtHearingType("Tribunal")
     whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("PROBATION_MEETING_TYPE"), any())) doReturn courtHearingType("Pre-sentence report")
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(wandsworthLocation.key))) doReturn listOf(wandsworthLocation)
     whenever(contactsService.getContactsForCourtBookingRequest(any(), any(), any())) doReturn listOf(
       contact(contactType = ContactType.USER, email = "jon@somewhere.com", name = "Jon"),
       contact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
@@ -94,10 +94,10 @@ class RequestBookingServiceTest {
   fun `should send emails to the requester and to the prison on a court booking request`() {
     val bookingRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val notificationId = UUID.randomUUID()
@@ -121,13 +121,13 @@ class RequestBookingServiceTest {
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",
         "court" to DERBY_JUSTICE_CENTRE,
-        "prison" to "Moorland",
+        "prison" to "Wandsworth",
         "prisonerName" to "John Smith",
         "dateOfBirth" to "1 Jan 1970",
         "date" to tomorrow().toMediumFormatStyle(),
         "hearingType" to "Tribunal",
         "preAppointmentInfo" to "Not required",
-        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
         "postAppointmentInfo" to "Not required",
         "comments" to "court booking comments",
       )
@@ -137,13 +137,13 @@ class RequestBookingServiceTest {
       address isEqualTo "jon@prison.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "court" to DERBY_JUSTICE_CENTRE,
-        "prison" to "Moorland",
+        "prison" to "Wandsworth",
         "prisonerName" to "John Smith",
         "dateOfBirth" to "1 Jan 1970",
         "date" to tomorrow().toMediumFormatStyle(),
         "hearingType" to "Tribunal",
         "preAppointmentInfo" to "Not required",
-        "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
         "postAppointmentInfo" to "Not required",
         "comments" to "court booking comments",
       )
@@ -168,10 +168,10 @@ class RequestBookingServiceTest {
 
     val bookingRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, user("court user")) }
@@ -187,10 +187,10 @@ class RequestBookingServiceTest {
 
     val bookingRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("court user")) }
@@ -202,18 +202,18 @@ class RequestBookingServiceTest {
 
   @Test
   fun `should throw error if the requested prison is not enabled during court booking request`() {
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND, enabled = false)
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH, enabled = false)
 
     val bookingRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, user("court user")) }
-    error.message isEqualTo "Prison with code $MOORLAND is not enabled"
+    error.message isEqualTo "Prison with code $WANDSWORTH is not enabled"
 
     verify(emailService, never()).send(any())
     verify(notificationRepository, never()).saveAndFlush(any())
@@ -221,18 +221,18 @@ class RequestBookingServiceTest {
 
   @Test
   fun `should throw error if the requested prison is not found during court booking request`() {
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn null
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn null
 
     val bookingRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("court user")) }
-    error.message isEqualTo "Prison with code $MOORLAND not found"
+    error.message isEqualTo "Prison with code $WANDSWORTH not found"
 
     verify(emailService, never()).send(any())
     verify(notificationRepository, never()).saveAndFlush(any())
@@ -244,10 +244,10 @@ class RequestBookingServiceTest {
 
     val bookingRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("court user")) }
@@ -261,10 +261,10 @@ class RequestBookingServiceTest {
   fun `should send emails to the requester and to the prison on a probation booking request`() {
     val bookingRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val notificationId = UUID.randomUUID()
@@ -288,12 +288,12 @@ class RequestBookingServiceTest {
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "userName" to "Jon",
         "probationTeam" to "probation team description",
-        "prison" to "Moorland",
+        "prison" to "Wandsworth",
         "prisonerName" to "John Smith",
         "dateOfBirth" to "1 Jan 1970",
         "date" to tomorrow().toMediumFormatStyle(),
         "meetingType" to "Pre-sentence report",
-        "appointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "appointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
         "comments" to "probation booking comments",
       )
     }
@@ -302,12 +302,12 @@ class RequestBookingServiceTest {
       address isEqualTo "jon@prison.com"
       personalisation() containsEntriesExactlyInAnyOrder mapOf(
         "probationTeam" to "probation team description",
-        "prison" to "Moorland",
+        "prison" to "Wandsworth",
         "prisonerName" to "John Smith",
         "dateOfBirth" to "1 Jan 1970",
         "date" to tomorrow().toMediumFormatStyle(),
         "meetingType" to "Pre-sentence report",
-        "appointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+        "appointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
         "comments" to "probation booking comments",
       )
     }
@@ -331,10 +331,10 @@ class RequestBookingServiceTest {
 
     val bookingRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, user("probation user")) }
@@ -350,10 +350,10 @@ class RequestBookingServiceTest {
 
     val bookingRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("probation user")) }
@@ -365,18 +365,18 @@ class RequestBookingServiceTest {
 
   @Test
   fun `should throw error if the requested prison is not enabled during probation booking request`() {
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND, enabled = false)
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH, enabled = false)
 
     val bookingRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<IllegalArgumentException> { service.request(bookingRequest, user("probation user")) }
-    error.message isEqualTo "Prison with code $MOORLAND is not enabled"
+    error.message isEqualTo "Prison with code $WANDSWORTH is not enabled"
 
     verify(emailService, never()).send(any())
     verify(notificationRepository, never()).saveAndFlush(any())
@@ -384,18 +384,18 @@ class RequestBookingServiceTest {
 
   @Test
   fun `should throw error if the requested prison is not found during probation booking request`() {
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn null
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn null
 
     val bookingRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("probation user")) }
-    error.message isEqualTo "Prison with code $MOORLAND not found"
+    error.message isEqualTo "Prison with code $WANDSWORTH not found"
 
     verify(emailService, never()).send(any())
     verify(notificationRepository, never()).saveAndFlush(any())
@@ -407,10 +407,10 @@ class RequestBookingServiceTest {
 
     val bookingRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, user("probation user")) }
