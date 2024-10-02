@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtAppealReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
@@ -247,11 +248,12 @@ class VideoLinkBookingControllerTest {
       contentType = MediaType.APPLICATION_JSON
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PROBATION_USER, LocalDateTime.now()))
     }
-      .andExpect {
-        status { isForbidden() }
-      }.andReturn()
+      .andExpect { status { isForbidden() } }.andReturn()
 
-    response.resolvedException isInstanceOf VideoBookingAccessException::class.java
+    with(response.resolvedException!!) {
+      this isInstanceOf VideoBookingAccessException::class.java
+      message isEqualTo "Required role to view a COURT booking is missing"
+    }
   }
 
   @Test
@@ -262,10 +264,11 @@ class VideoLinkBookingControllerTest {
       contentType = MediaType.APPLICATION_JSON
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(COURT_USER, LocalDateTime.now()))
     }
-      .andExpect {
-        status { isForbidden() }
-      }.andReturn()
+      .andExpect { status { isForbidden() } }.andReturn()
 
-    response.resolvedException isInstanceOf VideoBookingAccessException::class.java
+    with(response.resolvedException!!) {
+      this isInstanceOf VideoBookingAccessException::class.java
+      message isEqualTo "Required role to view a PROBATION booking is missing"
+    }
   }
 }

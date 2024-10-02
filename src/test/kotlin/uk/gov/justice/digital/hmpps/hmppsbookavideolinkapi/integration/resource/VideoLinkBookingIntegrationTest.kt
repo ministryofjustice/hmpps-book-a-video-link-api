@@ -790,6 +790,98 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `should return the details of a court video link booking by ID when prison is not self service for prison user`() {
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = RISLEY,
+      location = risleyLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
+
+    assertThat(bookingId).isGreaterThan(0L)
+
+    val bookingDetails = webTestClient.getBookingByIdRequest(bookingId, prisonUser)
+
+    assertThat(bookingDetails).isNotNull
+
+    with(bookingDetails) {
+      // Verify court details present for this court booking
+      assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
+      assertThat(courtDescription).isEqualTo("Derby Justice Centre")
+      assertThat(courtHearingType).isEqualTo(CourtHearingType.TRIBUNAL)
+      assertThat(courtHearingTypeDescription).isEqualTo("Tribunal")
+
+      // Verify probation details are null
+      assertThat(probationTeamCode).isNull()
+      assertThat(probationTeamDescription).isNull()
+      assertThat(probationMeetingType).isNull()
+      assertThat(probationMeetingTypeDescription).isNull()
+
+      assertThat(createdByPrison).isTrue()
+      assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
+
+      // Verify that there is a single appointment
+      assertThat(prisonAppointments).hasSize(1)
+      with(prisonAppointments.first()) {
+        assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
+        assertThat(comments).contains("integration test")
+        assertThat(prisonCode).isEqualTo(RISLEY)
+        assertThat(prisonLocKey).isEqualTo(risleyLocation.key)
+      }
+    }
+  }
+
+  @Test
+  fun `should fail to return the details of a court video link booking by ID if the prison is not self service for court user`() {
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = RISLEY,
+      location = risleyLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
+
+    assertThat(bookingId).isGreaterThan(0L)
+
+    val error = webTestClient.get()
+      .uri("/video-link-booking/id/{videoBookingId}", bookingId)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 403
+      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1 is not self service"
+      developerMessage isEqualTo "Prison with code RSI for booking with id 1 is not self service"
+    }
+  }
+
+  @Test
   fun `should return the details of a probation video link booking by ID`() {
     videoBookingRepository.findAll() hasSize 0
 
@@ -1130,9 +1222,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
     with(error) {
-      status isEqualTo 400
-      userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
-      developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
+      status isEqualTo 403
+      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1000 is not self service"
+      developerMessage isEqualTo "Prison with code RSI for booking with id 1000 is not self service"
     }
   }
 
@@ -1389,9 +1481,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
     with(error) {
-      status isEqualTo 400
-      userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
-      developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
+      status isEqualTo 403
+      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1001 is not self service"
+      developerMessage isEqualTo "Prison with code RSI for booking with id 1001 is not self service"
     }
   }
 
@@ -1738,7 +1830,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   private fun WebTestClient.getBookingByIdRequest(videoBookingId: Long, user: User) =
     this
       .get()
-      .uri("/video-link-booking/id/{videoBookinId}", videoBookingId)
+      .uri("/video-link-booking/id/{videoBookingId}", videoBookingId)
       .accept(MediaType.APPLICATION_JSON)
       .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
@@ -1750,7 +1842,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   private fun WebTestClient.getBookingByIdNotFound(videoBookingId: Long, user: User) =
     this
       .get()
-      .uri("/video-link-booking/id/{videoBookinId}", videoBookingId)
+      .uri("/video-link-booking/id/{videoBookingId}", videoBookingId)
       .accept(MediaType.APPLICATION_JSON)
       .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
