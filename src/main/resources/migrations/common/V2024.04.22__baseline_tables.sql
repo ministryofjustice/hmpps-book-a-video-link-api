@@ -209,7 +209,7 @@ CREATE TABLE prison_appointment
 (
     prison_appointment_id  bigserial NOT NULL CONSTRAINT prison_appointment_pk PRIMARY KEY,
     video_booking_id       bigint NOT NULL REFERENCES video_booking(video_booking_id), 
-    prison_id              varchar(5) NOT NULL REFERENCES prison(prison_id),
+    prison_id              bigint NOT NULL REFERENCES prison(prison_id),
     prisoner_number        varchar(7) NOT NULL,  -- NOMS number
     appointment_type       varchar(40) NOT NULL,
     comments               varchar(1000),
