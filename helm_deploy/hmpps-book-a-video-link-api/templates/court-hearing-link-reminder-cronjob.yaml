@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: court-hearing-link-reminder
+spec:
+  schedule:  "{{ .Values.cron.courtHearingLinkReminderJob }}"
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 43200
+  successfulJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 345600 # 4 days
+      template:
+        spec:
+          containers:
+            - name: court-hearing-link-reminder-job
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
+              args:
+                - /bin/sh
+                - -c
+                - curl --fail --retry 2 -XPOST http://hmpps-book-a-video-link-api/job-admin/run/COURT_HEARING_LINK_REMINDER
+          restartPolicy: Never
