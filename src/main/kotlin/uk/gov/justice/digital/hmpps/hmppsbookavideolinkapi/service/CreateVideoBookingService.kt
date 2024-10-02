@@ -47,7 +47,7 @@ class CreateVideoBookingService(
     }
 
     val court = courtRepository.findByCode(request.courtCode!!)
-      ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
+      ?.also { if (!createdBy.isUserType(UserType.PRISON)) require(it.enabled) { "Court with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
 
     val prisoner = request.prisoner().validate()
