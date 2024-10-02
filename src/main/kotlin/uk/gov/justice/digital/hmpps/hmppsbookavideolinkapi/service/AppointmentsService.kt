@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -26,7 +27,7 @@ class AppointmentsService(
     }
 
     val prison = prisonRepository.findByCode(prisoner.prisonCode)
-      ?.also { if (!user.isUserType(UserType.PRISON)) require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
+      ?.also { it.rejectIfCannotSelfServeAtPrisonFor(user) }
       ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
 
     // Add all appointments to the booking - they will be saved when the booking is saved
@@ -109,7 +110,7 @@ class AppointmentsService(
     }
 
     val prison = prisonRepository.findByCode(prisoner.prisonCode)
-      ?.also { if (!user.isUserType(UserType.PRISON)) require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
+      ?.also { it.rejectIfCannotSelfServeAtPrisonFor(user) }
       ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
 
     with(prisoner.appointments.single()) {
@@ -123,6 +124,10 @@ class AppointmentsService(
         locationKey = this.locationKey!!,
       )
     }
+  }
+
+  private fun Prison.rejectIfCannotSelfServeAtPrisonFor(user: User) {
+    if (!user.isUserType(UserType.PRISON)) require(enabled) { "Prison with code $code is not enabled for self service" }
   }
 
   fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {

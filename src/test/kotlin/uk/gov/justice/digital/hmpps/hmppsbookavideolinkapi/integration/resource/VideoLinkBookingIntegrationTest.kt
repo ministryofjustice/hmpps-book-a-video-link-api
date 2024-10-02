@@ -467,7 +467,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should fail to create a court booking when prison is not enabled as court user`() {
+  fun `should fail to create a court booking when prison is not enabled for self service as court user`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
@@ -495,8 +495,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Prison with code RSI is not enabled"
-      developerMessage isEqualTo "Prison with code RSI is not enabled"
+      userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
+      developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
     }
   }
 
@@ -687,7 +687,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should fail to create a probation booking when prison is not enabled`() {
+  fun `should fail to create a probation booking when prison is not enabled for self service`() {
     prisonSearchApi().stubGetPrisoner("789012", RISLEY)
     locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, RISLEY)
 
@@ -716,8 +716,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Prison with code RSI is not enabled"
-      developerMessage isEqualTo "Prison with code RSI is not enabled"
+      userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
+      developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
     }
   }
 
@@ -1105,7 +1105,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   @Sql("classpath:integration-test-data/seed-bookings-happening-tomorrow.sql")
-  fun `should fail to amend a court booking when the prison is not enabled as court user`() {
+  fun `should fail to amend a court booking when the prison is not enabled for self service as court user`() {
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
 
@@ -1131,8 +1131,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Prison with code RSI is not enabled"
-      developerMessage isEqualTo "Prison with code RSI is not enabled"
+      userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
+      developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
     }
   }
 
@@ -1361,7 +1361,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   @Sql("classpath:integration-test-data/seed-bookings-happening-tomorrow.sql")
-  fun `should fail to amend a probation booking when the prison is not enabled`() {
+  fun `should fail to amend a probation booking when the prison is not enabled for self service`() {
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
     locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, RISLEY)
 
@@ -1390,8 +1390,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Prison with code RSI is not enabled"
-      developerMessage isEqualTo "Prison with code RSI is not enabled"
+      userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
+      developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
     }
   }
 

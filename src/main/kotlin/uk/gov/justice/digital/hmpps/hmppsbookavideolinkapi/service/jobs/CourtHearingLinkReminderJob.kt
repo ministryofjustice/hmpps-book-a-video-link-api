@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
@@ -20,7 +21,9 @@ class CourtHearingLinkReminderJob(
     prisonAppointmentRepository.findAllActivePrisonAppointmentsOnDate(tomorrow)
       .map { it.videoBooking }
       .distinct()
-      .filter { it.isCourtBooking() && it.videoUrl == null && it.court!!.enabled && it.appointments().all { a -> a.prison.enabled } }
+      .filter { it.isCourtBooking() && it.videoUrl == null && it.court!!.enabled && it.prisonIsEnabledForSelfService() }
       .forEach { bookingFacade.courtHearingLinkReminder(it, getServiceAsUser()) }
   },
 )
+
+private fun VideoBooking.prisonIsEnabledForSelfService() = appointments().all { a -> a.prison.enabled }
