@@ -80,6 +80,8 @@ class VideoBooking private constructor(
 
   fun isMigrated() = migratedVideoBookingId != null
 
+  fun prisonIsEnabledForSelfService() = appointments().all { a -> a.prison.enabled }
+
   fun addAppointment(
     prison: Prison,
     prisonerNumber: String,

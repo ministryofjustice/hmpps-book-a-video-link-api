@@ -91,7 +91,7 @@ class HmppsBookAVideoLinkApiExceptionHandler : ResponseEntityExceptionHandler() 
       .body(
         ErrorResponse(
           status = FORBIDDEN,
-          userMessage = "Not found: ${e.message}",
+          userMessage = "Forbidden: ${e.message}",
           developerMessage = e.message,
         ),
       )
