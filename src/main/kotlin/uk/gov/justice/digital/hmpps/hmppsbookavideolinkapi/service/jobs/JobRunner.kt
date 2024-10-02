@@ -19,7 +19,12 @@ class JobRunner(private val telemetryService: TelemetryService) {
 
     runCatching { timeElapsed = measureTimeMillis { jobDefinition.block() } }
       .onSuccess { telemetryService.track(JobSuccessTelemetryEvent(jobType = jobDefinition.jobType, timeElapsed = timeElapsed)) }
-      .onFailure { exception -> telemetryService.track(JobFailureTelemetryEvent(jobType = jobDefinition.jobType, message = exception.message, timeElapsed = timeElapsed)) }
+      .onFailure { exception ->
+        run {
+          telemetryService.track(JobFailureTelemetryEvent(jobType = jobDefinition.jobType, message = exception.message, timeElapsed = timeElapsed))
+          throw exception
+        }
+      }
   }
 }
 
