@@ -26,11 +26,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as Mod
 
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG", localName = "Birmingham room")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
-val moorlandLocation = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG", localName = "Moorland room")
-val moorlandLocation2 = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG2", localName = "Moorland room 2")
-val moorlandLocation3 = location(prisonCode = MOORLAND, locationKeySuffix = "ABCEDFG3", localName = "Moorland room 3")
-val werringtonLocation = location(prisonCode = WERRINGTON, locationKeySuffix = "ABCDEFG")
+val wandsworthLocation = location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG", localName = "Wandsworth room")
+val wandsworthLocation2 = location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG2", localName = "Wandsworth room 2")
+val wandsworthLocation3 = location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG3", localName = "Wandsworth room 3")
+val pentonvilleLocation = location(prisonCode = PENTONVILLE, locationKeySuffix = "ABCDEFG")
 val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
+val risleyLocation = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG")
 
 fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null) = Location(
   id = UUID.randomUUID(),
@@ -124,7 +125,7 @@ fun prisoner(
 
 fun courtBookingRequest(
   courtCode: String = "DRBYMC",
-  prisonCode: String = "MDI",
+  prisonCode: String = "WWI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
   location: Location? = null,
@@ -163,7 +164,7 @@ fun courtBookingRequest(
 
 fun requestCourtVideoLinkRequest(
   courtCode: String = "DRBYMC",
-  prisonCode: String = "MDI",
+  prisonCode: String = "WWI",
   firstName: String = "John",
   lastName: String = "Smith",
   dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
@@ -206,7 +207,7 @@ fun probationBookingRequest(
   probationTeamCode: String = "BLKPPP",
   probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
   videoLinkUrl: String = "https://video.link.com",
-  prisonCode: String = "MDI",
+  prisonCode: String = "WWI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
   location: Location? = null,
@@ -243,7 +244,7 @@ fun probationBookingRequest(
 fun requestProbationVideoLinkRequest(
   probationTeamCode: String = "BLKPPP",
   probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
-  prisonCode: String = "MDI",
+  prisonCode: String = "WWI",
   firstName: String = "John",
   lastName: String = "Smith",
   dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
@@ -284,7 +285,7 @@ fun requestProbationVideoLinkRequest(
 
 fun amendCourtBookingRequest(
   courtCode: String = "DRBYMC",
-  prisonCode: String = "MDI",
+  prisonCode: String = "WWI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
   location: Location? = null,
@@ -321,7 +322,7 @@ fun amendCourtBookingRequest(
 fun amendProbationBookingRequest(
   probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
   videoLinkUrl: String = "https://video.link.com",
-  prisonCode: String = MOORLAND,
+  prisonCode: String = WANDSWORTH,
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
   location: Location? = null,

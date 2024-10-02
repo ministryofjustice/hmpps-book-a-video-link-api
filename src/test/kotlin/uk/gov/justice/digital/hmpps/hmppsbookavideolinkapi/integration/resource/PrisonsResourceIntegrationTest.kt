@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.CacheManager
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -69,40 +69,40 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should get video link locations only`() {
-    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(setOf("VIDEOLINK"), prisonCode = MOORLAND)
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("NOT_VIDEO_LINK"), prisonCode = MOORLAND)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(setOf("VIDEOLINK"), prisonCode = WANDSWORTH)
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("NOT_VIDEO_LINK"), prisonCode = WANDSWORTH)
 
-    val response = webTestClient.getAppointmentLocations(MOORLAND)
+    val response = webTestClient.getAppointmentLocations(WANDSWORTH)
 
-    response.single() isEqualTo Location(key = "VIDEOLINK", description = "$MOORLAND VIDEOLINK", true)
+    response.single() isEqualTo Location(key = "VIDEOLINK", description = "$WANDSWORTH VIDEOLINK", true)
   }
 
   @Test
   fun `should get all possible appointment locations`() {
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("VIDEOLINK", "NOT_VIDEO_LINK"), prisonCode = MOORLAND)
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("VIDEOLINK", "NOT_VIDEO_LINK"), prisonCode = WANDSWORTH)
 
-    val response = webTestClient.getAppointmentLocations(MOORLAND, "?videoLinkOnly=false")
+    val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?videoLinkOnly=false")
 
     response containsExactlyInAnyOrder listOf(
-      Location(key = "VIDEOLINK", description = "$MOORLAND VIDEOLINK", true),
-      Location(key = "NOT_VIDEO_LINK", description = "$MOORLAND NOT_VIDEO_LINK", true),
+      Location(key = "VIDEOLINK", description = "$WANDSWORTH VIDEOLINK", true),
+      Location(key = "NOT_VIDEO_LINK", description = "$WANDSWORTH NOT_VIDEO_LINK", true),
     )
   }
 
   @Test
   fun `should be no appointment locations if not enabled`() {
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("VIDEOLINK", "NOT_VIDEO_LINK"), enabled = false, prisonCode = MOORLAND)
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("VIDEOLINK", "NOT_VIDEO_LINK"), enabled = false, prisonCode = WANDSWORTH)
 
-    val response = webTestClient.getAppointmentLocations(MOORLAND, "?videoLinkOnly=false&enabledOnly=true")
+    val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?videoLinkOnly=false&enabledOnly=true")
 
     response.isEmpty() isBool true
   }
 
   @Test
   fun `should be no video link locations if not enabled`() {
-    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(setOf("VIDEOLINK"), enabled = false, prisonCode = MOORLAND)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(setOf("VIDEOLINK"), enabled = false, prisonCode = WANDSWORTH)
 
-    val response = webTestClient.getAppointmentLocations(MOORLAND, "?enabledOnly=true")
+    val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?enabledOnly=true")
 
     response.isEmpty() isBool true
   }

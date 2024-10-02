@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
@@ -42,7 +43,7 @@ class VideoBookingAmendedEventHandlerTest {
 
   private val booking = courtBooking()
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_PRE",
       date = LocalDate.of(2100, 1, 1),
@@ -51,7 +52,7 @@ class VideoBookingAmendedEventHandlerTest {
       locationKey = "",
     )
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.of(2100, 1, 1),

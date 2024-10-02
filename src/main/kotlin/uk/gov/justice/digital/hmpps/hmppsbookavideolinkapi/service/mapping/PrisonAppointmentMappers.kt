@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 
 fun PrisonAppointmentEntity.toModel() = PrisonAppointment(
   prisonAppointmentId = prisonAppointmentId,
-  prisonCode = prisonCode,
+  prisonCode = prisonCode(),
   prisonerNumber = prisonerNumber,
   appointmentType = appointmentType,
   comments = comments,

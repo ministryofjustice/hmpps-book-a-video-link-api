@@ -29,18 +29,19 @@ import org.springframework.web.context.WebApplicationContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.HmppsBookAVideoLinkApiExceptionHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtAppealReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
@@ -95,12 +96,12 @@ class VideoLinkBookingControllerTest {
 
   private lateinit var mockMvc: MockMvc
 
-  private val moorlandPrisonCourtBooking = courtBooking()
+  private val wandsworthPrisonCourtBooking = courtBooking()
     .addAppointment(
-      prisonCode = MOORLAND,
+      prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "ABCDEF",
       appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
       date = tomorrow(),
       startTime = LocalTime.MIDNIGHT.plusHours(1),
       endTime = LocalTime.MIDNIGHT.plusHours(2),
@@ -194,9 +195,9 @@ class VideoLinkBookingControllerTest {
   }
 
   @Test
-  fun `should get Moorland prison court video booking for external user`() {
-    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(moorlandPrisonCourtBooking)
-    whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", moorlandPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
+  fun `should get Wandsworth prison court video booking for external user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
+    whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
@@ -209,13 +210,13 @@ class VideoLinkBookingControllerTest {
 
   @WithMockUser(roles = ["BOOK_A_VIDEO_LINK_ADMIN"])
   @Test
-  fun `should get Moorland prison court video booking for Moorland prison user`() {
-    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(moorlandPrisonCourtBooking)
-    whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", moorlandPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
+  fun `should get Wandsworth prison court video booking for Wandsworth prison user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
+    whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PRISON_USER.copy(activeCaseLoadId = MOORLAND), LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PRISON_USER.copy(activeCaseLoadId = WANDSWORTH), LocalDateTime.now()))
     }
       .andExpect {
         status { isOk() }
@@ -223,9 +224,9 @@ class VideoLinkBookingControllerTest {
   }
 
   @Test
-  fun `should fail to get Moorland prison court video booking for Risley prison user`() {
-    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(moorlandPrisonCourtBooking)
-    whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", moorlandPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
+  fun `should fail to get Wandsworth prison court video booking for Risley prison user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
+    whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
 
     val response = mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON

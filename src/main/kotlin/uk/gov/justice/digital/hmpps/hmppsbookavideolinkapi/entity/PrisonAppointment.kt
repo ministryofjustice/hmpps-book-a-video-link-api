@@ -6,6 +6,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
@@ -24,7 +25,9 @@ class PrisonAppointment private constructor(
   @JoinColumn(name = "video_booking_id")
   val videoBooking: VideoBooking,
 
-  val prisonCode: String,
+  @OneToOne
+  @JoinColumn(name = "prison_id")
+  val prison: Prison,
 
   val prisonerNumber: String,
 
@@ -40,6 +43,8 @@ class PrisonAppointment private constructor(
 
   val endTime: LocalTime,
 ) {
+
+  fun prisonCode() = prison.code
 
   fun isStartsAfter(dateTime: LocalDateTime) = appointmentDate.atTime(startTime).isAfter(dateTime)
 
@@ -64,7 +69,7 @@ class PrisonAppointment private constructor(
   companion object {
     fun newAppointment(
       videoBooking: VideoBooking,
-      prisonCode: String,
+      prison: Prison,
       prisonerNumber: String,
       appointmentType: String,
       appointmentDate: LocalDate,
@@ -73,7 +78,7 @@ class PrisonAppointment private constructor(
       locationKey: String,
     ) = PrisonAppointment(
       videoBooking = videoBooking,
-      prisonCode = prisonCode,
+      prison = prison,
       prisonerNumber = prisonerNumber,
       appointmentType = appointmentType,
       appointmentDate = appointmentDate,

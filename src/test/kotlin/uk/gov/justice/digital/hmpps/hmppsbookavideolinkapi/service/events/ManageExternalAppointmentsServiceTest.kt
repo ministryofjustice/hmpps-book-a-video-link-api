@@ -26,7 +26,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
@@ -48,7 +48,7 @@ class ManageExternalAppointmentsServiceTest {
     "VIDEO LINK",
     BIRMINGHAM,
   )
-  private val moorlandLocation = birminghamLocation.copy(agencyId = MOORLAND)
+  private val wandsworthLocation = birminghamLocation.copy(agencyId = WANDSWORTH)
   private val courtBooking = courtBooking()
   private val courtAppointment = appointment(
     booking = courtBooking,
@@ -63,7 +63,7 @@ class ManageExternalAppointmentsServiceTest {
   private val probationBooking = probationBooking()
   private val probationAppointment = appointment(
     booking = probationBooking,
-    prisonCode = MOORLAND,
+    prisonCode = WANDSWORTH,
     prisonerNumber = "654321",
     appointmentType = "VLB_PROBATION",
     date = LocalDate.of(2100, 1, 1),
@@ -139,7 +139,7 @@ class ManageExternalAppointmentsServiceTest {
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
     whenever(
       activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-        prisonCode = courtAppointment.prisonCode,
+        prisonCode = courtAppointment.prisonCode(),
         prisonerNumber = courtAppointment.prisonerNumber,
         onDate = courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -161,11 +161,11 @@ class ManageExternalAppointmentsServiceTest {
         inCell = false,
         isRepeat = false,
         maxSequenceNumber = 1,
-        prisonCode = courtAppointment.prisonCode,
+        prisonCode = courtAppointment.prisonCode(),
         sequenceNumber = 1,
         internalLocation = AppointmentLocationSummary(
           birminghamLocation.locationId,
-          courtAppointment.prisonCode,
+          courtAppointment.prisonCode(),
           "VIDEO LINK",
         ),
         timeSlot = AppointmentSearchResult.TimeSlot.AM,
@@ -177,7 +177,7 @@ class ManageExternalAppointmentsServiceTest {
     inOrder(prisonApiClient, activitiesAppointmentsClient) {
       verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocKey)
       verify(activitiesAppointmentsClient).getPrisonersAppointmentsAtLocations(
-        prisonCode = courtAppointment.prisonCode,
+        prisonCode = courtAppointment.prisonCode(),
         prisonerNumber = courtAppointment.prisonerNumber,
         onDate = courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -190,15 +190,15 @@ class ManageExternalAppointmentsServiceTest {
   @Test
   fun `should create probation appointment via activities client when appointments rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(probationAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(MOORLAND)) doReturn true
-    whenever(prisonApiClient.getInternalLocationByKey(probationAppointment.prisonLocKey)) doReturn moorlandLocation
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(WANDSWORTH)) doReturn true
+    whenever(prisonApiClient.getInternalLocationByKey(probationAppointment.prisonLocKey)) doReturn wandsworthLocation
 
     service.createAppointment(1)
 
     verify(prisonApiClient).getInternalLocationByKey(probationAppointment.prisonLocKey)
 
     verify(activitiesAppointmentsClient).createAppointment(
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       prisonerNumber = "654321",
       startDate = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
@@ -214,7 +214,7 @@ class ManageExternalAppointmentsServiceTest {
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
     whenever(prisonerSearchClient.getPrisoner(courtAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(
       prisonerNumber = courtAppointment.prisonerNumber,
-      prisonCode = courtAppointment.prisonCode,
+      prisonCode = courtAppointment.prisonCode(),
       bookingId = 1,
     )
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
@@ -249,7 +249,7 @@ class ManageExternalAppointmentsServiceTest {
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
     whenever(prisonerSearchClient.getPrisoner(courtAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(
       prisonerNumber = courtAppointment.prisonerNumber,
-      prisonCode = courtAppointment.prisonCode,
+      prisonCode = courtAppointment.prisonCode(),
       bookingId = 1,
     )
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
@@ -273,13 +273,13 @@ class ManageExternalAppointmentsServiceTest {
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
     whenever(prisonerSearchClient.getPrisoner(courtAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(
       prisonerNumber = courtAppointment.prisonerNumber,
-      prisonCode = courtAppointment.prisonCode,
+      prisonCode = courtAppointment.prisonCode(),
       bookingId = 1,
     )
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
     whenever(
       prisonApiClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode,
+        courtAppointment.prisonCode(),
         courtAppointment.prisonerNumber,
         courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -302,7 +302,7 @@ class ManageExternalAppointmentsServiceTest {
     inOrder(prisonApiClient) {
       verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocKey)
       verify(prisonApiClient).getPrisonersAppointmentsAtLocations(
-        prisonCode = courtAppointment.prisonCode,
+        prisonCode = courtAppointment.prisonCode(),
         prisonerNumber = courtAppointment.prisonerNumber,
         onDate = courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -315,13 +315,13 @@ class ManageExternalAppointmentsServiceTest {
   @Test
   fun `should create probation appointment via prison api client when appointments not rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(probationAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(MOORLAND)) doReturn false
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(WANDSWORTH)) doReturn false
     whenever(prisonerSearchClient.getPrisoner(probationAppointment.prisonerNumber)) doReturn prisonerSearchPrisoner(
       prisonerNumber = probationAppointment.prisonerNumber,
-      prisonCode = probationAppointment.prisonCode,
+      prisonCode = probationAppointment.prisonCode(),
       bookingId = 1,
     )
-    whenever(prisonApiClient.getInternalLocationByKey(probationAppointment.prisonLocKey)) doReturn moorlandLocation
+    whenever(prisonApiClient.getInternalLocationByKey(probationAppointment.prisonLocKey)) doReturn wandsworthLocation
 
     service.createAppointment(1)
 
@@ -349,11 +349,11 @@ class ManageExternalAppointmentsServiceTest {
   @Test
   fun `should cancel appointment via activities client when appointments rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode)) doReturn true
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
     whenever(
       activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode,
+        courtAppointment.prisonCode(),
         courtAppointment.prisonerNumber,
         courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -375,11 +375,11 @@ class ManageExternalAppointmentsServiceTest {
         inCell = false,
         isRepeat = false,
         maxSequenceNumber = 1,
-        prisonCode = courtAppointment.prisonCode,
+        prisonCode = courtAppointment.prisonCode(),
         sequenceNumber = 1,
         internalLocation = AppointmentLocationSummary(
           birminghamLocation.locationId,
-          courtAppointment.prisonCode,
+          courtAppointment.prisonCode(),
           "VIDEO LINK",
         ),
         timeSlot = AppointmentSearchResult.TimeSlot.AM,
@@ -394,11 +394,11 @@ class ManageExternalAppointmentsServiceTest {
   @Test
   fun `should not cancel appointment via activities client when appointments rolled out but matching appointment not found`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode)) doReturn true
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
     whenever(
       activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode,
+        courtAppointment.prisonCode(),
         courtAppointment.prisonerNumber,
         courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -421,11 +421,11 @@ class ManageExternalAppointmentsServiceTest {
         inCell = false,
         isRepeat = false,
         maxSequenceNumber = 1,
-        prisonCode = courtAppointment.prisonCode,
+        prisonCode = courtAppointment.prisonCode(),
         sequenceNumber = 1,
         internalLocation = AppointmentLocationSummary(
           birminghamLocation.locationId,
-          courtAppointment.prisonCode,
+          courtAppointment.prisonCode(),
           "VIDEO LINK",
         ),
         timeSlot = AppointmentSearchResult.TimeSlot.AM,
@@ -440,11 +440,11 @@ class ManageExternalAppointmentsServiceTest {
   @Test
   fun `should cancel appointment via prison api client when appointments not rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode)) doReturn false
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
     whenever(
       prisonApiClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode,
+        courtAppointment.prisonCode(),
         courtAppointment.prisonerNumber,
         courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -470,11 +470,11 @@ class ManageExternalAppointmentsServiceTest {
   @Test
   fun `should not cancel appointment via prison api client when appointments not rolled out but matching appointment not found`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode)) doReturn false
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
     whenever(
       prisonApiClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode,
+        courtAppointment.prisonCode(),
         courtAppointment.prisonerNumber,
         courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -512,11 +512,11 @@ class ManageExternalAppointmentsServiceTest {
   fun `Cancel previous - should cancel previous appointment via A&A API when A&A is rolled out`() {
     val bookingHistory = buildFakeBookingHistory()
 
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode)) doReturn true
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
 
     whenever(
       activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode,
+        courtAppointment.prisonCode(),
         courtAppointment.prisonerNumber,
         courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -538,11 +538,11 @@ class ManageExternalAppointmentsServiceTest {
         inCell = false,
         isRepeat = false,
         maxSequenceNumber = 1,
-        prisonCode = courtAppointment.prisonCode,
+        prisonCode = courtAppointment.prisonCode(),
         sequenceNumber = 1,
         internalLocation = AppointmentLocationSummary(
           birminghamLocation.locationId,
-          courtAppointment.prisonCode,
+          courtAppointment.prisonCode(),
           "VIDEO LINK",
         ),
         timeSlot = AppointmentSearchResult.TimeSlot.AM,
@@ -561,13 +561,13 @@ class ManageExternalAppointmentsServiceTest {
   fun `Cancel previous - should cancel previous appointment via Prison API when A&A is not rolled out`() {
     val bookingHistory = buildFakeBookingHistory()
 
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode)) doReturn false
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
 
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocKey)) doReturn birminghamLocation
     whenever(
       prisonApiClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode,
+        courtAppointment.prisonCode(),
         courtAppointment.prisonerNumber,
         courtAppointment.appointmentDate,
         birminghamLocation.locationId,
@@ -603,7 +603,7 @@ class ManageExternalAppointmentsServiceTest {
 
     val bookingHistoryAppointment = BookingHistoryAppointment(
       bookingHistoryAppointmentId = 1L,
-      prisonCode = courtAppointment.prisonCode,
+      prisonCode = courtAppointment.prisonCode(),
       prisonerNumber = courtAppointment.prisonerNumber,
       appointmentDate = courtAppointment.appointmentDate,
       appointmentType = courtAppointment.appointmentType,

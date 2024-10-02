@@ -8,9 +8,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.Migr
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 
@@ -63,13 +63,13 @@ class MigrateMappingServiceTest {
   @Test
   fun `should map internal location id to DPS location`() {
     migrationClient.stub {
-      on { getLocationByInternalId(1) } doReturn moorlandLocation
+      on { getLocationByInternalId(1) } doReturn wandsworthLocation
       on { getLocationByInternalId(2) } doReturn birminghamLocation
-      on { getLocationByInternalId(3) } doReturn werringtonLocation
+      on { getLocationByInternalId(3) } doReturn pentonvilleLocation
     }
 
-    service.mapInternalLocationIdToLocation(1) isEqualTo moorlandLocation
+    service.mapInternalLocationIdToLocation(1) isEqualTo wandsworthLocation
     service.mapInternalLocationIdToLocation(2) isEqualTo birminghamLocation
-    service.mapInternalLocationIdToLocation(3) isEqualTo werringtonLocation
+    service.mapInternalLocationIdToLocation(3) isEqualTo pentonvilleLocation
   }
 }

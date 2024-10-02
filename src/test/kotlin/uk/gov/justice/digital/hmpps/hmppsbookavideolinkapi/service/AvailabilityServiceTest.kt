@@ -8,7 +8,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
@@ -50,7 +50,7 @@ class AvailabilityServiceTest {
       statusCode = BookingStatus.ACTIVE.name,
       courtCode = "TESTC",
       probationTeamCode = null,
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       prisonerNumber = "A1234AA",
       appointmentType = appType,
       prisonLocKey = locKey,
@@ -59,9 +59,9 @@ class AvailabilityServiceTest {
       endTime = endTime,
     )
 
-  private val room1 = "MDI-VCC-1"
-  private val room2 = "MDI-VCC-2"
-  private val room3 = "MDI-VCC-3"
+  private val room1 = "WWI-VCC-1"
+  private val room2 = "WWI-VCC-2"
+  private val room3 = "WWI-VCC-3"
 
   private val videoAppointments = listOf(
     createVideoAppointment(1L, 1L, room1, "VLB_COURT_PRE", LocalTime.of(9, 15), LocalTime.of(9, 30)),
@@ -92,7 +92,7 @@ class AvailabilityServiceTest {
     val request = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "TESTC",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       date = LocalDate.now(),
       mainAppointment = LocationAndInterval(
         prisonLocKey = room1,
@@ -115,7 +115,7 @@ class AvailabilityServiceTest {
     val request = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "TESTC",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       date = LocalDate.now(),
       mainAppointment = LocationAndInterval(
         prisonLocKey = room1,
@@ -154,7 +154,7 @@ class AvailabilityServiceTest {
     val request = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "TESTC",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       date = LocalDate.now(),
       preAppointment = LocationAndInterval(
         prisonLocKey = room1,
@@ -201,7 +201,7 @@ class AvailabilityServiceTest {
     val request = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "TESTC",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       date = LocalDate.now(),
       mainAppointment = LocationAndInterval(
         prisonLocKey = room3,
@@ -225,7 +225,7 @@ class AvailabilityServiceTest {
     val request = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "TESTC",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       date = LocalDate.now(),
       mainAppointment = LocationAndInterval(
         prisonLocKey = room1,
@@ -250,7 +250,7 @@ class AvailabilityServiceTest {
     val request = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "TESTC",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       date = LocalDate.now(),
       mainAppointment = LocationAndInterval(
         prisonLocKey = room1,

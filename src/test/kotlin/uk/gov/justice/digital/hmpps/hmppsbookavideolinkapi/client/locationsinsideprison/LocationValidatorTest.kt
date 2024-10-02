@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.inactiveBirminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 
 class LocationValidatorTest {
 
@@ -48,20 +48,20 @@ class LocationValidatorTest {
 
   @Test
   fun `should fail validation when location not at chosen prison`() {
-    whenever(client.getLocationsByKeys(setOf(birminghamLocation.key, moorlandLocation.key))) doReturn listOf(birminghamLocation, moorlandLocation)
+    whenever(client.getLocationsByKeys(setOf(birminghamLocation.key, wandsworthLocation.key))) doReturn listOf(birminghamLocation, wandsworthLocation)
 
-    val error = assertThrows<ValidationException> { validator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key, moorlandLocation.key)) }
+    val error = assertThrows<ValidationException> { validator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key, wandsworthLocation.key)) }
 
-    error.message isEqualTo "The following location is not at prison code $BIRMINGHAM [${moorlandLocation.key}]"
+    error.message isEqualTo "The following location is not at prison code $BIRMINGHAM [${wandsworthLocation.key}]"
   }
 
   @Test
   fun `should fail validation when locations not at chosen prison`() {
-    whenever(client.getLocationsByKeys(setOf(birminghamLocation.key, moorlandLocation.key))) doReturn listOf(birminghamLocation, moorlandLocation)
+    whenever(client.getLocationsByKeys(setOf(birminghamLocation.key, wandsworthLocation.key))) doReturn listOf(birminghamLocation, wandsworthLocation)
 
-    val error = assertThrows<ValidationException> { validator.validatePrisonLocations(RISLEY, setOf(birminghamLocation.key, moorlandLocation.key)) }
+    val error = assertThrows<ValidationException> { validator.validatePrisonLocations(RISLEY, setOf(birminghamLocation.key, wandsworthLocation.key)) }
 
-    error.message isEqualTo "The following locations are not at prison code $RISLEY [${birminghamLocation.key}, ${moorlandLocation.key}]"
+    error.message isEqualTo "The following locations are not at prison code $RISLEY [${birminghamLocation.key}, ${wandsworthLocation.key}]"
   }
 
   @Test

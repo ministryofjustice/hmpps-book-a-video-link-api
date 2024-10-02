@@ -18,7 +18,7 @@ select
     pt.probation_team_id,
     pt.code as probation_team_code,
     pt.description as probation_team_description,
-    pa.prison_code,
+    p.code as prison_code,
     p.name as prison_name,
     pa.prisoner_number,
     pa.appointment_type,
@@ -32,7 +32,7 @@ from video_booking vlb
   left join court c on c.court_id = vlb.court_id and c.enabled = true
   left join probation_team pt on pt.probation_team_id = vlb.probation_team_id and pt.enabled = true
   join prison_appointment pa on pa.video_booking_id = vlb.video_booking_id
-  join prison p on p.code = pa.prison_code
+  join prison p on p.prison_id = pa.prison_id
   left join reference_code rc1 on rc1.group_code = 'COURT_HEARING_TYPE' and rc1.code = vlb.hearing_type
   left join reference_code rc2 on rc2.group_code = 'BOOKING_TYPE' and rc2.code = vlb.booking_type
   left join reference_code rc3 on rc3.group_code = 'APPOINTMENT_TYPE' and rc3.code = pa.appointment_type

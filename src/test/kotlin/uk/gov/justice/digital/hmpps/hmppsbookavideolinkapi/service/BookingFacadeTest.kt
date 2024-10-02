@@ -25,10 +25,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
@@ -40,12 +40,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
@@ -108,48 +108,48 @@ class BookingFacadeTest {
   )
   private val courtBooking = courtBooking()
     .addAppointment(
-      prisonCode = MOORLAND,
+      prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
     )
   private val courtBookingAtDisabledCourt = courtBooking(court = court(enabled = false))
     .addAppointment(
-      prisonCode = MOORLAND,
+      prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
     )
   private val courtBookingInThePast = courtBooking()
     .addAppointment(
-      prisonCode = MOORLAND,
+      prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.now().minusDays(1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
     )
   private val courtBookingCreatedByPrison = courtBooking(createdByPrison = true)
     .addAppointment(
-      prisonCode = MOORLAND,
+      prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
     )
 
   private val probationBookingAtBirminghamPrison = probationBooking()
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "654321",
       appointmentType = AppointmentType.VLB_PROBATION.name,
       locationKey = birminghamLocation.key,
@@ -162,9 +162,9 @@ class BookingFacadeTest {
 
   @BeforeEach
   fun before() {
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn prison(MOORLAND)
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(moorlandLocation.key))) doReturn listOf(moorlandLocation)
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(wandsworthLocation.key))) doReturn listOf(wandsworthLocation)
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
   }
 
@@ -175,9 +175,9 @@ class BookingFacadeTest {
     fun `should send events and emails on creation of court booking by court user`() {
       setupCourtPrimaryContactsFor(COURT_USER)
 
-      val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = courtBooking.prisoner())
+      val bookingRequest = courtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = courtBooking.prisoner())
 
-      whenever(createBookingService.create(bookingRequest, COURT_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = courtBooking.prisoner(), prisonCode = MOORLAND))
+      whenever(createBookingService.create(bookingRequest, COURT_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = courtBooking.prisoner(), prisonCode = WANDSWORTH))
       whenever(emailService.send(any<NewCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<NewCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
@@ -199,12 +199,12 @@ class BookingFacadeTest {
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "userName" to COURT_USER.name,
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -214,12 +214,12 @@ class BookingFacadeTest {
         address isEqualTo PRISON_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -246,9 +246,9 @@ class BookingFacadeTest {
     fun `should send events and emails on creation of court booking by a prison user`() {
       setupCourtPrimaryContactsFor(PRISON_USER)
 
-      val bookingRequest = courtBookingRequest(prisonCode = MOORLAND, prisonerNumber = courtBookingCreatedByPrison.prisoner())
+      val bookingRequest = courtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = courtBookingCreatedByPrison.prisoner())
 
-      whenever(createBookingService.create(bookingRequest, PRISON_USER)) doReturn Pair(courtBookingCreatedByPrison, prisoner(prisonerNumber = courtBookingCreatedByPrison.prisoner(), prisonCode = MOORLAND))
+      whenever(createBookingService.create(bookingRequest, PRISON_USER)) doReturn Pair(courtBookingCreatedByPrison, prisoner(prisonerNumber = courtBookingCreatedByPrison.prisoner(), prisonCode = WANDSWORTH))
       whenever(emailService.send(any<NewCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<NewCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
 
@@ -270,12 +270,12 @@ class BookingFacadeTest {
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "userName" to PRISON_USER.name,
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -285,12 +285,12 @@ class BookingFacadeTest {
         address isEqualTo COURT_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -401,7 +401,7 @@ class BookingFacadeTest {
     fun `should send events and emails on cancellation of court booking by court user`() {
       setupCourtPrimaryContactsFor(COURT_USER)
 
-      val prisoner = Prisoner(courtBooking.prisoner(), MOORLAND, "Bob", "Builder", yesterday())
+      val prisoner = Prisoner(courtBooking.prisoner(), WANDSWORTH, "Bob", "Builder", yesterday())
 
       whenever(cancelVideoBookingService.cancel(1, COURT_USER)) doReturn courtBooking.apply { cancel(COURT_USER) }
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
@@ -426,12 +426,12 @@ class BookingFacadeTest {
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "userName" to COURT_USER.name,
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -441,12 +441,12 @@ class BookingFacadeTest {
         address isEqualTo PRISON_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -473,7 +473,7 @@ class BookingFacadeTest {
     fun `should send events and emails on cancellation of court booking by prison user`() {
       setupCourtPrimaryContactsFor(PRISON_USER)
 
-      val prisoner = Prisoner(courtBooking.prisoner(), MOORLAND, "Bob", "Builder", yesterday())
+      val prisoner = Prisoner(courtBooking.prisoner(), WANDSWORTH, "Bob", "Builder", yesterday())
 
       whenever(cancelVideoBookingService.cancel(1, PRISON_USER)) doReturn courtBooking.apply { cancel(PRISON_USER) }
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
@@ -498,12 +498,12 @@ class BookingFacadeTest {
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "userName" to PRISON_USER.name,
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -513,12 +513,12 @@ class BookingFacadeTest {
         address isEqualTo COURT_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -687,9 +687,9 @@ class BookingFacadeTest {
     fun `should send events and emails on amendment of court booking by court user`() {
       setupCourtPrimaryContactsFor(COURT_USER)
 
-      val bookingRequest = amendCourtBookingRequest(prisonCode = MOORLAND, prisonerNumber = "123456")
+      val bookingRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
 
-      whenever(amendBookingService.amend(1, bookingRequest, COURT_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
+      whenever(amendBookingService.amend(1, bookingRequest, COURT_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH))
       whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
@@ -714,10 +714,10 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
         )
       }
       with(emailCaptor.secondValue) {
@@ -725,12 +725,12 @@ class BookingFacadeTest {
         address isEqualTo PRISON_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -757,9 +757,9 @@ class BookingFacadeTest {
     fun `should send events and emails on amendment of court booking by prison user`() {
       setupCourtPrimaryContactsFor(PRISON_USER)
 
-      val bookingRequest = amendCourtBookingRequest(prisonCode = MOORLAND, prisonerNumber = "123456")
+      val bookingRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
 
-      whenever(amendBookingService.amend(1, bookingRequest, PRISON_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = MOORLAND))
+      whenever(amendBookingService.amend(1, bookingRequest, PRISON_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH))
       whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
 
@@ -784,10 +784,10 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
         )
       }
       with(emailCaptor.secondValue) {
@@ -795,12 +795,12 @@ class BookingFacadeTest {
         address isEqualTo COURT_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -977,7 +977,7 @@ class BookingFacadeTest {
         firstName = "Bob",
         lastName = "Builder",
         dateOfBirth = LocalDate.EPOCH,
-        lastPrisonId = MOORLAND,
+        lastPrisonId = WANDSWORTH,
       )
       whenever(contactsService.getPrimaryBookingContacts(any(), anyOrNull())) doReturn listOf(
         bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
@@ -1002,13 +1002,13 @@ class BookingFacadeTest {
         address isEqualTo "jon@prison.com"
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -1032,7 +1032,7 @@ class BookingFacadeTest {
         firstName = "Bob",
         lastName = "Builder",
         dateOfBirth = LocalDate.EPOCH,
-        lastPrisonId = MOORLAND,
+        lastPrisonId = WANDSWORTH,
       )
 
       setupProbationPrimaryContacts(SERVICE_USER)
@@ -1060,7 +1060,7 @@ class BookingFacadeTest {
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "probationTeam" to "probation team description",
           "probationEmailAddress" to "probation.user@probation.com",
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
@@ -1074,7 +1074,7 @@ class BookingFacadeTest {
         address isEqualTo PROBATION_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "probationTeam" to "probation team description",
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
@@ -1113,7 +1113,7 @@ class BookingFacadeTest {
         firstName = "Bob",
         lastName = "Builder",
         dateOfBirth = LocalDate.EPOCH,
-        lastPrisonId = MOORLAND,
+        lastPrisonId = WANDSWORTH,
       )
 
       setupCourtPrimaryContactsFor(SERVICE_USER)
@@ -1140,13 +1140,13 @@ class BookingFacadeTest {
         address isEqualTo PRISON_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -1157,13 +1157,13 @@ class BookingFacadeTest {
         address isEqualTo COURT_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -1194,7 +1194,7 @@ class BookingFacadeTest {
         firstName = "Bob",
         lastName = "Builder",
         dateOfBirth = LocalDate.EPOCH,
-        lastPrisonId = MOORLAND,
+        lastPrisonId = WANDSWORTH,
       )
 
       setupProbationPrimaryContacts(SERVICE_USER)
@@ -1222,7 +1222,7 @@ class BookingFacadeTest {
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "probationTeam" to "probation team description",
           "probationEmailAddress" to "probation.user@probation.com",
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
@@ -1236,7 +1236,7 @@ class BookingFacadeTest {
         address isEqualTo PROBATION_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "probationTeam" to "probation team description",
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
@@ -1271,11 +1271,11 @@ class BookingFacadeTest {
     fun `should send an email to the court contact to remind them to add a court hearing link`() {
       val prisoner = Prisoner(
         prisonerNumber = courtBooking.prisoner(),
-        prisonId = "MDI",
+        prisonId = "WWI",
         firstName = "Bob",
         lastName = "Builder",
         dateOfBirth = LocalDate.EPOCH,
-        lastPrisonId = MOORLAND,
+        lastPrisonId = WANDSWORTH,
       )
 
       setupCourtPrimaryContactsFor(SERVICE_USER)
@@ -1296,12 +1296,12 @@ class BookingFacadeTest {
         address isEqualTo COURT_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "court" to DERBY_JUSTICE_CENTRE,
-          "prison" to "Moorland",
+          "prison" to "Wandsworth",
           "offenderNo" to "123456",
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${moorlandLocation.localName} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "bookingId" to "0",

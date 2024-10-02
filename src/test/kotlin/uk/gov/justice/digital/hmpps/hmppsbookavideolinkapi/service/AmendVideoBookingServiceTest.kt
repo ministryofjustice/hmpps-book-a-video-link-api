@@ -21,11 +21,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
@@ -34,12 +34,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
@@ -65,7 +65,7 @@ class AmendVideoBookingServiceTest {
   private val locationValidator: LocationValidator = mock()
   private val prisonerValidator: PrisonerValidator = mock()
 
-  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, locationValidator)
+  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationValidator)
 
   private val service = AmendVideoBookingService(
     videoBookingRepository,
@@ -132,7 +132,7 @@ class AmendVideoBookingServiceTest {
       appointments() hasSize 3
 
       with(appointments()) {
-        assertThat(this).extracting("prisonCode").containsOnly(BIRMINGHAM)
+        assertThat(this).extracting("prison").extracting("code").containsOnly(BIRMINGHAM)
         assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
         assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
         assertThat(this).extracting("prisonLocKey").containsOnly("$BIRMINGHAM-ABCEDFG")
@@ -225,19 +225,19 @@ class AmendVideoBookingServiceTest {
   fun `should fail to amend a court video booking when pre-hearing overlaps hearing for court user`() {
     val prisonerNumber = "678910"
     val amendCourtBookingRequest = amendCourtBookingRequest(
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       prisonerNumber = prisonerNumber,
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = werringtonLocation.key,
+          locationKey = pentonvilleLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = werringtonLocation.key,
+          locationKey = pentonvilleLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -247,7 +247,7 @@ class AmendVideoBookingServiceTest {
 
     val courtBooking = courtBooking().withMainCourtPrisonAppointment()
     withBookingFixture(1, courtBooking)
-    withPrisonPrisonerFixture(WERRINGTON, prisonerNumber)
+    withPrisonPrisonerFixture(PENTONVILLE, prisonerNumber)
 
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
@@ -511,14 +511,14 @@ class AmendVideoBookingServiceTest {
 
   @Test
   fun `should fail to amend a court video booking when prison not found for court user`() {
-    val amendCourtBookingRequest = amendCourtBookingRequest(prisonCode = MOORLAND)
+    val amendCourtBookingRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH)
     val courtBooking = courtBooking().withMainCourtPrisonAppointment()
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking)
-    whenever(prisonRepository.findByCode(MOORLAND)) doReturn null
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn null
 
     val error = assertThrows<EntityNotFoundException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
-    error.message isEqualTo "Prison with code $MOORLAND not found"
+    error.message isEqualTo "Prison with code $WANDSWORTH not found"
   }
 
   @Test
@@ -552,7 +552,7 @@ class AmendVideoBookingServiceTest {
       with(appointments().single()) {
         val onePrisoner = probationBookingRequest.prisoners.single()
 
-        prisonCode isEqualTo onePrisoner.prisonCode
+        prisonCode() isEqualTo onePrisoner.prisonCode
         prisonerNumber isEqualTo onePrisoner.prisonerNumber
         appointmentType isEqualTo onePrisoner.appointments.single().type?.name
         appointmentDate isEqualTo onePrisoner.appointments.single().date!!

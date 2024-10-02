@@ -6,9 +6,9 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import java.time.LocalDate
 
@@ -17,8 +17,8 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
   @BeforeEach
   fun before() {
     locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(
-      keys = setOf(werringtonLocation.key),
-      prisonCode = WERRINGTON,
+      keys = setOf(pentonvilleLocation.key),
+      prisonCode = PENTONVILLE,
     )
   }
 
@@ -29,7 +29,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     // This should pick up the amended event in favour of the create event.
     response contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-1100,2024-07-24T02:00:00,-1000,UPDATE,WNI,\"Derby Justice Centre\",DRBYMC,true,2100-07-25T12:00:00,2100-07-25T13:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
+      "-1100,2024-07-24T02:00:00,-1000,UPDATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2100-07-25T12:00:00,2100-07-25T13:00:00,,,,,\"PVI PVI-ABCDEFG\",,"
   }
 
   @Sql("classpath:integration-test-data/seed-events-by-booking-date-data-extract.sql")
@@ -39,13 +39,13 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     courtResponse contains "video-links-by-court-booking-date-from-2024-01-01-for-1-days.csv"
     courtResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-2000,2024-01-01T01:00:00,-2000,CREATE,WNI,\"Derby Justice Centre\",DRBYMC,true,2099-01-24T12:00:00,2099-01-24T13:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
+      "-2000,2024-01-01T01:00:00,-2000,CREATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2099-01-24T12:00:00,2099-01-24T13:00:00,,,,,\"PVI PVI-ABCDEFG\",,"
 
     val probationResponse = webTestClient.downloadProbationDataByBookingDate(LocalDate.of(2024, 1, 1), 2)
 
     probationResponse contains "video-links-by-probation-booking-date-from-2024-01-01-for-2-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-3000,2024-01-01T01:00:00,-3000,CREATE,WNI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
+      "-3000,2024-01-01T01:00:00,-3000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"PVI PVI-ABCDEFG\",,"
   }
 
   @Sql("classpath:integration-test-data/seed-probation-events-by-meeting-date-data.sql")
@@ -55,7 +55,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-24-for-365-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-4000,2024-01-01T01:00:00,-4000,CREATE,WNI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"WNI WNI-ABCDEFG\",,"
+      "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"PVI PVI-ABCDEFG\",,"
   }
 
   @Test

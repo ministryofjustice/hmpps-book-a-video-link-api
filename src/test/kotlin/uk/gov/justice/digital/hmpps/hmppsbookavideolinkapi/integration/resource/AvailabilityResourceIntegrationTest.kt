@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
@@ -36,10 +36,10 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     val availabilityRequest = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "DRBYMC",
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       date = LocalDate.now().plusDays(1),
       mainAppointment = LocationAndInterval(
-        werringtonLocation.key,
+        pentonvilleLocation.key,
         Interval(
           start = LocalTime.of(12, 0),
           end = LocalTime.of(12, 30),
@@ -60,14 +60,14 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
   fun `should offer alternatives for a court booking when the prison room is already occupied`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
       prisonerNumber = "A1111AA",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -79,10 +79,10 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     val availabilityRequest = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "DRBYMC",
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       date = LocalDate.now().plusDays(1),
       mainAppointment = LocationAndInterval(
-        werringtonLocation.key,
+        pentonvilleLocation.key,
         Interval(
           start = LocalTime.of(12, 0),
           end = LocalTime.of(12, 30),
@@ -103,14 +103,14 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
   fun `should exclude specific booking when checking for availability`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
       prisonerNumber = "A1111AA",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -122,10 +122,10 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     val availabilityRequest = AvailabilityRequest(
       bookingType = BookingType.COURT,
       courtOrProbationCode = "DRBYMC",
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       date = LocalDate.now().plusDays(1),
       mainAppointment = LocationAndInterval(
-        werringtonLocation.key,
+        pentonvilleLocation.key,
         Interval(
           start = LocalTime.of(12, 0),
           end = LocalTime.of(12, 30),
@@ -150,10 +150,10 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     val availabilityRequest = AvailabilityRequest(
       bookingType = BookingType.PROBATION,
       courtOrProbationCode = "BLKPPP",
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       date = LocalDate.now().plusDays(1),
       mainAppointment = LocationAndInterval(
-        werringtonLocation.key,
+        pentonvilleLocation.key,
         Interval(
           start = LocalTime.of(12, 0),
           end = LocalTime.of(12, 30),
@@ -174,19 +174,19 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
   fun `should return alternatives for a probation booking when the prison room is already occupied`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-    locationsInsidePrisonApi().stubGetLocationByKey(werringtonLocation.key, WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       prisonerNumber = "A1111AA",
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
-      location = werringtonLocation,
+      location = pentonvilleLocation,
     )
 
     webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -197,10 +197,10 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     val availabilityRequest = AvailabilityRequest(
       bookingType = BookingType.PROBATION,
       courtOrProbationCode = "BLKPPP",
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       date = LocalDate.now().plusDays(1),
       mainAppointment = LocationAndInterval(
-        werringtonLocation.key,
+        pentonvilleLocation.key,
         Interval(
           start = LocalTime.of(9, 0),
           end = LocalTime.of(9, 30),

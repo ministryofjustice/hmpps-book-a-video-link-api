@@ -40,7 +40,7 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
     booking.appointments().map { appointment ->
       BookingHistoryAppointment(
         bookingHistory = history,
-        prisonCode = appointment.prisonCode,
+        prisonCode = appointment.prisonCode(),
         prisonerNumber = appointment.prisonerNumber,
         appointmentDate = appointment.appointmentDate,
         appointmentType = appointment.appointmentType,

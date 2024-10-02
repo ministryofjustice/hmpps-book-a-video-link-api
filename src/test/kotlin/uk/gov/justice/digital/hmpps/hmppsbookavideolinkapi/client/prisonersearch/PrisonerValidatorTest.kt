@@ -8,7 +8,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 
 class PrisonerValidatorTest {
@@ -30,7 +30,7 @@ class PrisonerValidatorTest {
 
   @Test
   fun `should fail validation when prisoner found but not at prison`() {
-    prisoner.stub { on { prisonId } doReturn MOORLAND }
+    prisoner.stub { on { prisonId } doReturn WANDSWORTH }
 
     whenever(client.getPrisoner("123456")) doReturn prisoner
 

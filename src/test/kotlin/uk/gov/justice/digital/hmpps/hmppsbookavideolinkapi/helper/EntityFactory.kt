@@ -61,7 +61,7 @@ fun VideoBooking.withMainCourtPrisonAppointment(
   prisonerNumber: String = "123456",
 ) =
   addAppointment(
-    prisonCode = prisonCode,
+    prison = prison(prisonCode = prisonCode),
     prisonerNumber = prisonerNumber,
     appointmentType = "VLB_COURT_MAIN",
     locationKey = location.key,
@@ -86,7 +86,7 @@ fun VideoBooking.withProbationPrisonAppointment(
   prisonCode: String = BIRMINGHAM,
   location: Location = birminghamLocation,
 ) = addAppointment(
-  prisonCode = prisonCode,
+  prison = prison(prisonCode = prisonCode),
   prisonerNumber = "123456",
   appointmentType = "VLB_PROBATION",
   date = tomorrow(),
@@ -106,7 +106,7 @@ fun appointment(
   locationKey: String,
 ) = PrisonAppointment.newAppointment(
   videoBooking = booking,
-  prisonCode = prisonCode,
+  prison = prison(prisonCode = prisonCode),
   prisonerNumber = prisonerNumber,
   appointmentType = appointmentType,
   appointmentDate = date,
@@ -155,7 +155,7 @@ fun videoAppointment(
     statusCode = booking.statusCode.name,
     courtCode = booking.court?.code,
     probationTeamCode = null,
-    prisonCode = MOORLAND,
+    prisonCode = WANDSWORTH,
     prisonerNumber = "A1234AA",
     appointmentType = prisonAppointment.appointmentType,
     prisonLocKey = prisonAppointment.prisonLocKey,
