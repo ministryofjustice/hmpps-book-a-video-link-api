@@ -51,11 +51,12 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-probation-events-by-meeting-date-data.sql")
   @Test
   fun `should download probation events by meeting date`() {
-    val probationResponse = webTestClient.downloadProbationDataByMeetingDate(LocalDate.of(2099, 1, 24), 365)
+    val probationResponse = webTestClient.downloadProbationDataByMeetingDate(LocalDate.of(2099, 1, 25), 365)
 
-    probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-24-for-365-days.csv"
+    probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-25-for-365-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"PVI PVI-ABCDEFG\",,"
+      "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Unknown Probation Team\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"PVI PVI-ABCDEFG\",,\n" +
+      "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"PVI PVI-ABCDEFG\",,\n"
   }
 
   @Test
