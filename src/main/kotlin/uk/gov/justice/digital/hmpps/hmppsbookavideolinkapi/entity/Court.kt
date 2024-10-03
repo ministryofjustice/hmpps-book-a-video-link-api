@@ -23,6 +23,9 @@ class Court(
 
   val enabled: Boolean,
 
+  // Read only is used for the UNKNOWN court code used to migrate legacy bookings. Courts with this flag will not be allowed for new bookings.
+  val readOnly: Boolean = false,
+
   val notes: String?,
 
   val createdBy: String,
@@ -45,6 +48,8 @@ class Court(
   }
 
   fun isUnknown() = code == UNKNOWN_COURT_CODE
+
+  fun isReadable() = !readOnly
 
   override fun hashCode(): Int {
     return courtId.hashCode()

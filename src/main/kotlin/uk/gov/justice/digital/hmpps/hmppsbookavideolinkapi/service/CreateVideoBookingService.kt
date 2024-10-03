@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
@@ -48,6 +49,7 @@ class CreateVideoBookingService(
 
     val court = courtRepository.findByCode(request.courtCode!!)
       ?.also { if (!createdBy.isUserType(UserType.PRISON)) require(it.enabled) { "Court with code ${it.code} is not enabled" } }
+      ?.also { requireNot(it.readOnly) { "Court with code ${it.code} is read-only" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
 
     val prisoner = request.prisoner().validate()

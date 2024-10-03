@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.readOnlyCourt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -555,6 +556,19 @@ class CreateVideoBookingServiceTest {
     val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, COURT_USER) }
 
     error.message isEqualTo "Court with code ${courtBookingRequest.courtCode} is not enabled"
+
+    verifyNoInteractions(videoBookingRepository)
+  }
+
+  @Test
+  fun `should fail to create a court video booking when court is read only`() {
+    val courtBookingRequest = courtBookingRequest(courtCode = "UNKNOWN", prisonCode = BIRMINGHAM)
+
+    whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn readOnlyCourt()
+
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM)) }
+
+    error.message isEqualTo "Court with code ${courtBookingRequest.courtCode} is read-only"
 
     verifyNoInteractions(videoBookingRepository)
   }

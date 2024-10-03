@@ -23,6 +23,9 @@ class ProbationTeam(
 
   val enabled: Boolean,
 
+  // Read only is used for the UNKNOWN probation team code used to migrate legacy bookings. Probation teams with this flag will not be allowed for new bookings.
+  val readOnly: Boolean = false,
+
   val notes: String?,
 
   val createdBy: String,
@@ -36,6 +39,8 @@ class ProbationTeam(
     private set
 
   fun isUnknown() = code == UNKNOWN_PROBATION_TEAM_CODE
+
+  fun isReadable() = !readOnly
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UserProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetProbationTeamPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetProbationTeamPreferencesResponse
@@ -18,7 +19,7 @@ class ProbationTeamsService(
     if (enabledOnly) {
       probationTeamRepository.findAllByEnabledIsTrue().toModel()
     } else {
-      probationTeamRepository.findAll().toModel()
+      probationTeamRepository.findAll().filter(ProbationTeam::isReadable).toModel()
     }
 
   fun getUserProbationTeamPreferences(user: User) =

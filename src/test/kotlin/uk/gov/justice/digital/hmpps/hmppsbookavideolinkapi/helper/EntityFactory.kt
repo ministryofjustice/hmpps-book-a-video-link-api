@@ -25,6 +25,16 @@ fun court(code: String = DERBY_JUSTICE_CENTRE, enabled: Boolean = true) = Court(
   createdBy = "Test",
 )
 
+fun readOnlyCourt() = Court(
+  courtId = 0,
+  code = "UNKNOWN",
+  description = "Unknown court",
+  enabled = false,
+  readOnly = true,
+  notes = null,
+  createdBy = "Test",
+)
+
 fun prison(prisonCode: String = BIRMINGHAM, enabled: Boolean = true) = Prison(
   prisonId = 0,
   code = prisonCode,
@@ -56,6 +66,7 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
  * This adds a prison appointment to meet the basic needs of a test. We don't care about the details of the appointment.
  */
 fun VideoBooking.withMainCourtPrisonAppointment(
+  date: LocalDate = tomorrow(),
   prisonCode: String = BIRMINGHAM,
   location: Location = birminghamLocation,
   prisonerNumber: String = "123456",
@@ -65,7 +76,7 @@ fun VideoBooking.withMainCourtPrisonAppointment(
     prisonerNumber = prisonerNumber,
     appointmentType = "VLB_COURT_MAIN",
     locationKey = location.key,
-    date = tomorrow(),
+    date = date,
     startTime = LocalTime.of(9, 30),
     endTime = LocalTime.of(10, 0),
   )
