@@ -65,6 +65,4 @@ data class VideoBookingEvent(
   val postEndTime: LocalTime? = null,
 
   val courtBooking: Boolean,
-) {
-  fun isCourtBooking() = courtBooking
-}
+)

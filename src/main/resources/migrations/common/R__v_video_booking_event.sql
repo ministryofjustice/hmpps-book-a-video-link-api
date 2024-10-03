@@ -32,7 +32,7 @@ from video_booking vlb
   join booking_history_appointment bha_main on bha_main.booking_history_id = bh.booking_history_id and bha_main.appointment_type = 'VLB_COURT_MAIN'
   left join booking_history_appointment bha_pre on bha_pre.booking_history_id = bh.booking_history_id and bha_pre.appointment_type = 'VLB_COURT_PRE'
   left join booking_history_appointment bha_post on bha_post.booking_history_id = bh.booking_history_id and bha_post.appointment_type = 'VLB_COURT_POST'
-  join court c on c.court_id = vlb.court_id and c.enabled = true
+  join court c on c.court_id = vlb.court_id
 where vlb.court_id is not null
 UNION
 select
@@ -63,5 +63,5 @@ select
 from video_booking vlb
   join booking_history bh on bh.video_booking_id = vlb.video_booking_id
   join booking_history_appointment bha_main on bha_main.booking_history_id = bh.booking_history_id and bha_main.appointment_type = 'VLB_PROBATION'
-  join probation_team p on p.probation_team_id = vlb.probation_team_id and p.enabled = true
+  join probation_team p on p.probation_team_id = vlb.probation_team_id
 where vlb.probation_team_id is not null;
