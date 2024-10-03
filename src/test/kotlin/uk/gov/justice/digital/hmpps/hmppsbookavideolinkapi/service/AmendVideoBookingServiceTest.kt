@@ -42,6 +42,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -658,6 +659,21 @@ class AmendVideoBookingServiceTest {
     val error = assertThrows<IllegalArgumentException> { service.amend(2, amendRequest, COURT_USER) }
 
     error.message isEqualTo "Video booking 2 is already cancelled, and so cannot be amended"
+  }
+
+  @Test
+  fun `should fail to amend a video booking which has already started`() {
+    val prisonerNumber = "123456"
+    val amendRequest = amendCourtBookingRequest()
+
+    val booking = courtBooking().withMainCourtPrisonAppointment(date = yesterday())
+
+    withBookingFixture(2, booking)
+    withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
+
+    val error = assertThrows<IllegalArgumentException> { service.amend(2, amendRequest, COURT_USER) }
+
+    error.message isEqualTo "Video booking 2 has already started, and so cannot be amended"
   }
 
   @Test

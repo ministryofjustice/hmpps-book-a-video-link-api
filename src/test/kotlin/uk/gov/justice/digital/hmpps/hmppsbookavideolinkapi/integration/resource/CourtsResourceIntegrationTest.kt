@@ -39,16 +39,16 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-enabled-court-data.sql")
   @Test
   fun `should return filtered and unfiltered courts`() {
-    courtRepository.findAll() hasSize 402
+    courtRepository.findAll() hasSize 402 // Including 1 read-only court
 
     val enabledOnlyCourts = webTestClient.getCourts(true)
     enabledOnlyCourts hasSize 400
     enabledOnlyCourts.all { it.enabled } isBool true
 
     val allCourts = webTestClient.getCourts(false)
-    allCourts hasSize 402
+    allCourts hasSize 401
     allCourts.count { it.enabled } isEqualTo 400
-    allCourts.count { !it.enabled } isEqualTo 2
+    allCourts.count { !it.enabled } isEqualTo 1
   }
 
   @Sql("classpath:integration-test-data/seed-user-court-data.sql")

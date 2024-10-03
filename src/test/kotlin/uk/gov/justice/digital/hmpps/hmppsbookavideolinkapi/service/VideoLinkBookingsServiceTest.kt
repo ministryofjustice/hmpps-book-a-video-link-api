@@ -136,7 +136,7 @@ class VideoLinkBookingsServiceTest {
 
     @Test
     fun `should fail to get a Wandsworth court video link booking by ID for a Birmingham prison user`() {
-      whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment(WANDSWORTH))
+      whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment(prisonCode = WANDSWORTH))
 
       assertThrows<CaseloadAccessException> { service.getVideoLinkBookingById(1L, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM)) }
     }
