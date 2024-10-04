@@ -74,7 +74,7 @@ class MigrateVideoBookingService(
 
     val migratedBooking = VideoBooking.migratedCourtBooking(
       court = court,
-      comments = if (court.isUnknown()) "Court ${bookingToMigrate.courtName ?: "UNKNOWN"}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
+      comments = bookingToMigrate.comment,
       createdBy = bookingToMigrate.createdByUsername,
       createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
@@ -83,6 +83,7 @@ class MigrateVideoBookingService(
       cancelledAt = bookingToMigrate.cancelledAt(),
       updatedBy = bookingToMigrate.updatedBy(),
       updatedAt = bookingToMigrate.updatedAt(),
+      migratedDescription = bookingToMigrate.courtName,
     ).apply {
       if (bookingToMigrate.pre != null) {
         addAppointment(
@@ -145,7 +146,7 @@ class MigrateVideoBookingService(
 
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam,
-      comments = if (probationTeam.isUnknown()) "Probation team ${bookingToMigrate.courtName ?: "UNKNOWN"}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
+      comments = bookingToMigrate.comment,
       createdBy = bookingToMigrate.createdByUsername,
       createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
@@ -154,6 +155,7 @@ class MigrateVideoBookingService(
       cancelledAt = bookingToMigrate.cancelledAt(),
       updatedBy = bookingToMigrate.updatedBy(),
       updatedAt = bookingToMigrate.updatedAt(),
+      migratedDescription = bookingToMigrate.courtName,
     ).addAppointment(
       prison = prison,
       prisonerNumber = prisonerNumber,

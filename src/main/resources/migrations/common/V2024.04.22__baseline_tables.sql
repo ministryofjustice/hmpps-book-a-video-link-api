@@ -190,7 +190,8 @@ CREATE TABLE video_booking
     created_time              timestamp    NOT NULL,
     amended_by                varchar(100),
     amended_time              timestamp,
-    migrated_video_booking_id bigint
+    migrated_video_booking_id bigint,
+    migrated_description      varchar(50)
 );
 
 CREATE INDEX idx_video_booking_type ON video_booking(booking_type);
