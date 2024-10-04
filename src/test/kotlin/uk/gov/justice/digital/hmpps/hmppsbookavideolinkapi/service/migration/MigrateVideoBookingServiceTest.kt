@@ -180,9 +180,10 @@ class MigrateVideoBookingServiceTest {
       bookingType isEqualTo "COURT"
       hearingType isEqualTo "UNKNOWN"
       court isEqualTo court(UNKNOWN_COURT_CODE)
-      comments isEqualTo "Court Unknown court\nMigrated court comments"
+      comments isEqualTo "Migrated court comments"
       createdBy isEqualTo "MIGRATION COURT USER"
       migratedVideoBookingId isEqualTo 1
+      migratedDescription isEqualTo "Unknown court"
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
@@ -193,7 +194,7 @@ class MigrateVideoBookingServiceTest {
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
       prisonLocKey isEqualTo wandsworthLocation.key
-      comments isEqualTo "Court Unknown court\nMigrated court comments"
+      comments isEqualTo "Migrated court comments"
     }
   }
 
@@ -213,7 +214,7 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = WANDSWORTH,
         courtCode = "other",
-        courtName = null,
+        courtName = "Free text court name",
         probation = false,
         createdByUsername = "MIGRATION COURT USER",
         madeByTheCourt = true,
@@ -229,7 +230,7 @@ class MigrateVideoBookingServiceTest {
             eventType = VideoLinkBookingEventType.CREATE,
             comment = "Court booking create event comments",
             courtCode = "other",
-            courtName = null,
+            courtName = "Free text court name",
             pre = null,
             main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             post = null,
@@ -247,9 +248,10 @@ class MigrateVideoBookingServiceTest {
       bookingType isEqualTo "COURT"
       hearingType isEqualTo "UNKNOWN"
       court isEqualTo court(UNKNOWN_COURT_CODE)
-      comments isEqualTo "Court UNKNOWN\nMigrated court comments"
+      comments isEqualTo "Migrated court comments"
       createdBy isEqualTo "MIGRATION COURT USER"
       migratedVideoBookingId isEqualTo 1
+      migratedDescription isEqualTo "Free text court name"
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
@@ -260,7 +262,7 @@ class MigrateVideoBookingServiceTest {
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
       prisonLocKey isEqualTo wandsworthLocation.key
-      comments isEqualTo "Court UNKNOWN\nMigrated court comments"
+      comments isEqualTo "Migrated court comments"
     }
   }
 
@@ -636,9 +638,10 @@ class MigrateVideoBookingServiceTest {
       bookingType isEqualTo "PROBATION"
       probationMeetingType isEqualTo "UNKNOWN"
       probationTeam isEqualTo probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
-      comments isEqualTo "Probation team Unknown probation team\nMigrated probation comments"
+      comments isEqualTo "Migrated probation comments"
       createdBy isEqualTo "MIGRATION PROBATION USER"
       migratedVideoBookingId isEqualTo 5
+      migratedDescription isEqualTo "Unknown probation team"
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
@@ -649,7 +652,7 @@ class MigrateVideoBookingServiceTest {
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
       prisonLocKey isEqualTo pentonvilleLocation.key
-      comments isEqualTo "Probation team Unknown probation team\nMigrated probation comments"
+      comments isEqualTo "Migrated probation comments"
     }
   }
 
@@ -669,7 +672,7 @@ class MigrateVideoBookingServiceTest {
         offenderBookingId = 1,
         prisonCode = PENTONVILLE,
         courtCode = "OTHER",
-        courtName = null,
+        courtName = "Free text probation team name",
         probation = true,
         createdByUsername = "MIGRATION PROBATION USER",
         madeByTheCourt = true,
@@ -690,7 +693,7 @@ class MigrateVideoBookingServiceTest {
             post = null,
             prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
-            courtName = null,
+            courtName = "Free text probation team name",
             madeByTheCourt = true,
           ),
         ),
@@ -703,9 +706,10 @@ class MigrateVideoBookingServiceTest {
       bookingType isEqualTo "PROBATION"
       probationMeetingType isEqualTo "UNKNOWN"
       probationTeam isEqualTo probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
-      comments isEqualTo "Probation team UNKNOWN\nMigrated probation comments"
+      comments isEqualTo "Migrated probation comments"
       createdBy isEqualTo "MIGRATION PROBATION USER"
       migratedVideoBookingId isEqualTo 5
+      migratedDescription isEqualTo "Free text probation team name"
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
@@ -716,7 +720,7 @@ class MigrateVideoBookingServiceTest {
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
       prisonLocKey isEqualTo pentonvilleLocation.key
-      comments isEqualTo "Probation team UNKNOWN\nMigrated probation comments"
+      comments isEqualTo "Migrated probation comments"
     }
   }
 

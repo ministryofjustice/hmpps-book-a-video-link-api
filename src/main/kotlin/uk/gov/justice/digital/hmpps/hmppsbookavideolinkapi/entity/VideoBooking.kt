@@ -51,6 +51,8 @@ class VideoBooking private constructor(
   val createdTime: LocalDateTime = now(),
 
   val migratedVideoBookingId: Long? = null,
+
+  val migratedDescription: String? = null,
 ) {
 
   @OneToMany(mappedBy = "videoBooking", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -191,6 +193,7 @@ class VideoBooking private constructor(
       cancelledAt: LocalDateTime?,
       updatedBy: String?,
       updatedAt: LocalDateTime?,
+      migratedDescription: String?,
     ): VideoBooking = VideoBooking(
       bookingType = "COURT",
       court = court,
@@ -202,6 +205,7 @@ class VideoBooking private constructor(
       createdTime = createdTime,
       createdByPrison = createdByPrison,
       migratedVideoBookingId = migratedVideoBookingId,
+      migratedDescription = migratedDescription.takeIf { court.isUnknown() },
     ).apply {
       if (cancelledBy != null && cancelledAt != null) {
         statusCode = StatusCode.CANCELLED
@@ -224,6 +228,7 @@ class VideoBooking private constructor(
       cancelledAt: LocalDateTime?,
       updatedBy: String?,
       updatedAt: LocalDateTime?,
+      migratedDescription: String?,
     ): VideoBooking =
       VideoBooking(
         bookingType = "PROBATION",
@@ -236,6 +241,7 @@ class VideoBooking private constructor(
         createdTime = createdTime,
         createdByPrison = createdByPrison,
         migratedVideoBookingId = migratedVideoBookingId,
+        migratedDescription = migratedDescription.takeIf { probationTeam.isUnknown() },
       ).apply {
         if (cancelledBy != null && cancelledAt != null) {
           statusCode = StatusCode.CANCELLED

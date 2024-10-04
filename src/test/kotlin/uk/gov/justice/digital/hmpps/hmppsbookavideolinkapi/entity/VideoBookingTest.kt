@@ -104,6 +104,7 @@ class VideoBookingTest {
       cancelledAt = null,
       updatedAt = null,
       updatedBy = null,
+      migratedDescription = "Free text court description",
     )
 
     with(migratedBooking) {
@@ -117,6 +118,38 @@ class VideoBookingTest {
       comments isEqualTo "migrated court comments"
       hearingType isEqualTo "UNKNOWN"
       migratedVideoBookingId isEqualTo 100
+      migratedDescription isEqualTo null
+    }
+  }
+
+  @Test
+  fun `should create a migrated (unknown) court booking`() {
+    val migratedBooking = VideoBooking.migratedCourtBooking(
+      court = court(code = UNKNOWN_COURT_CODE),
+      createdBy = "migrated court user",
+      createdTime = yesterday().atStartOfDay(),
+      createdByPrison = false,
+      comments = "migrated court comments",
+      migratedVideoBookingId = 100,
+      cancelledBy = null,
+      cancelledAt = null,
+      updatedAt = null,
+      updatedBy = null,
+      migratedDescription = "Free text court description",
+    )
+
+    with(migratedBooking) {
+      isMigrated() isBool true
+      isCourtBooking() isBool true
+      isProbationBooking() isBool false
+      court isEqualTo court(code = UNKNOWN_COURT_CODE)
+      createdBy isEqualTo "migrated court user"
+      createdTime isEqualTo yesterday().atStartOfDay()
+      createdByPrison isBool false
+      comments isEqualTo "migrated court comments"
+      hearingType isEqualTo "UNKNOWN"
+      migratedVideoBookingId isEqualTo 100
+      migratedDescription isEqualTo "Free text court description"
     }
   }
 
@@ -133,6 +166,7 @@ class VideoBookingTest {
       cancelledAt = 1.daysAgo().atStartOfDay(),
       updatedAt = 2.daysAgo().atStartOfDay().plusHours(1),
       updatedBy = "COURT UPDATE USER",
+      migratedDescription = null,
     )
 
     with(migratedBooking) {
@@ -165,6 +199,7 @@ class VideoBookingTest {
       cancelledAt = null,
       updatedAt = 2.daysAgo().atStartOfDay().plusHours(1),
       updatedBy = "COURT UPDATE USER",
+      migratedDescription = null,
     )
 
     with(migratedBooking) {
@@ -197,6 +232,7 @@ class VideoBookingTest {
       cancelledAt = null,
       updatedAt = null,
       updatedBy = null,
+      migratedDescription = null,
     )
 
     migratedBooking.comments?.length isEqualTo 1000
@@ -215,6 +251,7 @@ class VideoBookingTest {
       cancelledAt = null,
       updatedAt = null,
       updatedBy = null,
+      migratedDescription = "Free text probation team description",
     )
 
     with(migratedBooking) {
@@ -228,6 +265,38 @@ class VideoBookingTest {
       comments isEqualTo "migrated probation comments"
       probationMeetingType isEqualTo "UNKNOWN"
       migratedVideoBookingId isEqualTo 100
+      migratedDescription isEqualTo null
+    }
+  }
+
+  @Test
+  fun `should create a migrated (unknown) probation booking`() {
+    val migratedBooking = VideoBooking.migratedProbationBooking(
+      probationTeam = probationTeam(code = UNKNOWN_PROBATION_TEAM_CODE),
+      createdBy = "migrated probation user",
+      createdTime = 3.daysAgo().atStartOfDay(),
+      createdByPrison = false,
+      comments = "migrated probation comments",
+      migratedVideoBookingId = 100,
+      cancelledBy = null,
+      cancelledAt = null,
+      updatedAt = null,
+      updatedBy = null,
+      migratedDescription = "Free text probation team description",
+    )
+
+    with(migratedBooking) {
+      isMigrated() isBool true
+      isProbationBooking() isBool true
+      isCourtBooking() isBool false
+      probationTeam isEqualTo probationTeam(code = UNKNOWN_PROBATION_TEAM_CODE)
+      createdBy isEqualTo "migrated probation user"
+      createdTime isEqualTo 3.daysAgo().atStartOfDay()
+      createdByPrison isBool false
+      comments isEqualTo "migrated probation comments"
+      probationMeetingType isEqualTo "UNKNOWN"
+      migratedVideoBookingId isEqualTo 100
+      migratedDescription isEqualTo "Free text probation team description"
     }
   }
 
@@ -244,6 +313,7 @@ class VideoBookingTest {
       cancelledAt = 2.daysAgo().atStartOfDay(),
       updatedAt = 3.daysAgo().atStartOfDay(),
       updatedBy = "PROBATION UPDATE USER",
+      migratedDescription = null,
     )
 
     with(migratedBooking) {
@@ -276,6 +346,7 @@ class VideoBookingTest {
       cancelledAt = null,
       updatedAt = 3.daysAgo().atStartOfDay(),
       updatedBy = "PROBATION UPDATE USER",
+      migratedDescription = null,
     )
 
     with(migratedBooking) {
@@ -308,6 +379,7 @@ class VideoBookingTest {
       cancelledAt = null,
       updatedAt = null,
       updatedBy = null,
+      migratedDescription = null,
     )
 
     migratedBooking.comments?.length isEqualTo 1000

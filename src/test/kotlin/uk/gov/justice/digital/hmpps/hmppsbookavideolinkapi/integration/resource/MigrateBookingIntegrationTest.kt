@@ -132,6 +132,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       createdTime isEqualTo yesterday().atStartOfDay()
       createdByPrison isBool false
       migratedVideoBookingId isEqualTo 1
+      migratedDescription isEqualTo null
       amendedBy isEqualTo "MIGRATION COURT UPDATE USER"
       amendedTime isEqualTo yesterday().atTime(4, 0)
     }
@@ -340,6 +341,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       createdTime isEqualTo yesterday().atStartOfDay()
       createdByPrison isBool false
       migratedVideoBookingId isEqualTo 1
+      migratedDescription isEqualTo "Unknown court name"
     }
 
     // Assertions on the migrated court bookings appointments
@@ -352,7 +354,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       .isOnDate(yesterday())
       .startsAt(10, 0)
       .endsAt(11, 0)
-      .hasComments("Court Unknown court name\nMigrated court comments")
+      .hasComments("Migrated court comments")
 
     val migratedBookingHistory = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(migratedCourtBooking.videoBookingId).single()
 
@@ -456,6 +458,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       createdTime isEqualTo 3.daysAgo().atStartOfDay()
       createdByPrison isBool false
       migratedVideoBookingId isEqualTo 2
+      migratedDescription isEqualTo null
       amendedBy isEqualTo "MIGRATION PROBATION UPDATE USER"
       amendedTime isEqualTo 3.daysAgo().atTime(7, 0)
     }
@@ -615,6 +618,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       createdTime isEqualTo 3.daysAgo().atStartOfDay()
       createdByPrison isBool false
       migratedVideoBookingId isEqualTo 2
+      migratedDescription isEqualTo "Unknown probation team"
     }
 
     val migratedPrisonAppointment = migratedProbationBooking.appointments().sortedBy(PrisonAppointment::prisonAppointmentId).single()
@@ -627,7 +631,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       .isOnDate(2.daysAgo())
       .startsAt(10, 0)
       .endsAt(11, 0)
-      .hasComments("Probation team Unknown probation team\nMigrated probation comments")
+      .hasComments("Migrated probation comments")
 
     // Assertions on the migrated booking history and booking history appointment entries
     val migratedBookingHistory = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(migratedProbationBooking.videoBookingId).single()
