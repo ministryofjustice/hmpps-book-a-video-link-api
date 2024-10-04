@@ -29,6 +29,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     // This should pick up the amended event in favour of the create event.
     response contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
+      "-2000,2024-07-24T01:00:00,-2000,CREATE,PVI,\"Free text court name\",UNKNOWN,true,2100-07-24T12:00:00,2100-07-24T13:00:00,,,,,\"PVI PVI-ABCDEFG\",,\n" +
       "-1100,2024-07-24T02:00:00,-1000,UPDATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2100-07-25T12:00:00,2100-07-25T13:00:00,,,,,\"PVI PVI-ABCDEFG\",,"
   }
 
@@ -55,7 +56,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-25-for-365-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Unknown Probation Team\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"PVI PVI-ABCDEFG\",,\n" +
+      "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Free text probation team name\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"PVI PVI-ABCDEFG\",,\n" +
       "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"PVI PVI-ABCDEFG\",,\n"
   }
 
