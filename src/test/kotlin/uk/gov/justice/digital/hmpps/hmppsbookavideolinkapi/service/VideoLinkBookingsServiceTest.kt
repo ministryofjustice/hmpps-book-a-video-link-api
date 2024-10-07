@@ -269,8 +269,6 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
-        prisonAppointments = booking.appointments(),
-        courtDescription = DERBY_JUSTICE_CENTRE,
         courtHearingTypeDescription = "Tribunal",
       )
     }
@@ -319,8 +317,6 @@ class VideoLinkBookingsServiceTest {
 
       assertThrows<CaseloadAccessException> {
         service.findMatchingVideoLinkBooking(searchRequest, PRISON_USER.copy(activeCaseLoadId = RISLEY)) isEqualTo booking.toModel(
-          prisonAppointments = booking.appointments(),
-          courtDescription = DERBY_JUSTICE_CENTRE,
           courtHearingTypeDescription = "Tribunal",
         )
       }
