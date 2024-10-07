@@ -37,9 +37,6 @@ class VideoLinkBookingsService(
       ?.let { referenceCodeRepository.findByProbationMeetingType(booking.probationMeetingType!!) }
 
     return booking.toModel(
-      prisonAppointments = booking.appointments(),
-      courtDescription = booking.court?.description,
-      probationTeamDescription = booking.probationTeam?.description,
       courtHearingTypeDescription = hearingType?.description,
       probationMeetingTypeDescription = meetingType?.description,
     )

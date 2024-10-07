@@ -19,7 +19,7 @@ val courtAppealReferenceCode = ReferenceCode(1, "COURT_HEARING_TYPE", "APPEAL", 
 fun court(code: String = DERBY_JUSTICE_CENTRE, enabled: Boolean = true) = Court(
   courtId = 0,
   code = code,
-  description = DERBY_JUSTICE_CENTRE,
+  description = code,
   enabled = enabled,
   notes = null,
   createdBy = "Test",
