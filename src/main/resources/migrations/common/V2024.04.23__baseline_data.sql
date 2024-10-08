@@ -460,9 +460,18 @@ values (1, 'DRBYMC', 'Derby Justice Centre', true, null, 'TIM', current_timestam
 (397, 'FRCPHC', 'FRC-Plymouth', true, null, 'TIM', current_timestamp),
 (398, 'FRCWMC', 'FRC-West Midlands', true, null, 'TIM', current_timestamp),
 (399, 'FRCEMC', 'FRC-East Midlands', true, null, 'TIM', current_timestamp),
-(400, 'UNKNOWN', 'Unknown Court', false, 'When the court is not known.', 'MATT', current_timestamp);
+(400, 'BOLTCC', 'Bolton Crown', false, 'North West - not enabled', 'TIM', current_timestamp),
+(401, 'BOLTMC', 'Bolton Magistrates', false, 'North West - not enabled', 'TIM', current_timestamp),
+(402, 'MNCCCC', 'Manchester Crown (Crown Square)', false, 'North West - not enabled', 'TIM', current_timestamp),
+(403, 'MNCMCC', 'Manchester Crown (Minshull Street)', false, 'North West - not enabled', 'TIM', current_timestamp),
+(404, 'MNCHMC', 'Manchester City Magistrates', false, 'North West - not enabled', 'TIM', current_timestamp),
+(405, 'STOCMC', 'Stockport Magistrates', false, 'North West - not enabled', 'TIM', current_timestamp),
+(406, 'THAMMC', 'Thameside Magistrates', false, 'North West - not enabled - not in court register', 'TIM', current_timestamp),
+(407, 'WIGNMC', 'Wigan Magistrates', false, 'North West - not enabled', 'TIM', current_timestamp),
+(408, 'NWCFAC', 'North West Civil and Family', false, 'North West - not enabled - not in court register', 'TIM', current_timestamp),
+(409, 'UNKNOWN', 'Unknown Court', false, 'When the court is not known.', 'MATT', current_timestamp);
 
-alter sequence if exists court_court_id_seq restart with 401;
+alter sequence if exists court_court_id_seq restart with 410;
 
 ---
 
