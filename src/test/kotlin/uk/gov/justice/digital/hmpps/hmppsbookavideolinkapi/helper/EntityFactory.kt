@@ -81,8 +81,8 @@ fun VideoBooking.withMainCourtPrisonAppointment(
     endTime = LocalTime.of(10, 0),
   )
 
-fun probationBooking() = VideoBooking.newProbationBooking(
-  probationTeam = probationTeam(),
+fun probationBooking(probationTeam: ProbationTeam = probationTeam()) = VideoBooking.newProbationBooking(
+  probationTeam = probationTeam,
   probationMeetingType = "PSR",
   comments = "Probation meeting comments",
   videoUrl = "https://probation.meeting.link",
