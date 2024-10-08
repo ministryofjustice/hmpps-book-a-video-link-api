@@ -17,7 +17,7 @@ generic-service:
     BVLS_FRONTEND_URL: "https://book-a-video-link.prison.service.justice.gov.uk"
 
     postgresDatabaseRestore:
-      enabled: true
+      enabled: false
       namespace_secrets:
         rds-postgresql-instance-output:
           DB_NAME: "database_name"
