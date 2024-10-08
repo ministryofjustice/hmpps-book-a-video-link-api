@@ -1,5 +1,0 @@
-spring:
-  flyway:
-    # This should be removed when we think the DB is stable, and we should be moving onto migrations for changes.
-    clean-disabled: false
-    clean-on-validation-error: true
