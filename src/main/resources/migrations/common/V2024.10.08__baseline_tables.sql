@@ -35,6 +35,7 @@ CREATE TABLE court
     code                varchar(30) NOT NULL UNIQUE,
     description         varchar(100) NOT NULL,
     enabled             boolean NOT NULL,
+    read_only           boolean NOT NULL,
     notes               varchar(200),
     created_by          varchar(100) NOT NULL,
     created_time        timestamp NOT NULL,
@@ -85,6 +86,7 @@ CREATE TABLE probation_team
     code                 varchar(40) NOT NULL UNIQUE,
     description          varchar(100) NOT NULL,
     enabled              boolean NOT NULL,
+    read_only            boolean NOT NULL,
     notes                varchar(100),
     created_by           varchar(100) NOT NULL,
     created_time         timestamp NOT NULL,
@@ -188,7 +190,8 @@ CREATE TABLE video_booking
     created_time              timestamp    NOT NULL,
     amended_by                varchar(100),
     amended_time              timestamp,
-    migrated_video_booking_id bigint
+    migrated_video_booking_id bigint,
+    migrated_description      varchar(50)
 );
 
 CREATE INDEX idx_video_booking_type ON video_booking(booking_type);
@@ -209,7 +212,7 @@ CREATE TABLE prison_appointment
 (
     prison_appointment_id  bigserial NOT NULL CONSTRAINT prison_appointment_pk PRIMARY KEY,
     video_booking_id       bigint NOT NULL REFERENCES video_booking(video_booking_id), 
-    prison_code            varchar(5) NOT NULL REFERENCES prison(code),
+    prison_id              bigint NOT NULL REFERENCES prison(prison_id),
     prisoner_number        varchar(7) NOT NULL,  -- NOMS number
     appointment_type       varchar(40) NOT NULL,
     comments               varchar(1000),
@@ -220,7 +223,7 @@ CREATE TABLE prison_appointment
 );
 
 CREATE INDEX idx_prison_appointment_video_booking_id ON prison_appointment(video_booking_id);
-CREATE INDEX idx_prison_appointment_prison_code ON prison_appointment(prison_code);
+CREATE INDEX idx_prison_appointment_prison_id ON prison_appointment(prison_id);
 CREATE INDEX idx_prison_appointment_prisoner_number ON prison_appointment(prisoner_number);
 CREATE INDEX idx_prison_appointment_loc_key ON prison_appointment(prison_loc_key);
 CREATE INDEX idx_prison_appointment_date ON prison_appointment(appointment_date);

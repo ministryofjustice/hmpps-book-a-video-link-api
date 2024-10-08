@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -48,13 +48,13 @@ class ScheduleServiceTest {
     probationTeamDescription = null,
     probationMeetingType = null,
     probationMeetingTypeDescription = null,
-    prisonCode = WERRINGTON,
+    prisonCode = PENTONVILLE,
     prisonName = "Werrington",
     prisonerNumber = "A1234AA",
     appointmentType = AppointmentType.VLB_COURT_MAIN.name,
     appointmentTypeDescription = "Court main hearing",
     appointmentComments = null,
-    prisonLocKey = "WNI-VCC-1",
+    prisonLocKey = "PVI-VCC-1",
     bookingComments = null,
     videoUrl = "http://video.url",
     appointmentDate = date,
@@ -85,13 +85,13 @@ class ScheduleServiceTest {
     probationTeamDescription = "Probation",
     probationMeetingType = ProbationMeetingType.PSR.name,
     probationMeetingTypeDescription = "Pre-sentence report",
-    prisonCode = WERRINGTON,
+    prisonCode = PENTONVILLE,
     prisonName = "Werrington",
     prisonerNumber = "A1234AA",
     appointmentType = AppointmentType.VLB_PROBATION.name,
     appointmentTypeDescription = null,
     appointmentComments = null,
-    prisonLocKey = "WNI-VCC-1",
+    prisonLocKey = "PVI-VCC-1",
     bookingComments = null,
     videoUrl = "http://video.url",
     appointmentDate = date,
@@ -133,7 +133,7 @@ class ScheduleServiceTest {
     whenever(scheduleRepository.getScheduleForProbationTeam(probationTeamCode, LocalDate.now()))
       .thenReturn(probationItems.filter { it.statusCode == BookingStatus.ACTIVE.name })
 
-    whenever(scheduleRepository.getScheduleForPrison(WERRINGTON, LocalDate.now()))
+    whenever(scheduleRepository.getScheduleForPrison(PENTONVILLE, LocalDate.now()))
       .thenReturn(prisonItems.filter { it.statusCode == BookingStatus.ACTIVE.name })
 
     whenever(scheduleRepository.getScheduleForCourtIncludingCancelled(courtCode, LocalDate.now()))
@@ -142,7 +142,7 @@ class ScheduleServiceTest {
     whenever(scheduleRepository.getScheduleForProbationTeamIncludingCancelled(probationTeamCode, LocalDate.now()))
       .thenReturn(probationItems)
 
-    whenever(scheduleRepository.getScheduleForPrisonIncludingCancelled(WERRINGTON, LocalDate.now()))
+    whenever(scheduleRepository.getScheduleForPrisonIncludingCancelled(PENTONVILLE, LocalDate.now()))
       .thenReturn(prisonItems)
   }
 
@@ -174,7 +174,7 @@ class ScheduleServiceTest {
 
   @Test
   fun `Returns the list of prison items`() {
-    val response = service.getScheduleForPrison(WERRINGTON, LocalDate.now(), false)
+    val response = service.getScheduleForPrison(PENTONVILLE, LocalDate.now(), false)
     assertThat(response).isNotNull
     assertThat(response).hasSize(3)
     assertThat(response).extracting("courtCode").containsOnly(courtCode, null)
@@ -197,7 +197,7 @@ class ScheduleServiceTest {
 
   @Test
   fun `Returns the list of prison items including cancelled`() {
-    val response = service.getScheduleForPrison(WERRINGTON, LocalDate.now(), true)
+    val response = service.getScheduleForPrison(PENTONVILLE, LocalDate.now(), true)
     assertThat(response).isNotNull
     assertThat(response).hasSize(4)
     assertThat(response)

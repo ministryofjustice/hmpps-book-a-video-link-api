@@ -9,15 +9,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -33,14 +33,14 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
   fun `should return a list of prison and court contacts for a booking`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
       prisonerNumber = "A1111AA",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -50,7 +50,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     videoBookingRepository.findAll() hasSize 1
 
-    // DRBYMC court has 3 contacts, WNI prison has 3 contacts
+    // DRBYMC court has 3 contacts, PVI prison has 3 contacts
     val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
     // Check contacts returned
@@ -64,26 +64,26 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should return a list of prison and probation contacts for a booking`() {
-    prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-    locationsInsidePrisonApi().stubGetLocationByKey(werringtonLocation.key, WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       prisonerNumber = "A1111AA",
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
-      location = werringtonLocation,
+      location = pentonvilleLocation,
     )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     videoBookingRepository.findAll() hasSize 1
 
-    // BLKPPP probation team has 3 contacts, WNI prison has 3 contacts
+    // BLKPPP probation team has 3 contacts, PVI prison has 3 contacts
     val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
     // Check contacts returned
@@ -99,14 +99,14 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
   fun `should return the user only, where no prison or court contacts are defined for a booking`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("A1111AA", MOORLAND)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(moorlandLocation.key), MOORLAND)
+    prisonSearchApi().stubGetPrisoner("A1111AA", WANDSWORTH)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(wandsworthLocation.key), WANDSWORTH)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "NWPIAC",
       prisonerNumber = "A1111AA",
-      prisonCode = MOORLAND,
-      location = moorlandLocation,
+      prisonCode = WANDSWORTH,
+      location = wandsworthLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -158,14 +158,14 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
   fun `should return the user contact details for a created booking`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("A1111AA", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
       prisonerNumber = "A1111AA",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -175,7 +175,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     videoBookingRepository.findAll() hasSize 1
 
-    // DRBYMC court has 3 contacts, WNI prison has 3 contacts
+    // DRBYMC court has 3 contacts, PVI prison has 3 contacts
     val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
     assertThat(listOfContacts).hasSize(7)

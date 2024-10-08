@@ -21,7 +21,7 @@ class ProbationTeamsServiceTest {
   private val userProbationRepository: UserProbationRepository = mock()
   private val service = ProbationTeamsService(probationTeamRepository, userProbationRepository)
   private fun generateEntity(id: Long, code: String, desc: String, enabled: Boolean = true, notes: String? = "notes") =
-    ProbationTeamEntity(id, code, desc, enabled, notes, "name")
+    ProbationTeamEntity(id, code, desc, enabled, false, notes, "name")
 
   @BeforeEach
   fun setUp() {

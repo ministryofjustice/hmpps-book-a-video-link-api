@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkCaseLoadAccess
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkVideoBookingAccess
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
-import java.time.LocalDateTime
+import java.time.LocalDateTime.now
 
 @Service
 class AmendVideoBookingService(
@@ -37,16 +37,9 @@ class AmendVideoBookingService(
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
       .also { checkVideoBookingAccess(amendedBy, it) }
       .also { checkCaseLoadAccess(amendedBy, it.prisonCode()) }
-      .also {
-        require(BookingType.valueOf(it.bookingType) == request.bookingType) {
-          "The booking type ${it.bookingType} does not match the requested type ${request.bookingType}."
-        }
-      }
-      .also {
-        require(it.statusCode != StatusCode.CANCELLED) {
-          "Video booking $videoBookingId is already cancelled, and so cannot be amended"
-        }
-      }
+      .also { require(BookingType.valueOf(it.bookingType) == request.bookingType) { "The booking type ${it.bookingType} does not match the requested type ${request.bookingType}." } }
+      .also { require(it.statusCode != StatusCode.CANCELLED) { "Video booking $videoBookingId is already cancelled, and so cannot be amended" } }
+      .also { require(it.appointments().all { a -> a.isStartsAfter(now()) }) { "Video booking $videoBookingId has already started, and so cannot be amended" } }
 
     return when (BookingType.valueOf(booking.bookingType)) {
       BookingType.COURT -> amendCourt(booking, request, amendedBy)
@@ -62,7 +55,7 @@ class AmendVideoBookingService(
       comments = request.comments
       videoUrl = request.videoLinkUrl
       this.amendedBy = amendedBy.username
-      amendedTime = LocalDateTime.now()
+      amendedTime = now()
     }
       .also { thisBooking -> thisBooking.removeAllAppointments() }
       .also { thisBooking -> appointmentsService.createAppointmentsForCourt(thisBooking, request.prisoner(), amendedBy) }
@@ -79,7 +72,7 @@ class AmendVideoBookingService(
       comments = request.comments
       videoUrl = request.videoLinkUrl
       this.amendedBy = amendedBy.username
-      amendedTime = LocalDateTime.now()
+      amendedTime = now()
     }
       .also { thisBooking -> thisBooking.removeAllAppointments() }
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), amendedBy) }

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.argThat
@@ -23,24 +24,26 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_PROBAT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.daysAgo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation2
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation3
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.LocalDate
 import java.time.LocalTime
@@ -48,27 +51,33 @@ import java.time.LocalTime
 class MigrateVideoBookingServiceTest {
   private val migrateMappingService: MigrateMappingService = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
+  private val prisonRepository: PrisonRepository = mock()
   private val bookingHistoryRepository: BookingHistoryRepository = mock()
-  private val service =
-    MigrateVideoBookingService(migrateMappingService, videoBookingRepository, bookingHistoryRepository)
+  private val service = MigrateVideoBookingService(migrateMappingService, videoBookingRepository, prisonRepository, bookingHistoryRepository)
   private val videoBookingCaptor = argumentCaptor<VideoBooking>()
   private val bookingHistoryCaptor = argumentCaptor<BookingHistory>()
+
+  @BeforeEach
+  fun setup() {
+    whenever(prisonRepository.findByCode(PENTONVILLE)) doReturn prison(prisonCode = PENTONVILLE)
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(prisonCode = WANDSWORTH)
+  }
 
   @Test
   fun `should migrate booking to a court booking with main appointment only`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = WANDSWORTH)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 1,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = DERBY_JUSTICE_CENTRE,
         courtName = null,
         probation = false,
@@ -90,7 +99,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             post = null,
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             madeByTheCourt = true,
           ),
@@ -110,13 +119,13 @@ class MigrateVideoBookingServiceTest {
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_MAIN"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo moorlandLocation.key
+      prisonLocKey isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -125,17 +134,17 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to an unknown court booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
       on { mapCourtCodeToCourt(UNKNOWN_COURT_CODE) } doReturn court(UNKNOWN_COURT_CODE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = WANDSWORTH)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 1,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = null,
         courtName = "Unknown court",
         probation = false,
@@ -157,7 +166,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             post = null,
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             madeByTheCourt = true,
           ),
@@ -171,20 +180,21 @@ class MigrateVideoBookingServiceTest {
       bookingType isEqualTo "COURT"
       hearingType isEqualTo "UNKNOWN"
       court isEqualTo court(UNKNOWN_COURT_CODE)
-      comments isEqualTo "Court Unknown court\nMigrated court comments"
+      comments isEqualTo "Migrated court comments"
       createdBy isEqualTo "MIGRATION COURT USER"
       migratedVideoBookingId isEqualTo 1
+      migratedDescription isEqualTo "Unknown court"
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_MAIN"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo moorlandLocation.key
-      comments isEqualTo "Court Unknown court\nMigrated court comments"
+      prisonLocKey isEqualTo wandsworthLocation.key
+      comments isEqualTo "Migrated court comments"
     }
   }
 
@@ -192,19 +202,19 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate (other court) booking to an unknown court booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
       on { mapCourtCodeToCourt(UNKNOWN_COURT_CODE) } doReturn court(UNKNOWN_COURT_CODE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = WANDSWORTH)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 1,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = "other",
-        courtName = null,
+        courtName = "Free text court name",
         probation = false,
         createdByUsername = "MIGRATION COURT USER",
         madeByTheCourt = true,
@@ -220,11 +230,11 @@ class MigrateVideoBookingServiceTest {
             eventType = VideoLinkBookingEventType.CREATE,
             comment = "Court booking create event comments",
             courtCode = "other",
-            courtName = null,
+            courtName = "Free text court name",
             pre = null,
             main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             post = null,
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             madeByTheCourt = true,
           ),
@@ -238,20 +248,21 @@ class MigrateVideoBookingServiceTest {
       bookingType isEqualTo "COURT"
       hearingType isEqualTo "UNKNOWN"
       court isEqualTo court(UNKNOWN_COURT_CODE)
-      comments isEqualTo "Court UNKNOWN\nMigrated court comments"
+      comments isEqualTo "Migrated court comments"
       createdBy isEqualTo "MIGRATION COURT USER"
       migratedVideoBookingId isEqualTo 1
+      migratedDescription isEqualTo "Free text court name"
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_MAIN"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo moorlandLocation.key
-      comments isEqualTo "Court UNKNOWN\nMigrated court comments"
+      prisonLocKey isEqualTo wandsworthLocation.key
+      comments isEqualTo "Migrated court comments"
     }
   }
 
@@ -259,18 +270,18 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a court booking with pre and main appointment`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn moorlandLocation2
+      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
+      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = WANDSWORTH)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 2,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = DERBY_JUSTICE_CENTRE,
         courtName = null,
         probation = false,
@@ -292,7 +303,7 @@ class MigrateVideoBookingServiceTest {
             pre = AppointmentLocationTimeSlot(1, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             main = AppointmentLocationTimeSlot(2, today(), LocalTime.of(10, 0), LocalTime.of(10, 0)),
             post = null,
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             madeByTheCourt = true,
           ),
@@ -314,24 +325,24 @@ class MigrateVideoBookingServiceTest {
     val appointments = videoBookingCaptor.firstValue.appointments().also { it hasSize 2 }
 
     with(appointments.component1()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_PRE"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo moorlandLocation.key
+      prisonLocKey isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
 
     with(appointments.component2()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_MAIN"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 0)
-      prisonLocKey isEqualTo moorlandLocation2.key
+      prisonLocKey isEqualTo wandsworthLocation2.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -340,19 +351,19 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a court booking with pre, main and post appointment`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn moorlandLocation2
-      on { mapInternalLocationIdToLocation(3) } doReturn moorlandLocation3
+      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
+      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
+      on { mapInternalLocationIdToLocation(3) } doReturn wandsworthLocation3
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = WANDSWORTH)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 3,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = DERBY_JUSTICE_CENTRE,
         courtName = null,
         probation = false,
@@ -374,7 +385,7 @@ class MigrateVideoBookingServiceTest {
             pre = AppointmentLocationTimeSlot(1, today(), LocalTime.of(8, 0), LocalTime.of(9, 0)),
             main = AppointmentLocationTimeSlot(2, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             post = AppointmentLocationTimeSlot(3, today(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             madeByTheCourt = true,
           ),
@@ -396,35 +407,35 @@ class MigrateVideoBookingServiceTest {
     val appointments = videoBookingCaptor.firstValue.appointments().also { it hasSize 3 }
 
     with(appointments.component1()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_PRE"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(8, 0)
       endTime isEqualTo LocalTime.of(9, 0)
-      prisonLocKey isEqualTo moorlandLocation.key
+      prisonLocKey isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
 
     with(appointments.component2()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_MAIN"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo moorlandLocation2.key
+      prisonLocKey isEqualTo wandsworthLocation2.key
       comments isEqualTo "Migrated court comments"
     }
 
     with(appointments.component3()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_POST"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 0)
-      prisonLocKey isEqualTo moorlandLocation3.key
+      prisonLocKey isEqualTo wandsworthLocation3.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -433,18 +444,18 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a court booking with main and post appointment`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn moorlandLocation2
+      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
+      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = MOORLAND)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(prisonCode = WANDSWORTH)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 4,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = DERBY_JUSTICE_CENTRE,
         courtName = null,
         probation = false,
@@ -465,7 +476,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, today(), LocalTime.of(8, 0), LocalTime.of(9, 0)),
             post = AppointmentLocationTimeSlot(2, today(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -488,24 +499,24 @@ class MigrateVideoBookingServiceTest {
     val appointments = videoBookingCaptor.firstValue.appointments().also { it hasSize 2 }
 
     with(appointments.component1()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_MAIN"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(8, 0)
       endTime isEqualTo LocalTime.of(9, 0)
-      prisonLocKey isEqualTo moorlandLocation.key
+      prisonLocKey isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
 
     with(appointments.component2()) {
-      prisonCode isEqualTo MOORLAND
+      prisonCode() isEqualTo WANDSWORTH
       prisonerNumber isEqualTo "ABC123"
       appointmentType isEqualTo "VLB_COURT_POST"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo moorlandLocation2.key
+      prisonLocKey isEqualTo wandsworthLocation2.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -514,17 +525,17 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn werringtonLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withProbationPrisonAppointment(prisonCode = WERRINGTON)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withProbationPrisonAppointment(prisonCode = PENTONVILLE)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 5,
         offenderBookingId = 1,
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         courtCode = BLACKPOOL_MC_PPOC,
         courtName = null,
         probation = true,
@@ -545,7 +556,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -566,13 +577,13 @@ class MigrateVideoBookingServiceTest {
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
-      prisonCode isEqualTo WERRINGTON
+      prisonCode() isEqualTo PENTONVILLE
       prisonerNumber isEqualTo "DEF123"
       appointmentType isEqualTo "VLB_PROBATION"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo werringtonLocation.key
+      prisonLocKey isEqualTo pentonvilleLocation.key
       comments isEqualTo "Migrated probation comments"
     }
   }
@@ -581,17 +592,17 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to an unknown probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn werringtonLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
       on { mapProbationTeamCodeToProbationTeam(UNKNOWN_PROBATION_TEAM_CODE) } doReturn probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withProbationPrisonAppointment(prisonCode = WERRINGTON)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withProbationPrisonAppointment(prisonCode = PENTONVILLE)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 5,
         offenderBookingId = 1,
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         courtCode = null,
         courtName = "Unknown probation team",
         probation = true,
@@ -612,7 +623,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
             courtName = "Unknown probation team",
             madeByTheCourt = true,
@@ -627,20 +638,21 @@ class MigrateVideoBookingServiceTest {
       bookingType isEqualTo "PROBATION"
       probationMeetingType isEqualTo "UNKNOWN"
       probationTeam isEqualTo probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
-      comments isEqualTo "Probation team Unknown probation team\nMigrated probation comments"
+      comments isEqualTo "Migrated probation comments"
       createdBy isEqualTo "MIGRATION PROBATION USER"
       migratedVideoBookingId isEqualTo 5
+      migratedDescription isEqualTo "Unknown probation team"
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
-      prisonCode isEqualTo WERRINGTON
+      prisonCode() isEqualTo PENTONVILLE
       prisonerNumber isEqualTo "DEF123"
       appointmentType isEqualTo "VLB_PROBATION"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo werringtonLocation.key
-      comments isEqualTo "Probation team Unknown probation team\nMigrated probation comments"
+      prisonLocKey isEqualTo pentonvilleLocation.key
+      comments isEqualTo "Migrated probation comments"
     }
   }
 
@@ -648,19 +660,19 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate (other court) booking to an unknown probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn werringtonLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
       on { mapProbationTeamCodeToProbationTeam(UNKNOWN_PROBATION_TEAM_CODE) } doReturn probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
     }
 
-    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withProbationPrisonAppointment(prisonCode = WERRINGTON)
+    whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withProbationPrisonAppointment(prisonCode = PENTONVILLE)
 
     service.migrate(
       VideoBookingMigrateResponse(
         videoBookingId = 5,
         offenderBookingId = 1,
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         courtCode = "OTHER",
-        courtName = null,
+        courtName = "Free text probation team name",
         probation = true,
         createdByUsername = "MIGRATION PROBATION USER",
         madeByTheCourt = true,
@@ -679,9 +691,9 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, today(), LocalTime.MIDNIGHT, LocalTime.MIDNIGHT.plusHours(1)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
-            courtName = null,
+            courtName = "Free text probation team name",
             madeByTheCourt = true,
           ),
         ),
@@ -694,20 +706,21 @@ class MigrateVideoBookingServiceTest {
       bookingType isEqualTo "PROBATION"
       probationMeetingType isEqualTo "UNKNOWN"
       probationTeam isEqualTo probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
-      comments isEqualTo "Probation team UNKNOWN\nMigrated probation comments"
+      comments isEqualTo "Migrated probation comments"
       createdBy isEqualTo "MIGRATION PROBATION USER"
       migratedVideoBookingId isEqualTo 5
+      migratedDescription isEqualTo "Free text probation team name"
     }
 
     with(videoBookingCaptor.firstValue.appointments().single()) {
-      prisonCode isEqualTo WERRINGTON
+      prisonCode() isEqualTo PENTONVILLE
       prisonerNumber isEqualTo "DEF123"
       appointmentType isEqualTo "VLB_PROBATION"
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo werringtonLocation.key
-      comments isEqualTo "Probation team UNKNOWN\nMigrated probation comments"
+      prisonLocKey isEqualTo pentonvilleLocation.key
+      comments isEqualTo "Migrated probation comments"
     }
   }
 
@@ -715,14 +728,14 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate CREATE booking history for a court booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn moorlandLocation2
-      on { mapInternalLocationIdToLocation(3) } doReturn moorlandLocation3
+      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
+      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
+      on { mapInternalLocationIdToLocation(3) } doReturn wandsworthLocation3
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
     whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       prisonerNumber = "ABC123",
     )
 
@@ -730,7 +743,7 @@ class MigrateVideoBookingServiceTest {
       VideoBookingMigrateResponse(
         videoBookingId = 1,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = DERBY_JUSTICE_CENTRE,
         courtName = null,
         probation = false,
@@ -751,7 +764,7 @@ class MigrateVideoBookingServiceTest {
             pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = AppointmentLocationTimeSlot(3, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -775,31 +788,31 @@ class MigrateVideoBookingServiceTest {
       appointments() hasSize 3
 
       appointments().component1()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(9, 0))
         .endsAt(LocalTime.of(10, 0))
         .isForAppointmentType("VLB_COURT_PRE")
-        .isAtLocation(moorlandLocation)
+        .isAtLocation(wandsworthLocation)
 
       appointments().component2()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(10, 0))
         .endsAt(LocalTime.of(11, 0))
         .isForAppointmentType("VLB_COURT_MAIN")
-        .isAtLocation(moorlandLocation2)
+        .isAtLocation(wandsworthLocation2)
 
       appointments().component3()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(11, 0))
         .endsAt(LocalTime.of(12, 0))
         .isForAppointmentType("VLB_COURT_POST")
-        .isAtLocation(moorlandLocation3)
+        .isAtLocation(wandsworthLocation3)
     }
   }
 
@@ -807,14 +820,14 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate CANCELLED booking history for a court booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn moorlandLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn moorlandLocation2
-      on { mapInternalLocationIdToLocation(3) } doReturn moorlandLocation3
+      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
+      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
+      on { mapInternalLocationIdToLocation(3) } doReturn wandsworthLocation3
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
     whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isCourtBooking() })) doReturn courtBooking().withMainCourtPrisonAppointment(
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       prisonerNumber = "ABC123",
     )
 
@@ -822,7 +835,7 @@ class MigrateVideoBookingServiceTest {
       VideoBookingMigrateResponse(
         videoBookingId = 1,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = DERBY_JUSTICE_CENTRE,
         courtName = null,
         probation = false,
@@ -843,7 +856,7 @@ class MigrateVideoBookingServiceTest {
             pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = AppointmentLocationTimeSlot(3, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -857,7 +870,7 @@ class MigrateVideoBookingServiceTest {
             pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = AppointmentLocationTimeSlot(3, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT DELETE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -881,31 +894,31 @@ class MigrateVideoBookingServiceTest {
       appointments() hasSize 3
 
       appointments().component1()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(9, 0))
         .endsAt(LocalTime.of(10, 0))
         .isForAppointmentType("VLB_COURT_PRE")
-        .isAtLocation(moorlandLocation)
+        .isAtLocation(wandsworthLocation)
 
       appointments().component2()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(10, 0))
         .endsAt(LocalTime.of(11, 0))
         .isForAppointmentType("VLB_COURT_MAIN")
-        .isAtLocation(moorlandLocation2)
+        .isAtLocation(wandsworthLocation2)
 
       appointments().component3()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(11, 0))
         .endsAt(LocalTime.of(12, 0))
         .isForAppointmentType("VLB_COURT_POST")
-        .isAtLocation(moorlandLocation3)
+        .isAtLocation(wandsworthLocation3)
     }
 
     with(bookingHistoryCaptor.allValues.component2()) {
@@ -916,31 +929,31 @@ class MigrateVideoBookingServiceTest {
       appointments() hasSize 3
 
       appointments().component1()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(9, 0))
         .endsAt(LocalTime.of(10, 0))
         .isForAppointmentType("VLB_COURT_PRE")
-        .isAtLocation(moorlandLocation)
+        .isAtLocation(wandsworthLocation)
 
       appointments().component2()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(10, 0))
         .endsAt(LocalTime.of(11, 0))
         .isForAppointmentType("VLB_COURT_MAIN")
-        .isAtLocation(moorlandLocation2)
+        .isAtLocation(wandsworthLocation2)
 
       appointments().component3()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisonerNumber("ABC123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(11, 0))
         .endsAt(LocalTime.of(12, 0))
         .isForAppointmentType("VLB_COURT_POST")
-        .isAtLocation(moorlandLocation3)
+        .isAtLocation(wandsworthLocation3)
     }
   }
 
@@ -948,12 +961,12 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate CREATE booking history for a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn werringtonLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
     whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withMainCourtPrisonAppointment(
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       prisonerNumber = "DEF123",
     )
 
@@ -961,7 +974,7 @@ class MigrateVideoBookingServiceTest {
       VideoBookingMigrateResponse(
         videoBookingId = 5,
         offenderBookingId = 1,
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         courtCode = BLACKPOOL_MC_PPOC,
         courtName = null,
         probation = true,
@@ -982,7 +995,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION USER",
             courtName = null,
             madeByTheCourt = true,
@@ -1002,13 +1015,13 @@ class MigrateVideoBookingServiceTest {
       createdTime isEqualTo 2.daysAgo().atStartOfDay()
 
       appointments().single()
-        .isAtPrison(WERRINGTON)
+        .isAtPrison(PENTONVILLE)
         .isForPrisonerNumber("DEF123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(10, 0))
         .endsAt(LocalTime.of(11, 0))
         .isForAppointmentType("VLB_PROBATION")
-        .isAtLocation(werringtonLocation)
+        .isAtLocation(pentonvilleLocation)
     }
   }
 
@@ -1016,12 +1029,12 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate AMENDED booking history for a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn werringtonLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
     whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withMainCourtPrisonAppointment(
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       prisonerNumber = "DEF123",
     )
 
@@ -1029,7 +1042,7 @@ class MigrateVideoBookingServiceTest {
       VideoBookingMigrateResponse(
         videoBookingId = 5,
         offenderBookingId = 1,
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         courtCode = BLACKPOOL_MC_PPOC,
         courtName = null,
         probation = true,
@@ -1050,7 +1063,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -1064,7 +1077,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION UPDATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -1086,13 +1099,13 @@ class MigrateVideoBookingServiceTest {
       createdTime isEqualTo 2.daysAgo().atStartOfDay()
 
       appointments().single()
-        .isAtPrison(WERRINGTON)
+        .isAtPrison(PENTONVILLE)
         .isForPrisonerNumber("DEF123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(10, 0))
         .endsAt(LocalTime.of(11, 0))
         .isForAppointmentType("VLB_PROBATION")
-        .isAtLocation(werringtonLocation)
+        .isAtLocation(pentonvilleLocation)
     }
 
     with(bookingHistoryCaptor.secondValue) {
@@ -1101,13 +1114,13 @@ class MigrateVideoBookingServiceTest {
       createdTime isEqualTo 1.daysAgo().atStartOfDay()
 
       appointments().single()
-        .isAtPrison(WERRINGTON)
+        .isAtPrison(PENTONVILLE)
         .isForPrisonerNumber("DEF123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(10, 0))
         .endsAt(LocalTime.of(11, 0))
         .isForAppointmentType("VLB_PROBATION")
-        .isAtLocation(werringtonLocation)
+        .isAtLocation(pentonvilleLocation)
     }
   }
 
@@ -1115,12 +1128,12 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate CANCELLED booking history for a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn werringtonLocation
+      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
     whenever(videoBookingRepository.saveAndFlush(argThat { booking -> booking.isProbationBooking() })) doReturn probationBooking().withMainCourtPrisonAppointment(
-      prisonCode = WERRINGTON,
+      prisonCode = PENTONVILLE,
       prisonerNumber = "DEF123",
     )
 
@@ -1128,7 +1141,7 @@ class MigrateVideoBookingServiceTest {
       VideoBookingMigrateResponse(
         videoBookingId = 5,
         offenderBookingId = 1,
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         courtCode = BLACKPOOL_MC_PPOC,
         courtName = null,
         probation = true,
@@ -1149,7 +1162,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -1163,7 +1176,7 @@ class MigrateVideoBookingServiceTest {
             pre = null,
             main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION DELETE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -1185,13 +1198,13 @@ class MigrateVideoBookingServiceTest {
       createdTime isEqualTo 2.daysAgo().atStartOfDay()
 
       appointments().single()
-        .isAtPrison(WERRINGTON)
+        .isAtPrison(PENTONVILLE)
         .isForPrisonerNumber("DEF123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(10, 0))
         .endsAt(LocalTime.of(11, 0))
         .isForAppointmentType("VLB_PROBATION")
-        .isAtLocation(werringtonLocation)
+        .isAtLocation(pentonvilleLocation)
     }
 
     with(bookingHistoryCaptor.secondValue) {
@@ -1200,13 +1213,13 @@ class MigrateVideoBookingServiceTest {
       createdTime isEqualTo 1.daysAgo().atStartOfDay()
 
       appointments().single()
-        .isAtPrison(WERRINGTON)
+        .isAtPrison(PENTONVILLE)
         .isForPrisonerNumber("DEF123")
         .isOnDate(yesterday())
         .startsAt(LocalTime.of(10, 0))
         .endsAt(LocalTime.of(11, 0))
         .isForAppointmentType("VLB_PROBATION")
-        .isAtLocation(werringtonLocation)
+        .isAtLocation(pentonvilleLocation)
     }
   }
 

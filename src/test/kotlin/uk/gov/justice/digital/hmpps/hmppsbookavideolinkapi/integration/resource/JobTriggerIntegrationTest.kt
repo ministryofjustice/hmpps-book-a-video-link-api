@@ -12,11 +12,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.daysFromNow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
@@ -99,7 +102,50 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
+  @Sql("classpath:integration-test-data/seed-migrated-bookings.sql")
+  fun `should not send an email to the court to remind them to add the court hearing link if the booking has been migrated`() {
+    notificationRepository.findAll() hasSize 0
+
+    webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
+
+    // There should be 0 notifications
+    notificationRepository.findAll().also { it hasSize 0 }
+  }
+
+  @Test
+  fun `should not send an email to the court to remind them to add the court hearing link to a booking at a non-enabled prison`() {
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = RISLEY,
+      location = risleyLocation,
+      date = tomorrow(),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+      videoLinkUrl = null,
+    )
+
+    webTestClient.createBooking(courtBookingRequest, prisonUser)
+
+    notificationRepository.deleteAll()
+
+    webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
+
+    // There should be 0 notifications
+    notificationRepository.findAll().also { it hasSize 0 }
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-bookings-happening-today.sql")
   fun `should not send a court hearing link reminder email to the court for bookings happening today`() {
     notificationRepository.findAll() hasSize 0
 

@@ -51,6 +51,8 @@ class VideoBooking private constructor(
   val createdTime: LocalDateTime = now(),
 
   val migratedVideoBookingId: Long? = null,
+
+  val migratedDescription: String? = null,
 ) {
 
   @OneToMany(mappedBy = "videoBooking", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -74,14 +76,16 @@ class VideoBooking private constructor(
   fun prisoner() = appointments().map { it.prisonerNumber }.distinct().single()
 
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
-  fun prisonCode() = appointments().map { it.prisonCode }.distinct().single()
+  fun prisonCode() = appointments().map { it.prison }.distinct().single().code
 
   fun isStatus(status: StatusCode) = statusCode == status
 
   fun isMigrated() = migratedVideoBookingId != null
 
+  fun prisonIsEnabledForSelfService() = appointments().all { a -> a.prison.enabled }
+
   fun addAppointment(
-    prisonCode: String,
+    prison: Prison,
     prisonerNumber: String,
     appointmentType: String,
     date: LocalDate,
@@ -93,7 +97,7 @@ class VideoBooking private constructor(
       prisonAppointments.add(
         PrisonAppointment.newAppointment(
           videoBooking = this,
-          prisonCode = prisonCode,
+          prison = prison,
           prisonerNumber = prisonerNumber,
           appointmentType = appointmentType,
           appointmentDate = date,
@@ -189,6 +193,7 @@ class VideoBooking private constructor(
       cancelledAt: LocalDateTime?,
       updatedBy: String?,
       updatedAt: LocalDateTime?,
+      migratedDescription: String?,
     ): VideoBooking = VideoBooking(
       bookingType = "COURT",
       court = court,
@@ -200,6 +205,7 @@ class VideoBooking private constructor(
       createdTime = createdTime,
       createdByPrison = createdByPrison,
       migratedVideoBookingId = migratedVideoBookingId,
+      migratedDescription = migratedDescription.takeIf { court.isUnknown() },
     ).apply {
       if (cancelledBy != null && cancelledAt != null) {
         statusCode = StatusCode.CANCELLED
@@ -222,6 +228,7 @@ class VideoBooking private constructor(
       cancelledAt: LocalDateTime?,
       updatedBy: String?,
       updatedAt: LocalDateTime?,
+      migratedDescription: String?,
     ): VideoBooking =
       VideoBooking(
         bookingType = "PROBATION",
@@ -234,6 +241,7 @@ class VideoBooking private constructor(
         createdTime = createdTime,
         createdByPrison = createdByPrison,
         migratedVideoBookingId = migratedVideoBookingId,
+        migratedDescription = migratedDescription.takeIf { probationTeam.isUnknown() },
       ).apply {
         if (cancelledBy != null && cancelledAt != null) {
           statusCode = StatusCode.CANCELLED

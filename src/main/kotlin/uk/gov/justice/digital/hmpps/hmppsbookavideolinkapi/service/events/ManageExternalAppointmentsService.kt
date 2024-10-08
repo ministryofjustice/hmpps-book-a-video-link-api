@@ -38,22 +38,22 @@ class ManageExternalAppointmentsService(
 
     prisonAppointmentRepository.findById(prisonAppointmentId).ifPresentOrElse(
       { appointment ->
-        if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode)) {
-          log.info("EXTERNAL APPOINTMENTS: appointments rolled out at ${appointment.prisonCode} creating via activities and appointments")
+        if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode())) {
+          log.info("EXTERNAL APPOINTMENTS: appointments rolled out at ${appointment.prisonCode()} creating via activities and appointments")
 
           val internalLocationId = appointment.internalLocationId()
 
           // Attempt to check that an appointment does not already exist before creating.
           // This is here because have seen network timeouts even though the transaction has completed in the external API.
           activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-            prisonCode = appointment.prisonCode,
+            prisonCode = appointment.prisonCode(),
             prisonerNumber = appointment.prisonerNumber,
             onDate = appointment.appointmentDate,
             internalLocationId,
           ).findMatchingAppointments(appointment).ifEmpty {
             // Only create if no existing matches found
             activitiesAppointmentsClient.createAppointment(
-              prisonCode = appointment.prisonCode,
+              prisonCode = appointment.prisonCode(),
               prisonerNumber = appointment.prisonerNumber,
               startDate = appointment.appointmentDate,
               startTime = appointment.startTime,
@@ -65,14 +65,14 @@ class ManageExternalAppointmentsService(
             }
           }
         } else {
-          log.info("EXTERNAL APPOINTMENTS: appointments not rolled out at ${appointment.prisonCode} creating via prison api")
+          log.info("EXTERNAL APPOINTMENTS: appointments not rolled out at ${appointment.prisonCode()} creating via prison api")
 
           val internalLocationId = appointment.internalLocationId()
 
           // Attempt to check if an appointment does not already exist before creating.
           // This is here because have seen network timeouts even though the transaction has completed in the external API.
           prisonApiClient.getPrisonersAppointmentsAtLocations(
-            prisonCode = appointment.prisonCode,
+            prisonCode = appointment.prisonCode(),
             prisonerNumber = appointment.prisonerNumber,
             onDate = appointment.appointmentDate,
             internalLocationId,
@@ -104,9 +104,9 @@ class ManageExternalAppointmentsService(
 
     prisonAppointmentRepository.findById(prisonAppointmentId).ifPresentOrElse(
       { appointment ->
-        if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode)) {
+        if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode())) {
           activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-            prisonCode = appointment.prisonCode,
+            prisonCode = appointment.prisonCode(),
             prisonerNumber = appointment.prisonerNumber,
             onDate = appointment.appointmentDate,
             appointment.internalLocationId(),
@@ -118,7 +118,7 @@ class ManageExternalAppointmentsService(
             }
         } else {
           prisonApiClient.getPrisonersAppointmentsAtLocations(
-            prisonCode = appointment.prisonCode,
+            prisonCode = appointment.prisonCode(),
             prisonerNumber = appointment.prisonerNumber,
             onDate = appointment.appointmentDate,
             appointment.internalLocationId(),

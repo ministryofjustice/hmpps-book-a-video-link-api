@@ -11,11 +11,18 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
  */
 fun checkVideoBookingAccess(externalUser: User, booking: VideoBooking) {
   if (externalUser.isUserType(UserType.EXTERNAL)) {
-    if (externalUser.isCourtUser && booking.isCourtBooking()) return
-    if (externalUser.isProbationUser && booking.isProbationBooking()) return
+    if (!booking.prisonIsEnabledForSelfService()) {
+      throw VideoBookingAccessException("Prison with code ${booking.prisonCode()} for booking with id ${booking.videoBookingId} is not self service")
+    }
 
-    throw VideoBookingAccessException()
+    if (externalUser.isCourtUser && booking.isCourtBooking() && booking.isAccessibleBy(externalUser)) return
+    if (externalUser.isProbationUser && booking.isProbationBooking() && booking.isAccessibleBy(externalUser)) return
+
+    throw VideoBookingAccessException("Required role to view a ${booking.bookingType} booking is missing")
   }
 }
 
-class VideoBookingAccessException : RuntimeException()
+// Unknown courts or probation teams cannot be accessed by external users, they will only ever be set up by prison users
+private fun VideoBooking.isAccessibleBy(user: User) = (user.isCourtUser && court?.isUnknown() == false) || (user.isProbationUser && probationTeam?.isUnknown() == false)
+
+class VideoBookingAccessException(message: String) : RuntimeException(message)

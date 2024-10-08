@@ -16,7 +16,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
     SELECT CASE WHEN count(pa) > 0 THEN TRUE ELSE FALSE END
       FROM PrisonAppointment pa 
      WHERE pa.prisonerNumber = :prisonerNumber
-       AND pa.prisonCode = :prisonCode
+       AND pa.prison.code = :prisonCode
        AND pa.prisonLocKey = :key
        AND pa.videoBooking.statusCode = 'ACTIVE'
        AND pa.appointmentDate = :date
@@ -45,7 +45,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   @Query(
     value = """
     SELECT pa FROM PrisonAppointment pa 
-     WHERE pa.prisonCode = :prisonCode
+     WHERE pa.prison.code = :prisonCode
        AND pa.prisonLocKey = :key
        AND pa.videoBooking.statusCode = 'ACTIVE'
        AND pa.appointmentDate = :date

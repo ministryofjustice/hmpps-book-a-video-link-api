@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UserCourt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
@@ -19,7 +20,7 @@ class CourtsService(
     if (enabledOnly) {
       courtRepository.findAllByEnabledIsTrue().toModel()
     } else {
-      courtRepository.findAll().toModel()
+      courtRepository.findAll().filter(Court::isReadable).toModel()
     }
 
   fun getUserCourtPreferences(user: User) =

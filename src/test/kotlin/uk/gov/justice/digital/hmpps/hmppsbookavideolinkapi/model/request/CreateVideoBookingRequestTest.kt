@@ -10,14 +10,14 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
 
   private val appointment = Appointment(
     type = AppointmentType.VLB_COURT_MAIN,
-    locationKey = "MDI-A-1-001",
+    locationKey = "WWI-A-1-001",
     date = tomorrow(),
     startTime = LocalTime.now(),
     endTime = LocalTime.now().plusHours(1),
   )
 
   private val prisoner = PrisonerDetails(
-    prisonCode = "MDI",
+    prisonCode = "WWI",
     prisonerNumber = "123456",
     appointments = listOf(appointment),
   )

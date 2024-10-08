@@ -25,11 +25,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_J
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
@@ -39,14 +40,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.werringtonLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -101,14 +103,14 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -133,11 +135,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedAppointment) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo WERRINGTON
+      prisonCode() isEqualTo PENTONVILLE
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo werringtonLocation.key
+      prisonLocKey isEqualTo pentonvilleLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
@@ -169,19 +171,19 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should create a Derby court booking as prison user and emails sent to Werrington prison and Derby court`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = WERRINGTON).also(::stubUser)
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = PENTONVILLE).also(::stubUser)
 
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -206,11 +208,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedAppointment) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo WERRINGTON
+      prisonCode() isEqualTo PENTONVILLE
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo werringtonLocation.key
+      prisonLocKey isEqualTo pentonvilleLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
@@ -243,20 +245,20 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should allow creation of overlapping court bookings as a prison user`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = WERRINGTON).also(::stubUser)
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = PENTONVILLE).also(::stubUser)
 
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
-    prisonSearchApi().stubGetPrisoner("789101", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+    prisonSearchApi().stubGetPrisoner("789101", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -267,8 +269,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val overlappingCourtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "789101",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -280,20 +282,20 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should reject duplicate court booking creation as a prison user`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = WERRINGTON).also(::stubUser)
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = PENTONVILLE).also(::stubUser)
 
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
-    prisonSearchApi().stubGetPrisoner("789101", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+    prisonSearchApi().stubGetPrisoner("789101", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -338,7 +340,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo BIRMINGHAM
+      prisonCode() isEqualTo BIRMINGHAM
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
@@ -434,7 +436,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should fail to create a court booking when prisoner not at prison`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
+    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val courtBookingRequest = courtBookingRequest(
@@ -461,6 +463,40 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       status isEqualTo 400
       userMessage isEqualTo "Validation failure: Prisoner 123456 not found at prison BMI"
       developerMessage isEqualTo "Prisoner 123456 not found at prison BMI"
+    }
+  }
+
+  @Test
+  fun `should fail to create a court booking when prison is not enabled for self service as court user`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = RISLEY,
+      location = risleyLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+    )
+
+    val error = webTestClient.post()
+      .uri("/video-link-booking")
+      .bodyValue(courtBookingRequest)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 400
+      userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
+      developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
     }
   }
 
@@ -501,7 +537,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo BIRMINGHAM
+      prisonCode() isEqualTo BIRMINGHAM
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo tomorrow()
@@ -567,35 +603,35 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should fail to create a clashing probation booking as probation user`() {
-    prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
-    locationsInsidePrisonApi().stubGetLocationByKey(moorlandLocation.key, MOORLAND)
+    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+    locationsInsidePrisonApi().stubGetLocationByKey(wandsworthLocation.key, WANDSWORTH)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
-    prisonSearchApi().stubGetPrisoner("789012", MOORLAND)
+    prisonSearchApi().stubGetPrisoner("789012", WANDSWORTH)
 
     val clashingBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       prisonerNumber = "789012",
       startTime = LocalTime.of(8, 0),
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = webTestClient.post()
@@ -611,8 +647,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Requested probation appointment overlaps with an existing appointment at location ${moorlandLocation.key}"
-      developerMessage isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${moorlandLocation.key}"
+      userMessage isEqualTo "Exception: Requested probation appointment overlaps with an existing appointment at location ${wandsworthLocation.key}"
+      developerMessage isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${wandsworthLocation.key}"
     }
   }
 
@@ -624,12 +660,12 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       videoLinkUrl = "https://probation.videolink.com",
-      prisonCode = MOORLAND,
+      prisonCode = WANDSWORTH,
       prisonerNumber = "789012",
       startTime = LocalTime.of(8, 0),
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     val error = webTestClient.post()
@@ -645,8 +681,43 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Validation failure: Prisoner 789012 not found at prison MDI"
-      developerMessage isEqualTo "Prisoner 789012 not found at prison MDI"
+      userMessage isEqualTo "Validation failure: Prisoner 789012 not found at prison WWI"
+      developerMessage isEqualTo "Prisoner 789012 not found at prison WWI"
+    }
+  }
+
+  @Test
+  fun `should fail to create a probation booking when prison is not enabled for self service`() {
+    prisonSearchApi().stubGetPrisoner("789012", RISLEY)
+    locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, RISLEY)
+
+    val clashingBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      videoLinkUrl = "https://probation.videolink.com",
+      prisonCode = RISLEY,
+      prisonerNumber = "789012",
+      startTime = LocalTime.of(8, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = risleyLocation,
+    )
+
+    val error = webTestClient.post()
+      .uri("/video-link-booking")
+      .bodyValue(clashingBookingRequest)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 400
+      userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
+      developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
     }
   }
 
@@ -670,14 +741,14 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should return the details of a court video link booking by ID`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court",
@@ -712,9 +783,101 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       with(prisonAppointments.first()) {
         assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
         assertThat(comments).contains("integration test")
-        assertThat(prisonCode).isEqualTo(WERRINGTON)
-        assertThat(prisonLocKey).isEqualTo(werringtonLocation.key)
+        assertThat(prisonCode).isEqualTo(PENTONVILLE)
+        assertThat(prisonLocKey).isEqualTo(pentonvilleLocation.key)
       }
+    }
+  }
+
+  @Test
+  fun `should return the details of a court video link booking by ID when prison is not self service for prison user`() {
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = RISLEY,
+      location = risleyLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
+
+    assertThat(bookingId).isGreaterThan(0L)
+
+    val bookingDetails = webTestClient.getBookingByIdRequest(bookingId, prisonUser)
+
+    assertThat(bookingDetails).isNotNull
+
+    with(bookingDetails) {
+      // Verify court details present for this court booking
+      assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
+      assertThat(courtDescription).isEqualTo("Derby Justice Centre")
+      assertThat(courtHearingType).isEqualTo(CourtHearingType.TRIBUNAL)
+      assertThat(courtHearingTypeDescription).isEqualTo("Tribunal")
+
+      // Verify probation details are null
+      assertThat(probationTeamCode).isNull()
+      assertThat(probationTeamDescription).isNull()
+      assertThat(probationMeetingType).isNull()
+      assertThat(probationMeetingTypeDescription).isNull()
+
+      assertThat(createdByPrison).isTrue()
+      assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
+
+      // Verify that there is a single appointment
+      assertThat(prisonAppointments).hasSize(1)
+      with(prisonAppointments.first()) {
+        assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
+        assertThat(comments).contains("integration test")
+        assertThat(prisonCode).isEqualTo(RISLEY)
+        assertThat(prisonLocKey).isEqualTo(risleyLocation.key)
+      }
+    }
+  }
+
+  @Test
+  fun `should fail to return the details of a court video link booking by ID if the prison is not self service for court user`() {
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = RISLEY,
+      location = risleyLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
+
+    assertThat(bookingId).isGreaterThan(0L)
+
+    val error = webTestClient.get()
+      .uri("/video-link-booking/id/{videoBookingId}", bookingId)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 403
+      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1 is not self service"
+      developerMessage isEqualTo "Prison with code RSI for booking with id 1 is not self service"
     }
   }
 
@@ -722,15 +885,15 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should return the details of a probation video link booking by ID`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
-    locationsInsidePrisonApi().stubGetLocationByKey(moorlandLocation.key, MOORLAND)
+    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+    locationsInsidePrisonApi().stubGetLocationByKey(wandsworthLocation.key, WANDSWORTH)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
       prisonerNumber = "123456",
-      prisonCode = MOORLAND,
-      location = moorlandLocation,
+      prisonCode = WANDSWORTH,
+      location = wandsworthLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test probation",
@@ -765,8 +928,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       with(prisonAppointments.first()) {
         assertThat(appointmentType).isEqualTo("VLB_PROBATION")
         assertThat(comments).contains("integration test")
-        assertThat(prisonCode).isEqualTo(MOORLAND)
-        assertThat(prisonLocKey).isEqualTo(moorlandLocation.key)
+        assertThat(prisonCode).isEqualTo(WANDSWORTH)
+        assertThat(prisonLocKey).isEqualTo(wandsworthLocation.key)
       }
     }
   }
@@ -775,14 +938,14 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should return a 404 not found when requesting an invalid video booking ID`() {
     videoBookingRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test not found",
@@ -803,14 +966,14 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", WERRINGTON)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(werringtonLocation.key), WERRINGTON)
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court booking comments",
@@ -821,8 +984,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val amendBookingRequest = amendCourtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
-      prisonCode = WERRINGTON,
-      location = werringtonLocation,
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
       startTime = LocalTime.of(13, 0),
       endTime = LocalTime.of(14, 30),
       comments = "amended court booking comments",
@@ -847,11 +1010,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo WERRINGTON
+      prisonCode() isEqualTo PENTONVILLE
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo werringtonLocation.key
+      prisonLocKey isEqualTo pentonvilleLocation.key
       startTime isEqualTo LocalTime.of(13, 0)
       endTime isEqualTo LocalTime.of(14, 30)
       comments isEqualTo "amended court booking comments"
@@ -913,7 +1076,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo BIRMINGHAM
+      prisonCode() isEqualTo BIRMINGHAM
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
@@ -1002,7 +1165,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val videoBookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
-    prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
+    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
     locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val amendBookingRequest = amendCourtBookingRequest(
@@ -1029,6 +1192,79 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       status isEqualTo 400
       userMessage isEqualTo "Validation failure: Prisoner 123456 not found at prison BMI"
       developerMessage isEqualTo "Prisoner 123456 not found at prison BMI"
+    }
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-bookings-happening-tomorrow.sql")
+  fun `should fail to amend a court booking when the prison is not enabled for self service as court user`() {
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+
+    val amendBookingRequest = amendCourtBookingRequest(
+      prisonCode = RISLEY,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      location = risleyLocation,
+      comments = "integration test probation booking comments",
+    )
+
+    val error = webTestClient.put()
+      .uri("/video-link-booking/id/1000")
+      .bodyValue(amendBookingRequest)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 403
+      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1000 is not self service"
+      developerMessage isEqualTo "Prison with code RSI for booking with id 1000 is not self service"
+    }
+  }
+
+  @Test
+  fun `should be able to create and amend a court booking when the prison is not enabled as prison user`() {
+    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = RISLEY,
+      location = risleyLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+    )
+
+    val videoBookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
+
+    val amendBookingRequest = amendCourtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = RISLEY,
+      location = risleyLocation,
+      startTime = LocalTime.of(13, 0),
+      endTime = LocalTime.of(14, 30),
+    )
+
+    webTestClient.amendBooking(videoBookingId, amendBookingRequest, prisonUser)
+
+    val persistedBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
+
+    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+      videoBooking isEqualTo persistedBooking
+      prisonCode() isEqualTo RISLEY
+      startTime isEqualTo LocalTime.of(13, 0)
+      endTime isEqualTo LocalTime.of(14, 30)
     }
   }
 
@@ -1084,7 +1320,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
       videoBooking isEqualTo persistedBooking
-      prisonCode isEqualTo BIRMINGHAM
+      prisonCode() isEqualTo BIRMINGHAM
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo tomorrow()
@@ -1182,7 +1418,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val videoBookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
-    prisonSearchApi().stubGetPrisoner("123456", MOORLAND)
+    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
     locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val amendBookingRequest = amendProbationBookingRequest(
@@ -1212,6 +1448,42 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       status isEqualTo 400
       userMessage isEqualTo "Validation failure: Prisoner 123456 not found at prison BMI"
       developerMessage isEqualTo "Prisoner 123456 not found at prison BMI"
+    }
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-bookings-happening-tomorrow.sql")
+  fun `should fail to amend a probation booking when the prison is not enabled for self service`() {
+    prisonSearchApi().stubGetPrisoner("123456", RISLEY)
+    locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, RISLEY)
+
+    val amendBookingRequest = amendProbationBookingRequest(
+      probationMeetingType = ProbationMeetingType.PSR,
+      videoLinkUrl = "https://probation.videolink.com",
+      prisonCode = RISLEY,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = risleyLocation,
+      comments = "integration test probation booking comments",
+    )
+
+    val error = webTestClient.put()
+      .uri("/video-link-booking/id/1001")
+      .bodyValue(amendBookingRequest)
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .exchange()
+      .expectStatus().is4xxClientError
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody(ErrorResponse::class.java)
+      .returnResult().responseBody!!
+
+    with(error) {
+      status isEqualTo 403
+      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1001 is not self service"
+      developerMessage isEqualTo "Prison with code RSI for booking with id 1001 is not self service"
     }
   }
 
@@ -1470,7 +1742,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     webTestClient.searchForBooking(
       VideoBookingSearchRequest(
         prisonerNumber = "123456",
-        locationKey = "WNI-123456",
+        locationKey = "PVI-123456",
         date = today(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
@@ -1481,7 +1753,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     webTestClient.searchForBooking(
       VideoBookingSearchRequest(
         prisonerNumber = "78910",
-        locationKey = "WNI-78910",
+        locationKey = "PVI-78910",
         date = tomorrow(),
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(10, 0),
@@ -1558,7 +1830,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   private fun WebTestClient.getBookingByIdRequest(videoBookingId: Long, user: User) =
     this
       .get()
-      .uri("/video-link-booking/id/{videoBookinId}", videoBookingId)
+      .uri("/video-link-booking/id/{videoBookingId}", videoBookingId)
       .accept(MediaType.APPLICATION_JSON)
       .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
@@ -1570,7 +1842,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   private fun WebTestClient.getBookingByIdNotFound(videoBookingId: Long, user: User) =
     this
       .get()
-      .uri("/video-link-booking/id/{videoBookinId}", videoBookingId)
+      .uri("/video-link-booking/id/{videoBookingId}", videoBookingId)
       .accept(MediaType.APPLICATION_JSON)
       .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()

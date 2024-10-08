@@ -7,17 +7,17 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import java.time.LocalDate
 import java.time.LocalTime
@@ -55,28 +55,28 @@ class ProbationEmailFactoryTest {
     lastName = "Bloggs",
   )
 
-  private val prison = prison(prisonCode = MOORLAND)
+  private val prison = prison(prisonCode = WANDSWORTH)
 
   private val courtBooking = courtBooking()
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
     )
 
   private val probationBooking = probationBooking()
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
       appointmentType = "VLB_PROBATION",
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = moorlandLocation.key,
+      locationKey = wandsworthLocation.key,
     )
 
   private val userEmails = mapOf(
@@ -127,7 +127,7 @@ class ProbationEmailFactoryTest {
       booking = if (action == BookingAction.CANCEL) probationBooking.apply { cancel(COURT_USER) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     email isInstanceOf userEmails[action]!!
@@ -143,7 +143,7 @@ class ProbationEmailFactoryTest {
       booking = probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     email isEqualTo null
@@ -211,7 +211,7 @@ class ProbationEmailFactoryTest {
       booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(PROBATION_USER) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     email isInstanceOf probationEmails[action]!!
@@ -227,7 +227,7 @@ class ProbationEmailFactoryTest {
       booking = probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = moorlandLocation,
+      location = wandsworthLocation,
     )
 
     email isEqualTo null
@@ -243,7 +243,7 @@ class ProbationEmailFactoryTest {
       booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(PROBATION_USER) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = moorlandLocation,
+      location = wandsworthLocation,
       contacts = setOf(probationBookingContact),
     )
 

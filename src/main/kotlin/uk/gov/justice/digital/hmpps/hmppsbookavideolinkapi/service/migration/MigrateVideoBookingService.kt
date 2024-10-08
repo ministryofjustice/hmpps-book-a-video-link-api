@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_COURT_
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_PROBATION_TEAM_CODE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 
 @Service
@@ -28,6 +29,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 class MigrateVideoBookingService(
   private val mappingService: MigrateMappingService,
   private val videoBookingRepository: VideoBookingRepository,
+  private val prisonRepository: PrisonRepository,
   private val bookingHistoryRepository: BookingHistoryRepository,
 ) {
   @Transactional
@@ -67,9 +69,12 @@ class MigrateVideoBookingService(
       mappingService.mapCourtCodeToCourt(UNKNOWN_COURT_CODE)!!
     }
 
+    val prison = prisonRepository.findByCode(bookingToMigrate.prisonCode)
+      ?: throw MigrationException("Prison not found for code ${bookingToMigrate.prisonCode} for court booking ${bookingToMigrate.videoBookingId}")
+
     val migratedBooking = VideoBooking.migratedCourtBooking(
       court = court,
-      comments = if (court.isUnknown()) "Court ${bookingToMigrate.courtName ?: "UNKNOWN"}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
+      comments = bookingToMigrate.comment,
       createdBy = bookingToMigrate.createdByUsername,
       createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
@@ -78,10 +83,11 @@ class MigrateVideoBookingService(
       cancelledAt = bookingToMigrate.cancelledAt(),
       updatedBy = bookingToMigrate.updatedBy(),
       updatedAt = bookingToMigrate.updatedAt(),
+      migratedDescription = bookingToMigrate.courtName,
     ).apply {
       if (bookingToMigrate.pre != null) {
         addAppointment(
-          prisonCode = bookingToMigrate.prisonCode,
+          prison = prison,
           prisonerNumber = prisonerNumber,
           appointmentType = APPOINTMENT_TYPE_COURT_PRE,
           date = bookingToMigrate.pre.date,
@@ -92,7 +98,7 @@ class MigrateVideoBookingService(
       }
 
       addAppointment(
-        prisonCode = bookingToMigrate.prisonCode,
+        prison = prison,
         prisonerNumber = prisonerNumber,
         appointmentType = APPOINTMENT_TYPE_COURT_MAIN,
         date = bookingToMigrate.main.date,
@@ -103,7 +109,7 @@ class MigrateVideoBookingService(
 
       if (bookingToMigrate.post != null) {
         addAppointment(
-          prisonCode = bookingToMigrate.prisonCode,
+          prison = prison,
           prisonerNumber = prisonerNumber,
           appointmentType = APPOINTMENT_TYPE_COURT_POST,
           date = bookingToMigrate.post.date,
@@ -135,9 +141,12 @@ class MigrateVideoBookingService(
       mappingService.mapProbationTeamCodeToProbationTeam(UNKNOWN_PROBATION_TEAM_CODE)!!
     }
 
+    val prison = prisonRepository.findByCode(bookingToMigrate.prisonCode)
+      ?: throw MigrationException("Prison not found for code ${bookingToMigrate.prisonCode} for probation booking ${bookingToMigrate.videoBookingId}")
+
     val migratedBooking = VideoBooking.migratedProbationBooking(
       probationTeam = probationTeam,
-      comments = if (probationTeam.isUnknown()) "Probation team ${bookingToMigrate.courtName ?: "UNKNOWN"}\n".plus(bookingToMigrate.comment) else bookingToMigrate.comment,
+      comments = bookingToMigrate.comment,
       createdBy = bookingToMigrate.createdByUsername,
       createdTime = bookingToMigrate.createdAt(),
       createdByPrison = bookingToMigrate.madeByTheCourt.not(),
@@ -146,8 +155,9 @@ class MigrateVideoBookingService(
       cancelledAt = bookingToMigrate.cancelledAt(),
       updatedBy = bookingToMigrate.updatedBy(),
       updatedAt = bookingToMigrate.updatedAt(),
+      migratedDescription = bookingToMigrate.courtName,
     ).addAppointment(
-      prisonCode = bookingToMigrate.prisonCode,
+      prison = prison,
       prisonerNumber = prisonerNumber,
       appointmentType = APPOINTMENT_TYPE_PROBATION,
       date = bookingToMigrate.main.date,

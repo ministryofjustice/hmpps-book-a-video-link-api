@@ -15,15 +15,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WERRINGTON
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.daysAgo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation2
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.moorlandLocation3
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
@@ -58,7 +58,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       VideoBookingMigrateResponse(
         videoBookingId = 1,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = DERBY_JUSTICE_CENTRE,
         courtName = null,
         probation = false,
@@ -79,7 +79,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
             pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -93,7 +93,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
             pre = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(9, 0), LocalTime.of(10, 0)),
             main = AppointmentLocationTimeSlot(2, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(11, 0), LocalTime.of(12, 0)),
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT UPDATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -102,18 +102,18 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    prisonSearchApi().stubPostGetPrisonerByBookingId(1, "ABC123", MOORLAND)
+    prisonerApi().stubGetPrisonerByBookingId(1, "ABC123")
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
       nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, moorlandLocation)
+      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation)
     }
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
       nomisMappingApi().stubGetNomisToDpsLocationMapping(2, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, moorlandLocation2)
+      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation2)
     }
 
     videoBookingRepository.findAll().filter(VideoBooking::isCourtBooking) hasSize 0
@@ -132,6 +132,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       createdTime isEqualTo yesterday().atStartOfDay()
       createdByPrison isBool false
       migratedVideoBookingId isEqualTo 1
+      migratedDescription isEqualTo null
       amendedBy isEqualTo "MIGRATION COURT UPDATE USER"
       amendedTime isEqualTo yesterday().atTime(4, 0)
     }
@@ -140,7 +141,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
     val migratedPrisonAppointments = migratedCourtBooking.appointments().sortedBy(PrisonAppointment::prisonAppointmentId).also { it hasSize 3 }
 
     migratedPrisonAppointments.component1()
-      .isAtPrison(MOORLAND)
+      .isAtPrison(WANDSWORTH)
       .isForPrisoner("ABC123")
       .isAppointmentType("VLB_COURT_PRE")
       .isOnDate(yesterday())
@@ -149,7 +150,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       .hasComments("Migrated court comments")
 
     migratedPrisonAppointments.component2()
-      .isAtPrison(MOORLAND)
+      .isAtPrison(WANDSWORTH)
       .isForPrisoner("ABC123")
       .isAppointmentType("VLB_COURT_MAIN")
       .isOnDate(yesterday())
@@ -158,7 +159,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       .hasComments("Migrated court comments")
 
     migratedPrisonAppointments.component3()
-      .isAtPrison(MOORLAND)
+      .isAtPrison(WANDSWORTH)
       .isForPrisoner("ABC123")
       .isAppointmentType("VLB_COURT_POST")
       .isOnDate(yesterday())
@@ -176,9 +177,9 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
         .also { it hasSize 3 }
         .onEach { appointment ->
           appointment
-            .isAtPrison(MOORLAND)
+            .isAtPrison(WANDSWORTH)
             .isForPrisoner("ABC123")
-            .isAtLocation(moorlandLocation)
+            .isAtLocation(wandsworthLocation)
             .isOnDate(yesterday())
         }
 
@@ -206,26 +207,26 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
         .also { it hasSize 3 }
         .onEach { appointment ->
           appointment
-            .isAtPrison(MOORLAND)
+            .isAtPrison(WANDSWORTH)
             .isForPrisoner("ABC123")
             .isOnDate(yesterday())
         }
 
       appointments().component1()
         .isForAppointmentType("VLB_COURT_PRE")
-        .isAtLocation(moorlandLocation)
+        .isAtLocation(wandsworthLocation)
         .startsAt(9, 0)
         .endsAt(10, 0)
 
       appointments().component2()
         .isForAppointmentType("VLB_COURT_MAIN")
-        .isAtLocation(moorlandLocation2)
+        .isAtLocation(wandsworthLocation2)
         .startsAt(10, 0)
         .endsAt(11, 0)
 
       appointments().component3()
         .isForAppointmentType("VLB_COURT_POST")
-        .isAtLocation(moorlandLocation)
+        .isAtLocation(wandsworthLocation)
         .startsAt(11, 0)
         .endsAt(12, 0)
     }
@@ -237,19 +238,19 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       timestamp isEqualTo yesterday().atStartOfDay()
       videoBookingId isEqualTo migratedCourtBooking.videoBookingId
       eventType isEqualTo "CREATE"
-      prisonCode isEqualTo MOORLAND
+      prisonCode isEqualTo WANDSWORTH
       courtDescription isEqualTo "Derby Justice Centre"
       courtCode isEqualTo DERBY_JUSTICE_CENTRE
       courtBooking isBool true
       createdByPrison isBool false
-      preLocationKey isEqualTo moorlandLocation.key
+      preLocationKey isEqualTo wandsworthLocation.key
       preStartTime isEqualTo LocalTime.of(9, 0)
       preEndTime isEqualTo LocalTime.of(10, 0)
-      mainLocationKey isEqualTo moorlandLocation.key
+      mainLocationKey isEqualTo wandsworthLocation.key
       mainDate isEqualTo yesterday()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo moorlandLocation.key
+      preLocationKey isEqualTo wandsworthLocation.key
       postStartTime isEqualTo LocalTime.of(11, 0)
       postEndTime isEqualTo LocalTime.of(12, 0)
     }
@@ -260,19 +261,19 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       timestamp isEqualTo yesterday().atTime(4, 0)
       videoBookingId isEqualTo migratedCourtBooking.videoBookingId
       eventType isEqualTo "AMEND"
-      prisonCode isEqualTo MOORLAND
+      prisonCode isEqualTo WANDSWORTH
       courtDescription isEqualTo "Derby Justice Centre"
       courtCode isEqualTo DERBY_JUSTICE_CENTRE
       courtBooking isBool true
       createdByPrison isBool false
-      preLocationKey isEqualTo moorlandLocation.key
+      preLocationKey isEqualTo wandsworthLocation.key
       preStartTime isEqualTo LocalTime.of(9, 0)
       preEndTime isEqualTo LocalTime.of(10, 0)
-      mainLocationKey isEqualTo moorlandLocation2.key
+      mainLocationKey isEqualTo wandsworthLocation2.key
       mainDate isEqualTo yesterday()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo moorlandLocation.key
+      preLocationKey isEqualTo wandsworthLocation.key
       postStartTime isEqualTo LocalTime.of(11, 0)
       postEndTime isEqualTo LocalTime.of(12, 0)
     }
@@ -286,7 +287,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       VideoBookingMigrateResponse(
         videoBookingId = 1,
         offenderBookingId = 1,
-        prisonCode = MOORLAND,
+        prisonCode = WANDSWORTH,
         courtCode = null,
         courtName = "Unknown court name",
         probation = false,
@@ -308,7 +309,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
             pre = null,
             main = AppointmentLocationTimeSlot(1, yesterday(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = MOORLAND,
+            prisonCode = WANDSWORTH,
             createdByUsername = "MIGRATION COURT CREATE USER",
             madeByTheCourt = true,
           ),
@@ -316,12 +317,12 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    prisonSearchApi().stubPostGetPrisonerByBookingId(1, "ABC123", MOORLAND)
+    prisonerApi().stubGetPrisonerByBookingId(1, "ABC123")
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
       nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, moorlandLocation)
+      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation)
     }
 
     videoBookingRepository.findAll().filter(VideoBooking::isCourtBooking) hasSize 0
@@ -340,19 +341,20 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       createdTime isEqualTo yesterday().atStartOfDay()
       createdByPrison isBool false
       migratedVideoBookingId isEqualTo 1
+      migratedDescription isEqualTo "Unknown court name"
     }
 
     // Assertions on the migrated court bookings appointments
     val migratedPrisonAppointment = migratedCourtBooking.appointments().sortedBy(PrisonAppointment::prisonAppointmentId).single()
 
     migratedPrisonAppointment
-      .isAtPrison(MOORLAND)
+      .isAtPrison(WANDSWORTH)
       .isForPrisoner("ABC123")
       .isAppointmentType("VLB_COURT_MAIN")
       .isOnDate(yesterday())
       .startsAt(10, 0)
       .endsAt(11, 0)
-      .hasComments("Court Unknown court name\nMigrated court comments")
+      .hasComments("Migrated court comments")
 
     val migratedBookingHistory = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(migratedCourtBooking.videoBookingId).single()
 
@@ -361,9 +363,9 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       comments isEqualTo "Court booking create event comments"
 
       appointments().single()
-        .isAtPrison(MOORLAND)
+        .isAtPrison(WANDSWORTH)
         .isForPrisoner("ABC123")
-        .isAtLocation(moorlandLocation)
+        .isAtLocation(wandsworthLocation)
         .isOnDate(yesterday())
         .isForAppointmentType("VLB_COURT_MAIN")
         .startsAt(10, 0)
@@ -382,7 +384,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       VideoBookingMigrateResponse(
         videoBookingId = 2,
         offenderBookingId = 2,
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         courtCode = BLACKPOOL_MC_PPOC,
         courtName = null,
         probation = true,
@@ -403,7 +405,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
             pre = null,
             main = AppointmentLocationTimeSlot(1, 2.daysAgo(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -417,7 +419,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
             pre = null,
             main = AppointmentLocationTimeSlot(3, 2.daysAgo(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION UPDATE USER",
             courtName = null,
             madeByTheCourt = true,
@@ -426,18 +428,18 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    prisonSearchApi().stubPostGetPrisonerByBookingId(2, "DEF123", WERRINGTON)
+    prisonerApi().stubGetPrisonerByBookingId(2, "DEF123")
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
       nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, moorlandLocation)
+      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation)
     }
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
       nomisMappingApi().stubGetNomisToDpsLocationMapping(3, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, moorlandLocation3)
+      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation3)
     }
 
     videoBookingRepository.findAll().filter(VideoBooking::isProbationBooking) hasSize 0
@@ -456,6 +458,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       createdTime isEqualTo 3.daysAgo().atStartOfDay()
       createdByPrison isBool false
       migratedVideoBookingId isEqualTo 2
+      migratedDescription isEqualTo null
       amendedBy isEqualTo "MIGRATION PROBATION UPDATE USER"
       amendedTime isEqualTo 3.daysAgo().atTime(7, 0)
     }
@@ -464,7 +467,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
     // Assertions on the migrated probation bookings appointment
     migratedPrisonAppointment
-      .isAtPrison(WERRINGTON)
+      .isAtPrison(PENTONVILLE)
       .isForPrisoner("DEF123")
       .isAppointmentType("VLB_PROBATION")
       .isOnDate(2.daysAgo())
@@ -481,10 +484,10 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
       appointments()
         .single()
-        .isAtPrison(WERRINGTON)
+        .isAtPrison(PENTONVILLE)
         .isForPrisoner("DEF123")
         .isForAppointmentType("VLB_PROBATION")
-        .isAtLocation(moorlandLocation)
+        .isAtLocation(wandsworthLocation)
         .isOnDate(2.daysAgo())
         .startsAt(10, 0)
         .endsAt(11, 0)
@@ -496,10 +499,10 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
       appointments()
         .single()
-        .isAtPrison(WERRINGTON)
+        .isAtPrison(PENTONVILLE)
         .isForPrisoner("DEF123")
         .isForAppointmentType("VLB_PROBATION")
-        .isAtLocation(moorlandLocation3)
+        .isAtLocation(wandsworthLocation3)
         .isOnDate(2.daysAgo())
         .startsAt(10, 0)
         .endsAt(11, 0)
@@ -512,7 +515,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       timestamp isEqualTo 3.daysAgo().atStartOfDay()
       videoBookingId isEqualTo migratedProbationBooking.videoBookingId
       eventType isEqualTo "CREATE"
-      prisonCode isEqualTo WERRINGTON
+      prisonCode isEqualTo PENTONVILLE
       probationTeamDescription isEqualTo "Blackpool Magistrates - Probation"
       probationTeamCode isEqualTo BLACKPOOL_MC_PPOC
       courtBooking isBool false
@@ -520,7 +523,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       preLocationKey isEqualTo null
       preStartTime isEqualTo null
       preEndTime isEqualTo null
-      mainLocationKey isEqualTo moorlandLocation.key
+      mainLocationKey isEqualTo wandsworthLocation.key
       mainDate isEqualTo 2.daysAgo()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
@@ -535,7 +538,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       timestamp isEqualTo 3.daysAgo().atTime(7, 0)
       videoBookingId isEqualTo migratedProbationBooking.videoBookingId
       eventType isEqualTo "AMEND"
-      prisonCode isEqualTo WERRINGTON
+      prisonCode isEqualTo PENTONVILLE
       probationTeamDescription isEqualTo "Blackpool Magistrates - Probation"
       probationTeamCode isEqualTo BLACKPOOL_MC_PPOC
       courtBooking isBool false
@@ -543,7 +546,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       preLocationKey isEqualTo null
       preStartTime isEqualTo null
       preEndTime isEqualTo null
-      mainLocationKey isEqualTo moorlandLocation3.key
+      mainLocationKey isEqualTo wandsworthLocation3.key
       mainDate isEqualTo 2.daysAgo()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
@@ -561,7 +564,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       VideoBookingMigrateResponse(
         videoBookingId = 2,
         offenderBookingId = 2,
-        prisonCode = WERRINGTON,
+        prisonCode = PENTONVILLE,
         courtCode = null,
         courtName = "Unknown probation team",
         probation = true,
@@ -583,7 +586,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
             pre = null,
             main = AppointmentLocationTimeSlot(1, 2.daysAgo(), LocalTime.of(10, 0), LocalTime.of(11, 0)),
             post = null,
-            prisonCode = WERRINGTON,
+            prisonCode = PENTONVILLE,
             createdByUsername = "MIGRATION PROBATION CREATE USER",
             madeByTheCourt = true,
           ),
@@ -591,12 +594,12 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       ),
     )
 
-    prisonSearchApi().stubPostGetPrisonerByBookingId(2, "DEF123", WERRINGTON)
+    prisonerApi().stubGetPrisonerByBookingId(2, "DEF123")
 
     // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
     UUID.randomUUID().also { dpsLocationId ->
       nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, moorlandLocation)
+      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation)
     }
 
     videoBookingRepository.findAll().filter(VideoBooking::isProbationBooking) hasSize 0
@@ -615,19 +618,20 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       createdTime isEqualTo 3.daysAgo().atStartOfDay()
       createdByPrison isBool false
       migratedVideoBookingId isEqualTo 2
+      migratedDescription isEqualTo "Unknown probation team"
     }
 
     val migratedPrisonAppointment = migratedProbationBooking.appointments().sortedBy(PrisonAppointment::prisonAppointmentId).single()
 
     // Assertions on the migrated probation bookings appointment
     migratedPrisonAppointment
-      .isAtPrison(WERRINGTON)
+      .isAtPrison(PENTONVILLE)
       .isForPrisoner("DEF123")
       .isAppointmentType("VLB_PROBATION")
       .isOnDate(2.daysAgo())
       .startsAt(10, 0)
       .endsAt(11, 0)
-      .hasComments("Probation team Unknown probation team\nMigrated probation comments")
+      .hasComments("Migrated probation comments")
 
     // Assertions on the migrated booking history and booking history appointment entries
     val migratedBookingHistory = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(migratedProbationBooking.videoBookingId).single()
@@ -638,10 +642,10 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
       appointments()
         .single()
-        .isAtPrison(WERRINGTON)
+        .isAtPrison(PENTONVILLE)
         .isForPrisoner("DEF123")
         .isForAppointmentType("VLB_PROBATION")
-        .isAtLocation(moorlandLocation)
+        .isAtLocation(wandsworthLocation)
         .isOnDate(2.daysAgo())
         .startsAt(10, 0)
         .endsAt(11, 0)
@@ -651,7 +655,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
     // TODO what to do about event history. Events are only available for enabled probation teams, the hidden court is disabled.
   }
 
-  private fun PrisonAppointment.isAtPrison(prison: String) = also { it.prisonCode isEqualTo prison }
+  private fun PrisonAppointment.isAtPrison(prison: String) = also { it.prisonCode() isEqualTo prison }
   private fun PrisonAppointment.isForPrisoner(prisoner: String) = also { it.prisonerNumber isEqualTo prisoner }
   private fun PrisonAppointment.isAppointmentType(type: String) = also { it.appointmentType isEqualTo type }
   private fun PrisonAppointment.isOnDate(appointmentDate: LocalDate) = also { it.appointmentDate isEqualTo appointmentDate }

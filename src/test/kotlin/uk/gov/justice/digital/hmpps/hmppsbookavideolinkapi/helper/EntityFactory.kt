@@ -19,8 +19,18 @@ val courtAppealReferenceCode = ReferenceCode(1, "COURT_HEARING_TYPE", "APPEAL", 
 fun court(code: String = DERBY_JUSTICE_CENTRE, enabled: Boolean = true) = Court(
   courtId = 0,
   code = code,
-  description = DERBY_JUSTICE_CENTRE,
+  description = code,
   enabled = enabled,
+  notes = null,
+  createdBy = "Test",
+)
+
+fun readOnlyCourt() = Court(
+  courtId = 0,
+  code = "UNKNOWN",
+  description = "Unknown court",
+  enabled = false,
+  readOnly = true,
   notes = null,
   createdBy = "Test",
 )
@@ -56,22 +66,23 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
  * This adds a prison appointment to meet the basic needs of a test. We don't care about the details of the appointment.
  */
 fun VideoBooking.withMainCourtPrisonAppointment(
+  date: LocalDate = tomorrow(),
   prisonCode: String = BIRMINGHAM,
   location: Location = birminghamLocation,
   prisonerNumber: String = "123456",
 ) =
   addAppointment(
-    prisonCode = prisonCode,
+    prison = prison(prisonCode = prisonCode),
     prisonerNumber = prisonerNumber,
     appointmentType = "VLB_COURT_MAIN",
     locationKey = location.key,
-    date = tomorrow(),
+    date = date,
     startTime = LocalTime.of(9, 30),
     endTime = LocalTime.of(10, 0),
   )
 
-fun probationBooking() = VideoBooking.newProbationBooking(
-  probationTeam = probationTeam(),
+fun probationBooking(probationTeam: ProbationTeam = probationTeam()) = VideoBooking.newProbationBooking(
+  probationTeam = probationTeam,
   probationMeetingType = "PSR",
   comments = "Probation meeting comments",
   videoUrl = "https://probation.meeting.link",
@@ -86,7 +97,7 @@ fun VideoBooking.withProbationPrisonAppointment(
   prisonCode: String = BIRMINGHAM,
   location: Location = birminghamLocation,
 ) = addAppointment(
-  prisonCode = prisonCode,
+  prison = prison(prisonCode = prisonCode),
   prisonerNumber = "123456",
   appointmentType = "VLB_PROBATION",
   date = tomorrow(),
@@ -106,7 +117,7 @@ fun appointment(
   locationKey: String,
 ) = PrisonAppointment.newAppointment(
   videoBooking = booking,
-  prisonCode = prisonCode,
+  prison = prison(prisonCode = prisonCode),
   prisonerNumber = prisonerNumber,
   appointmentType = appointmentType,
   appointmentDate = date,
@@ -155,7 +166,7 @@ fun videoAppointment(
     statusCode = booking.statusCode.name,
     courtCode = booking.court?.code,
     probationTeamCode = null,
-    prisonCode = MOORLAND,
+    prisonCode = WANDSWORTH,
     prisonerNumber = "A1234AA",
     appointmentType = prisonAppointment.appointmentType,
     prisonLocKey = prisonAppointment.prisonLocKey,

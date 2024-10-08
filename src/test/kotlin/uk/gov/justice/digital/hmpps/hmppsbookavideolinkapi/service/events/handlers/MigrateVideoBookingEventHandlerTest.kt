@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.Migr
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.VideoBookingMigrateResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.MOORLAND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -35,7 +35,7 @@ class MigrateVideoBookingEventHandlerTest {
   private val videoBookingMigrateResponse = VideoBookingMigrateResponse(
     videoBookingId = 1,
     offenderBookingId = 1,
-    prisonCode = MOORLAND,
+    prisonCode = WANDSWORTH,
     courtCode = DERBY_JUSTICE_CENTRE,
     courtName = null,
     probation = false,
@@ -65,7 +65,7 @@ class MigrateVideoBookingEventHandlerTest {
       on { videoBookingId } doReturn 99
       on { court } doReturn court(DERBY_JUSTICE_CENTRE)
       on { migratedVideoBookingId } doReturn 1
-      on { prisonCode() } doReturn MOORLAND
+      on { prisonCode() } doReturn WANDSWORTH
     }
 
     handler.handle(MigrateVideoBookingEvent(1))
@@ -84,7 +84,7 @@ class MigrateVideoBookingEventHandlerTest {
       "video_booking_id" to "99",
       "migrated_video_booking_id" to "1",
       "court" to DERBY_JUSTICE_CENTRE,
-      "prison" to MOORLAND,
+      "prison" to WANDSWORTH,
     )
   }
 

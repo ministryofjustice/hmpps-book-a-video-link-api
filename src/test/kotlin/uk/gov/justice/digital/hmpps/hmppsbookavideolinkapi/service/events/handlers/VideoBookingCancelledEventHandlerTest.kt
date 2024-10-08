@@ -11,6 +11,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCancelledEvent
@@ -21,7 +22,7 @@ import java.util.*
 class VideoBookingCancelledEventHandlerTest {
   private val booking = courtBooking()
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_PRE",
       date = LocalDate.of(2100, 1, 1),
@@ -30,7 +31,7 @@ class VideoBookingCancelledEventHandlerTest {
       locationKey = "",
     )
     .addAppointment(
-      prisonCode = BIRMINGHAM,
+      prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
       appointmentType = "VLB_COURT_MAIN",
       date = LocalDate.of(2100, 1, 1),

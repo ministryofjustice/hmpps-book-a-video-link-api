@@ -13,7 +13,7 @@ class MigrateMappingService(
   private val courtRepository: CourtRepository,
 ) {
   fun mapBookingIdToPrisonerNumber(bookingId: Long): String? =
-    migrationClient.getPrisoner(bookingId)?.prisonerNumber
+    migrationClient.getPrisonerByBookingId(bookingId)?.offenderNo
 
   fun mapInternalLocationIdToLocation(id: Long) = migrationClient.getLocationByInternalId(id)
 

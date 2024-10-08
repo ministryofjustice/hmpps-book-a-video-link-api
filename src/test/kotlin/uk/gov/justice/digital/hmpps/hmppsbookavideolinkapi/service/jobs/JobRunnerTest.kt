@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.argumentCaptor
@@ -30,7 +31,7 @@ class JobRunnerTest {
   @Test
   fun `runs job with error`() {
     val telemetryCaptor = argumentCaptor<JobFailureTelemetryEvent>()
-    runner.runJob(TestJob { throw Exception("Test error") })
+    assertThrows<Exception> { runner.runJob(TestJob { throw Exception("Test error") }) }
     verify(telemetryService).track(telemetryCaptor.capture())
     with(telemetryCaptor.firstValue) {
       properties().get("jobType") isEqualTo JobType.COURT_HEARING_LINK_REMINDER.name
