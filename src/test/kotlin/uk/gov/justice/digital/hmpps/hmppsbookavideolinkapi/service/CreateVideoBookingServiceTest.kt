@@ -20,9 +20,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
@@ -184,7 +184,7 @@ class CreateVideoBookingServiceTest {
       ),
     )
 
-    assertThrows<CaseloadAccessException> { service.create(courtBookingRequest, PRISON_USER.copy(activeCaseLoadId = RISLEY)) }
+    assertThrows<CaseloadAccessException> { service.create(courtBookingRequest, PRISON_USER_RISLEY) }
   }
 
   @Test
@@ -542,7 +542,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
     assertDoesNotThrow {
-      service.create(courtBookingRequest, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM))
+      service.create(courtBookingRequest, PRISON_USER_BIRMINGHAM)
     }
   }
 
@@ -566,7 +566,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn readOnlyCourt()
 
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM)) }
+    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, PRISON_USER_BIRMINGHAM) }
 
     error.message isEqualTo "Court with code ${courtBookingRequest.courtCode} is read-only"
 
@@ -605,7 +605,7 @@ class CreateVideoBookingServiceTest {
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
 
     assertDoesNotThrow {
-      service.create(courtBookingRequest, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM))
+      service.create(courtBookingRequest, PRISON_USER_BIRMINGHAM)
     }
   }
 
@@ -724,7 +724,7 @@ class CreateVideoBookingServiceTest {
 
   @Test
   fun `should fail to create a probation video booking when not probation user`() {
-    assertThrows<IllegalArgumentException> { service.create(probationBookingRequest(), PRISON_USER) }.message isEqualTo "Only probation users can create probation bookings."
+    assertThrows<IllegalArgumentException> { service.create(probationBookingRequest(), PRISON_USER_BIRMINGHAM) }.message isEqualTo "Only probation users can create probation bookings."
     assertThrows<IllegalArgumentException> { service.create(probationBookingRequest(), COURT_USER) }.message isEqualTo "Only probation users can create probation bookings."
     assertThrows<IllegalArgumentException> { service.create(probationBookingRequest(), SERVICE_USER) }.message isEqualTo "Only probation users can create probation bookings."
 

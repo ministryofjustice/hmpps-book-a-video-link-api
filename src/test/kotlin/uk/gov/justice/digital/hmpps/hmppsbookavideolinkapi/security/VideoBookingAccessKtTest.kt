@@ -5,7 +5,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_COURT_CODE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UNKNOWN_PROBATION_TEAM_CODE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -47,9 +47,9 @@ class VideoBookingAccessKtTest {
 
   @Test
   fun `should succeed booking check when user is not an external user`() {
-    assertDoesNotThrow { checkVideoBookingAccess(PRISON_USER, courtBooking()) }
+    assertDoesNotThrow { checkVideoBookingAccess(PRISON_USER_BIRMINGHAM, courtBooking()) }
     assertDoesNotThrow { checkVideoBookingAccess(SERVICE_USER, courtBooking()) }
-    assertDoesNotThrow { checkVideoBookingAccess(PRISON_USER, probationBooking()) }
+    assertDoesNotThrow { checkVideoBookingAccess(PRISON_USER_BIRMINGHAM, probationBooking()) }
     assertDoesNotThrow { checkVideoBookingAccess(SERVICE_USER, probationBooking()) }
   }
 }

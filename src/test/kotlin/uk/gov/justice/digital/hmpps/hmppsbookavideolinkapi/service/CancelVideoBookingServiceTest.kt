@@ -14,9 +14,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
@@ -84,7 +84,7 @@ class CancelVideoBookingServiceTest {
 
     probationBooking.statusCode isEqualTo StatusCode.ACTIVE
 
-    val booking = service.cancel(1, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM))
+    val booking = service.cancel(1, PRISON_USER_BIRMINGHAM)
 
     booking.statusCode isEqualTo StatusCode.CANCELLED
 
@@ -99,7 +99,7 @@ class CancelVideoBookingServiceTest {
 
     probationBooking.statusCode isEqualTo StatusCode.ACTIVE
 
-    assertThrows<CaseloadAccessException> { service.cancel(1, PRISON_USER.copy(activeCaseLoadId = RISLEY)) }
+    assertThrows<CaseloadAccessException> { service.cancel(1, PRISON_USER_RISLEY) }
 
     verifyNoInteractions(bookingHistoryService)
     verify(videoBookingRepository, never()).saveAndFlush(any())

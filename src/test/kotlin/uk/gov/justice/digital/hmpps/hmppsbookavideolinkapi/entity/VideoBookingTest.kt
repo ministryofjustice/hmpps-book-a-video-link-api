@@ -5,6 +5,7 @@ import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.daysAgo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
@@ -12,7 +13,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalDateTime.now
 import java.time.LocalTime
@@ -39,7 +39,7 @@ class VideoBookingTest {
       locationKey = "loc-key",
     )
 
-    booking.cancel(user())
+    booking.cancel(courtUser())
 
     booking.statusCode isEqualTo StatusCode.CANCELLED
     booking.amendedBy isEqualTo "user"
@@ -58,10 +58,10 @@ class VideoBookingTest {
       locationKey = "loc-key",
     )
 
-    booking.cancel(user())
+    booking.cancel(courtUser())
 
     val exception = assertThrows<IllegalArgumentException> {
-      booking.cancel(user())
+      booking.cancel(courtUser())
     }
 
     exception.message isEqualTo "Video booking ${booking.videoBookingId} is already cancelled"
@@ -80,7 +80,7 @@ class VideoBookingTest {
     )
 
     val exception = assertThrows<IllegalArgumentException> {
-      booking.cancel(user())
+      booking.cancel(courtUser())
     }
 
     exception.message isEqualTo "Video booking ${booking.videoBookingId} cannot be cancelled"

@@ -28,7 +28,6 @@ class UserServiceTest {
       username isEqualTo "BOOK_A_VIDEO_LINK_SERVICE"
       name isEqualTo "BOOK_A_VIDEO_LINK_SERVICE"
       isUserType(UserType.SERVICE) isBool true
-      email isEqualTo null
     }
   }
 
@@ -38,7 +37,6 @@ class UserServiceTest {
       username isEqualTo "client"
       name isEqualTo "client"
       isUserType(UserType.SERVICE) isBool true
-      email isEqualTo null
     }
   }
 
@@ -46,27 +44,27 @@ class UserServiceTest {
   fun `getUser should return prison user when authSource is nomis`() {
     whenever(manageUsersClient.getUsersDetails("testUser")) doReturn userDetails("testUser", "Test User", authSource = AuthSource.nomis, activeCaseLoadId = BIRMINGHAM)
 
-    userService.getUser("testUser") isEqualTo User(username = "testUser", userType = UserType.PRISON, name = "Test User", activeCaseLoadId = BIRMINGHAM)
+    userService.getUser("testUser") as PrisonUser isEqualTo PrisonUser(username = "testUser", name = "Test User", activeCaseLoadId = BIRMINGHAM)
   }
 
   @Test
   fun `getUser should return probation user when authSource is auth and group code is probation user`() {
-    val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.auth, activeCaseLoadId = BIRMINGHAM)
+    val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.auth)
 
     whenever(manageUsersClient.getUsersDetails(userDetails.username)) doReturn userDetails
     whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = PROBATION_USER_GROUP_CODE, "group name"))
 
-    userService.getUser("testUser") isEqualTo User(username = userDetails.username, userType = UserType.EXTERNAL, name = "Test User", isProbationUser = true)
+    userService.getUser("testUser") as ExternalUser isEqualTo ExternalUser(username = userDetails.username, name = "Test User", isProbationUser = true)
   }
 
   @Test
   fun `getUser should return court user when authSource is auth and group code is court user`() {
-    val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.auth, activeCaseLoadId = BIRMINGHAM)
+    val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.auth)
 
     whenever(manageUsersClient.getUsersDetails(userDetails.username)) doReturn userDetails
     whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER_GROUP_CODE, "group name"))
 
-    userService.getUser("testUser") isEqualTo User(username = userDetails.username, userType = UserType.EXTERNAL, name = "Test User", isCourtUser = true)
+    userService.getUser("testUser") as ExternalUser isEqualTo ExternalUser(username = userDetails.username, name = "Test User", isCourtUser = true)
   }
 
   @Test
@@ -92,7 +90,7 @@ class UserServiceTest {
     whenever(manageUsersClient.getUsersDetails(username)) doReturn userDetails
     whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER_GROUP_CODE, "group name"))
 
-    userService.getUser(username)?.email isEqualTo "test@example.com"
+    (userService.getUser(username) as ExternalUser).email isEqualTo "test@example.com"
   }
 
   @Test
@@ -103,7 +101,7 @@ class UserServiceTest {
     whenever(manageUsersClient.getUsersEmail(username)) doReturn userEmailAddress(username, "test@example.com")
     whenever(manageUsersClient.getUsersGroups(userDetails.userId)) doReturn listOf(UserGroup(groupCode = COURT_USER_GROUP_CODE, "group name"))
 
-    userService.getUser(username)?.email isEqualTo "test@example.com"
+    (userService.getUser(username) as ExternalUser).email isEqualTo "test@example.com"
   }
 
   @Test
@@ -113,33 +111,25 @@ class UserServiceTest {
     whenever(manageUsersClient.getUsersDetails("testUser")) doReturn userDetails
     whenever(manageUsersClient.getUsersEmail(username)) doReturn userEmailAddress(username, "test@example.com")
 
-    userService.getUser(username)?.email isEqualTo "test@example.com"
+    (userService.getUser(username) as PrisonUser).email isEqualTo "test@example.com"
   }
 
   @Test
   fun `should create court and probation users`() {
-    User(username = "username", name = "name", userType = UserType.EXTERNAL, isCourtUser = true, isProbationUser = false)
-    User(username = "username", name = "name", userType = UserType.EXTERNAL, isCourtUser = false, isProbationUser = true)
+    ExternalUser(username = "username", name = "name", isCourtUser = true, isProbationUser = false)
+    ExternalUser(username = "username", name = "name", isCourtUser = false, isProbationUser = true)
   }
 
   @Test
   fun `should create prison users`() {
-    User(username = "username", name = "name", userType = UserType.PRISON)
-    User(username = "username", name = "name", userType = UserType.PRISON, activeCaseLoadId = BIRMINGHAM)
+    PrisonUser(username = "username", name = "name")
+    PrisonUser(username = "username", name = "name", activeCaseLoadId = BIRMINGHAM)
   }
 
   @Test
   fun `should fail to create court or probation user`() {
     assertThrows<IllegalArgumentException> {
-      User(username = "username", name = "name", userType = UserType.EXTERNAL, isCourtUser = false, isProbationUser = false)
+      ExternalUser(username = "username", name = "name", isCourtUser = false, isProbationUser = false)
     }.message isEqualTo "External user must be a court or probation user"
-
-    assertThrows<IllegalArgumentException> {
-      User(username = "username", name = "name", userType = UserType.PRISON, isCourtUser = true, isProbationUser = true)
-    }.message isEqualTo "Only external users can be court or probation users"
-
-    assertThrows<IllegalArgumentException> {
-      User(username = "username", name = "name", userType = UserType.SERVICE, isCourtUser = true, isProbationUser = true)
-    }.message isEqualTo "Only external users can be court or probation users"
   }
 }

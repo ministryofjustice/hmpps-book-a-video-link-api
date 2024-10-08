@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetProbationTeamPreferencesRequest
@@ -54,8 +54,8 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-user-probation-team-data.sql")
   @Test
   fun `should return a list of preferred probation teams for a specified user`() {
-    stubUser(user("michael.horden@channel4.com"))
-    val listOfPreferredTeams = webTestClient.getUserPreferenceTeams(user("michael.horden@channel4.com"))
+    stubUser(probationUser("michael.horden@channel4.com"))
+    val listOfPreferredTeams = webTestClient.getUserPreferenceTeams(probationUser("michael.horden@channel4.com"))
 
     // Check that the user-preferences as setup by the SQL above are returned
     assertThat(listOfPreferredTeams).extracting("probationTeamId").containsExactlyInAnyOrder(1L, 2L)

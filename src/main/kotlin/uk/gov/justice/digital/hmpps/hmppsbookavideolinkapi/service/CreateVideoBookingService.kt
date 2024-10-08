@@ -43,7 +43,7 @@ class CreateVideoBookingService(
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
     checkCaseLoadAccess(createdBy, request.prisoner().prisonCode!!)
 
-    require(createdBy.isCourtUser || createdBy.isUserType(UserType.PRISON)) {
+    require((createdBy is ExternalUser && createdBy.isCourtUser) || createdBy.isUserType(UserType.PRISON)) {
       "Only court and prison users can create court bookings."
     }
 
@@ -69,7 +69,7 @@ class CreateVideoBookingService(
   }
 
   private fun createProbation(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
-    require(createdBy.isProbationUser) {
+    require(createdBy is ExternalUser && createdBy.isProbationUser) {
       "Only probation users can create probation bookings."
     }
 

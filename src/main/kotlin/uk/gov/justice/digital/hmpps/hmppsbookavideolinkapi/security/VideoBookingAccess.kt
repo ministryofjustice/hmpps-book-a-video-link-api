@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
 
@@ -15,6 +16,8 @@ fun checkVideoBookingAccess(externalUser: User, booking: VideoBooking) {
       throw VideoBookingAccessException("Prison with code ${booking.prisonCode()} for booking with id ${booking.videoBookingId} is not self service")
     }
 
+    externalUser as ExternalUser
+
     if (externalUser.isCourtUser && booking.isCourtBooking() && booking.isAccessibleBy(externalUser)) return
     if (externalUser.isProbationUser && booking.isProbationBooking() && booking.isAccessibleBy(externalUser)) return
 
@@ -23,6 +26,6 @@ fun checkVideoBookingAccess(externalUser: User, booking: VideoBooking) {
 }
 
 // Unknown courts or probation teams cannot be accessed by external users, they will only ever be set up by prison users
-private fun VideoBooking.isAccessibleBy(user: User) = (user.isCourtUser && court?.isUnknown() == false) || (user.isProbationUser && probationTeam?.isUnknown() == false)
+private fun VideoBooking.isAccessibleBy(user: ExternalUser) = (user.isCourtUser && court?.isUnknown() == false) || (user.isProbationUser && probationTeam?.isUnknown() == false)
 
 class VideoBookingAccessException(message: String) : RuntimeException(message)

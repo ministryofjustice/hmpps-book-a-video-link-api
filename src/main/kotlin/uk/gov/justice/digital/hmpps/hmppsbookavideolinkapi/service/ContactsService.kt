@@ -34,7 +34,7 @@ class ContactsService(
             videoBookingId = videoBookingId,
             contactType = ContactType.USER,
             name = it.name,
-            email = it.email,
+            email = it.mayBeEmail(),
             primaryContact = true,
           ),
         )
@@ -48,7 +48,7 @@ class ContactsService(
               videoBookingId = videoBookingId,
               contactType = ContactType.USER,
               name = it.name,
-              email = it.email,
+              email = it.mayBeEmail(),
               primaryContact = true,
             ),
           )
@@ -60,14 +60,16 @@ class ContactsService(
   fun getPrimaryBookingContacts(videoBookingId: Long, user: User?): List<BookingContact> {
     videoBookingRepository.findById(videoBookingId).orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
 
-    val userContact = user?.takeIf { !it.isUserType(UserType.SERVICE) && it.email != null }?.let {
-      BookingContact(
-        videoBookingId = videoBookingId,
-        contactType = ContactType.USER,
-        name = it.name,
-        email = it.email,
-        primaryContact = true,
-      )
+    val userContact = user?.takeIf { !it.isUserType(UserType.SERVICE) }?.let {
+      it.mayBeEmail()?.let { email ->
+        BookingContact(
+          videoBookingId = videoBookingId,
+          contactType = ContactType.USER,
+          name = it.name,
+          email = email,
+          primaryContact = true,
+        )
+      }
     }
 
     return bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(videoBookingId).filter { it.email != userContact?.email } + listOfNotNull(userContact)
@@ -101,10 +103,16 @@ class ContactsService(
         contactType = ContactType.USER,
         code = "USER",
         name = it.name,
-        email = it.email,
+        email = it.mayBeEmail(),
         primaryContact = true,
       )
     }
     return contacts.filter { it.email != userContact.email } + prisonContacts + listOfNotNull(userContact)
+  }
+
+  private fun User.mayBeEmail() = when (this) {
+    is ExternalUser -> email
+    is PrisonUser -> email
+    else -> null
   }
 }

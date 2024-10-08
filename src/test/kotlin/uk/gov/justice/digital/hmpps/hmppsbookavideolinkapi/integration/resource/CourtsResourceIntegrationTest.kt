@@ -8,10 +8,10 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
@@ -54,8 +54,8 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-user-court-data.sql")
   @Test
   fun `should return a list of preferred courts for a specified user`() {
-    stubUser(user("michael.horden@itv.com"))
-    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(user("michael.horden@itv.com"))
+    stubUser(courtUser("michael.horden@itv.com"))
+    val listOfPreferredCourts = webTestClient.getUserPreferenceCourts(courtUser("michael.horden@itv.com"))
 
     // Check that the user-preferences as setup by the SQL above are returned
     assertThat(listOfPreferredCourts).extracting("courtId").containsExactlyInAnyOrder(1L, 2L)

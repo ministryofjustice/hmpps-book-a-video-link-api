@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
@@ -114,7 +114,7 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should not send an email to the court to remind them to add the court hearing link to a booking at a non-enabled prison`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    val prisonUser = PRISON_USER_RISLEY.also(::stubUser)
 
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
 
@@ -8,7 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
  * be ignored.
  */
 fun checkCaseLoadAccess(prisonUser: User, prisonCode: String) {
-  if (prisonUser.isUserType(UserType.PRISON) && prisonUser.activeCaseLoadId != prisonCode) throw CaseloadAccessException()
+  if (prisonUser.isUserType(UserType.PRISON) && (prisonUser as PrisonUser).activeCaseLoadId != prisonCode) throw CaseloadAccessException()
 }
 
 class CaseloadAccessException : RuntimeException()

@@ -12,12 +12,11 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -138,7 +137,7 @@ class VideoLinkBookingsServiceTest {
     fun `should fail to get a Wandsworth court video link booking by ID for a Birmingham prison user`() {
       whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment(prisonCode = WANDSWORTH))
 
-      assertThrows<CaseloadAccessException> { service.getVideoLinkBookingById(1L, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM)) }
+      assertThrows<CaseloadAccessException> { service.getVideoLinkBookingById(1L, PRISON_USER_BIRMINGHAM) }
     }
 
     @Test
@@ -316,7 +315,7 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       assertThrows<CaseloadAccessException> {
-        service.findMatchingVideoLinkBooking(searchRequest, PRISON_USER.copy(activeCaseLoadId = RISLEY)) isEqualTo booking.toModel(
+        service.findMatchingVideoLinkBooking(searchRequest, PRISON_USER_RISLEY) isEqualTo booking.toModel(
           courtHearingTypeDescription = "Tribunal",
         )
       }
