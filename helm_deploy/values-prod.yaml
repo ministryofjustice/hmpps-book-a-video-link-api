@@ -15,6 +15,7 @@ generic-service:
     API_BASE_URL_WHEREABOUTS: "https://whereabouts-api.service.justice.gov.uk"
     API_BASE_URL_NOMIS_MAPPING: "https://nomis-sync-prisoner-mapping.hmpps.service.justice.gov.uk"
     BVLS_FRONTEND_URL: "https://book-a-video-link.prison.service.justice.gov.uk"
+    FEATURE_EVENTS_SNS_ENABLED: true
 
     postgresDatabaseRestore:
       enabled: false
