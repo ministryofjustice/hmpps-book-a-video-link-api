@@ -1149,6 +1149,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
+  @Sql("classpath:integration-test-data/seed-video-booking-user-preferences.sql")
   @Test
   fun `should fail to amend a court booking when prisoner not at prison`() {
     videoBookingRepository.findAll() hasSize 0

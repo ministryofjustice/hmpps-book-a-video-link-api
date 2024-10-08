@@ -115,6 +115,7 @@ fun courtUser(username: String = "user", name: String = "Test User", email: Stri
     email = email,
     isCourtUser = true,
     isProbationUser = false,
+    courts = courts,
   )
 
 fun probationUser(username: String = "user", name: String = "Test User", email: String? = null) =
@@ -124,6 +125,7 @@ fun probationUser(username: String = "user", name: String = "Test User", email: 
     email = email,
     isProbationUser = true,
     isCourtUser = false,
+    probationTeams = probationTeams,
   )
 
 fun prisoner(
