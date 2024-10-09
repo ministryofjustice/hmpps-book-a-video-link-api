@@ -5,38 +5,44 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.ManageUsersClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
+import java.util.Objects
 
 const val COURT_USER_GROUP_CODE = "VIDEO_LINK_COURT_USER"
 const val PROBATION_USER_GROUP_CODE = "VIDEO_LINK_PROBATION_USER"
 
 @Service
-class UserService(private val manageUsersClient: ManageUsersClient) {
+class UserService(
+  private val manageUsersClient: ManageUsersClient,
+  private val courtRepository: CourtRepository,
+  private val probationTeamRepository: ProbationTeamRepository,
+) {
 
   companion object {
+
     private enum class ServiceName {
       BOOK_A_VIDEO_LINK_SERVICE,
     }
 
-    fun getServiceAsUser() = User(
-      username = ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name,
-      userType = UserType.SERVICE,
-      name = ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name,
+    private val serviceUser = ServiceUser(
+      ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name,
+      ServiceName.BOOK_A_VIDEO_LINK_SERVICE.name,
     )
 
-    fun getClientAsUser(clientId: String) = User(
-      username = clientId,
-      userType = UserType.SERVICE,
-      name = clientId,
-    )
+    fun getServiceAsUser() = serviceUser
+
+    fun getClientAsUser(clientId: String) = ServiceUser(username = clientId, name = clientId)
   }
 
   fun getUser(username: String): User? =
     manageUsersClient.getUsersDetails(username)?.let { userDetails ->
       when (userDetails.authSource) {
         AuthSource.nomis -> {
-          User(
+          PrisonUser(
             username = username,
-            userType = UserType.PRISON,
             name = userDetails.name,
             email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
             activeCaseLoadId = userDetails.activeCaseLoadId,
@@ -47,14 +53,17 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
           val userGroups = manageUsersClient.getUsersGroups(userDetails.userId)
           val isCourtUser = userGroups.any { it.groupCode == COURT_USER_GROUP_CODE }
           val isProbationUser = userGroups.any { it.groupCode == PROBATION_USER_GROUP_CODE }
+          val courts = if (isCourtUser) courtRepository.findCourtsByUsername(username).map { it.code }.toSet() else emptySet()
+          val probationTeams = if (isProbationUser) probationTeamRepository.findProbationTeamsByUsername(username).map { it.code }.toSet() else emptySet()
 
-          User(
+          ExternalUser(
             username = username,
-            userType = UserType.EXTERNAL,
             name = userDetails.name,
             email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
             isCourtUser = isCourtUser,
             isProbationUser = isProbationUser,
+            courts = courts,
+            probationTeams = probationTeams,
           )
         }
 
@@ -63,30 +72,97 @@ class UserService(private val manageUsersClient: ManageUsersClient) {
     }
 }
 
-data class User(
+abstract class User(
   val username: String,
-  private val userType: UserType,
   val name: String,
+) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as User
+
+    if (username != other.username) return false
+    if (name != other.name) return false
+
+    return true
+  }
+
+  override fun hashCode() = Objects.hash(username, name)
+}
+
+class PrisonUser(
+  val email: String? = null,
+  val activeCaseLoadId: String? = null,
+  username: String,
+  name: String,
+) : User(username, name) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    if (!super.equals(other)) return false
+
+    other as PrisonUser
+
+    if (email != other.email) return false
+    if (activeCaseLoadId != other.activeCaseLoadId) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = super.hashCode()
+    result = 31 * result + (email?.hashCode() ?: 0)
+    result = 31 * result + (activeCaseLoadId?.hashCode() ?: 0)
+    return result
+  }
+}
+
+class ExternalUser(
   val email: String? = null,
   val isCourtUser: Boolean = false,
   val isProbationUser: Boolean = false,
-  val activeCaseLoadId: String? = null,
-) {
-  init {
-    require(userType != UserType.EXTERNAL || (isCourtUser || isProbationUser)) {
-      "External user must be a court or probation user"
-    }
+  private val courts: Set<String> = emptySet(),
+  private val probationTeams: Set<String> = emptySet(),
+  username: String,
+  name: String,
+) : User(username, name) {
 
-    require(userType == UserType.EXTERNAL || (!isCourtUser && !isProbationUser)) {
-      "Only external users can be court or probation users"
+  init {
+    require(isCourtUser || isProbationUser) {
+      "External user must be a court or probation user"
     }
   }
 
-  fun isUserType(vararg types: UserType) = types.contains(userType)
+  fun hasAccessTo(court: Court) = courts.any { it == court.code }
+
+  fun hasAccessTo(probationTeam: ProbationTeam) = probationTeams.any { it == probationTeam.code }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    if (!super.equals(other)) return false
+
+    other as ExternalUser
+
+    if (email != other.email) return false
+    if (isCourtUser != other.isCourtUser) return false
+    if (isProbationUser != other.isProbationUser) return false
+    if (courts != other.courts) return false
+    if (probationTeams != other.probationTeams) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = super.hashCode()
+    result = 31 * result + (email?.hashCode() ?: 0)
+    result = 31 * result + isCourtUser.hashCode()
+    result = 31 * result + isProbationUser.hashCode()
+    result = 31 * result + courts.hashCode()
+    result = 31 * result + probationTeams.hashCode()
+    return result
+  }
 }
 
-enum class UserType {
-  EXTERNAL,
-  PRISON,
-  SERVICE,
-}
+class ServiceUser(username: String, name: String) : User(username, name)

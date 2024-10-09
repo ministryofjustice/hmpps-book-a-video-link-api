@@ -10,7 +10,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserProbationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
@@ -37,7 +37,7 @@ class ProbationTeamsServiceTest {
 
     whenever(probationTeamRepository.findProbationTeamsByUsername("user")).thenReturn(listOfTeamsForUser)
 
-    assertThat(service.getUserProbationTeamPreferences(user("user"))).isEqualTo(
+    assertThat(service.getUserProbationTeamPreferences(probationUser("user"))).isEqualTo(
       listOfTeamsForUser.toModel(),
     )
 

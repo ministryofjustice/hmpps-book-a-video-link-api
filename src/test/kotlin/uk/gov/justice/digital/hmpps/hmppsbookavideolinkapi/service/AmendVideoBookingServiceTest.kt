@@ -22,9 +22,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_J
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
@@ -53,7 +54,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAcce
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.Optional
+import java.util.*
 
 class AmendVideoBookingServiceTest {
 
@@ -445,7 +446,7 @@ class AmendVideoBookingServiceTest {
   fun `should fail to amend a Birmingham prison court video booking for Risley prison user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking().withMainCourtPrisonAppointment())
 
-    assertThrows<CaseloadAccessException> { service.amend(1, mock<AmendVideoBookingRequest>(), PRISON_USER.copy(activeCaseLoadId = RISLEY)) }
+    assertThrows<CaseloadAccessException> { service.amend(1, mock<AmendVideoBookingRequest>(), PRISON_USER_RISLEY) }
   }
 
   @Test
@@ -507,7 +508,7 @@ class AmendVideoBookingServiceTest {
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.key, tomorrow())) doReturn listOf(overlappingAppointment)
 
-    assertDoesNotThrow { service.amend(1, amendCourtBookingRequest, PRISON_USER.copy(activeCaseLoadId = BIRMINGHAM)) }
+    assertDoesNotThrow { service.amend(1, amendCourtBookingRequest, PRISON_USER_BIRMINGHAM) }
   }
 
   @Test
@@ -616,7 +617,7 @@ class AmendVideoBookingServiceTest {
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
     assertDoesNotThrow {
-      service.amend(2, probationBookingRequest, PRISON_USER.copy(activeCaseLoadId = probationBooking.prisonCode()))
+      service.amend(2, probationBookingRequest, prisonUser(activeCaseLoadId = probationBooking.prisonCode()))
     }
   }
 

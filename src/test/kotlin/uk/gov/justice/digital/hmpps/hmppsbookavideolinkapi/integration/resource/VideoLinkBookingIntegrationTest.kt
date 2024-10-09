@@ -27,7 +27,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
@@ -171,7 +173,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should create a Derby court booking as prison user and emails sent to Werrington prison and Derby court`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = PENTONVILLE).also(::stubUser)
+    val prisonUser = PRISON_USER_PENTONVILLE.also(::stubUser)
 
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
@@ -200,7 +202,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
-      createdBy isEqualTo PRISON_USER.username
+      createdBy isEqualTo PRISON_USER_PENTONVILLE.username
       createdByPrison isEqualTo true
     }
 
@@ -245,7 +247,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should allow creation of overlapping court bookings as a prison user`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = PENTONVILLE).also(::stubUser)
+    val prisonUser = PRISON_USER_PENTONVILLE.also(::stubUser)
 
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
@@ -282,7 +284,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should reject duplicate court booking creation as a prison user`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = PENTONVILLE).also(::stubUser)
+    val prisonUser = PRISON_USER_PENTONVILLE.also(::stubUser)
 
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
@@ -723,7 +725,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should fail to create a probation booking when user is prison user`() {
-    val error = webTestClient.createBookingFails(probationBookingRequest(), PRISON_USER)
+    val error = webTestClient.createBookingFails(probationBookingRequest(), PRISON_USER_BIRMINGHAM)
       .expectStatus().isBadRequest
       .expectStatus().is4xxClientError
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -791,7 +793,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should return the details of a court video link booking by ID when prison is not self service for prison user`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    val prisonUser = PRISON_USER_RISLEY.also(::stubUser)
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
@@ -844,7 +846,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should fail to return the details of a court video link booking by ID if the prison is not self service for court user`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    val prisonUser = PRISON_USER_RISLEY.also(::stubUser)
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
@@ -875,8 +877,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
     with(error) {
-      status isEqualTo 403
-      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1 is not self service"
+      status isEqualTo 404
+      userMessage isEqualTo "Not found: Prison with code RSI for booking with id 1 is not self service"
       developerMessage isEqualTo "Prison with code RSI for booking with id 1 is not self service"
     }
   }
@@ -1147,6 +1149,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
+  @Sql("classpath:integration-test-data/seed-video-booking-user-preferences.sql")
   @Test
   fun `should fail to amend a court booking when prisoner not at prison`() {
     videoBookingRepository.findAll() hasSize 0
@@ -1222,15 +1225,15 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
     with(error) {
-      status isEqualTo 403
-      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1000 is not self service"
+      status isEqualTo 404
+      userMessage isEqualTo "Not found: Prison with code RSI for booking with id 1000 is not self service"
       developerMessage isEqualTo "Prison with code RSI for booking with id 1000 is not self service"
     }
   }
 
   @Test
   fun `should be able to create and amend a court booking when the prison is not enabled as prison user`() {
-    val prisonUser = PRISON_USER.copy(activeCaseLoadId = RISLEY).also(::stubUser)
+    val prisonUser = PRISON_USER_RISLEY.also(::stubUser)
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
@@ -1481,8 +1484,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
     with(error) {
-      status isEqualTo 403
-      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1001 is not self service"
+      status isEqualTo 404
+      userMessage isEqualTo "Not found: Prison with code RSI for booking with id 1001 is not self service"
       developerMessage isEqualTo "Prison with code RSI for booking with id 1001 is not self service"
     }
   }
@@ -1556,7 +1559,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("r@r.com", "requested court booking prison template id with email address")
-    notifications.isPresent(PRISON_USER.email!!, "requested court booking user template id")
+    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, "requested court booking user template id")
   }
 
   @Test
@@ -1583,7 +1586,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("j@j.com", "requested court booking prison template id with no email address")
-    notifications.isPresent(PRISON_USER.email!!, "requested court booking user template id")
+    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, "requested court booking user template id")
   }
 
   @Test
@@ -1658,7 +1661,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("r@r.com", "requested probation booking prison template id with email address")
-    notifications.isPresent(PRISON_USER.email!!, "requested probation booking user template id")
+    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, "requested probation booking user template id")
   }
 
   @Test
@@ -1685,7 +1688,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("j@j.com", "requested probation booking prison template id with no email address")
-    notifications.isPresent(PRISON_USER.email!!, "requested probation booking user template id")
+    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, "requested probation booking user template id")
   }
 
   @Test
@@ -1823,7 +1826,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .uri("/video-link-booking/request")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = PRISON_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = PRISON_USER_BIRMINGHAM.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
 

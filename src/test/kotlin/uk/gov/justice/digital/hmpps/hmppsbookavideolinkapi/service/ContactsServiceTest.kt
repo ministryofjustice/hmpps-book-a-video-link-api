@@ -12,12 +12,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.serviceUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -39,8 +42,8 @@ class ContactsServiceTest {
 
     whenever(bookingContactsRepository.findContactsByVideoBookingId(videoBookingId)) doReturn listOf(bookingContact)
     whenever(videoBookingRepository.findById(videoBookingId)) doReturn Optional.of(booking)
-    whenever(userService.getUser("createdByUser")) doReturn user(name = "Created User", email = "created@example.com")
-    whenever(userService.getUser("amendedByUser")) doReturn user(name = "Amended User", email = "amended@example.com")
+    whenever(userService.getUser("createdByUser")) doReturn courtUser(name = "Created User", email = "created@example.com")
+    whenever(userService.getUser("amendedByUser")) doReturn courtUser(name = "Amended User", email = "amended@example.com")
 
     val result = service.getAllBookingContacts(videoBookingId)
 
@@ -70,7 +73,7 @@ class ContactsServiceTest {
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.COURT, court.code)) doReturn listOf(courtContact)
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
 
-    val result = service.getContactsForCourtBookingRequest(court, prison, user(name = "User Name"))
+    val result = service.getContactsForCourtBookingRequest(court, prison, courtUser(name = "User Name"))
 
     result hasSize 3
     result.containsAll(listOf(courtContact, prisonContact)) isBool true
@@ -88,7 +91,7 @@ class ContactsServiceTest {
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
 
-    val result = service.getContactsForProbationBookingRequest(probationTeam, prison, user(name = "User Name"))
+    val result = service.getContactsForProbationBookingRequest(probationTeam, prison, probationUser(name = "User Name"))
 
     result hasSize 3
     result.containsAll(listOf(probationContact, prisonContact)) isBool true
@@ -103,7 +106,7 @@ class ContactsServiceTest {
 
     whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
 
-    val result = service.getPrimaryBookingContacts(1L, user(name = "User Name", email = "prison.contact@example.com"))
+    val result = service.getPrimaryBookingContacts(1L, prisonUser(name = "User Name", email = "prison.contact@example.com"))
 
     result.single().contactType isEqualTo ContactType.USER
   }
@@ -116,7 +119,7 @@ class ContactsServiceTest {
 
     whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
 
-    val result = service.getPrimaryBookingContacts(1L, user(name = "User Name", email = "prisoner.contact@example.com"))
+    val result = service.getPrimaryBookingContacts(1L, prisonUser(name = "User Name", email = "prisoner.contact@example.com"))
 
     result.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER)
   }
@@ -129,7 +132,7 @@ class ContactsServiceTest {
 
     whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
 
-    val result = service.getPrimaryBookingContacts(1L, user(name = "User Name", userType = UserType.SERVICE, email = "blah"))
+    val result = service.getPrimaryBookingContacts(1L, serviceUser())
 
     result.single().contactType isEqualTo ContactType.PRISON
   }
@@ -142,7 +145,7 @@ class ContactsServiceTest {
 
     whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
 
-    val result = service.getPrimaryBookingContacts(1L, user(name = "User Name", email = null))
+    val result = service.getPrimaryBookingContacts(1L, prisonUser(name = "User Name", email = null))
 
     result.single().contactType isEqualTo ContactType.PRISON
   }

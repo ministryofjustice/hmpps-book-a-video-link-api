@@ -29,19 +29,19 @@ import org.springframework.web.context.WebApplicationContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.HmppsBookAVideoLinkApiExceptionHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtAppealReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
@@ -145,7 +145,7 @@ class VideoLinkBookingControllerTest {
     val response = mockMvc.post("/video-link-booking") {
       contentType = MediaType.APPLICATION_JSON
       content = json
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(user(), LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(courtUser(), LocalDateTime.now()))
     }
       .andExpect {
         status { isBadRequest() }
@@ -186,13 +186,13 @@ class VideoLinkBookingControllerTest {
     mockMvc.post("/video-link-booking") {
       contentType = MediaType.APPLICATION_JSON
       content = json
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(user(), LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(courtUser(), LocalDateTime.now()))
     }
       .andExpect {
         status { isCreated() }
       }
 
-    verify(bookingFacade).create(objectMapper.readValue(json, CreateVideoBookingRequest::class.java), user())
+    verify(bookingFacade).create(objectMapper.readValue(json, CreateVideoBookingRequest::class.java), courtUser())
   }
 
   @Test
@@ -217,7 +217,7 @@ class VideoLinkBookingControllerTest {
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PRISON_USER.copy(activeCaseLoadId = WANDSWORTH), LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PRISON_USER_WANDSWORTH, LocalDateTime.now()))
     }
       .andExpect {
         status { isOk() }
@@ -231,7 +231,7 @@ class VideoLinkBookingControllerTest {
 
     val response = mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
-      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PRISON_USER.copy(activeCaseLoadId = RISLEY), LocalDateTime.now()))
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PRISON_USER_RISLEY, LocalDateTime.now()))
     }
       .andExpect {
         status { isForbidden() }
@@ -248,11 +248,11 @@ class VideoLinkBookingControllerTest {
       contentType = MediaType.APPLICATION_JSON
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PROBATION_USER, LocalDateTime.now()))
     }
-      .andExpect { status { isForbidden() } }.andReturn()
+      .andExpect { status { isNotFound() } }.andReturn()
 
     with(response.resolvedException!!) {
       this isInstanceOf VideoBookingAccessException::class.java
-      message isEqualTo "Required role to view a COURT booking is missing"
+      message isEqualTo "Video booking 0 is not accessible by user"
     }
   }
 
@@ -264,11 +264,11 @@ class VideoLinkBookingControllerTest {
       contentType = MediaType.APPLICATION_JSON
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(COURT_USER, LocalDateTime.now()))
     }
-      .andExpect { status { isForbidden() } }.andReturn()
+      .andExpect { status { isNotFound() } }.andReturn()
 
     with(response.resolvedException!!) {
       this isInstanceOf VideoBookingAccessException::class.java
-      message isEqualTo "Required role to view a PROBATION booking is missing"
+      message isEqualTo "Video booking 0 is not accessible by user"
     }
   }
 }

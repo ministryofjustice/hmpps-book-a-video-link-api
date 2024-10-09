@@ -43,12 +43,12 @@ class CreateVideoBookingService(
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
     checkCaseLoadAccess(createdBy, request.prisoner().prisonCode!!)
 
-    require(createdBy.isCourtUser || createdBy.isUserType(UserType.PRISON)) {
+    require((createdBy is ExternalUser && createdBy.isCourtUser) || createdBy is PrisonUser) {
       "Only court and prison users can create court bookings."
     }
 
     val court = courtRepository.findByCode(request.courtCode!!)
-      ?.also { if (!createdBy.isUserType(UserType.PRISON)) require(it.enabled) { "Court with code ${it.code} is not enabled" } }
+      ?.also { if (createdBy !is PrisonUser) require(it.enabled) { "Court with code ${it.code} is not enabled" } }
       ?.also { requireNot(it.readOnly) { "Court with code ${it.code} is read-only" } }
       ?: throw EntityNotFoundException("Court with code ${request.courtCode} not found")
 
@@ -60,7 +60,7 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy.username,
-      createdByPrison = createdBy.isUserType(UserType.PRISON),
+      createdByPrison = createdBy is PrisonUser,
     )
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
@@ -69,7 +69,7 @@ class CreateVideoBookingService(
   }
 
   private fun createProbation(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
-    require(createdBy.isProbationUser) {
+    require(createdBy is ExternalUser && createdBy.isProbationUser) {
       "Only probation users can create probation bookings."
     }
 
@@ -85,7 +85,7 @@ class CreateVideoBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy.username,
-      createdByPrison = createdBy.isUserType(UserType.PRISON),
+      createdByPrison = false,
     )
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), createdBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }

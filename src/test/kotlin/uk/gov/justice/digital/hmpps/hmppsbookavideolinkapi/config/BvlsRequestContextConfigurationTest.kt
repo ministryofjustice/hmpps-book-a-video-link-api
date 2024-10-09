@@ -13,9 +13,9 @@ import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getClientAsUser
 import uk.gov.justice.hmpps.kotlin.auth.AuthAwareAuthenticationToken
@@ -30,7 +30,7 @@ class BvlsRequestContextConfigurationTest {
 
   @Test
   fun `should populate request context with user`() {
-    val user = user(username = "USER_NAME")
+    val user = courtUser(username = "USER_NAME")
     setSecurityContext(username = user.username)
 
     whenever(userService.getUser(user.username)) doReturn user

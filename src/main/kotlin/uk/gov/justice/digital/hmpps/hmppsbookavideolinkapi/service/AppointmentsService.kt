@@ -22,7 +22,7 @@ class AppointmentsService(
   fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
     checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
-    if (user.isUserType(UserType.PRISON)) {
+    if (user is PrisonUser) {
       prisoner.checkForDuplicateAppointment(AppointmentType.VLB_COURT_MAIN)
     }
 
@@ -49,7 +49,7 @@ class AppointmentsService(
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
 
     // Prison users can have overlapping appointments
-    if (!user.isUserType(UserType.PRISON)) {
+    if (user !is PrisonUser) {
       appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode)
     }
 
@@ -105,7 +105,7 @@ class AppointmentsService(
   fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
     checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
-    if (user.isUserType(UserType.PRISON)) {
+    if (user is PrisonUser) {
       prisoner.checkForDuplicateAppointment(AppointmentType.VLB_PROBATION)
     }
 
@@ -127,7 +127,7 @@ class AppointmentsService(
   }
 
   private fun Prison.rejectIfCannotSelfServeAtPrisonFor(user: User) {
-    if (!user.isUserType(UserType.PRISON)) require(enabled) { "Prison with code $code is not enabled for self service" }
+    if (user !is PrisonUser) require(enabled) { "Prison with code $code is not enabled for self service" }
   }
 
   fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
@@ -137,7 +137,7 @@ class AppointmentsService(
       }
 
       // Prison users can have overlapping appointments
-      if (!user.isUserType(UserType.PRISON)) {
+      if (user !is PrisonUser) {
         checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode)
       }
 

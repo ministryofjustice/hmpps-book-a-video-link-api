@@ -12,7 +12,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.user
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetCourtPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
@@ -46,7 +46,7 @@ class CourtsServiceTest {
 
     whenever(courtRepository.findCourtsByUsername("user")).thenReturn(listOfCourtsForUser)
 
-    assertThat(service.getUserCourtPreferences(user("user"))).isEqualTo(
+    assertThat(service.getUserCourtPreferences(courtUser("user"))).isEqualTo(
       listOfCourtsForUser.toModel(),
     )
 
@@ -55,7 +55,7 @@ class CourtsServiceTest {
 
   @Test
   fun `Should set court preferences for a user`() {
-    val user = user("user")
+    val user = courtUser("user")
     val existingCourts = listOf("COURT1", "COURT2")
     val requestedCourts = listOf("COURT3", "COURT4")
     val request = SetCourtPreferencesRequest(courtCodes = requestedCourts)
@@ -86,7 +86,7 @@ class CourtsServiceTest {
 
   @Test
   fun `Should set court preferences for a user only for enabled courts`() {
-    val user = user("user")
+    val user = courtUser("user")
     val existingCourts = listOf("COURT1")
     val requestedCourts = listOf("COURT3", "COURT4")
     val request = SetCourtPreferencesRequest(courtCodes = requestedCourts)

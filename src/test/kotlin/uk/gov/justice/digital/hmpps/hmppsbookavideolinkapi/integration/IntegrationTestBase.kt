@@ -12,7 +12,7 @@ import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
@@ -23,8 +23,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.migration.NomisMappingApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.migration.WhereaboutsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -51,7 +52,7 @@ abstract class IntegrationTestBase {
 
   @BeforeEach
   fun `stub default users`() {
-    stubUser(PRISON_USER)
+    stubUser(PRISON_USER_BIRMINGHAM)
     stubUser(COURT_USER)
     stubUser(PROBATION_USER)
   }
@@ -85,21 +86,28 @@ abstract class IntegrationTestBase {
   protected fun nomisMappingApi() = NomisMappingApiExtension.server
 
   protected fun stubUser(user: User) {
-    val authSource = when {
-      user.isUserType(UserType.EXTERNAL) -> AuthSource.auth
-      user.isUserType(UserType.PRISON) -> AuthSource.nomis
+    val authSource = when (user) {
+      is ExternalUser -> AuthSource.auth
+      is PrisonUser -> AuthSource.nomis
       else -> AuthSource.none
     }
 
-    val userId = when {
-      user.isUserType(UserType.EXTERNAL) -> "external"
-      user.isUserType(UserType.PRISON) -> "nomis"
+    val userId = when (user) {
+      is ExternalUser -> "external"
+      is PrisonUser -> "nomis"
       else -> "other"
     }
 
-    manageUsersApi().stubGetUserDetails(user.username, authSource, user.name, user.activeCaseLoadId, userId)
+    val mayBeActiveCaseload = if (user is PrisonUser) user.activeCaseLoadId else null
+
+    manageUsersApi().stubGetUserDetails(user.username, authSource, user.name, mayBeActiveCaseload, userId)
     manageUsersApi().stubGetUserGroups(userId)
-    user.email?.let { manageUsersApi().stubGetUserEmail(user.username, it) }
+
+    when (user) {
+      is ExternalUser -> user.email
+      is PrisonUser -> user.email
+      else -> null
+    }?.let { email -> manageUsersApi().stubGetUserEmail(user.username, email) }
   }
 
   protected fun WebTestClient.createBooking(request: CreateVideoBookingRequest, user: User) =

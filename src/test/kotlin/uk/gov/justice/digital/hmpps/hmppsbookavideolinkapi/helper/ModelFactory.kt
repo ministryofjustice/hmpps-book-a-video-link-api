@@ -16,8 +16,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Prisone
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.UnknownPrisonerDetails
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -27,31 +28,34 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as Mod
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG", localName = "Birmingham room")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
 val wandsworthLocation = location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG", localName = "Wandsworth room")
-val wandsworthLocation2 = location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG2", localName = "Wandsworth room 2")
-val wandsworthLocation3 = location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG3", localName = "Wandsworth room 3")
+val wandsworthLocation2 =
+  location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG2", localName = "Wandsworth room 2")
+val wandsworthLocation3 =
+  location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG3", localName = "Wandsworth room 3")
 val pentonvilleLocation = location(prisonCode = PENTONVILLE, locationKeySuffix = "ABCDEFG")
 val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
 val risleyLocation = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG")
 
-fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null) = Location(
-  id = UUID.randomUUID(),
-  prisonId = prisonCode,
-  code = "VIDEOLINK",
-  pathHierarchy = "VIDEOLINK",
-  locationType = Location.LocationType.VIDEO_LINK,
-  permanentlyInactive = false,
-  active = active,
-  deactivatedByParent = false,
-  topLevelId = UUID.randomUUID(),
-  key = "$prisonCode-$locationKeySuffix",
-  isResidential = false,
-  localName = localName,
-  lastModifiedBy = "test user",
-  lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
-  level = 2,
-  leafLevel = true,
-  status = Location.Status.ACTIVE,
-)
+fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null) =
+  Location(
+    id = UUID.randomUUID(),
+    prisonId = prisonCode,
+    code = "VIDEOLINK",
+    pathHierarchy = "VIDEOLINK",
+    locationType = Location.LocationType.VIDEO_LINK,
+    permanentlyInactive = false,
+    active = active,
+    deactivatedByParent = false,
+    topLevelId = UUID.randomUUID(),
+    key = "$prisonCode-$locationKeySuffix",
+    isResidential = false,
+    localName = localName,
+    lastModifiedBy = "test user",
+    lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+    level = 2,
+    leafLevel = true,
+    status = Location.Status.ACTIVE,
+  )
 
 fun prisonerSearchPrisoner(
   prisonerNumber: String,
@@ -70,9 +74,16 @@ fun prisonerSearchPrisoner(
   lastPrisonId = lastPrisonCode,
 )
 
-fun userEmailAddress(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, verified, email)
+fun userEmailAddress(username: String, email: String, verified: Boolean = true) =
+  EmailAddressDto(username, verified, email)
 
-fun userDetails(username: String, name: String = "Test User", authSource: AuthSource = AuthSource.auth, activeCaseLoadId: String? = null, userId: String = "TEST") =
+fun userDetails(
+  username: String,
+  name: String = "Test User",
+  authSource: AuthSource = AuthSource.auth,
+  activeCaseLoadId: String? = null,
+  userId: String = "TEST",
+) =
   UserDetailsDto(
     userId = userId,
     username = username,
@@ -82,32 +93,39 @@ fun userDetails(username: String, name: String = "Test User", authSource: AuthSo
     activeCaseLoadId = activeCaseLoadId,
   )
 
-fun user(username: String = "user", userType: UserType = UserType.EXTERNAL, name: String = "Test User", email: String? = null) =
-  User(
+fun serviceUser() = UserService.getServiceAsUser()
+
+fun prisonUser(
+  username: String = "prison_user",
+  name: String = "Prison User",
+  email: String? = "prison.user@prison.com",
+  activeCaseLoadId: String = BIRMINGHAM,
+) =
+  PrisonUser(
     username = username,
-    userType = userType,
     name = name,
     email = email,
-    isCourtUser = userType == UserType.EXTERNAL,
-    isProbationUser = userType == UserType.EXTERNAL,
+    activeCaseLoadId = activeCaseLoadId,
   )
 
 fun courtUser(username: String = "user", name: String = "Test User", email: String? = null) =
-  User(
+  ExternalUser(
     username = username,
-    userType = UserType.EXTERNAL,
     name = name,
     email = email,
     isCourtUser = true,
+    isProbationUser = false,
+    courts = courts,
   )
 
 fun probationUser(username: String = "user", name: String = "Test User", email: String? = null) =
-  User(
+  ExternalUser(
     username = username,
-    userType = UserType.EXTERNAL,
     name = name,
     email = email,
     isProbationUser = true,
+    isCourtUser = false,
+    probationTeams = probationTeams,
   )
 
 fun prisoner(
