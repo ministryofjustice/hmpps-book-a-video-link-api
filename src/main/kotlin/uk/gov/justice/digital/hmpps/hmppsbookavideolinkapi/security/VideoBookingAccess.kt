@@ -18,7 +18,7 @@ fun checkVideoBookingAccess(externalUser: User, booking: VideoBooking) {
     if (externalUser.isCourtUser && booking.isCourtBooking() && booking.isAccessibleBy(externalUser)) return
     if (externalUser.isProbationUser && booking.isProbationBooking() && booking.isAccessibleBy(externalUser)) return
 
-    throw VideoBookingAccessException("Required role to view a ${booking.bookingType} booking is missing")
+    throw VideoBookingAccessException("Video booking ${booking.videoBookingId} is not accessible by user")
   }
 }
 

@@ -248,11 +248,11 @@ class VideoLinkBookingControllerTest {
       contentType = MediaType.APPLICATION_JSON
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PROBATION_USER, LocalDateTime.now()))
     }
-      .andExpect { status { isForbidden() } }.andReturn()
+      .andExpect { status { isNotFound() } }.andReturn()
 
     with(response.resolvedException!!) {
       this isInstanceOf VideoBookingAccessException::class.java
-      message isEqualTo "Required role to view a COURT booking is missing"
+      message isEqualTo "Video booking 0 is not accessible by user"
     }
   }
 
@@ -264,11 +264,11 @@ class VideoLinkBookingControllerTest {
       contentType = MediaType.APPLICATION_JSON
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(COURT_USER, LocalDateTime.now()))
     }
-      .andExpect { status { isForbidden() } }.andReturn()
+      .andExpect { status { isNotFound() } }.andReturn()
 
     with(response.resolvedException!!) {
       this isInstanceOf VideoBookingAccessException::class.java
-      message isEqualTo "Required role to view a PROBATION booking is missing"
+      message isEqualTo "Video booking 0 is not accessible by user"
     }
   }
 }

@@ -87,11 +87,11 @@ class HmppsBookAVideoLinkApiExceptionHandler : ResponseEntityExceptionHandler() 
   fun handleVideoBookingAccessException(e: VideoBookingAccessException): ResponseEntity<ErrorResponse> {
     log.info("Video booking access exception: {}", e.message)
     return ResponseEntity
-      .status(FORBIDDEN)
+      .status(NOT_FOUND)
       .body(
         ErrorResponse(
-          status = FORBIDDEN,
-          userMessage = "Forbidden: ${e.message}",
+          status = NOT_FOUND,
+          userMessage = "Not found: ${e.message}",
           developerMessage = e.message,
         ),
       )

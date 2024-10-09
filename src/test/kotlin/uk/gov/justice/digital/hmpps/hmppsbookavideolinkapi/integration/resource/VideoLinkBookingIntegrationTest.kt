@@ -877,8 +877,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
     with(error) {
-      status isEqualTo 403
-      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1 is not self service"
+      status isEqualTo 404
+      userMessage isEqualTo "Not found: Prison with code RSI for booking with id 1 is not self service"
       developerMessage isEqualTo "Prison with code RSI for booking with id 1 is not self service"
     }
   }
@@ -1225,8 +1225,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
     with(error) {
-      status isEqualTo 403
-      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1000 is not self service"
+      status isEqualTo 404
+      userMessage isEqualTo "Not found: Prison with code RSI for booking with id 1000 is not self service"
       developerMessage isEqualTo "Prison with code RSI for booking with id 1000 is not self service"
     }
   }
@@ -1484,8 +1484,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
     with(error) {
-      status isEqualTo 403
-      userMessage isEqualTo "Forbidden: Prison with code RSI for booking with id 1001 is not self service"
+      status isEqualTo 404
+      userMessage isEqualTo "Not found: Prison with code RSI for booking with id 1001 is not self service"
       developerMessage isEqualTo "Prison with code RSI for booking with id 1001 is not self service"
     }
   }
