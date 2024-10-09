@@ -57,19 +57,17 @@ class ContactsService(
     }
   }
 
-  fun getPrimaryBookingContacts(videoBookingId: Long, user: User?): List<BookingContact> {
+  fun getPrimaryBookingContacts(videoBookingId: Long, user: User): List<BookingContact> {
     videoBookingRepository.findById(videoBookingId).orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
 
-    val userContact = user?.takeIf { !it.isUserType(UserType.SERVICE) }?.let {
-      it.mayBeEmail()?.let { email ->
-        BookingContact(
-          videoBookingId = videoBookingId,
-          contactType = ContactType.USER,
-          name = it.name,
-          email = email,
-          primaryContact = true,
-        )
-      }
+    val userContact = user.mayBeEmail()?.let { email ->
+      BookingContact(
+        videoBookingId = videoBookingId,
+        contactType = ContactType.USER,
+        name = user.name,
+        email = email,
+        primaryContact = true,
+      )
     }
 
     return bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(videoBookingId).filter { it.email != userContact?.email } + listOfNotNull(userContact)

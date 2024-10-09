@@ -33,7 +33,6 @@ class UserServiceTest {
     with(getServiceAsUser()) {
       username isEqualTo "BOOK_A_VIDEO_LINK_SERVICE"
       name isEqualTo "BOOK_A_VIDEO_LINK_SERVICE"
-      isUserType(UserType.SERVICE) isBool true
     }
   }
 
@@ -42,7 +41,6 @@ class UserServiceTest {
     with(getClientAsUser("client")) {
       username isEqualTo "client"
       name isEqualTo "client"
-      isUserType(UserType.SERVICE) isBool true
     }
   }
 

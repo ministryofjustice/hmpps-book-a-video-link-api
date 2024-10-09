@@ -26,7 +26,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserType
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -87,15 +86,15 @@ abstract class IntegrationTestBase {
   protected fun nomisMappingApi() = NomisMappingApiExtension.server
 
   protected fun stubUser(user: User) {
-    val authSource = when {
-      user.isUserType(UserType.EXTERNAL) -> AuthSource.auth
-      user.isUserType(UserType.PRISON) -> AuthSource.nomis
+    val authSource = when (user) {
+      is ExternalUser -> AuthSource.auth
+      is PrisonUser -> AuthSource.nomis
       else -> AuthSource.none
     }
 
-    val userId = when {
-      user.isUserType(UserType.EXTERNAL) -> "external"
-      user.isUserType(UserType.PRISON) -> "nomis"
+    val userId = when (user) {
+      is ExternalUser -> "external"
+      is PrisonUser -> "nomis"
       else -> "other"
     }
 

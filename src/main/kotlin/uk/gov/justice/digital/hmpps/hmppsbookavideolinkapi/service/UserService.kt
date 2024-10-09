@@ -74,11 +74,8 @@ class UserService(
 
 abstract class User(
   val username: String,
-  private val userType: UserType,
   val name: String,
 ) {
-  fun isUserType(vararg types: UserType) = types.contains(userType)
-
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -86,13 +83,12 @@ abstract class User(
     other as User
 
     if (username != other.username) return false
-    if (userType != other.userType) return false
     if (name != other.name) return false
 
     return true
   }
 
-  override fun hashCode() = Objects.hash(username, userType, name)
+  override fun hashCode() = Objects.hash(username, name)
 }
 
 class PrisonUser(
@@ -100,7 +96,7 @@ class PrisonUser(
   val activeCaseLoadId: String? = null,
   username: String,
   name: String,
-) : User(username, UserType.PRISON, name) {
+) : User(username, name) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -130,7 +126,7 @@ class ExternalUser(
   private val probationTeams: Set<String> = emptySet(),
   username: String,
   name: String,
-) : User(username, UserType.EXTERNAL, name) {
+) : User(username, name) {
 
   init {
     require(isCourtUser || isProbationUser) {
@@ -169,10 +165,4 @@ class ExternalUser(
   }
 }
 
-class ServiceUser(username: String, name: String) : User(username, UserType.SERVICE, name)
-
-enum class UserType {
-  EXTERNAL,
-  PRISON,
-  SERVICE,
-}
+class ServiceUser(username: String, name: String) : User(username, name)

@@ -1353,7 +1353,7 @@ class BookingFacadeTest {
     // Not ideal but have logic in test to mimic stubbed service behaviour regarding matching email addresses for contacts
     contactsService.stub {
       on { getPrimaryBookingContacts(any(), eq(user)) } doReturn listOfNotNull(
-        bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user.isUserType(UserType.SERVICE) },
+        bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
         bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name).takeUnless { it.email == mayBeEmail },
       )
@@ -1370,7 +1370,7 @@ class BookingFacadeTest {
     // Not ideal but have logic in test to mimic stubbed service behaviour regarding matching email addresses for contacts
     contactsService.stub {
       on { getPrimaryBookingContacts(any(), eq(user)) } doReturn listOfNotNull(
-        bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user.isUserType(UserType.SERVICE) },
+        bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
         bookingContact(contactType = ContactType.COURT, email = COURT_USER.email, name = COURT_USER.name).takeUnless { it.email == mayBeEmail },
       )
