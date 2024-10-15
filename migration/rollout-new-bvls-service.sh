@@ -11,6 +11,14 @@ then
   exit 99
 fi
 
+shopt -s nocasematch
+
+# Temporarily disable any prod runs
+if [ "$ENVIRONMENT" = "prod" ]; then
+  echo "Prod is currently disabled."
+  return 1 2> /dev/null || exit 1
+fi
+
 while true; do
 
 read -r -p "You are about to rollout the new BVLS service in the '$ENVIRONMENT' environment. Are you sure you want to proceed? (y/n) " yn
@@ -26,6 +34,9 @@ esac
 done
 
 # Each service that needs changes applying should be added as a separate file and sourced below.
-source rollout-whereabouts-api.sh "$ENVIRONMENT"
+#source whereabouts-api.sh "$ENVIRONMENT" out
+#source activities-appointments.sh "$ENVIRONMENT" out
+#source digital-prison-services.sh "$ENVIRONMENT" out
+#source prisoner-profile.sh "$ENVIRONMENT" out
 
 echo "The new BLVS service is now rolled out in the '$ENVIRONMENT' environment. Please check all affected service pods have been restarted."
