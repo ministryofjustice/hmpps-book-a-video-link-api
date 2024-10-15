@@ -28,8 +28,8 @@ metadata:
   namespace: $NAMESPACE
 type: Opaque
 stringData:
-  LISTEN_FOR_COURT_EVENTS: "$LISTEN"
-  SEND_VIDEO_BOOKING_MIGRATE_EVENTS: "$SEND"
+  FEATURE_LISTEN_FOR_COURT_EVENTS: "$LISTEN"
+  FEATURE_SEND_VIDEO_BOOKING_MIGRATE_EVENTS: "$SEND"
 EOF
 
 # Apply the secret
@@ -38,11 +38,11 @@ echo "Applied secrets to $NAMESPACE"
 
 rm -f ./$SECRETS_FILE
 
-COURT_EVENTS=$(kubectl -n "$NAMESPACE" get secret feature-toggles -o jsonpath='{.data.LISTEN_FOR_COURT_EVENTS}' | base64 -d)
-MIGRATE_EVENTS=$(kubectl -n "$NAMESPACE" get secret feature-toggles -o jsonpath='{.data.SEND_VIDEO_BOOKING_MIGRATE_EVENTS}' | base64 -d)
+COURT_EVENTS=$(kubectl -n "$NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_LISTEN_FOR_COURT_EVENTS}' | base64 -d)
+MIGRATE_EVENTS=$(kubectl -n "$NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_SEND_VIDEO_BOOKING_MIGRATE_EVENTS}' | base64 -d)
 
-echo "LISTEN_FOR_COURT_EVENTS=$COURT_EVENTS"
-echo "SEND_VIDEO_BOOKING_MIGRATE_EVENTS=$MIGRATE_EVENTS"
+echo "FEATURE_LISTEN_FOR_COURT_EVENTS=$COURT_EVENTS"
+echo "FEATURE_SEND_VIDEO_BOOKING_MIGRATE_EVENTS=$MIGRATE_EVENTS"
 
 # Restart the pods
 echo "Restarting pods on namespace $NAMESPACE"
