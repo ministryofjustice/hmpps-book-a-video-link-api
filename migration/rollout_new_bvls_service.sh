@@ -26,6 +26,6 @@ esac
 done
 
 # Each service that needs changes applying should be added as a separate file and sourced below.
-source ./whereabouts-api.sh "$ENVIRONMENT"
+source rollout-whereabouts-api.sh "$ENVIRONMENT"
 
-echo "The new BLVS service is now rolled out in '$ENVIRONMENT'"
+echo "The new BLVS service is now rolled out in the '$ENVIRONMENT' environment. Please check all affected service pods have been restarted."
