@@ -39,6 +39,6 @@ BOOK_A_VIDEO_LINK_FEATURE_TOGGLE_ENABLED=$(kubectl -n "$NAMESPACE" get secret fe
 
 echo "BOOK_A_VIDEO_LINK_FEATURE_TOGGLE_ENABLED=$BOOK_A_VIDEO_LINK_FEATURE_TOGGLE_ENABLED"
 
-# Restart the pods
-echo "Restarting pods on namespace $NAMESPACE"
-kubectl -n "$NAMESPACE" rollout restart deploy
+# Restart the deployment pods
+echo "Restarting deployment hmpps-activities-management on namespace $NAMESPACE"
+kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-activities-management

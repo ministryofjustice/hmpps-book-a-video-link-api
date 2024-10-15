@@ -39,6 +39,7 @@ BOOK_A_VIDEO_LINK_API_ENABLED=$(kubectl -n "$NAMESPACE" get secret feature-toggl
 
 echo "BOOK_A_VIDEO_LINK_API_ENABLED=$BOOK_A_VIDEO_LINK_API_ENABLED"
 
-# Restart the pods
-echo "Restarting pods on namespace $NAMESPACE"
-kubectl -n "$NAMESPACE" rollout restart deploy
+# Restart the deployment pods
+echo "Restarting deployment digital-prison-services on namespace $NAMESPACE"
+kubectl -n "$NAMESPACE" rollout restart deployments/digital-prison-services
+
