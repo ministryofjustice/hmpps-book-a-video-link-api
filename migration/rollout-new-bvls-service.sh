@@ -34,9 +34,8 @@ esac
 done
 
 # Each service that needs changes applying should be added as a separate file and sourced below.
-#source whereabouts-api.sh "$ENVIRONMENT" out
-#source activities-appointments.sh "$ENVIRONMENT" out
-#source digital-prison-services.sh "$ENVIRONMENT" out
-#source prisoner-profile.sh "$ENVIRONMENT" out
+source whereabouts-api.sh "$ENVIRONMENT" out
+source activities-appointments.sh "$ENVIRONMENT" out
+source digital-prison-services.sh "$ENVIRONMENT" out
 
 echo "The new BLVS service is now rolled out in the '$ENVIRONMENT' environment. Please check all affected service pods have been restarted."

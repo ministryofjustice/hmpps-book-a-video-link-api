@@ -37,6 +37,5 @@ done
 source whereabouts-api.sh "$ENVIRONMENT" back
 source activities-appointments.sh "$ENVIRONMENT" back
 source digital-prison-services.sh "$ENVIRONMENT" back
-source prisoner-profile.sh "$ENVIRONMENT" back
 
 echo "The new BLVS service is now rolled back in the '$ENVIRONMENT' environment. Please check all affected service pods have been restarted."
