@@ -11,11 +11,11 @@ to provide the environment the process is taking place, dev, preprod or prod.
 To rollout execute the script shown below and follow the prompts:
 
 ```
-./rollout-new-bvls-service.sh
+./rollout.sh
 ```
 
 To rollback execute the script shwon below and follow the prompts:
 
 ```
-./rollback-new-bvls-service.sh
+./rollback.sh
 ```
