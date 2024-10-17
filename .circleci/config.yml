@@ -17,13 +17,14 @@ parameters:
 jobs:
   validate:
     executor:
-      name: hmpps/java_localstack_postgres
+      name: hmpps/java_localstack_postgres_with_db_name
       jdk_tag: << pipeline.parameters.java-version >>
       localstack_tag: "3"
       services: "sqs,sns"
       postgres_tag: "16"
       postgres_username: "book-a-video-link"
       postgres_password: "book-a-video-link"
+      postgres_db: "book-a-video-link-test-db"
     steps:
       - checkout
       - restore_cache:

@@ -1,10 +1,6 @@
-SET REFERENTIAL_INTEGRITY FALSE;
-
---Common
-truncate table notification restart identity;
-truncate table booking_history_appointment restart identity;
-truncate table booking_history restart identity;
-truncate table prison_appointment restart identity;
-truncate table video_booking restart identity;
-
-SET REFERENTIAL_INTEGRITY TRUE;
+-- Truncate tables
+TRUNCATE TABLE notification RESTART IDENTITY CASCADE;
+TRUNCATE TABLE booking_history_appointment RESTART IDENTITY CASCADE;
+TRUNCATE TABLE booking_history RESTART IDENTITY CASCADE;
+TRUNCATE TABLE prison_appointment RESTART IDENTITY CASCADE;
+TRUNCATE TABLE video_booking RESTART IDENTITY CASCADE;

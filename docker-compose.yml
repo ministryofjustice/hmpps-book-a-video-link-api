@@ -12,6 +12,8 @@ services:
       POSTGRES_DB: book-a-video-link-db
       POSTGRES_USER: book-a-video-link
       POSTGRES_PASSWORD: book-a-video-link
+    volumes:
+      - ./docker-init.sql:/docker-entrypoint-initdb.d/init.sql
 
 networks:
   hmpps:

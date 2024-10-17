@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -20,6 +19,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserProbationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 
+@Sql(
+  "classpath:integration-test-data/clean-enabled-probation-team-data.sql",
+  "classpath:integration-test-data/clean-user-probation-team-data.sql",
+)
 class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
   @Autowired
@@ -27,14 +30,6 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var userProbationRepository: UserProbationRepository
-
-  @Sql(
-    "classpath:integration-test-data/clean-enabled-probation-team-data.sql",
-    "classpath:integration-test-data/clean-user-probation-team-data.sql",
-  )
-  @AfterEach
-  fun afterEach() {
-  }
 
   @Sql("classpath:integration-test-data/seed-enabled-probation-team-data.sql")
   @Test

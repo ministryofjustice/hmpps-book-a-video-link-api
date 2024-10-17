@@ -7,16 +7,12 @@ spring:
     show-sql: true
 
   datasource:
-    url: 'jdbc:h2:mem:book-a-video-link-db;MODE=PostgreSQL'
-    username: bookavideolink
-    password: dummy
+    url: 'jdbc:postgresql://localhost:5432/book-a-video-link-test-db'
+    username: book-a-video-link
+    password: book-a-video-link
 
   flyway:
     locations: classpath:/migrations/common,classpath:/migrations/dev
-
-  h2:
-    console:
-      enabled: true
 
 server:
   shutdown: immediate
