@@ -20,7 +20,7 @@ class JobRunnerTest {
 
   @Test
   fun `runs job without error`() {
-    val telemetryCaptor = argumentCaptor<JobSuccessTelemetryEvent>()
+    val telemetryCaptor = argumentCaptor<JobSuccessStandardTelemetryEvent>()
     runner.runJob(TestJob())
     verify(telemetryService).track(telemetryCaptor.capture())
     with(telemetryCaptor.firstValue) {
@@ -30,7 +30,7 @@ class JobRunnerTest {
 
   @Test
   fun `runs job with error`() {
-    val telemetryCaptor = argumentCaptor<JobFailureTelemetryEvent>()
+    val telemetryCaptor = argumentCaptor<JobFailureStandardTelemetryEvent>()
     assertThrows<Exception> { runner.runJob(TestJob { throw Exception("Test error") }) }
     verify(telemetryService).track(telemetryCaptor.capture())
     with(telemetryCaptor.firstValue) {
