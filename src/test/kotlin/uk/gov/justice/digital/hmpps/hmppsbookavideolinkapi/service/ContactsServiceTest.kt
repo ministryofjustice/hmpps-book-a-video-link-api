@@ -99,53 +99,53 @@ class ContactsServiceTest {
   }
 
   @Test
-  fun `getPrimaryBookingContacts should return user contact only when emails same`() {
+  fun `getBookingContacts should return user contact only when emails same`() {
     whenever(videoBookingRepository.findById(1L)) doReturn Optional.of(courtBooking())
 
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
 
     whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
 
-    val result = service.getPrimaryBookingContacts(1L, prisonUser(name = "User Name", email = "prison.contact@example.com"))
+    val result = service.getBookingContacts(1L, prisonUser(name = "User Name", email = "prison.contact@example.com"))
 
     result.single().contactType isEqualTo ContactType.USER
   }
 
   @Test
-  fun `getPrimaryBookingContacts should return user contact and prison contact when emails differ`() {
+  fun `getBookingContacts should return user contact and prison contact when emails differ`() {
     whenever(videoBookingRepository.findById(1L)) doReturn Optional.of(courtBooking())
 
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
 
     whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
 
-    val result = service.getPrimaryBookingContacts(1L, prisonUser(name = "User Name", email = "prisoner.contact@example.com"))
+    val result = service.getBookingContacts(1L, prisonUser(name = "User Name", email = "prisoner.contact@example.com"))
 
     result.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER)
   }
 
   @Test
-  fun `getPrimaryBookingContacts should return prison contact only when user is service user`() {
+  fun `getBookingContacts should return prison contact only when user is service user`() {
     whenever(videoBookingRepository.findById(1L)) doReturn Optional.of(courtBooking())
 
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
 
     whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
 
-    val result = service.getPrimaryBookingContacts(1L, serviceUser())
+    val result = service.getBookingContacts(1L, serviceUser())
 
     result.single().contactType isEqualTo ContactType.PRISON
   }
 
   @Test
-  fun `getPrimaryBookingContacts should return prison contact only when user has no email`() {
+  fun `getBookingContacts should return prison contact only when user has no email`() {
     whenever(videoBookingRepository.findById(1L)) doReturn Optional.of(courtBooking())
 
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
 
     whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
 
-    val result = service.getPrimaryBookingContacts(1L, prisonUser(name = "User Name", email = null))
+    val result = service.getBookingContacts(1L, prisonUser(name = "User Name", email = null))
 
     result.single().contactType isEqualTo ContactType.PRISON
   }
