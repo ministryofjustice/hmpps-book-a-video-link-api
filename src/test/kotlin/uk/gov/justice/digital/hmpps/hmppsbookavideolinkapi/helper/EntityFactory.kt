@@ -155,6 +155,15 @@ fun courtHearingType(description: String) = ReferenceCode(
   enabled = true,
 )
 
+fun probationMeetingType(description: String) = ReferenceCode(
+  referenceCodeId = 0,
+  groupCode = "PROBATION_MEETING_TYPE",
+  code = "code",
+  description = description,
+  createdBy = "Test User",
+  enabled = true,
+)
+
 fun videoAppointment(
   booking: VideoBooking,
   prisonAppointment: PrisonAppointment,
