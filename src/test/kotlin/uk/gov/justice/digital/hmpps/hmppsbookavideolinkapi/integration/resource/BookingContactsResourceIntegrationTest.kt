@@ -50,7 +50,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     videoBookingRepository.findAll() hasSize 1
 
-    // DRBYMC court has 3 contacts, PVI prison has 3 contacts
+    // DRBYMC court has 2 enabled contacts, PVI prison has 2 enabled contacts
     val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
     // Check contacts returned
@@ -58,8 +58,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.COURT)
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.PROBATION)
-    assertThat(listOfContacts).hasSize(7)
-    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", COURT_USER.email!!))
+    assertThat(listOfContacts).hasSize(5)
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("j@j.com", "b@b.com", "p@p.com", "g@g.com", COURT_USER.email!!))
   }
 
   @Test
@@ -83,7 +83,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     videoBookingRepository.findAll() hasSize 1
 
-    // BLKPPP probation team has 3 contacts, PVI prison has 3 contacts
+    // BLKPPP probation team has 2 enabled contacts, PVI prison has 2 enabled contacts
     val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
     // Check contacts returned
@@ -91,8 +91,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.PROBATION)
     assertThat(listOfContacts).extracting("contactType").contains(ContactType.USER)
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.COURT)
-    assertThat(listOfContacts).hasSize(7)
-    assertThat(listOfContacts).extracting("email").containsAll(listOf("m@m.com", "t@t.com", "s@s.com", PROBATION_USER.email!!))
+    assertThat(listOfContacts).hasSize(5)
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("t@t.com", "m@m.com", "p@p.com", "g@g.com", PROBATION_USER.email!!))
   }
 
   @Test
@@ -175,10 +175,10 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     videoBookingRepository.findAll() hasSize 1
 
-    // DRBYMC court has 3 contacts, PVI prison has 3 contacts
+    // DRBYMC court has 2 enabled contacts, PVI prison has 2 enabled contacts
     val listOfContacts = webTestClient.getBookingContacts(bookingId)
 
-    assertThat(listOfContacts).hasSize(7)
+    assertThat(listOfContacts).hasSize(5)
 
     // Check that all expected contact types are present
     assertThat(listOfContacts).extracting("contactType").containsOnly(
@@ -188,9 +188,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     )
 
     // Check that the contact addresses are present
-    assertThat(listOfContacts).extracting("email").containsAll(
-      listOf("m@m.com", "t@t.com", "s@s.com", COURT_USER.email!!),
-    )
+    assertThat(listOfContacts).extracting("email").containsAll(listOf("j@j.com", "b@b.com", "p@p.com", "g@g.com", COURT_USER.email!!))
 
     // Check the user email and name are as expected
     val userObject = listOfContacts.find { it.contactType == ContactType.USER }

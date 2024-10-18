@@ -65,12 +65,11 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
 
     webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
 
-    // There should be 3 notifications - one email to each court contact to remind them to add the court hearing link
-    val notifications = notificationRepository.findAll().also { it hasSize 3 }
+    // There should be 2 notifications - one email to each enabled court contact to remind them to add the court hearing link
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("j@j.com", "court hearing link reminder template id", persistedBooking)
-    notifications.isPresent("m@m.com", "court hearing link reminder template id", persistedBooking)
-    notifications.isPresent("s@s.com", "court hearing link reminder template id", persistedBooking)
+    notifications.isPresent("b@b.com", "court hearing link reminder template id", persistedBooking)
   }
 
   @Test
