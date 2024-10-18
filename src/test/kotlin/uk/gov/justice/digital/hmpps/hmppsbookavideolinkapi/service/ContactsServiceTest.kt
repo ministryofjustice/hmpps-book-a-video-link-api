@@ -104,7 +104,7 @@ class ContactsServiceTest {
 
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
 
-    whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
+    whenever(bookingContactsRepository.findContactsByVideoBookingId(1L)) doReturn listOf(bookingContact)
 
     val result = service.getBookingContacts(1L, prisonUser(name = "User Name", email = "prison.contact@example.com"))
 
@@ -117,7 +117,7 @@ class ContactsServiceTest {
 
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
 
-    whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
+    whenever(bookingContactsRepository.findContactsByVideoBookingId(1L)) doReturn listOf(bookingContact)
 
     val result = service.getBookingContacts(1L, prisonUser(name = "User Name", email = "prisoner.contact@example.com"))
 
@@ -130,7 +130,7 @@ class ContactsServiceTest {
 
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
 
-    whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
+    whenever(bookingContactsRepository.findContactsByVideoBookingId(1L)) doReturn listOf(bookingContact)
 
     val result = service.getBookingContacts(1L, serviceUser())
 
@@ -143,7 +143,7 @@ class ContactsServiceTest {
 
     val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
 
-    whenever(bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(1L)) doReturn listOf(bookingContact)
+    whenever(bookingContactsRepository.findContactsByVideoBookingId(1L)) doReturn listOf(bookingContact)
 
     val result = service.getBookingContacts(1L, prisonUser(name = "User Name", email = null))
 

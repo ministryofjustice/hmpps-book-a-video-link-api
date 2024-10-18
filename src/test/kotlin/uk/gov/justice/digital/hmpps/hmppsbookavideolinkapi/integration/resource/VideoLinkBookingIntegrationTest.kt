@@ -75,6 +75,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoB
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingInformation
 import java.time.LocalDate
 import java.time.LocalTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 // This is not ideal. Due to potential timing issues with messages/events we disable this on the CI pipeline.
@@ -156,10 +157,12 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       appointments() hasSize 1
     }
 
-    // There should be 2 notifications - 1 user email and 1 prison email
-    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+    // There should be 4 notifications - 1 user email and 3 prison emails
+    val notifications = notificationRepository.findAll().also { it hasSize 4 }
 
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("m@m.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("s@s.com", "new court booking prison template id with email address", persistedBooking)
     notifications.isPresent(COURT_USER.email!!, "new court booking user template id", persistedBooking)
 
     2.messagesShouldBePublished {
@@ -229,11 +232,15 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       appointments() hasSize 1
     }
 
-    // There should be 3 notifications - 1 user email, 1 court email and 1 prison email
-    val notifications = notificationRepository.findAll().also { it hasSize 3 }
+    // There should be 7 notifications - 1 user email, 3 court emails and 3 prison emails
+    val notifications = notificationRepository.findAll().also { it hasSize 7 }
 
     notifications.isPresent("t@t.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("m@m.com", "new court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("s@s.com", "new court booking prison template id with email address", persistedBooking)
     notifications.isPresent("j@j.com", "new court booking court template id", persistedBooking)
+    notifications.isPresent("m@m.com", "new court booking court template id", persistedBooking)
+    notifications.isPresent("s@s.com", "new court booking court template id", persistedBooking)
     notifications.isPresent(prisonUser.email!!, "new court booking user template id", persistedBooking)
 
     2.messagesShouldBePublished {
@@ -1022,10 +1029,12 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments isEqualTo "amended court booking comments"
     }
 
-    // There should be 2 notifications, 1 user email and 1 prison email
-    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+    // There should be 4 notifications, 1 user email and 3 prison emails
+    val notifications = notificationRepository.findAll().also { it hasSize 4 }
 
     notifications.isPresent("t@t.com", "amended court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("s@s.com", "amended court booking prison template id with email address", persistedBooking)
+    notifications.isPresent("m@m.com", "amended court booking prison template id with email address", persistedBooking)
     notifications.isPresent(COURT_USER.email!!, "amended court booking user template id", persistedBooking)
   }
 
@@ -1855,9 +1864,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .returnResult().responseBody!!
 
   private fun Collection<Notification>.isPresent(email: String, template: String, booking: VideoBooking? = null) {
-    with(single { it.email == email }) {
-      templateName isEqualTo template
-      videoBooking isEqualTo booking
+    with(filter { it.email == email }) {
+      any { it.templateName == template && it.videoBooking == booking } isBool true
     }
   }
 }
