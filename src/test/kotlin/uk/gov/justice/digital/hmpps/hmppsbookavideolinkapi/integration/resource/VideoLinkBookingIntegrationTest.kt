@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
@@ -75,7 +76,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoB
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingInformation
 import java.time.LocalDate
 import java.time.LocalTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 // This is not ideal. Due to potential timing issues with messages/events we disable this on the CI pipeline.
