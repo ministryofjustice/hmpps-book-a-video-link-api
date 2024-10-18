@@ -70,7 +70,7 @@ class ContactsService(
       )
     }
 
-    return bookingContactsRepository.findContactsByVideoBookingIdAndPrimaryContactTrue(videoBookingId).filter { it.email != userContact?.email } + listOfNotNull(userContact)
+    return bookingContactsRepository.findContactsByVideoBookingId(videoBookingId).filter { it.email != userContact?.email } + listOfNotNull(userContact)
   }
 
   fun getContactsForCourtBookingRequest(court: Court, prison: Prison, user: User) = buildContactsListForBookingRequest(
