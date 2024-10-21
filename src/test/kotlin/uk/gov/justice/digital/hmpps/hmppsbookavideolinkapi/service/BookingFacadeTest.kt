@@ -77,6 +77,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
@@ -94,6 +98,8 @@ class BookingFacadeTest {
   private val notificationCaptor = argumentCaptor<Notification>()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
+  private val telemetryService: TelemetryService = mock()
+  private val telemetryCaptor = argumentCaptor<TelemetryEvent>()
   private val facade = BookingFacade(
     createBookingService,
     amendBookingService,
@@ -105,6 +111,7 @@ class BookingFacadeTest {
     outboundEventsService,
     locationsInsidePrisonClient,
     prisonerSearchClient,
+    telemetryService,
   )
   private val courtBooking = courtBooking()
     .addAppointment(
@@ -183,13 +190,14 @@ class BookingFacadeTest {
 
       facade.create(bookingRequest, COURT_USER)
 
-      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(createBookingService).create(bookingRequest, COURT_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, courtBooking.videoBookingId)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -240,6 +248,8 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "CREATE"
       }
+
+      telemetryCaptor.firstValue isInstanceOf CourtBookingCreatedTelemetryEvent::class.java
     }
 
     @Test
@@ -335,13 +345,14 @@ class BookingFacadeTest {
 
       facade.create(request, PROBATION_USER)
 
-      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(createBookingService).create(request, PROBATION_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, probationBookingAtBirminghamPrison.videoBookingId)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -391,6 +402,8 @@ class BookingFacadeTest {
         videoBooking isEqualTo probationBookingAtBirminghamPrison
         reason isEqualTo "CREATE"
       }
+
+      telemetryCaptor.firstValue isInstanceOf ProbationBookingCreatedTelemetryEvent::class.java
     }
   }
 

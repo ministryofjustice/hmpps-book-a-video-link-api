@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.StandardTelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.StandardTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import kotlin.system.measureTimeMillis
 
 @Component

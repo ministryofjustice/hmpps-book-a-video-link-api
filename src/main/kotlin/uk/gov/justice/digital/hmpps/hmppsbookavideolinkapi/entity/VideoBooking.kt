@@ -116,7 +116,7 @@ class VideoBooking private constructor(
         "Video booking $videoBookingId is already cancelled"
       }
 
-      require(prisonAppointments.all { it.isStartsAfter(now()) }) { "Video booking $videoBookingId cannot be cancelled" }
+      require(prisonAppointments.all { it.start().isAfter(now()) }) { "Video booking $videoBookingId cannot be cancelled" }
 
       statusCode = StatusCode.CANCELLED
       amendedBy = cancelledBy.username

@@ -46,7 +46,11 @@ class PrisonAppointment private constructor(
 
   fun prisonCode() = prison.code
 
-  fun isStartsAfter(dateTime: LocalDateTime) = appointmentDate.atTime(startTime).isAfter(dateTime)
+  fun isType(value: String) = appointmentType == value
+
+  fun start(): LocalDateTime = appointmentDate.atTime(startTime)
+
+  fun end(): LocalDateTime = appointmentDate.atTime(endTime)
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

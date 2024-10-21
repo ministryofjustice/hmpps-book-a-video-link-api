@@ -39,7 +39,7 @@ class AmendVideoBookingService(
       .also { checkCaseLoadAccess(amendedBy, it.prisonCode()) }
       .also { require(BookingType.valueOf(it.bookingType) == request.bookingType) { "The booking type ${it.bookingType} does not match the requested type ${request.bookingType}." } }
       .also { require(it.statusCode != StatusCode.CANCELLED) { "Video booking $videoBookingId is already cancelled, and so cannot be amended" } }
-      .also { require(it.appointments().all { a -> a.isStartsAfter(now()) }) { "Video booking $videoBookingId has already started, and so cannot be amended" } }
+      .also { require(it.appointments().all { a -> a.start().isAfter(now()) }) { "Video booking $videoBookingId has already started, and so cannot be amended" } }
 
     return when (BookingType.valueOf(booking.bookingType)) {
       BookingType.COURT -> amendCourt(booking, request, amendedBy)

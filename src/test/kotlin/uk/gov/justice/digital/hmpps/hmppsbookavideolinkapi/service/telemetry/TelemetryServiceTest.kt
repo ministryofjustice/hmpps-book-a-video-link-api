@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.junit.jupiter.api.Test
