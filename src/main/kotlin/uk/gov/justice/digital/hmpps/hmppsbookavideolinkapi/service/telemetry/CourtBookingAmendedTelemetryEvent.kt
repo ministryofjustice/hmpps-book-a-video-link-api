@@ -2,25 +2,25 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.HOURS
 
-class CourtBookingCreatedTelemetryEvent(private val booking: VideoBooking) :
-  MetricTelemetryEvent("BVLS-court-booking-created") {
+class CourtBookingAmendedTelemetryEvent(private val booking: VideoBooking, private val amendedByPrisonUser: Boolean) :
+  MetricTelemetryEvent("BVLS-court-booking-amended") {
 
   init {
     require(booking.isCourtBooking()) {
-      "Cannot create court created metric, video booking with ID '${booking.videoBookingId}' is not a court booking."
+      "Cannot create court amended metric, video booking with ID '${booking.videoBookingId}' is not a court booking."
     }
 
-    require(booking.amendedTime == null) {
-      "Cannot create court created metric, video booking with ID '${booking.videoBookingId}' has been amended."
+    require(booking.amendedTime != null) {
+      "Cannot create court amended metric, video booking with ID '${booking.videoBookingId}' has not been amended."
     }
   }
 
   override fun properties() =
     mapOf(
       "video_booking_id" to "${booking.videoBookingId}",
-      "created_by" to if (booking.createdByPrison) "prison" else "court",
+      "amended_by" to if (amendedByPrisonUser) "prison" else "court",
       "court_code" to booking.court!!.code,
       "hearing_type" to booking.hearingType!!,
       "prison_code" to booking.prisonCode(),
@@ -37,9 +37,7 @@ class CourtBookingCreatedTelemetryEvent(private val booking: VideoBooking) :
     )
 
   override fun metrics() =
-    mapOf(
-      "hoursBeforeStartTime" to ChronoUnit.HOURS.between(booking.createdTime, booking.main().start()).toDouble(),
-    )
+    mapOf("hoursBeforeStartTime" to HOURS.between(booking.amendedTime!!, booking.main().start()).toDouble())
 
   private fun VideoBooking.pre() = appointments().singleOrNull { it.isType("VLB_COURT_PRE") }
 

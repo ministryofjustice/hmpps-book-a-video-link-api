@@ -20,12 +20,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.HOURS
 
-class CourtBookingCreatedTelemetryEventTest {
+class CourtBookingAmendedTelemetryEventTest {
+
+  private val amendedAt = LocalDateTime.now().plusMinutes(1)
 
   @Test
-  fun `should raise a court booking created telemetry event created by a court`() {
+  fun `should raise a court booking amended telemetry event amended by a court`() {
     val booking = VideoBooking.newCourtBooking(
       court = court(DERBY_JUSTICE_CENTRE),
       hearingType = "APPEAL",
@@ -57,13 +59,15 @@ class CourtBookingCreatedTelemetryEventTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(12, 0),
       locationKey = wandsworthLocation3.key,
-    )
+    ).apply {
+      amendedTime = amendedAt
+    }
 
-    with(CourtBookingCreatedTelemetryEvent(booking)) {
-      eventType isEqualTo "BVLS-court-booking-created"
+    with(CourtBookingAmendedTelemetryEvent(booking, false)) {
+      eventType isEqualTo "BVLS-court-booking-amended"
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
-        "created_by" to "court",
+        "amended_by" to "court",
         "court_code" to DERBY_JUSTICE_CENTRE,
         "hearing_type" to "APPEAL",
         "prison_code" to WANDSWORTH,
@@ -81,7 +85,7 @@ class CourtBookingCreatedTelemetryEventTest {
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
         "hoursBeforeStartTime" to hoursBetween(
-          booking.createdTime,
+          amendedAt,
           tomorrow().atTime(LocalTime.of(10, 0)),
         ).toDouble(),
       )
@@ -89,7 +93,7 @@ class CourtBookingCreatedTelemetryEventTest {
   }
 
   @Test
-  fun `should raise a court booking created telemetry event created by a prison`() {
+  fun `should raise a court booking amended telemetry event amended by a prison`() {
     val booking = VideoBooking.newCourtBooking(
       court = court(DERBY_JUSTICE_CENTRE),
       hearingType = "APPEAL",
@@ -105,13 +109,15 @@ class CourtBookingCreatedTelemetryEventTest {
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 0),
       locationKey = risleyLocation.key,
-    )
+    ).apply {
+      amendedTime = amendedAt
+    }
 
-    with(CourtBookingCreatedTelemetryEvent(booking)) {
-      eventType isEqualTo "BVLS-court-booking-created"
+    with(CourtBookingAmendedTelemetryEvent(booking, true)) {
+      eventType isEqualTo "BVLS-court-booking-amended"
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
-        "created_by" to "prison",
+        "amended_by" to "prison",
         "court_code" to DERBY_JUSTICE_CENTRE,
         "hearing_type" to "APPEAL",
         "prison_code" to RISLEY,
@@ -129,27 +135,26 @@ class CourtBookingCreatedTelemetryEventTest {
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
         "hoursBeforeStartTime" to hoursBetween(
-          booking.createdTime,
+          amendedAt,
           tomorrow().atTime(LocalTime.of(12, 0)),
         ).toDouble(),
       )
     }
   }
 
-  private fun hoursBetween(from: LocalDateTime, to: LocalDateTime) = ChronoUnit.HOURS.between(from, to)
+  private fun hoursBetween(from: LocalDateTime, to: LocalDateTime) = HOURS.between(from, to)
 
   @Test
   fun `should fail to create event if probation booking`() {
-    val error = assertThrows<IllegalArgumentException> { CourtBookingCreatedTelemetryEvent(probationBooking()) }
+    val error = assertThrows<IllegalArgumentException> { CourtBookingAmendedTelemetryEvent(probationBooking(), false) }
 
-    error.message isEqualTo "Cannot create court created metric, video booking with ID '0' is not a court booking."
+    error.message isEqualTo "Cannot create court amended metric, video booking with ID '0' is not a court booking."
   }
 
   @Test
-  fun `should fail to create event when booking has been amended`() {
-    val amendedBooking = courtBooking().apply { amendedTime = LocalDateTime.now() }
-    val error = assertThrows<IllegalArgumentException> { CourtBookingCreatedTelemetryEvent(amendedBooking) }
+  fun `should fail to create event when booking has not been amended`() {
+    val error = assertThrows<IllegalArgumentException> { CourtBookingAmendedTelemetryEvent(courtBooking(), false) }
 
-    error.message isEqualTo "Cannot create court created metric, video booking with ID '0' has been amended."
+    error.message isEqualTo "Cannot create court amended metric, video booking with ID '0' has not been amended."
   }
 }

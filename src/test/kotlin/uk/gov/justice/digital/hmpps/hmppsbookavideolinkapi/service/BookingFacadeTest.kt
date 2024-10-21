@@ -77,11 +77,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingAmendedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
+import java.time.LocalDateTime.now
 import java.time.LocalTime
 import java.util.UUID
 
@@ -702,18 +705,19 @@ class BookingFacadeTest {
 
       val bookingRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
 
-      whenever(amendBookingService.amend(1, bookingRequest, COURT_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH))
+      whenever(amendBookingService.amend(1, bookingRequest, COURT_USER)) doReturn Pair(courtBooking.apply { amendedTime = now() }, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH))
       whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
       facade.amend(1, bookingRequest, COURT_USER)
 
-      inOrder(amendBookingService, emailService, notificationRepository) {
+      inOrder(amendBookingService, emailService, notificationRepository, telemetryService) {
         verify(amendBookingService).amend(1, bookingRequest, COURT_USER)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -764,6 +768,8 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "AMEND"
       }
+
+      telemetryCaptor.firstValue isInstanceOf CourtBookingAmendedTelemetryEvent::class.java
     }
 
     @Test
@@ -772,7 +778,7 @@ class BookingFacadeTest {
 
       val bookingRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
 
-      whenever(amendBookingService.amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH))
+      whenever(amendBookingService.amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(courtBooking.apply { amendedTime = now() }, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH))
       whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
 
@@ -846,19 +852,20 @@ class BookingFacadeTest {
 
       val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
 
-      whenever(amendBookingService.amend(1, amendRequest, PROBATION_USER)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!))
+      whenever(amendBookingService.amend(1, amendRequest, PROBATION_USER)) doReturn Pair(probationBookingAtBirminghamPrison.apply { amendedTime = now() }, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!))
       whenever(emailService.send(any<AmendedProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedProbationBookingPrisonNoProbationEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
       facade.amend(1, amendRequest, PROBATION_USER)
 
-      inOrder(amendBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(amendBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(amendBookingService).amend(1, amendRequest, PROBATION_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -905,6 +912,8 @@ class BookingFacadeTest {
         videoBooking isEqualTo probationBookingAtBirminghamPrison
         reason isEqualTo "AMEND"
       }
+
+      telemetryCaptor.firstValue isInstanceOf ProbationBookingAmendedTelemetryEvent::class.java
     }
 
     @Test
@@ -917,7 +926,7 @@ class BookingFacadeTest {
 
       val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
 
-      whenever(amendBookingService.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!))
+      whenever(amendBookingService.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(probationBookingAtBirminghamPrison.apply { amendedTime = now() }, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!))
       whenever(emailService.send(any<AmendedProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
 

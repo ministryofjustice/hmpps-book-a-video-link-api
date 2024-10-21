@@ -21,7 +21,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingAmendedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
@@ -51,21 +53,15 @@ class BookingFacade(
     val (booking, prisoner) = createVideoBookingService.create(bookingRequest, createdBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
     sendBookingEmails(BookingAction.CREATE, booking, prisoner, createdBy)
-    sendTelemetry(BookingAction.CREATE, booking)
+    sendTelemetry(BookingAction.CREATE, booking, createdBy)
     return booking.videoBookingId
-  }
-
-  private fun sendTelemetry(action: BookingAction, booking: VideoBooking) {
-    when {
-      action == BookingAction.CREATE && booking.isCourtBooking() -> telemetryService.track(CourtBookingCreatedTelemetryEvent(booking))
-      action == BookingAction.CREATE && booking.isProbationBooking() -> telemetryService.track(ProbationBookingCreatedTelemetryEvent(booking))
-    }
   }
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, amendedBy: User): Long {
     val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, amendedBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
     sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
+    sendTelemetry(BookingAction.AMEND, booking, amendedBy)
     return booking.videoBookingId
   }
 
@@ -96,6 +92,16 @@ class BookingFacade(
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+  }
+
+  private fun sendTelemetry(action: BookingAction, booking: VideoBooking, user: User) {
+    when {
+      action == BookingAction.CREATE && booking.isCourtBooking() -> CourtBookingCreatedTelemetryEvent(booking)
+      action == BookingAction.CREATE && booking.isProbationBooking() -> ProbationBookingCreatedTelemetryEvent(booking)
+      action == BookingAction.AMEND && booking.isCourtBooking() -> CourtBookingAmendedTelemetryEvent(booking, user is PrisonUser)
+      action == BookingAction.AMEND && booking.isProbationBooking() -> ProbationBookingAmendedTelemetryEvent(booking, user is PrisonUser)
+      else -> null
+    }?.let(telemetryService::track)
   }
 
   private fun getPrisoner(prisonerNumber: String) =
@@ -172,11 +178,11 @@ class BookingFacade(
 
   private fun Collection<PrisonAppointment>.prisonAppointmentsForCourtHearing() = Triple(pre(), main(), post())
 
-  private fun Collection<PrisonAppointment>.pre() = singleOrNull { it.appointmentType == "VLB_COURT_PRE" }
+  private fun Collection<PrisonAppointment>.pre() = singleOrNull { it.isType("VLB_COURT_PRE") }
 
-  private fun Collection<PrisonAppointment>.main() = single { it.appointmentType == "VLB_COURT_MAIN" }
+  private fun Collection<PrisonAppointment>.main() = single { it.isType("VLB_COURT_MAIN") }
 
-  private fun Collection<PrisonAppointment>.post() = singleOrNull { it.appointmentType == "VLB_COURT_POST" }
+  private fun Collection<PrisonAppointment>.post() = singleOrNull { it.isType("VLB_COURT_POST") }
 }
 
 enum class BookingAction {
