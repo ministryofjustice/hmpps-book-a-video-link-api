@@ -3,13 +3,13 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.MigrationClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.StandardTelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AdditionalInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrateVideoBookingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrationException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.StandardTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 
 @Component
 @Deprecated(message = "Can be removed when migration is completed")

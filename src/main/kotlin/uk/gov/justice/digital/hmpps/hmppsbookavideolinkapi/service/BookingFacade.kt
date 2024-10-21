@@ -21,6 +21,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
 
 /**
@@ -38,7 +41,7 @@ class BookingFacade(
   private val outboundEventsService: OutboundEventsService,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val prisonerSearchClient: PrisonerSearchClient,
-
+  private val telemetryService: TelemetryService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -48,7 +51,15 @@ class BookingFacade(
     val (booking, prisoner) = createVideoBookingService.create(bookingRequest, createdBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
     sendBookingEmails(BookingAction.CREATE, booking, prisoner, createdBy)
+    sendTelemetry(BookingAction.CREATE, booking)
     return booking.videoBookingId
+  }
+
+  private fun sendTelemetry(action: BookingAction, booking: VideoBooking) {
+    when {
+      action == BookingAction.CREATE && booking.isCourtBooking() -> telemetryService.track(CourtBookingCreatedTelemetryEvent(booking))
+      action == BookingAction.CREATE && booking.isProbationBooking() -> telemetryService.track(ProbationBookingCreatedTelemetryEvent(booking))
+    }
   }
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, amendedBy: User): Long {

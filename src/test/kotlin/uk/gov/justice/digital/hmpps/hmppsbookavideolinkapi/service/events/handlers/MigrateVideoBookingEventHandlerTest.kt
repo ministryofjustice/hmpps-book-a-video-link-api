@@ -25,9 +25,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.StandardTelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrateVideoBookingService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.StandardTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalTime
 
 class MigrateVideoBookingEventHandlerTest {

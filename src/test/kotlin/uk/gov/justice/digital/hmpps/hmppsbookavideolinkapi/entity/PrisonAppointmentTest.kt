@@ -27,7 +27,7 @@ class PrisonAppointmentTest {
       endTime = LocalTime.now().plusMinutes(1),
       appointmentType = "VLB_PROBATION",
       locationKey = "LOCATION-KEY",
-    ).isStartsAfter(now) isBool true
+    ).start().isAfter(now) isBool true
 
     appointment(
       booking,
@@ -38,7 +38,7 @@ class PrisonAppointmentTest {
       endTime = now.toLocalTime().plusHours(2),
       appointmentType = "VLB_PROBATION",
       locationKey = "LOCATION-KEY",
-    ).isStartsAfter(now) isBool true
+    ).start().isAfter(now) isBool true
   }
 
   @Test
@@ -52,7 +52,7 @@ class PrisonAppointmentTest {
       endTime = LocalTime.now().plusMinutes(1),
       appointmentType = "VLB_PROBATION",
       locationKey = "LOCATION-KEY",
-    ).isStartsAfter(now) isBool false
+    ).start().isAfter(now) isBool false
 
     appointment(
       booking,
@@ -63,6 +63,6 @@ class PrisonAppointmentTest {
       endTime = now.toLocalTime().plusMinutes(1),
       appointmentType = "VLB_PROBATION",
       locationKey = "LOCATION-KEY",
-    ).isStartsAfter(now) isBool false
+    ).start().isAfter(now) isBool false
   }
 }
