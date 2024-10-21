@@ -2,26 +2,25 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.HOURS
 
-class ProbationBookingCreatedTelemetryEvent(private val booking: VideoBooking) :
-  MetricTelemetryEvent("BVLS-probation-booking-created") {
+class ProbationBookingAmendedTelemetryEvent(private val booking: VideoBooking, private val amendedByPrisonUser: Boolean) :
+  MetricTelemetryEvent("BVLS-probation-booking-amended") {
 
   init {
     require(booking.isProbationBooking()) {
-      "Cannot create probation created metric, video booking with ID '${booking.videoBookingId}' is not a probation booking."
+      "Cannot create probation amended metric, video booking with ID '${booking.videoBookingId}' is not a probation booking."
     }
 
-    require(booking.amendedTime == null) {
-      "Cannot create probation created metric, video booking with ID '${booking.videoBookingId}' has been amended."
+    require(booking.amendedTime != null) {
+      "Cannot create probation amended metric, video booking with ID '${booking.videoBookingId}' has not been amended."
     }
   }
 
   override fun properties() =
     mapOf(
       "video_booking_id" to "${booking.videoBookingId}",
-      // Probation bookings are only created by probation users
-      "created_by" to "probation",
+      "amended_by" to if (amendedByPrisonUser) "prison" else "probation",
       "team_code" to booking.probationTeam!!.code,
       "meeting_type" to booking.probationMeetingType!!,
       "prison_code" to booking.prisonCode(),
@@ -32,9 +31,7 @@ class ProbationBookingCreatedTelemetryEvent(private val booking: VideoBooking) :
     )
 
   override fun metrics() =
-    mapOf(
-      "hoursBeforeStartTime" to ChronoUnit.HOURS.between(booking.createdTime, booking.appointment().start()).toDouble(),
-    )
+    mapOf("hoursBeforeStartTime" to HOURS.between(booking.amendedTime!!, booking.appointment().start()).toDouble())
 
   private fun VideoBooking.appointment() = appointments().single { it.isType("VLB_PROBATION") }
 }
