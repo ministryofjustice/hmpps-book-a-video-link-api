@@ -22,8 +22,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCancelledTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingAmendedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCancelledTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
@@ -70,6 +72,7 @@ class BookingFacade(
     log.info("Video booking ${booking.videoBookingId} cancelled by user")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
+    sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
   fun courtHearingLinkReminder(videoBooking: VideoBooking, user: User) {
@@ -85,6 +88,7 @@ class BookingFacade(
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+    sendTelemetry(BookingAction.TRANSFERRED, booking, user)
   }
 
   fun prisonerReleased(videoBookingId: Long, user: User) {
@@ -92,14 +96,21 @@ class BookingFacade(
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+    sendTelemetry(BookingAction.RELEASED, booking, user)
   }
 
   private fun sendTelemetry(action: BookingAction, booking: VideoBooking, user: User) {
     when {
       action == BookingAction.CREATE && booking.isCourtBooking() -> CourtBookingCreatedTelemetryEvent(booking)
       action == BookingAction.CREATE && booking.isProbationBooking() -> ProbationBookingCreatedTelemetryEvent(booking)
-      action == BookingAction.AMEND && booking.isCourtBooking() -> CourtBookingAmendedTelemetryEvent(booking, user is PrisonUser)
-      action == BookingAction.AMEND && booking.isProbationBooking() -> ProbationBookingAmendedTelemetryEvent(booking, user is PrisonUser)
+      action == BookingAction.AMEND && booking.isCourtBooking() -> CourtBookingAmendedTelemetryEvent(booking, user)
+      action == BookingAction.AMEND && booking.isProbationBooking() -> ProbationBookingAmendedTelemetryEvent(booking, user)
+      action == BookingAction.CANCEL && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.user(booking, user)
+      action == BookingAction.CANCEL && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.user(booking, user)
+      action == BookingAction.TRANSFERRED && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.transferred(booking)
+      action == BookingAction.TRANSFERRED && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.transferred(booking)
+      action == BookingAction.RELEASED && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.released(booking)
+      action == BookingAction.RELEASED && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.released(booking)
       else -> null
     }?.let(telemetryService::track)
   }

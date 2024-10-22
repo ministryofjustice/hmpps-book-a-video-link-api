@@ -11,8 +11,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntrie
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -41,9 +43,10 @@ class ProbationBookingAmendedTelemetryEventTest {
       locationKey = birminghamLocation.key,
     ).apply {
       amendedTime = amendedAt
+      amendedBy = probationUser().username
     }
 
-    with(ProbationBookingAmendedTelemetryEvent(booking, false)) {
+    with(ProbationBookingAmendedTelemetryEvent(booking, probationUser())) {
       eventType isEqualTo "BVLS-probation-booking-amended"
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
@@ -85,9 +88,10 @@ class ProbationBookingAmendedTelemetryEventTest {
       locationKey = birminghamLocation.key,
     ).apply {
       amendedTime = amendedAt
+      amendedBy = prisonUser().username
     }
 
-    with(ProbationBookingAmendedTelemetryEvent(booking, true)) {
+    with(ProbationBookingAmendedTelemetryEvent(booking, prisonUser())) {
       eventType isEqualTo "BVLS-probation-booking-amended"
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
@@ -121,7 +125,7 @@ class ProbationBookingAmendedTelemetryEventTest {
 
   @Test
   fun `should fail to create event when booking has not been amended`() {
-    val error = assertThrows<IllegalArgumentException> { ProbationBookingAmendedTelemetryEvent(probationBooking(), false) }
+    val error = assertThrows<IllegalArgumentException> { ProbationBookingAmendedTelemetryEvent(probationBooking(), probationUser()) }
 
     error.message isEqualTo "Cannot create probation amended metric, video booking with ID '0' has not been amended."
   }
