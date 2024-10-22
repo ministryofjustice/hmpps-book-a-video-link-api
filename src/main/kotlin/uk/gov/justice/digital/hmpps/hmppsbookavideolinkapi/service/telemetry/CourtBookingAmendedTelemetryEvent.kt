@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
-import java.time.temporal.ChronoUnit.HOURS
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 
-class CourtBookingAmendedTelemetryEvent(private val booking: VideoBooking, private val amendedByPrisonUser: Boolean) :
+class CourtBookingAmendedTelemetryEvent(private val booking: VideoBooking, private val amendedBy: User) :
   MetricTelemetryEvent("BVLS-court-booking-amended") {
 
   init {
@@ -15,33 +15,14 @@ class CourtBookingAmendedTelemetryEvent(private val booking: VideoBooking, priva
     require(booking.amendedTime != null) {
       "Cannot create court amended metric, video booking with ID '${booking.videoBookingId}' has not been amended."
     }
+
+    require(booking.amendedBy == amendedBy.username) {
+      "Cannot create court amended metric, user does not match the amended by user."
+    }
   }
 
   override fun properties() =
-    mapOf(
-      "video_booking_id" to "${booking.videoBookingId}",
-      "amended_by" to if (amendedByPrisonUser) "prison" else "court",
-      "court_code" to booking.court!!.code,
-      "hearing_type" to booking.hearingType!!,
-      "prison_code" to booking.prisonCode(),
-      "pre_location_key" to (booking.pre()?.prisonLocKey ?: ""),
-      "pre_start" to (booking.pre()?.start()?.toIsoDateTime() ?: ""),
-      "pre_end" to (booking.pre()?.end()?.toIsoDateTime() ?: ""),
-      "main_location_key" to booking.main().prisonLocKey,
-      "main_start" to booking.main().start().toIsoDateTime(),
-      "main_end" to booking.main().end().toIsoDateTime(),
-      "post_location_key" to (booking.post()?.prisonLocKey ?: ""),
-      "post_start" to (booking.post()?.start()?.toIsoDateTime() ?: ""),
-      "post_end" to (booking.post()?.end()?.toIsoDateTime() ?: ""),
-      "cvp_link" to (booking.videoUrl != null).toString(),
-    )
+    booking.commonProperties().plus("amended_by" to if (amendedBy is PrisonUser) "prison" else "court")
 
-  override fun metrics() =
-    mapOf("hoursBeforeStartTime" to HOURS.between(booking.amendedTime!!, booking.main().start()).toDouble())
-
-  private fun VideoBooking.pre() = appointments().singleOrNull { it.isType("VLB_COURT_PRE") }
-
-  private fun VideoBooking.main() = appointments().single { it.isType("VLB_COURT_MAIN") }
-
-  private fun VideoBooking.post() = appointments().singleOrNull { it.isType("VLB_COURT_POST") }
+  override fun metrics() = mapOf(booking.hoursBeforeStartTimeMetric())
 }

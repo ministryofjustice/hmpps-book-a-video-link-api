@@ -10,9 +10,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
@@ -61,9 +64,10 @@ class CourtBookingAmendedTelemetryEventTest {
       locationKey = wandsworthLocation3.key,
     ).apply {
       amendedTime = amendedAt
+      amendedBy = courtUser().username
     }
 
-    with(CourtBookingAmendedTelemetryEvent(booking, false)) {
+    with(CourtBookingAmendedTelemetryEvent(booking, courtUser())) {
       eventType isEqualTo "BVLS-court-booking-amended"
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
@@ -111,9 +115,10 @@ class CourtBookingAmendedTelemetryEventTest {
       locationKey = risleyLocation.key,
     ).apply {
       amendedTime = amendedAt
+      amendedBy = prisonUser().username
     }
 
-    with(CourtBookingAmendedTelemetryEvent(booking, true)) {
+    with(CourtBookingAmendedTelemetryEvent(booking, prisonUser())) {
       eventType isEqualTo "BVLS-court-booking-amended"
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
@@ -146,14 +151,14 @@ class CourtBookingAmendedTelemetryEventTest {
 
   @Test
   fun `should fail to create event if probation booking`() {
-    val error = assertThrows<IllegalArgumentException> { CourtBookingAmendedTelemetryEvent(probationBooking(), false) }
+    val error = assertThrows<IllegalArgumentException> { CourtBookingAmendedTelemetryEvent(probationBooking(), probationUser()) }
 
     error.message isEqualTo "Cannot create court amended metric, video booking with ID '0' is not a court booking."
   }
 
   @Test
   fun `should fail to create event when booking has not been amended`() {
-    val error = assertThrows<IllegalArgumentException> { CourtBookingAmendedTelemetryEvent(courtBooking(), false) }
+    val error = assertThrows<IllegalArgumentException> { CourtBookingAmendedTelemetryEvent(courtBooking(), courtUser()) }
 
     error.message isEqualTo "Cannot create court amended metric, video booking with ID '0' has not been amended."
   }
