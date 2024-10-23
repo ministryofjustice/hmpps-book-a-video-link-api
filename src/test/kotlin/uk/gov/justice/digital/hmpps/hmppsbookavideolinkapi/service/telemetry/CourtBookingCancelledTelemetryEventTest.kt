@@ -62,6 +62,8 @@ class CourtBookingCancelledTelemetryEventTest {
     booking.cancel(courtUser())
 
     with(CourtBookingCancelledTelemetryEvent.user(booking, courtUser())) {
+      eventType isEqualTo "BVLS-court-booking-cancelled"
+
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
         "cancelled_by" to "court",
@@ -94,6 +96,8 @@ class CourtBookingCancelledTelemetryEventTest {
     booking.cancel(prisonUser())
 
     with(CourtBookingCancelledTelemetryEvent.user(booking, prisonUser())) {
+      eventType isEqualTo "BVLS-court-booking-cancelled"
+
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
         "cancelled_by" to "prison",
@@ -126,6 +130,8 @@ class CourtBookingCancelledTelemetryEventTest {
     booking.cancel(prisonUser())
 
     with(CourtBookingCancelledTelemetryEvent.released(booking)) {
+      eventType isEqualTo "BVLS-court-booking-cancelled"
+
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
         "cancelled_by" to "release",
@@ -158,6 +164,8 @@ class CourtBookingCancelledTelemetryEventTest {
     booking.cancel(prisonUser())
 
     with(CourtBookingCancelledTelemetryEvent.transferred(booking)) {
+      eventType isEqualTo "BVLS-court-booking-cancelled"
+
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
         "cancelled_by" to "transfer",
