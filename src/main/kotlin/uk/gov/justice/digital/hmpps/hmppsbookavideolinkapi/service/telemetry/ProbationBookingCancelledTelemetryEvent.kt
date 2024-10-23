@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 class ProbationBookingCancelledTelemetryEvent private constructor(
   private val booking: VideoBooking,
   private val cancelledBy: String,
-) : MetricTelemetryEvent("BVLS-court-booking-cancelled") {
+) : MetricTelemetryEvent("BVLS-probation-booking-cancelled") {
 
   init {
     require(booking.isProbationBooking()) {
