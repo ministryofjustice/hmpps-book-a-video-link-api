@@ -43,7 +43,7 @@ class MigrateVideoBookingService(
 
   private fun migrateCourt(bookingToMigrate: VideoBookingMigrateResponse): VideoBooking {
     val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
-      ?: throw MigrationException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
+      ?: throw MigrationException("Unable to find prisoner number for offender booking ID ${bookingToMigrate.offenderBookingId} for court booking ${bookingToMigrate.videoBookingId}")
 
     val preLocation = bookingToMigrate.pre?.let {
       mappingService.mapInternalLocationIdToLocation(it.locationId) ?: throw NullPointerException(
@@ -127,7 +127,7 @@ class MigrateVideoBookingService(
 
   private fun migrateProbationTeam(bookingToMigrate: VideoBookingMigrateResponse): VideoBooking {
     val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
-      ?: throw MigrationException("Unable to find prisoner number for booking ${bookingToMigrate.videoBookingId}")
+      ?: throw MigrationException("Unable to find prisoner number for offender booking ID ${bookingToMigrate.offenderBookingId} for probation booking ${bookingToMigrate.videoBookingId}")
 
     val mainLocation =
       mappingService.mapInternalLocationIdToLocation(bookingToMigrate.main.locationId) ?: throw NullPointerException(
