@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toOffsetString
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEvent
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 abstract class DomainEvent<T : AdditionalInformation>(
   eventType: DomainEventType,
@@ -74,6 +76,36 @@ class PrisonerMergedEvent(additionalInformation: MergeInformation) :
 
 data class MergeInformation(val nomsNumber: String, val removedNomsNumber: String) : AdditionalInformation
 
+class PrisonerVideoAppointmentCancelledEvent(
+  private val personReference: PersonReference,
+  additionalInformation: AppointmentScheduleInformation,
+) :
+  DomainEvent<AppointmentScheduleInformation>(DomainEventType.PRISONER_VIDEO_APPOINTMENT_CANCELLED, additionalInformation) {
+  fun isVideoLinkBooking() = additionalInformation.scheduleEventSubType == "VLB"
+
+  fun prisonCode() = additionalInformation.agencyLocationId
+
+  fun prisonerNumber(): String = personReference.identifiers.single { it.type == "NOMS" }.value
+
+  fun date(): LocalDate = additionalInformation.scheduledStartTime.toLocalDate()
+
+  fun startTime(): LocalTime = additionalInformation.scheduledStartTime.toLocalTime()
+}
+
+data class PersonReference(val identifiers: List<Identifier>)
+
+data class Identifier(val type: String, val value: String)
+
+data class AppointmentScheduleInformation(
+  val scheduleEventId: Long,
+  val scheduledStartTime: LocalDateTime,
+  val scheduledEndTime: LocalDateTime?,
+  val scheduleEventSubType: String,
+  val scheduleEventStatus: String,
+  val recordDeleted: Boolean,
+  val agencyLocationId: String,
+) : AdditionalInformation
+
 enum class DomainEventType(val eventType: String, val description: String = "") {
   VIDEO_BOOKING_CREATED(
     "book-a-video-link.video-booking.created",
@@ -114,6 +146,9 @@ enum class DomainEventType(val eventType: String, val description: String = "") 
   MIGRATE_VIDEO_BOOKING("whereabouts-api.videolink.migrate") {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) =
       mapper.readValue<MigrateVideoBookingEvent>(message)
+  },
+  PRISONER_VIDEO_APPOINTMENT_CANCELLED("prison-offender-events.prisoner.video-appointment.cancelled") {
+    override fun toInboundEvent(mapper: ObjectMapper, message: String) = mapper.readValue<PrisonerVideoAppointmentCancelledEvent>(message)
   },
   ;
 

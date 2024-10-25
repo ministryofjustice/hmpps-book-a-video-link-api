@@ -13,6 +13,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
@@ -581,6 +582,60 @@ class BookingFacadeTest {
     }
 
     @Test
+    fun `should send emails but no events on cancellation of a court booking by service user`() {
+      contactsService.stub {
+        on { getBookingContacts(any(), eq(SERVICE_USER)) } doReturn listOf(
+          bookingContact(contactType = ContactType.COURT, email = COURT_USER.email, name = COURT_USER.name),
+        )
+      }
+
+      val prisoner = Prisoner(courtBooking.prisoner(), WANDSWORTH, "Bob", "Builder", yesterday())
+
+      whenever(cancelVideoBookingService.cancel(1, SERVICE_USER)) doReturn courtBooking.apply { cancel(SERVICE_USER) }
+      whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+      whenever(emailService.send(any<CancelledCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
+
+      facade.cancel(1, SERVICE_USER)
+
+      inOrder(cancelVideoBookingService, emailService, notificationRepository, telemetryService) {
+        verify(cancelVideoBookingService).cancel(1, SERVICE_USER)
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+      }
+
+      verifyNoInteractions(outboundEventsService)
+
+      with(emailCaptor.allValues.single()) {
+        this isInstanceOf CancelledCourtBookingCourtEmail::class.java
+        address isEqualTo COURT_USER.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "court" to DERBY_JUSTICE_CENTRE,
+          "prison" to "Wandsworth",
+          "offenderNo" to "123456",
+          "prisonerName" to "Bob Builder",
+          "date" to "1 Jan 2100",
+          "preAppointmentInfo" to "Not required",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
+          "postAppointmentInfo" to "Not required",
+          "comments" to "Court hearing comments",
+        )
+      }
+
+      with(notificationCaptor.allValues.single()) {
+        email isEqualTo COURT_USER.email
+        templateName isEqualTo "court template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo courtBooking
+        reason isEqualTo "CANCEL"
+      }
+
+      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "service"
+      }
+    }
+
+    @Test
     fun `should send events and emails on cancellation of probation booking by probation user`() {
       setupProbationPrimaryContacts(PROBATION_USER)
 
@@ -725,6 +780,58 @@ class BookingFacadeTest {
 
       with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "prison"
+      }
+    }
+
+    @Test
+    fun `should send emails but no events on cancellation of a probation booking by service user`() {
+      contactsService.stub {
+        on { getBookingContacts(any(), eq(SERVICE_USER)) } doReturn listOf(
+          bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name),
+        )
+      }
+
+      val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
+
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+      whenever(cancelVideoBookingService.cancel(1, SERVICE_USER)) doReturn probationBookingAtBirminghamPrison.apply { cancel(SERVICE_USER) }
+      whenever(emailService.send(any<CancelledProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
+
+      facade.cancel(1, SERVICE_USER)
+
+      inOrder(cancelVideoBookingService, emailService, notificationRepository, telemetryService) {
+        verify(cancelVideoBookingService).cancel(1, SERVICE_USER)
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+      }
+
+      verifyNoInteractions(outboundEventsService)
+
+      with(emailCaptor.allValues.single()) {
+        this isInstanceOf CancelledProbationBookingProbationEmail::class.java
+        address isEqualTo PROBATION_USER.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "probationTeam" to "probation team description",
+          "prison" to "Birmingham",
+          "offenderNo" to "654321",
+          "prisonerName" to "Bob Builder",
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "Probation meeting comments",
+        )
+      }
+
+      with(notificationCaptor.allValues.single()) {
+        email isEqualTo PROBATION_USER.email
+        templateName isEqualTo "probation template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo probationBookingAtBirminghamPrison
+        reason isEqualTo "CANCEL"
+      }
+
+      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "service"
       }
     }
   }

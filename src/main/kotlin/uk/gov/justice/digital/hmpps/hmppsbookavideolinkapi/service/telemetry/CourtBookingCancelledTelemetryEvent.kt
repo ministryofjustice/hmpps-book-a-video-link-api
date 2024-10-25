@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 
 class CourtBookingCancelledTelemetryEvent private constructor(
@@ -27,15 +28,22 @@ class CourtBookingCancelledTelemetryEvent private constructor(
 
   companion object {
     fun user(booking: VideoBooking, user: User): CourtBookingCancelledTelemetryEvent {
-      require(user is PrisonUser || (user is ExternalUser && user.isCourtUser)) {
-        "Can only create court cancelled metric for prison or court users."
+      require(user is PrisonUser || user is ServiceUser || (user is ExternalUser && user.isCourtUser)) {
+        "Can only create court cancelled metric for service, prison or court users."
       }
 
       require(user.username == booking.amendedBy) {
         "Cannot create court cancelled metric, user does not match the cancelled by user."
       }
 
-      return CourtBookingCancelledTelemetryEvent(booking, if (user is PrisonUser) "prison" else "court")
+      val cancelledBy = when (user) {
+        is PrisonUser -> "prison"
+        is ExternalUser -> "court"
+        is ServiceUser -> "service"
+        else -> throw IllegalArgumentException("Unsupported user type.")
+      }
+
+      return CourtBookingCancelledTelemetryEvent(booking, cancelledBy)
     }
 
     fun released(videoBooking: VideoBooking): CourtBookingCancelledTelemetryEvent =
