@@ -45,7 +45,7 @@ class CourtBookingAmendedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(10, 0),
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
     ).addAppointment(
       prison = prison(WANDSWORTH),
       prisonerNumber = "ABC123",
@@ -53,7 +53,7 @@ class CourtBookingAmendedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(10, 0),
       endTime = LocalTime.of(11, 0),
-      locationKey = wandsworthLocation2.key,
+      locationId = wandsworthLocation2.key,
     ).addAppointment(
       prison = prison(WANDSWORTH),
       prisonerNumber = "ABC123",
@@ -61,7 +61,7 @@ class CourtBookingAmendedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(12, 0),
-      locationKey = wandsworthLocation3.key,
+      locationId = wandsworthLocation3.key,
     ).apply {
       amendedTime = amendedAt
       amendedBy = courtUser().username
@@ -112,7 +112,7 @@ class CourtBookingAmendedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 0),
-      locationKey = risleyLocation.key,
+      locationId = risleyLocation.key,
     ).apply {
       amendedTime = amendedAt
       amendedBy = prisonUser().username

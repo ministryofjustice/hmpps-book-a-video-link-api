@@ -54,7 +54,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAcce
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.util.UUID
 
 class AmendVideoBookingServiceTest {
 
@@ -560,7 +560,7 @@ class AmendVideoBookingServiceTest {
         appointmentDate isEqualTo onePrisoner.appointments.single().date!!
         startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
         endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
-        prisonLocKey isEqualTo onePrisoner.appointments.single().locationKey!!
+        prisonLocUuid isEqualTo onePrisoner.appointments.single().locationKey!!
       }
     }
 

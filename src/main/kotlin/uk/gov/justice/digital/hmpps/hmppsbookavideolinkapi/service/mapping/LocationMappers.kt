@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location as ModelLocation
 
 fun Location.toModel() = ModelLocation(
+  id = id,
   key = key,
   description = localName,
   enabled = active,

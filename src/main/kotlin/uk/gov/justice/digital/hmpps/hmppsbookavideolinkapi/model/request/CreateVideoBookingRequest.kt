@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.UUID
 
 @Schema(
   description =
@@ -159,10 +160,9 @@ data class Appointment(
   @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
   val type: AppointmentType?,
 
-  @field:NotBlank(message = "The location key for the appointment is mandatory")
-  @field:Size(max = 160, message = "The location key should not exceed {max} characters")
+  @field:NotBlank(message = "The location id for the appointment is mandatory")
   @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
-  val locationKey: String?,
+  val locationId: UUID?,
 
   @field:NotNull(message = "The date for the appointment is mandatory")
   @field:FutureOrPresent(message = "The combination of date and start time for the appointment must be in the future")

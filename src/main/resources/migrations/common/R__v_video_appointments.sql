@@ -10,7 +10,7 @@ select
   p.code as prison_code,
   pa.prisoner_number,
   pa.appointment_type,
-  pa.prison_loc_key,
+  pa.prison_loc_uuid,
   pa.appointment_date,
   pa.start_time,
   pa.end_time

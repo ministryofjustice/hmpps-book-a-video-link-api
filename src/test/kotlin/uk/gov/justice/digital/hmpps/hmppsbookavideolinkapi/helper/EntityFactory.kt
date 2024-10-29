@@ -75,7 +75,7 @@ fun VideoBooking.withMainCourtPrisonAppointment(
     prison = prison(prisonCode = prisonCode),
     prisonerNumber = prisonerNumber,
     appointmentType = "VLB_COURT_MAIN",
-    locationKey = location.key,
+    locationId = location.key,
     date = date,
     startTime = LocalTime.of(9, 30),
     endTime = LocalTime.of(10, 0),
@@ -103,7 +103,7 @@ fun VideoBooking.withProbationPrisonAppointment(
   date = tomorrow(),
   startTime = LocalTime.MIDNIGHT,
   endTime = LocalTime.MIDNIGHT.plusHours(1),
-  locationKey = location.key,
+  locationId = location.key,
 )
 
 fun appointment(
@@ -178,7 +178,7 @@ fun videoAppointment(
     prisonCode = WANDSWORTH,
     prisonerNumber = "A1234AA",
     appointmentType = prisonAppointment.appointmentType,
-    prisonLocKey = prisonAppointment.prisonLocKey,
+    prisonLocKey = prisonAppointment.prisonLocUuid,
     appointmentDate = prisonAppointment.appointmentDate,
     startTime = prisonAppointment.startTime,
     endTime = prisonAppointment.endTime,

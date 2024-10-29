@@ -39,7 +39,7 @@ class AppointmentsService(
         date = it.date!!,
         startTime = it.startTime!!,
         endTime = it.endTime!!,
-        locationKey = it.locationKey!!,
+        locationId = it.locationId!!,
       )
     }
   }
@@ -53,7 +53,7 @@ class AppointmentsService(
       appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode)
     }
 
-    locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
+    locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationId }.toSet())
   }
 
   private fun List<Appointment>.checkCourtAppointmentTypesOnly() {
@@ -82,7 +82,7 @@ class AppointmentsService(
     forEach { newAppointment ->
       prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
         prisonCode,
-        newAppointment.locationKey!!,
+        newAppointment.locationId!!,
         newAppointment.date!!,
       ).forEach { existingAppointment ->
         require(
@@ -93,7 +93,7 @@ class AppointmentsService(
             existingAppointment.endTime,
           ),
         ) {
-          "One or more requested court appointments overlaps with an existing appointment at location ${newAppointment.locationKey}"
+          "One or more requested court appointments overlaps with an existing appointment at location ${newAppointment.locationId}"
         }
       }
     }
@@ -121,7 +121,7 @@ class AppointmentsService(
         date = this.date!!,
         startTime = this.startTime!!,
         endTime = this.endTime!!,
-        locationKey = this.locationKey!!,
+        locationId = this.locationId!!,
       )
     }
   }
@@ -141,7 +141,7 @@ class AppointmentsService(
         checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode)
       }
 
-      locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
+      locationValidator.validatePrisonLocation(prisonCode, this.locationId!!)
     }
   }
 
@@ -154,7 +154,7 @@ class AppointmentsService(
         date = appointment.date!!,
         startTime = appointment.startTime!!,
         endTime = appointment.endTime!!,
-        key = appointment.locationKey!!,
+        locationId = appointment.locationId!!,
       )
     ) {
       throw IllegalArgumentException("Duplicate appointment requested for prisoner $prisonerNumber")
@@ -164,7 +164,7 @@ class AppointmentsService(
   private fun Appointment.checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
     prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
       prisonCode,
-      locationKey!!,
+      locationId!!,
       date!!,
     ).forEach { existingAppointment ->
       require(
@@ -175,7 +175,7 @@ class AppointmentsService(
           existingAppointment.endTime,
         ),
       ) {
-        "Requested probation appointment overlaps with an existing appointment at location $locationKey"
+        "Requested probation appointment overlaps with an existing appointment at location $locationId"
       }
     }
   }

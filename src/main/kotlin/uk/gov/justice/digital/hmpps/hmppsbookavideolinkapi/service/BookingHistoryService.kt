@@ -44,7 +44,7 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
         prisonerNumber = appointment.prisonerNumber,
         appointmentDate = appointment.appointmentDate,
         appointmentType = appointment.appointmentType,
-        prisonLocKey = appointment.prisonLocKey,
+        prisonLocUuid = appointment.prisonLocUuid,
         startTime = appointment.startTime,
         endTime = appointment.endTime,
       )

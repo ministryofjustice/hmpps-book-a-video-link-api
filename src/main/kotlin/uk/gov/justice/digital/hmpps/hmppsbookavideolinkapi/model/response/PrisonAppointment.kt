@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 @Schema(description = "A representation of a prison appointment")
 data class PrisonAppointment(
@@ -24,7 +25,7 @@ data class PrisonAppointment(
   val comments: String?,
 
   @Schema(description = "The location of the appointment at the prison", example = "VCC-ROOM-1")
-  val prisonLocKey: String,
+  val prisonLocationId: UUID,
 
   @Schema(description = "The date of the appointment", example = "2024-04-05")
   val appointmentDate: LocalDate,

@@ -24,6 +24,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Month
+import java.util.UUID
 import java.util.stream.Stream
 
 class CsvDataExtractionServiceTest {
@@ -50,9 +51,9 @@ class CsvDataExtractionServiceTest {
     postDate = LocalDate.of(2024, Month.JULY, 10),
     postStartTime = LocalTime.of(11, 0),
     postEndTime = LocalTime.of(12, 0),
-    mainLocationKey = "main-loc-key",
-    preLocationKey = "pre-loc-key",
-    postLocationKey = "post-loc-key",
+    mainLocationId = UUID.nameUUIDFromBytes("main-loc-key".toByteArray()),
+    preLocationId = UUID.nameUUIDFromBytes("pre-loc-key".toByteArray()),
+    postLocationId = UUID.nameUUIDFromBytes("post-loc-key".toByteArray()),
     courtBooking = true,
   )
   private val wandsworthCancelCourtBookingEvent = wandsworthCreateCourtBookingEvent.copy(eventType = "CANCEL")
@@ -65,9 +66,9 @@ class CsvDataExtractionServiceTest {
   private val risleyPrisonCourtBooking = risleyCourtBooking.copy(createdByPrison = true, courtBooking = false)
   private val risleyProbationBooking = wandsworthCreateProbationBookingEvent.copy(prisonCode = RISLEY, createdByPrison = false)
   private val locations = listOf(
-    location(key = "pre-loc-key", description = "Pre location"),
-    location(key = "main-loc-key", description = "Main location"),
-    location(key = "post-loc-key", description = "Post location"),
+    location(id = UUID.nameUUIDFromBytes("pre-loc-key".toByteArray()), key = "pre-loc-key", description = "Pre location"),
+    location(id = UUID.nameUUIDFromBytes("main-loc-key".toByteArray()), key = "main-loc-key", description = "Main location"),
+    location(id = UUID.nameUUIDFromBytes("post-loc-key".toByteArray()), key = "post-loc-key", description = "Post location"),
   )
 
   @BeforeEach
@@ -243,6 +244,6 @@ class CsvDataExtractionServiceTest {
       "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
   }
 
-  private fun location(key: String, description: String) =
-    Location(key = key, description = description, enabled = true)
+  private fun location(id: UUID, key: String, description: String) =
+    Location(id = id, key = key, description = description, enabled = true)
 }

@@ -40,7 +40,7 @@ class ProbationBookingAmendedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(14, 0),
       endTime = LocalTime.of(15, 0),
-      locationKey = birminghamLocation.key,
+      locationId = birminghamLocation.key,
     ).apply {
       amendedTime = amendedAt
       amendedBy = probationUser().username
@@ -85,7 +85,7 @@ class ProbationBookingAmendedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(14, 0),
       endTime = LocalTime.of(15, 0),
-      locationKey = birminghamLocation.key,
+      locationId = birminghamLocation.key,
     ).apply {
       amendedTime = amendedAt
       amendedBy = prisonUser().username

@@ -11,11 +11,18 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isAtPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
+import java.util.UUID
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 @Component
 class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient: WebClient) {
+
+  fun getLocationById(id: UUID): Location = locationsInsidePrisonApiWebClient.get()
+    .uri("/locations/id/{id}", id)
+    .retrieve()
+    .bodyToMono(Location::class.java)
+    .block()!!
 
   fun getLocationByKey(key: String): Location? = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/key/{key}", key)
@@ -52,16 +59,17 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
 @Component
 class LocationValidator(private val locationsInsidePrisonClient: LocationsInsidePrisonClient) {
 
-  fun validatePrisonLocation(prisonCode: String, locationKey: String) {
-    validate(prisonCode, setOf(locationKey), listOfNotNull(locationsInsidePrisonClient.getLocationByKey(locationKey)))
+  fun validatePrisonLocation(prisonCode: String, locationId: UUID) {
+    validate(prisonCode, setOf(locationId), listOfNotNull(locationsInsidePrisonClient.getLocationById(locationId)))
   }
 
-  fun validatePrisonLocations(prisonCode: String, locationKeys: Set<String>) {
-    validate(prisonCode, locationKeys, locationsInsidePrisonClient.getLocationsByKeys(locationKeys))
+  fun validatePrisonLocations(prisonCode: String, locationIds: Set<UUID>) {
+    val locations = locationIds.map { locationsInsidePrisonClient.getLocationById(it) }
+    validate(prisonCode, locationIds, locations)
   }
 
-  private fun validate(prisonCode: String, locationKeys: Set<String>, maybeLocations: List<Location>) {
-    val maybeFoundLocations = maybeLocations.associateBy { it.key }
+  private fun validate(prisonCode: String, locationKeys: Set<UUID>, maybeLocations: List<Location>) {
+    val maybeFoundLocations = maybeLocations.associateBy { it.id }
 
     if (maybeFoundLocations.isEmpty()) {
       validationError("The following ${if (locationKeys.size == 1) "location was" else "locations were"} not found $locationKeys")

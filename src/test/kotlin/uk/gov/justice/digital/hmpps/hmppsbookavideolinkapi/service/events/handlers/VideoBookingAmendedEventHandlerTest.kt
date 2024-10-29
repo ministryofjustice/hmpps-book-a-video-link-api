@@ -49,7 +49,7 @@ class VideoBookingAmendedEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = "",
+      locationId = "",
     )
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
@@ -58,7 +58,7 @@ class VideoBookingAmendedEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 30),
-      locationKey = "",
+      locationId = "",
     )
 
   // For use with the mock to return the booking history details
@@ -125,7 +125,7 @@ class VideoBookingAmendedEventHandlerTest {
           prisonerNumber = "123456",
           appointmentDate = LocalDate.of(2100, 1, 1),
           appointmentType = "VLB_COURT_PRE",
-          prisonLocKey = "",
+          prisonLocUuid = "",
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(11, 30),
           bookingHistory = hist,
@@ -136,7 +136,7 @@ class VideoBookingAmendedEventHandlerTest {
           prisonerNumber = "123456",
           appointmentDate = LocalDate.of(2100, 1, 1),
           appointmentType = "VLB_COURT_MAIN",
-          prisonLocKey = "",
+          prisonLocUuid = "",
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 30),
           bookingHistory = hist,

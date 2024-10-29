@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
@@ -31,6 +32,7 @@ class ManageExternalAppointmentsService(
   private val prisonApiClient: PrisonApiClient,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val referenceCodeRepository: ReferenceCodeRepository,
+  private val nomisMappingClient: NomisMappingClient,
 ) {
 
   companion object {
@@ -217,8 +219,8 @@ class ManageExternalAppointmentsService(
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
   private fun PrisonAppointment.internalLocationId() =
-    prisonApiClient.getInternalLocationByKey(prisonLocKey)?.locationId
-      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocKey not found for prison appointment $prisonAppointmentId")
+    nomisMappingClient.getNomisLocationMappingBy(prisonLocUuid)?.nomisLocationId
+      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocUuid not found for prison appointment $prisonAppointmentId")
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
   private fun PrisonAppointment.bookingId() =
@@ -226,6 +228,6 @@ class ManageExternalAppointmentsService(
       ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Booking id not found for prisoner $prisonerNumber for prison appointment $prisonAppointmentId")
 
   private fun BookingHistoryAppointment.internalLocationId() =
-    prisonApiClient.getInternalLocationByKey(prisonLocKey)?.locationId
-      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocKey not found for prison appointment ${bookingHistoryAppointmentId}Id")
+    nomisMappingClient.getNomisLocationMappingBy(prisonLocUuid)?.nomisLocationId
+      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocUuid not found for prison appointment ${bookingHistoryAppointmentId}Id")
 }

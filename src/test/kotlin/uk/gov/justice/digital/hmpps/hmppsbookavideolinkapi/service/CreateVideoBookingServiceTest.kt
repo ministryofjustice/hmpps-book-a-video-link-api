@@ -684,7 +684,7 @@ class CreateVideoBookingServiceTest {
         appointmentDate isEqualTo onePrisoner.appointments.single().date!!
         startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
         endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
-        prisonLocKey isEqualTo onePrisoner.appointments.single().locationKey!!
+        prisonLocUuid isEqualTo onePrisoner.appointments.single().locationKey!!
       }
     }
 

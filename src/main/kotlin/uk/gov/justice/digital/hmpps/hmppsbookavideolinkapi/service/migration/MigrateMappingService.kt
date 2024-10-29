@@ -15,7 +15,7 @@ class MigrateMappingService(
   fun mapBookingIdToPrisonerNumber(bookingId: Long): String? =
     migrationClient.getPrisonerByBookingId(bookingId)?.offenderNo
 
-  fun mapInternalLocationIdToLocation(id: Long) = migrationClient.getLocationByInternalId(id)
+  fun mapInternalLocationIdToDpsLocationId(id: Long) = migrationClient.getDpsLocationIdByInternalId(id)
 
   fun mapCourtCodeToCourt(code: String) = courtRepository.findByCode(code)
 

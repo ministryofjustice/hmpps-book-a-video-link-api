@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
+import java.util.UUID
 
 @Service
 class RequestBookingService(
@@ -65,7 +66,7 @@ class RequestBookingService(
     val court = fetchCourt(request.courtCode!!)
     val hearingType = fetchReferenceCode("COURT_HEARING_TYPE", request.courtHearingType!!.toString())
 
-    val locations = fetchLocations(setOfNotNull(pre?.locationKey, main.locationKey, post?.locationKey))
+    val locations = fetchLocations(setOfNotNull(pre?.locationId, main.locationId, post?.locationId))
     val contacts = contactsService.getContactsForCourtBookingRequest(court, prison, user).allContactsWithAnEmailAddress()
 
     sendEmails(contacts) { contact ->
@@ -86,7 +87,7 @@ class RequestBookingService(
     val probationTeam = fetchProbationTeam(request.probationTeamCode!!)
     val meetingType = fetchReferenceCode("PROBATION_MEETING_TYPE", request.probationMeetingType!!.toString())
 
-    val locations = fetchLocations(setOf(appointment.locationKey!!))
+    val locations = fetchLocations(setOf(appointment.locationId!!))
     val contacts = contactsService.getContactsForProbationBookingRequest(probationTeam, prison, user).allContactsWithAnEmailAddress()
 
     sendEmails(contacts) { contact ->
@@ -117,8 +118,7 @@ class RequestBookingService(
     referenceCodeRepository.findByGroupCodeAndCode(groupCode, code)
       ?: throw EntityNotFoundException("$groupCode with code $code not found")
 
-  private fun fetchLocations(keys: Set<String>): Map<String, Location> =
-    locationsInsidePrisonClient.getLocationsByKeys(keys).associateBy { it.key }
+  private fun fetchLocations(ids: Set<UUID>): Map<UUID, Location> = ids.map { locationsInsidePrisonClient.getLocationById(it) }.associateBy { it.id }
 
   private fun getCourtAppointments(prisoner: UnknownPrisonerDetails): Triple<Appointment?, Appointment, Appointment?> {
     return prisoner.appointments.appointmentsForCourtHearing()
@@ -150,7 +150,7 @@ class RequestBookingService(
     main: Appointment,
     pre: Appointment?,
     post: Appointment?,
-    locations: Map<String, Location>,
+    locations: Map<UUID, Location>,
   ) = CourtBookingRequestUserEmail(
     address = contact.email!!,
     userName = contact.name ?: "Book Video",
@@ -177,7 +177,7 @@ class RequestBookingService(
     main: Appointment,
     pre: Appointment?,
     post: Appointment?,
-    locations: Map<String, Location>,
+    locations: Map<UUID, Location>,
   ): Email {
     val primaryCourtContact = contacts.primaryContact(ContactType.COURT)
     return if (primaryCourtContact != null) {
@@ -221,7 +221,7 @@ class RequestBookingService(
     prison: Prison,
     meetingType: ReferenceCode,
     appointment: Appointment,
-    locations: Map<String, Location>,
+    locations: Map<UUID, Location>,
   ) = ProbationBookingRequestUserEmail(
     address = contact.email!!,
     userName = contact.name ?: "Book Video",
@@ -244,7 +244,7 @@ class RequestBookingService(
     contacts: Collection<Contact>,
     meetingType: ReferenceCode,
     appointment: Appointment,
-    locations: Map<String, Location>,
+    locations: Map<UUID, Location>,
   ): Email {
     val primaryProbationTeamContact = contacts.primaryContact(ContactType.PROBATION)
     return if (primaryProbationTeamContact != null) {
@@ -289,8 +289,8 @@ class RequestBookingService(
 
   private fun Collection<Appointment>.post() = singleOrNull { it.type == AppointmentType.VLB_COURT_POST }
 
-  private fun Appointment.appointmentInformation(locations: Map<String, Location>) =
-    "${locations[locationKey]?.localName ?: ""} - ${startTime!!.toHourMinuteStyle()} to ${endTime!!.toHourMinuteStyle()}"
+  private fun Appointment.appointmentInformation(locations: Map<UUID, Location>) =
+    "${locations[locationId]?.localName ?: ""} - ${startTime!!.toHourMinuteStyle()} to ${endTime!!.toHourMinuteStyle()}"
 
   // We will only be requesting appointments for one single prisoner as part of the initial rollout.
   private fun RequestVideoBookingRequest.prisoner() = prisoners.first()

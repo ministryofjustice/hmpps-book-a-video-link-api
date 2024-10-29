@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 @Schema(description = "An item on a schedule i.e. prison appointments and their booking details")
 data class ScheduleItem(
@@ -84,7 +85,7 @@ data class ScheduleItem(
     description = "The location key for the room where the appointment will take place in the prison.",
     example = "MDI-VCC-1",
   )
-  val prisonLocKey: String,
+  val prisonLocationId: UUID,
 
   @Schema(description = "The date for this appointment ISO format (YYYY-MM-DD)", example = "2024-10-03")
   val appointmentDate: LocalDate,

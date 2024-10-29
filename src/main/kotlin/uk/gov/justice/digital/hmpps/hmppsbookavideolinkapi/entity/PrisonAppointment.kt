@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecis
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.UUID
 
 @Entity
 @Table(name = "prison_appointment")
@@ -35,7 +36,7 @@ class PrisonAppointment private constructor(
 
   val comments: String? = null,
 
-  val prisonLocKey: String,
+  val prisonLocUuid: UUID,
 
   val appointmentDate: LocalDate,
 
@@ -79,7 +80,7 @@ class PrisonAppointment private constructor(
       appointmentDate: LocalDate,
       startTime: LocalTime,
       endTime: LocalTime,
-      locationKey: String,
+      locationId: UUID,
     ) = PrisonAppointment(
       videoBooking = videoBooking,
       prison = prison,
@@ -88,7 +89,7 @@ class PrisonAppointment private constructor(
       appointmentDate = appointmentDate,
       startTime = startTime.toMinutePrecision(),
       endTime = endTime.toMinutePrecision(),
-      prisonLocKey = locationKey,
+      prisonLocUuid = locationId,
       comments = videoBooking.comments,
     )
   }

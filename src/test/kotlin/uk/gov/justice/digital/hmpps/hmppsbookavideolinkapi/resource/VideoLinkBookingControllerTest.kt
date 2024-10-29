@@ -56,7 +56,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBook
 import uk.gov.justice.hmpps.kotlin.auth.HmppsResourceServerConfiguration
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.util.UUID
 
 /**
  * As a general guideline we primarily test controllers in integration tests. This is an exception due to wanting to get
@@ -102,7 +102,7 @@ class VideoLinkBookingControllerTest {
       prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "ABCDEF",
       appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
       date = tomorrow(),
       startTime = LocalTime.MIDNIGHT.plusHours(1),
       endTime = LocalTime.MIDNIGHT.plusHours(2),

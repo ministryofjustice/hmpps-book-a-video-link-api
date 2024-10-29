@@ -24,7 +24,7 @@ select
     pa.appointment_type,
     rc3.description as appointment_type_description,
     pa.comments as appointment_comments,
-    pa.prison_loc_key,
+    pa.prison_loc_uuid,
     pa.appointment_date,
     pa.start_time,
     pa.end_time

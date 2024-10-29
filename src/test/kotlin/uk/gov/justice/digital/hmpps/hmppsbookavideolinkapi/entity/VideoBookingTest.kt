@@ -36,7 +36,7 @@ class VideoBookingTest {
       date = tomorrow(),
       startTime = LocalTime.now(),
       endTime = LocalTime.now().plusHours(1),
-      locationKey = "loc-key",
+      locationId = "loc-key",
     )
 
     booking.cancel(courtUser())
@@ -55,7 +55,7 @@ class VideoBookingTest {
       date = tomorrow(),
       startTime = LocalTime.now(),
       endTime = LocalTime.now().plusHours(1),
-      locationKey = "loc-key",
+      locationId = "loc-key",
     )
 
     booking.cancel(courtUser())
@@ -76,7 +76,7 @@ class VideoBookingTest {
       date = yesterday(),
       startTime = LocalTime.now(),
       endTime = LocalTime.now().plusHours(1),
-      locationKey = "loc-key",
+      locationId = "loc-key",
     )
 
     val exception = assertThrows<IllegalArgumentException> {

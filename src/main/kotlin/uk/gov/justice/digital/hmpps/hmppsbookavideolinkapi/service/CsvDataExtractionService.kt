@@ -158,9 +158,9 @@ data class CourtBookingEvent(
     vbh.preDate?.atTime(vbh.preEndTime),
     vbh.postDate?.atTime(vbh.postStartTime),
     vbh.postDate?.atTime(vbh.postEndTime),
-    vbh.mainLocationKey.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
-    vbh.preLocationKey?.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
-    vbh.postLocationKey?.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
+    vbh.mainLocationId.let { id -> locations[vbh.prisonCode]!!.single { it.id == id }.let { it.description ?: it.key } },
+    vbh.preLocationId?.let { id -> locations[vbh.prisonCode]!!.single { it.id == id }.let { it.description ?: it.key } },
+    vbh.postLocationId?.let { id -> locations[vbh.prisonCode]!!.single { it.id == id }.let { it.description ?: it.key } },
   )
 }
 
@@ -218,7 +218,7 @@ data class ProbationBookingEvent(
     null,
     null,
     null,
-    vbh.mainLocationKey.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
+    vbh.mainLocationId.let { id -> locations[vbh.prisonCode]!!.single { it.id == id }.let { it.description ?: it.key } },
     null,
     null,
   )

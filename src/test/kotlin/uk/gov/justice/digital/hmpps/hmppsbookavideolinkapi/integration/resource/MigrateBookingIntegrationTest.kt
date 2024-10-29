@@ -243,14 +243,14 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       courtCode isEqualTo DERBY_JUSTICE_CENTRE
       courtBooking isBool true
       createdByPrison isBool false
-      preLocationKey isEqualTo wandsworthLocation.key
+      preLocationId isEqualTo wandsworthLocation.key
       preStartTime isEqualTo LocalTime.of(9, 0)
       preEndTime isEqualTo LocalTime.of(10, 0)
-      mainLocationKey isEqualTo wandsworthLocation.key
+      mainLocationId isEqualTo wandsworthLocation.key
       mainDate isEqualTo yesterday()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo wandsworthLocation.key
+      preLocationId isEqualTo wandsworthLocation.key
       postStartTime isEqualTo LocalTime.of(11, 0)
       postEndTime isEqualTo LocalTime.of(12, 0)
     }
@@ -266,14 +266,14 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       courtCode isEqualTo DERBY_JUSTICE_CENTRE
       courtBooking isBool true
       createdByPrison isBool false
-      preLocationKey isEqualTo wandsworthLocation.key
+      preLocationId isEqualTo wandsworthLocation.key
       preStartTime isEqualTo LocalTime.of(9, 0)
       preEndTime isEqualTo LocalTime.of(10, 0)
-      mainLocationKey isEqualTo wandsworthLocation2.key
+      mainLocationId isEqualTo wandsworthLocation2.key
       mainDate isEqualTo yesterday()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo wandsworthLocation.key
+      preLocationId isEqualTo wandsworthLocation.key
       postStartTime isEqualTo LocalTime.of(11, 0)
       postEndTime isEqualTo LocalTime.of(12, 0)
     }
@@ -520,14 +520,14 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       probationTeamCode isEqualTo BLACKPOOL_MC_PPOC
       courtBooking isBool false
       createdByPrison isBool false
-      preLocationKey isEqualTo null
+      preLocationId isEqualTo null
       preStartTime isEqualTo null
       preEndTime isEqualTo null
-      mainLocationKey isEqualTo wandsworthLocation.key
+      mainLocationId isEqualTo wandsworthLocation.key
       mainDate isEqualTo 2.daysAgo()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo null
+      preLocationId isEqualTo null
       postStartTime isEqualTo null
       postEndTime isEqualTo null
     }
@@ -543,14 +543,14 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       probationTeamCode isEqualTo BLACKPOOL_MC_PPOC
       courtBooking isBool false
       createdByPrison isBool false
-      preLocationKey isEqualTo null
+      preLocationId isEqualTo null
       preStartTime isEqualTo null
       preEndTime isEqualTo null
-      mainLocationKey isEqualTo wandsworthLocation3.key
+      mainLocationId isEqualTo wandsworthLocation3.key
       mainDate isEqualTo 2.daysAgo()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo null
+      preLocationId isEqualTo null
       postStartTime isEqualTo null
       postEndTime isEqualTo null
     }
@@ -669,5 +669,5 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
   private fun BookingHistoryAppointment.startsAt(hour: Int, minute: Int) = also { it.startTime isEqualTo LocalTime.of(hour, minute) }
   private fun BookingHistoryAppointment.endsAt(hour: Int, minute: Int) = also { it.endTime isEqualTo LocalTime.of(hour, minute) }
   private fun BookingHistoryAppointment.isForAppointmentType(appointmentType: String) = also { it.appointmentType isEqualTo appointmentType }
-  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocKey isEqualTo location.key }
+  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocUuid isEqualTo location.key }
 }
