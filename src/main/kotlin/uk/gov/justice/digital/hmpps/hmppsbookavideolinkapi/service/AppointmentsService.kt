@@ -45,6 +45,8 @@ class AppointmentsService(
   }
 
   fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
+    locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
+
     appointments.checkCourtAppointmentTypesOnly()
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
 
@@ -52,8 +54,6 @@ class AppointmentsService(
     if (user !is PrisonUser) {
       appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode)
     }
-
-    locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
   }
 
   private fun List<Appointment>.checkCourtAppointmentTypesOnly() {
@@ -136,12 +136,12 @@ class AppointmentsService(
         "Appointment type $type is not valid for probation appointments"
       }
 
+      locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
+
       // Prison users can have overlapping appointments
       if (user !is PrisonUser) {
         checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode)
       }
-
-      locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
     }
   }
 
