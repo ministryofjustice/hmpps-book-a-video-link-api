@@ -85,7 +85,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_PRE.name,
-          locationKey = wandsworthLocation.key,
+          locationId = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT,
           endTime = LocalTime.MIDNIGHT.plusHours(1),
@@ -94,7 +94,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-          locationKey = wandsworthLocation.key,
+          locationId = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(1),
           endTime = LocalTime.MIDNIGHT.plusHours(2),
@@ -103,7 +103,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_POST.name,
-          locationKey = wandsworthLocation.key,
+          locationId = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(3),
           endTime = LocalTime.MIDNIGHT.plusHours(4),
@@ -168,7 +168,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_PROBATION.name,
-          locationKey = wandsworthLocation.key,
+          locationId = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT,
           endTime = LocalTime.MIDNIGHT.plusHours(1),
@@ -243,7 +243,7 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(12, 0),
-          locationKey = searchRequest.locationKey!!,
+          locationId = searchRequest.locationKey!!,
         )
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
@@ -252,7 +252,7 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
-          locationKey = searchRequest.locationKey!!,
+          locationId = searchRequest.locationKey!!,
         )
 
       whenever(
@@ -290,7 +290,7 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(12, 0),
-          locationKey = searchRequest.locationKey!!,
+          locationId = searchRequest.locationKey!!,
         )
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
@@ -299,7 +299,7 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
-          locationKey = searchRequest.locationKey!!,
+          locationId = searchRequest.locationKey!!,
         )
 
       whenever(

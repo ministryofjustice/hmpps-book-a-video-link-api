@@ -38,7 +38,7 @@ class CourtBookingCancelledTelemetryEventTest {
     date = tomorrow(),
     startTime = LocalTime.of(9, 0),
     endTime = LocalTime.of(10, 0),
-    locationKey = wandsworthLocation.key,
+    locationId = wandsworthLocation.key,
   ).addAppointment(
     prison = prison(WANDSWORTH),
     prisonerNumber = "ABC123",
@@ -46,7 +46,7 @@ class CourtBookingCancelledTelemetryEventTest {
     date = tomorrow(),
     startTime = LocalTime.of(10, 0),
     endTime = LocalTime.of(11, 0),
-    locationKey = wandsworthLocation2.key,
+    locationId = wandsworthLocation2.key,
   ).addAppointment(
     prison = prison(WANDSWORTH),
     prisonerNumber = "ABC123",
@@ -54,7 +54,7 @@ class CourtBookingCancelledTelemetryEventTest {
     date = tomorrow(),
     startTime = LocalTime.of(11, 0),
     endTime = LocalTime.of(12, 0),
-    locationKey = wandsworthLocation3.key,
+    locationId = wandsworthLocation3.key,
   )
 
   @Test

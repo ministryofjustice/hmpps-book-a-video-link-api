@@ -102,7 +102,7 @@ class VideoLinkBookingControllerTest {
       prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "ABCDEF",
       appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
       date = tomorrow(),
       startTime = LocalTime.MIDNIGHT.plusHours(1),
       endTime = LocalTime.MIDNIGHT.plusHours(2),

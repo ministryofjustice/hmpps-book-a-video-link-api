@@ -36,7 +36,7 @@ class ProbationBookingCreatedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(14, 0),
       endTime = LocalTime.of(15, 0),
-      locationKey = birminghamLocation.key,
+      locationId = birminghamLocation.key,
     )
 
     with(ProbationBookingCreatedTelemetryEvent(booking)) {

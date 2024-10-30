@@ -39,7 +39,7 @@ class AppointmentsService(
         date = it.date!!,
         startTime = it.startTime!!,
         endTime = it.endTime!!,
-        locationKey = it.locationKey!!,
+        locationId = it.locationKey!!,
       )
     }
   }
@@ -121,7 +121,7 @@ class AppointmentsService(
         date = this.date!!,
         startTime = this.startTime!!,
         endTime = this.endTime!!,
-        locationKey = this.locationKey!!,
+        locationId = this.locationKey!!,
       )
     }
   }

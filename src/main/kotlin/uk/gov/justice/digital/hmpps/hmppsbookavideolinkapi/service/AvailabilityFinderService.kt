@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
@@ -9,7 +10,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Availa
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingOption
 import java.time.LocalTime
 import java.util.TreeMap
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 
 @Service
 class AvailabilityFinderService(

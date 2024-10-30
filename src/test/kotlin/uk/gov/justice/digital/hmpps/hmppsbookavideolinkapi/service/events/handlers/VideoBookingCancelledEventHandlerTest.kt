@@ -28,7 +28,7 @@ class VideoBookingCancelledEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = "",
+      locationId = "",
     )
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
@@ -37,7 +37,7 @@ class VideoBookingCancelledEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 30),
-      locationKey = "",
+      locationId = "",
     )
 
   private val videoBookingRepository: VideoBookingRepository = mock()

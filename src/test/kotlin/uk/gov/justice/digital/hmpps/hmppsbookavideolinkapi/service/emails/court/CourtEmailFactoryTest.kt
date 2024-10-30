@@ -55,7 +55,7 @@ class CourtEmailFactoryTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
     )
 
   private val probationBooking = probationBooking()
@@ -66,7 +66,7 @@ class CourtEmailFactoryTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
     )
 
   private val prison = prison(prisonCode = WANDSWORTH)

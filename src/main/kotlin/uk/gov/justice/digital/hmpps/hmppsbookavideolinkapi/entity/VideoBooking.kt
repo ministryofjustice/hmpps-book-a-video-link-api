@@ -91,7 +91,7 @@ class VideoBooking private constructor(
     date: LocalDate,
     startTime: LocalTime,
     endTime: LocalTime,
-    locationKey: String,
+    locationId: String,
   ) =
     apply {
       prisonAppointments.add(
@@ -103,7 +103,7 @@ class VideoBooking private constructor(
           appointmentDate = date,
           startTime = startTime,
           endTime = endTime,
-          locationKey = locationKey,
+          locationId = locationId,
         ),
       )
     }

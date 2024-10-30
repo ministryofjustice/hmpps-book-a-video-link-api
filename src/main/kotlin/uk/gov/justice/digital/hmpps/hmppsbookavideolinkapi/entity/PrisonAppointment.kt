@@ -79,7 +79,7 @@ class PrisonAppointment private constructor(
       appointmentDate: LocalDate,
       startTime: LocalTime,
       endTime: LocalTime,
-      locationKey: String,
+      locationId: String,
     ) = PrisonAppointment(
       videoBooking = videoBooking,
       prison = prison,
@@ -88,7 +88,7 @@ class PrisonAppointment private constructor(
       appointmentDate = appointmentDate,
       startTime = startTime.toMinutePrecision(),
       endTime = endTime.toMinutePrecision(),
-      prisonLocationId = locationKey,
+      prisonLocationId = locationId,
       comments = videoBooking.comments,
     )
   }

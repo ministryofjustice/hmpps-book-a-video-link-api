@@ -126,7 +126,7 @@ class BookingFacadeTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
     )
   private val courtBookingAtDisabledCourt = courtBooking(court = court(enabled = false))
     .addAppointment(
@@ -136,7 +136,7 @@ class BookingFacadeTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
     )
   private val courtBookingInThePast = courtBooking()
     .addAppointment(
@@ -146,7 +146,7 @@ class BookingFacadeTest {
       date = LocalDate.now().minusDays(1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
     )
   private val courtBookingCreatedByPrison = courtBooking(createdByPrison = true)
     .addAppointment(
@@ -156,7 +156,7 @@ class BookingFacadeTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = wandsworthLocation.key,
+      locationId = wandsworthLocation.key,
     )
 
   private val probationBookingAtBirminghamPrison = probationBooking()
@@ -164,7 +164,7 @@ class BookingFacadeTest {
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "654321",
       appointmentType = AppointmentType.VLB_PROBATION.name,
-      locationKey = birminghamLocation.key,
+      locationId = birminghamLocation.key,
       date = tomorrow(),
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
