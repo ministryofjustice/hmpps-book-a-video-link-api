@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Messag
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("test-localstack", inheritProfiles = false)

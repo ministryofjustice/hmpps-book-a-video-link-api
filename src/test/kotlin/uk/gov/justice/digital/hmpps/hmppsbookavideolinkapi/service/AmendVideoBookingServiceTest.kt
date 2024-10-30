@@ -54,7 +54,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAcce
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.util.Optional
 
 class AmendVideoBookingServiceTest {
 

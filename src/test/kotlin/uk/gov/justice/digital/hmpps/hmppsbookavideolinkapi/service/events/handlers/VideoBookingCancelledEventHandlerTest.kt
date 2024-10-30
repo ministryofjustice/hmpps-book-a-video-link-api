@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Manage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCancelledEvent
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.*
+import java.util.Optional
 
 class VideoBookingCancelledEventHandlerTest {
   private val booking = courtBooking()

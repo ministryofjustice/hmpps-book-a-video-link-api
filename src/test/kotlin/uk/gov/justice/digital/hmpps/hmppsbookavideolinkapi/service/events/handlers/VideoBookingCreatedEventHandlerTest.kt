@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Outbou
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCreatedEvent
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.*
+import java.util.Optional
 
 class VideoBookingCreatedEventHandlerTest {
 
