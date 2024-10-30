@@ -154,7 +154,7 @@ class AppointmentsService(
         date = appointment.date!!,
         startTime = appointment.startTime!!,
         endTime = appointment.endTime!!,
-        key = appointment.locationKey!!,
+        prisonLocationId = appointment.locationKey!!,
       )
     ) {
       throw IllegalArgumentException("Duplicate appointment requested for prisoner $prisonerNumber")
