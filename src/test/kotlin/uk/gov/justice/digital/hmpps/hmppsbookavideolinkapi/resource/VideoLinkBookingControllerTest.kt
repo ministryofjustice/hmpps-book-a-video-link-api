@@ -57,6 +57,7 @@ import uk.gov.justice.hmpps.kotlin.auth.HmppsResourceServerConfiguration
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 
 /**
  * As a general guideline we primarily test controllers in integration tests. This is an exception due to wanting to get
@@ -90,6 +91,9 @@ class VideoLinkBookingControllerTest {
   @MockBean
   private lateinit var videoAppointmentRepository: VideoAppointmentRepository
 
+  @MockBean
+  private lateinit var locationsInsidePrisonClient: LocationsInsidePrisonClient
+
   @Autowired
   private lateinit var context: WebApplicationContext
 
@@ -102,7 +106,7 @@ class VideoLinkBookingControllerTest {
       prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "ABCDEF",
       appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id.toString(),
       date = tomorrow(),
       startTime = LocalTime.MIDNIGHT.plusHours(1),
       endTime = LocalTime.MIDNIGHT.plusHours(2),
@@ -199,6 +203,7 @@ class VideoLinkBookingControllerTest {
   fun `should get Wandsworth prison court video booking for external user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
     whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
+    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id.toString())) doReturn wandsworthLocation
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
@@ -214,6 +219,7 @@ class VideoLinkBookingControllerTest {
   fun `should get Wandsworth prison court video booking for Wandsworth prison user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
     whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
+    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id.toString())) doReturn wandsworthLocation
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON

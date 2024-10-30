@@ -40,16 +40,19 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 
 class VideoLinkBookingsServiceTest {
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val referenceCodeRepository: ReferenceCodeRepository = mock()
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
 
   private val service = VideoLinkBookingsService(
     videoBookingRepository,
     referenceCodeRepository,
     videoAppointmentRepository,
+    locationsInsidePrisonClient,
   )
 
   @BeforeEach
@@ -70,6 +73,9 @@ class VideoLinkBookingsServiceTest {
         courtHearingTypeRefCode.code,
       ),
     ) doReturn courtHearingTypeRefCode
+
+    whenever(locationsInsidePrisonClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
+    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id.toString())) doReturn wandsworthLocation
   }
 
   @Nested
@@ -85,7 +91,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_PRE.name,
-          locationId = wandsworthLocation.key,
+          locationId = wandsworthLocation.id.toString(),
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT,
           endTime = LocalTime.MIDNIGHT.plusHours(1),
@@ -94,7 +100,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-          locationId = wandsworthLocation.key,
+          locationId = wandsworthLocation.id.toString(),
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(1),
           endTime = LocalTime.MIDNIGHT.plusHours(2),
@@ -103,7 +109,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_POST.name,
-          locationId = wandsworthLocation.key,
+          locationId = wandsworthLocation.id.toString(),
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(3),
           endTime = LocalTime.MIDNIGHT.plusHours(4),
@@ -168,7 +174,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_PROBATION.name,
-          locationId = wandsworthLocation.key,
+          locationId = wandsworthLocation.id.toString(),
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT,
           endTime = LocalTime.MIDNIGHT.plusHours(1),
@@ -243,7 +249,7 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(12, 0),
-          locationId = searchRequest.locationKey!!,
+          locationId = wandsworthLocation.id.toString(),
         )
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
@@ -252,14 +258,14 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
-          locationId = searchRequest.locationKey!!,
+          locationId = wandsworthLocation.id.toString(),
         )
 
       whenever(
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
-          prisonLocationId = wandsworthLocation.key,
+          prisonLocationId = wandsworthLocation.id.toString(),
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 0),
         ),
@@ -268,6 +274,7 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
+        locations = setOf(wandsworthLocation),
         courtHearingTypeDescription = "Tribunal",
       )
     }
@@ -290,7 +297,7 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(12, 0),
-          locationId = searchRequest.locationKey!!,
+          locationId = wandsworthLocation.id.toString(),
         )
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
@@ -299,14 +306,14 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
-          locationId = searchRequest.locationKey!!,
+          locationId = wandsworthLocation.id.toString(),
         )
 
       whenever(
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
-          prisonLocationId = wandsworthLocation.key,
+          prisonLocationId = wandsworthLocation.id.toString(),
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 0),
         ),
@@ -314,11 +321,7 @@ class VideoLinkBookingsServiceTest {
 
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
-      assertThrows<CaseloadAccessException> {
-        service.findMatchingVideoLinkBooking(searchRequest, PRISON_USER_RISLEY) isEqualTo booking.toModel(
-          courtHearingTypeDescription = "Tribunal",
-        )
-      }
+      assertThrows<CaseloadAccessException> { service.findMatchingVideoLinkBooking(searchRequest, PRISON_USER_RISLEY) }
     }
 
     @Test

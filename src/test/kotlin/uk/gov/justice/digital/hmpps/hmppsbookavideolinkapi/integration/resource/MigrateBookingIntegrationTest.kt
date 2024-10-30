@@ -33,7 +33,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Inboun
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEvent
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.UUID
 
 @Deprecated(message = "Can be removed when migration is completed")
 class MigrateBookingIntegrationTest : IntegrationTestBase() {
