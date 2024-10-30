@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
@@ -9,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppoi
 @Service
 class AvailabilityService(
   private val videoAppointmentRepository: VideoAppointmentRepository,
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val availabilityFinderService: AvailabilityFinderService,
 ) {
 
@@ -32,24 +34,26 @@ class AvailabilityService(
 
   fun checkAvailability(request: AvailabilityRequest): AvailabilityResponse {
     // Gather the distinct list of locations from the request
-    val listOfLocationKeys = listOfNotNull(
+    val locationKeys = setOfNotNull(
       request.preAppointment?.prisonLocKey,
       request.postAppointment?.prisonLocKey,
       request.mainAppointment!!.prisonLocKey,
-    ).distinct()
+    )
 
-    log.info("Checking availability for locationKeys $listOfLocationKeys")
+    log.info("Checking availability for locationKeys $locationKeys")
+
+    val locations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys)
 
     // Get the existing VLB appointments at these locations, on this date
     val videoAppointments = videoAppointmentRepository.findVideoAppointmentsAtPrison(
       forDate = request.date!!,
       forPrison = request.prisonCode!!,
-      forLocationIds = listOfLocationKeys,
+      forLocationIds = locations.map { it.id.toString() },
     ).filter { vlb -> vlb.videoBookingId != request.vlbIdToExclude }
 
     log.info("Found ${videoAppointments.size} appointments in these rooms")
 
     // Check if the requested times are free, and offer alternatives if not
-    return availabilityFinderService.getOptions(request, videoAppointments)
+    return availabilityFinderService.getOptions(request, videoAppointments, locations)
   }
 }

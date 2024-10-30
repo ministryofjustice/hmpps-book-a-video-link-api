@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Availa
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingOption
 import java.time.LocalTime
 import java.util.TreeMap
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 
 @Service
 class AvailabilityFinderService(
@@ -18,9 +19,9 @@ class AvailabilityFinderService(
   private val maxAlternatives: Int = 3,
 ) {
 
-  fun getOptions(request: AvailabilityRequest, appointments: List<VideoAppointment>): AvailabilityResponse {
+  fun getOptions(request: AvailabilityRequest, appointments: List<VideoAppointment>, locations: List<Location>): AvailabilityResponse {
     // Create a Map of <PrisonLocKey, Timeline> from the existing appointments - so we can check and find gaps
-    val timelinesByLocation = timelinesByLocationKey(appointments)
+    val timelinesByLocation = timelinesByLocationKey(appointments, locations)
 
     // Convert the requested times into a booking option object
     val preferredOption = BookingOption.from(request)
@@ -48,9 +49,9 @@ class AvailabilityFinderService(
         .toLocationsAndIntervals()
         .all { timelinesByLocationId[it.prisonLocKey]?.isFreeForInterval(it.interval) ?: true }
 
-    fun timelinesByLocationKey(appointments: List<VideoAppointment>): Map<String, Timeline> =
+    fun timelinesByLocationKey(appointments: List<VideoAppointment>, locations: List<Location>): Map<String, Timeline> =
       appointments
-        .groupBy { it.prisonLocationId }
+        .groupBy { a -> locations.single { it.id.toString() == a.prisonLocationId }.key }
         .mapValues { (_, appointments) -> appointments.flatMap(::toEvents) }
         .mapValues { Timeline(it.value) }
 
