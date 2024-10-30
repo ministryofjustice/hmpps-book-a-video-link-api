@@ -44,7 +44,7 @@ class AvailabilityService(
     val videoAppointments = videoAppointmentRepository.findVideoAppointmentsAtPrison(
       forDate = request.date!!,
       forPrison = request.prisonCode!!,
-      forLocationKeys = listOfLocationKeys,
+      forLocationIds = listOfLocationKeys,
     ).filter { vlb -> vlb.videoBookingId != request.vlbIdToExclude }
 
     log.info("Found ${videoAppointments.size} appointments in these rooms")

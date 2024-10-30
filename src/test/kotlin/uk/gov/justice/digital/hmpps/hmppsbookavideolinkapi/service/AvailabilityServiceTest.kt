@@ -53,7 +53,7 @@ class AvailabilityServiceTest {
       prisonCode = WANDSWORTH,
       prisonerNumber = "A1234AA",
       appointmentType = appType,
-      prisonLocKey = locKey,
+      prisonLocationId = locKey,
       appointmentDate = LocalDate.now(),
       startTime = startTime,
       endTime = endTime,
@@ -81,7 +81,7 @@ class AvailabilityServiceTest {
       videoAppointmentRepository.findVideoAppointmentsAtPrison(
         forDate = any(),
         forPrison = any(),
-        forLocationKeys = anyList(),
+        forLocationIds = anyList(),
       ),
     ).thenReturn(videoAppointments)
   }

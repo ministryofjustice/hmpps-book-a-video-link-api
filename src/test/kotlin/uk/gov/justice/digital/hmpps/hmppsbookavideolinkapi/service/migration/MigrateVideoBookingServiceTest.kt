@@ -125,7 +125,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -193,7 +193,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -261,7 +261,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -331,7 +331,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
 
@@ -342,7 +342,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 0)
-      prisonLocKey isEqualTo wandsworthLocation2.key
+      prisonLocationId isEqualTo wandsworthLocation2.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -413,7 +413,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(8, 0)
       endTime isEqualTo LocalTime.of(9, 0)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
 
@@ -424,7 +424,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo wandsworthLocation2.key
+      prisonLocationId isEqualTo wandsworthLocation2.key
       comments isEqualTo "Migrated court comments"
     }
 
@@ -435,7 +435,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 0)
-      prisonLocKey isEqualTo wandsworthLocation3.key
+      prisonLocationId isEqualTo wandsworthLocation3.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -505,7 +505,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(8, 0)
       endTime isEqualTo LocalTime.of(9, 0)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.key
       comments isEqualTo "Migrated court comments"
     }
 
@@ -516,7 +516,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo wandsworthLocation2.key
+      prisonLocationId isEqualTo wandsworthLocation2.key
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -583,7 +583,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.key
       comments isEqualTo "Migrated probation comments"
     }
   }
@@ -651,7 +651,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.key
       comments isEqualTo "Migrated probation comments"
     }
   }
@@ -719,7 +719,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.key
       comments isEqualTo "Migrated probation comments"
     }
   }
@@ -1229,7 +1229,7 @@ class MigrateVideoBookingServiceTest {
   private fun BookingHistoryAppointment.startsAt(startTime: LocalTime) = also { it.startTime isEqualTo startTime }
   private fun BookingHistoryAppointment.endsAt(endTime: LocalTime) = also { it.endTime isEqualTo endTime }
   private fun BookingHistoryAppointment.isForAppointmentType(appointmentType: String) = also { it.appointmentType isEqualTo appointmentType }
-  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocKey isEqualTo location.key }
+  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocationId isEqualTo location.key }
 
   // TODO more tests needed e.g. error conditions, history.
 }

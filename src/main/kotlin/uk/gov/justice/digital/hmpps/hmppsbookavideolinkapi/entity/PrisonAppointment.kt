@@ -35,7 +35,7 @@ class PrisonAppointment private constructor(
 
   val comments: String? = null,
 
-  val prisonLocKey: String,
+  val prisonLocationId: String,
 
   val appointmentDate: LocalDate,
 
@@ -88,7 +88,7 @@ class PrisonAppointment private constructor(
       appointmentDate = appointmentDate,
       startTime = startTime.toMinutePrecision(),
       endTime = endTime.toMinutePrecision(),
-      prisonLocKey = locationKey,
+      prisonLocationId = locationKey,
       comments = videoBooking.comments,
     )
   }

@@ -17,7 +17,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
       FROM PrisonAppointment pa 
      WHERE pa.prisonerNumber = :prisonerNumber
        AND pa.prison.code = :prisonCode
-       AND pa.prisonLocKey = :key
+       AND pa.prisonLocationId = :key
        AND pa.videoBooking.statusCode = 'ACTIVE'
        AND pa.appointmentDate = :date
        AND pa.startTime = :startTime
@@ -46,7 +46,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
     value = """
     SELECT pa FROM PrisonAppointment pa 
      WHERE pa.prison.code = :prisonCode
-       AND pa.prisonLocKey = :key
+       AND pa.prisonLocationId = :key
        AND pa.videoBooking.statusCode = 'ACTIVE'
        AND pa.appointmentDate = :date
   """,

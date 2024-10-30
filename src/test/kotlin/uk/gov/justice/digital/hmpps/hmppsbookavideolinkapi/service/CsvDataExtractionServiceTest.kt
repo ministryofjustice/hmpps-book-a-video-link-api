@@ -50,9 +50,9 @@ class CsvDataExtractionServiceTest {
     postDate = LocalDate.of(2024, Month.JULY, 10),
     postStartTime = LocalTime.of(11, 0),
     postEndTime = LocalTime.of(12, 0),
-    mainLocationKey = "main-loc-key",
-    preLocationKey = "pre-loc-key",
-    postLocationKey = "post-loc-key",
+    mainLocationId = "main-loc-key",
+    preLocationId = "pre-loc-key",
+    postLocationId = "post-loc-key",
     courtBooking = true,
   )
   private val wandsworthCancelCourtBookingEvent = wandsworthCreateCourtBookingEvent.copy(eventType = "CANCEL")

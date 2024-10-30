@@ -108,7 +108,7 @@ data class BookingHistoryAppointment(
 
   val appointmentType: String,
 
-  val prisonLocKey: String,
+  val prisonLocationId: String,
 
   val startTime: LocalTime,
 

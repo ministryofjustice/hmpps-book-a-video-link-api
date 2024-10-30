@@ -402,7 +402,7 @@ object CourtEmailFactory {
   }
 
   private fun PrisonAppointment.appointmentInformation(locations: Map<String, Location>) =
-    "${locations.room(prisonLocKey)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
+    "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Map<String, Location>.room(key: String) = this[key]?.localName ?: ""
 

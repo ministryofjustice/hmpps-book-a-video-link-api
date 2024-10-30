@@ -72,7 +72,7 @@ class BookingHistoryServiceTest {
         appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
         startTime isEqualTo LocalTime.of(9, 30)
         endTime isEqualTo LocalTime.of(10, 30)
-        prisonLocKey isEqualTo wandsworthLocation.key
+        prisonLocationId isEqualTo wandsworthLocation.key
       }
     }
   }
@@ -109,7 +109,7 @@ class BookingHistoryServiceTest {
         appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
         startTime isEqualTo LocalTime.of(9, 30)
         endTime isEqualTo LocalTime.of(10, 30)
-        prisonLocKey isEqualTo wandsworthLocation.key
+        prisonLocationId isEqualTo wandsworthLocation.key
       }
     }
   }
@@ -208,7 +208,7 @@ class BookingHistoryServiceTest {
         .containsAll(listOf("A1111AA", "A2222AA", "A3333AA"))
 
       assertThat(appointments())
-        .extracting("prisonLocKey")
+        .extracting("prisonLocationId")
         .containsAll(listOf(wandsworthLocation.key, pentonvilleLocation.key, birminghamLocation.key))
     }
   }

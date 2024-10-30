@@ -40,9 +40,9 @@ data class VideoBookingEvent(
 
   val createdByPrison: Boolean,
 
-  val preLocationKey: String?,
+  val preLocationId: String?,
 
-  val mainLocationKey: String,
+  val mainLocationId: String,
 
   val mainDate: LocalDate,
 
@@ -56,7 +56,7 @@ data class VideoBookingEvent(
 
   val preEndTime: LocalTime? = null,
 
-  val postLocationKey: String? = null,
+  val postLocationId: String? = null,
 
   val postDate: LocalDate? = null,
 

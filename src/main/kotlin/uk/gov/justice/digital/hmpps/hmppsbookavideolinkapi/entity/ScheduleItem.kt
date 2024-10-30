@@ -64,7 +64,7 @@ data class ScheduleItem(
 
   val appointmentComments: String?,
 
-  val prisonLocKey: String,
+  val prisonLocationId: String,
 
   val appointmentDate: LocalDate,
 

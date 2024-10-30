@@ -178,7 +178,7 @@ fun videoAppointment(
     prisonCode = WANDSWORTH,
     prisonerNumber = "A1234AA",
     appointmentType = prisonAppointment.appointmentType,
-    prisonLocKey = prisonAppointment.prisonLocKey,
+    prisonLocationId = prisonAppointment.prisonLocationId,
     appointmentDate = prisonAppointment.appointmentDate,
     startTime = prisonAppointment.startTime,
     endTime = prisonAppointment.endTime,

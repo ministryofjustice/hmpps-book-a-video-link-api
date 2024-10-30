@@ -217,8 +217,8 @@ class ManageExternalAppointmentsService(
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
   private fun PrisonAppointment.internalLocationId() =
-    prisonApiClient.getInternalLocationByKey(prisonLocKey)?.locationId
-      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocKey not found for prison appointment $prisonAppointmentId")
+    prisonApiClient.getInternalLocationByKey(prisonLocationId)?.locationId
+      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocationId not found for prison appointment $prisonAppointmentId")
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
   private fun PrisonAppointment.bookingId() =
@@ -226,6 +226,6 @@ class ManageExternalAppointmentsService(
       ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Booking id not found for prisoner $prisonerNumber for prison appointment $prisonAppointmentId")
 
   private fun BookingHistoryAppointment.internalLocationId() =
-    prisonApiClient.getInternalLocationByKey(prisonLocKey)?.locationId
-      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocKey not found for prison appointment ${bookingHistoryAppointmentId}Id")
+    prisonApiClient.getInternalLocationByKey(prisonLocationId)?.locationId
+      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocationId not found for prison appointment ${bookingHistoryAppointmentId}Id")
 }

@@ -259,7 +259,7 @@ class VideoLinkBookingsServiceTest {
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
-          prisonLocKey = wandsworthLocation.key,
+          prisonLocationId = wandsworthLocation.key,
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 0),
         ),
@@ -306,7 +306,7 @@ class VideoLinkBookingsServiceTest {
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
-          prisonLocKey = wandsworthLocation.key,
+          prisonLocationId = wandsworthLocation.key,
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 0),
         ),

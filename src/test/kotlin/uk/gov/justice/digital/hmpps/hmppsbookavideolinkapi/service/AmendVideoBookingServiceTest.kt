@@ -137,7 +137,7 @@ class AmendVideoBookingServiceTest {
         assertThat(this).extracting("prison").extracting("code").containsOnly(BIRMINGHAM)
         assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
         assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
-        assertThat(this).extracting("prisonLocKey").containsOnly("$BIRMINGHAM-ABCEDFG")
+        assertThat(this).extracting("prisonLocationId").containsOnly("$BIRMINGHAM-ABCEDFG")
         assertThat(this).extracting("startTime").containsAll(
           listOf(
             LocalTime.of(9, 0),
@@ -560,7 +560,7 @@ class AmendVideoBookingServiceTest {
         appointmentDate isEqualTo onePrisoner.appointments.single().date!!
         startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
         endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
-        prisonLocKey isEqualTo onePrisoner.appointments.single().locationKey!!
+        prisonLocationId isEqualTo onePrisoner.appointments.single().locationKey!!
       }
     }
 

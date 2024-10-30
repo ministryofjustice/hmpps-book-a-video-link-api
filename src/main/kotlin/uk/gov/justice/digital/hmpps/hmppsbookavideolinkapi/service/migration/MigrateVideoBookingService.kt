@@ -207,7 +207,7 @@ class MigrateVideoBookingService(
         prisonerNumber = migratedBooking.prisoner(),
         appointmentDate = it.date,
         appointmentType = APPOINTMENT_TYPE_COURT_PRE,
-        prisonLocKey = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
+        prisonLocationId = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
         startTime = it.startTime,
         endTime = it.endTime,
       )
@@ -220,7 +220,7 @@ class MigrateVideoBookingService(
         prisonerNumber = migratedBooking.prisoner(),
         appointmentDate = it.date,
         appointmentType = if (migratedBooking.isCourtBooking()) APPOINTMENT_TYPE_COURT_MAIN else APPOINTMENT_TYPE_PROBATION,
-        prisonLocKey = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
+        prisonLocationId = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
         startTime = it.startTime,
         endTime = it.endTime,
       )
@@ -234,7 +234,7 @@ class MigrateVideoBookingService(
         prisonerNumber = migratedBooking.prisoner(),
         appointmentDate = it.date,
         appointmentType = APPOINTMENT_TYPE_COURT_POST,
-        prisonLocKey = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
+        prisonLocationId = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
         startTime = it.startTime,
         endTime = it.endTime,
       )

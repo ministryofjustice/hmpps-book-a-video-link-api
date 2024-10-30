@@ -34,7 +34,7 @@ data class VideoAppointment(
 
   val appointmentType: String,
 
-  val prisonLocKey: String,
+  val prisonLocationId: String,
 
   val appointmentDate: LocalDate,
 

@@ -141,7 +141,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
@@ -215,7 +215,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
@@ -349,7 +349,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo birminghamLocation.key
+      prisonLocationId isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
@@ -546,7 +546,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo birminghamLocation.key
+      prisonLocationId isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
       comments isEqualTo "integration test probation booking comments"
@@ -1019,7 +1019,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.key
       startTime isEqualTo LocalTime.of(13, 0)
       endTime isEqualTo LocalTime.of(14, 30)
       comments isEqualTo "amended court booking comments"
@@ -1086,7 +1086,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo birminghamLocation.key
+      prisonLocationId isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(13, 0)
       endTime isEqualTo LocalTime.of(14, 30)
       comments isEqualTo "amended court booking comments"
@@ -1331,7 +1331,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocKey isEqualTo birminghamLocation.key
+      prisonLocationId isEqualTo birminghamLocation.key
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 30)
       comments isEqualTo "amended probation booking comments"
