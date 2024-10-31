@@ -76,7 +76,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoB
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingInformation
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.*
+import java.util.UUID
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 // This is not ideal. Due to potential timing issues with messages/events we disable this on the CI pipeline.
@@ -144,7 +144,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocationId isEqualTo pentonvilleLocation.id.toString()
+      prisonLocationId isEqualTo pentonvilleLocation.id
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
@@ -220,7 +220,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocationId isEqualTo pentonvilleLocation.id.toString()
+      prisonLocationId isEqualTo pentonvilleLocation.id
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
@@ -359,7 +359,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocationId isEqualTo birminghamLocation.id.toString()
+      prisonLocationId isEqualTo birminghamLocation.id
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
       comments isEqualTo "integration test court booking comments"
@@ -559,7 +559,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocationId isEqualTo birminghamLocation.id.toString()
+      prisonLocationId isEqualTo birminghamLocation.id
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
       comments isEqualTo "integration test probation booking comments"
@@ -1042,7 +1042,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocationId isEqualTo pentonvilleLocation.id.toString()
+      prisonLocationId isEqualTo pentonvilleLocation.id
       startTime isEqualTo LocalTime.of(13, 0)
       endTime isEqualTo LocalTime.of(14, 30)
       comments isEqualTo "amended court booking comments"
@@ -1110,7 +1110,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocationId isEqualTo birminghamLocation.id.toString()
+      prisonLocationId isEqualTo birminghamLocation.id
       startTime isEqualTo LocalTime.of(13, 0)
       endTime isEqualTo LocalTime.of(14, 30)
       comments isEqualTo "amended court booking comments"
@@ -1360,7 +1360,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber isEqualTo "123456"
       appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
       appointmentDate isEqualTo tomorrow()
-      prisonLocationId isEqualTo birminghamLocation.id.toString()
+      prisonLocationId isEqualTo birminghamLocation.id
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 30)
       comments isEqualTo "amended probation booking comments"

@@ -63,13 +63,13 @@ class MigrateMappingServiceTest {
   @Test
   fun `should map internal location id to DPS location`() {
     migrationClient.stub {
-      on { getLocationIdByInternalId(1) } doReturn wandsworthLocation.id.toString()
-      on { getLocationIdByInternalId(2) } doReturn birminghamLocation.id.toString()
-      on { getLocationIdByInternalId(3) } doReturn pentonvilleLocation.id.toString()
+      on { getLocationIdByInternalId(1) } doReturn wandsworthLocation.id
+      on { getLocationIdByInternalId(2) } doReturn birminghamLocation.id
+      on { getLocationIdByInternalId(3) } doReturn pentonvilleLocation.id
     }
 
-    service.mapInternalLocationIdToLocationId(1) isEqualTo wandsworthLocation.id.toString()
-    service.mapInternalLocationIdToLocationId(2) isEqualTo birminghamLocation.id.toString()
-    service.mapInternalLocationIdToLocationId(3) isEqualTo pentonvilleLocation.id.toString()
+    service.mapInternalLocationIdToLocationId(1) isEqualTo wandsworthLocation.id
+    service.mapInternalLocationIdToLocationId(2) isEqualTo birminghamLocation.id
+    service.mapInternalLocationIdToLocationId(3) isEqualTo pentonvilleLocation.id
   }
 }

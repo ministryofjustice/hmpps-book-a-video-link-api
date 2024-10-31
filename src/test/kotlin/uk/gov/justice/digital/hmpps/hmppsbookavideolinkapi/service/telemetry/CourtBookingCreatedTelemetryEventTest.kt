@@ -40,7 +40,7 @@ class CourtBookingCreatedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(10, 0),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id,
     ).addAppointment(
       prison = prison(WANDSWORTH),
       prisonerNumber = "ABC123",
@@ -48,7 +48,7 @@ class CourtBookingCreatedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(10, 0),
       endTime = LocalTime.of(11, 0),
-      locationId = wandsworthLocation2.key,
+      locationId = wandsworthLocation2.id,
     ).addAppointment(
       prison = prison(WANDSWORTH),
       prisonerNumber = "ABC123",
@@ -56,7 +56,7 @@ class CourtBookingCreatedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(12, 0),
-      locationId = wandsworthLocation3.key,
+      locationId = wandsworthLocation3.id,
     )
 
     with(CourtBookingCreatedTelemetryEvent(booking)) {
@@ -67,13 +67,13 @@ class CourtBookingCreatedTelemetryEventTest {
         "court_code" to DERBY_JUSTICE_CENTRE,
         "hearing_type" to "APPEAL",
         "prison_code" to WANDSWORTH,
-        "pre_location_key" to wandsworthLocation.key,
+        "pre_location_id" to wandsworthLocation.id.toString(),
         "pre_start" to tomorrow().atTime(LocalTime.of(9, 0)).toIsoDateTime(),
         "pre_end" to tomorrow().atTime(LocalTime.of(10, 0)).toIsoDateTime(),
-        "main_location_key" to wandsworthLocation2.key,
+        "main_location_id" to wandsworthLocation2.id.toString(),
         "main_start" to tomorrow().atTime(LocalTime.of(10, 0)).toIsoDateTime(),
         "main_end" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
-        "post_location_key" to wandsworthLocation3.key,
+        "post_location_id" to wandsworthLocation3.id.toString(),
         "post_start" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
         "post_end" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
         "cvp_link" to "true",
@@ -104,7 +104,7 @@ class CourtBookingCreatedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 0),
-      locationId = risleyLocation.key,
+      locationId = risleyLocation.id,
     )
 
     with(CourtBookingCreatedTelemetryEvent(booking)) {
@@ -115,13 +115,13 @@ class CourtBookingCreatedTelemetryEventTest {
         "court_code" to DERBY_JUSTICE_CENTRE,
         "hearing_type" to "APPEAL",
         "prison_code" to RISLEY,
-        "pre_location_key" to "",
+        "pre_location_id" to "",
         "pre_start" to "",
         "pre_end" to "",
-        "main_location_key" to risleyLocation.key,
+        "main_location_id" to risleyLocation.id.toString(),
         "main_start" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
         "main_end" to tomorrow().atTime(LocalTime.of(13, 0)).toIsoDateTime(),
-        "post_location_key" to "",
+        "post_location_id" to "",
         "post_start" to "",
         "post_end" to "",
         "cvp_link" to "false",

@@ -51,7 +51,7 @@ class AvailabilityFinderService(
 
     fun timelinesByLocationKey(appointments: List<VideoAppointment>, locations: List<Location>): Map<String, Timeline> =
       appointments
-        .groupBy { a -> locations.single { it.id.toString() == a.prisonLocationId }.key }
+        .groupBy { a -> locations.single { it.id == a.prisonLocationId }.key }
         .mapValues { (_, appointments) -> appointments.flatMap(::toEvents) }
         .mapValues { Timeline(it.value) }
 

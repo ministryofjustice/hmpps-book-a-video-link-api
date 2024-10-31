@@ -143,7 +143,7 @@ class CreateVideoBookingServiceTest {
         assertThat(this).extracting("prison").extracting("code").containsOnly(prisonCode)
         assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
         assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
-        assertThat(this).extracting("prisonLocationId").containsOnly(birminghamLocation.id.toString())
+        assertThat(this).extracting("prisonLocationId").containsOnly(birminghamLocation.id)
         assertThat(this).extracting("startTime").containsAll(
           listOf(
             LocalTime.of(9, 0),
@@ -506,7 +506,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn requestedCourt
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
     whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
@@ -544,7 +544,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn requestedCourt
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
     whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
@@ -610,7 +610,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn disabledCourt
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.key, tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
     whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
@@ -699,7 +699,7 @@ class CreateVideoBookingServiceTest {
         appointmentDate isEqualTo onePrisoner.appointments.single().date!!
         startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
         endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
-        prisonLocationId isEqualTo birminghamLocation.id.toString()
+        prisonLocationId isEqualTo birminghamLocation.id
       }
     }
 
@@ -728,7 +728,7 @@ class CreateVideoBookingServiceTest {
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
     whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation

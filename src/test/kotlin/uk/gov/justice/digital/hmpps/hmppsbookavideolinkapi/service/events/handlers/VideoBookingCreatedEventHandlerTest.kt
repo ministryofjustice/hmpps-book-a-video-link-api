@@ -11,6 +11,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -33,7 +34,7 @@ class VideoBookingCreatedEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = "",
+      locationId = birminghamLocation.id,
     )
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
@@ -42,7 +43,7 @@ class VideoBookingCreatedEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 30),
-      locationId = "",
+      locationId = birminghamLocation.id,
     )
 
   private val handler = VideoBookingCreatedEventHandler(videoBookingRepository, outboundEventsService)

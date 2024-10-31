@@ -44,7 +44,7 @@ class MigrationClient(
 
   // Unsure how effective this will be as requests will spread out over the pods unless we reduce number of pods.
   @Cacheable(CacheConfiguration.MIGRATION_LOCATIONS_CACHE_NAME)
-  fun getLocationIdByInternalId(id: Long): String? = nomisMappingClient.getNomisLocationMappingBy(id)?.dpsLocationId?.toString()
+  fun getLocationIdByInternalId(id: Long) = nomisMappingClient.getNomisLocationMappingBy(id)?.dpsLocationId
 
   fun findBookingToMigrate(videoBookingId: Long): VideoBookingMigrateResponse? = whereaboutsApiWebClient
     .get()
@@ -130,10 +130,3 @@ enum class VideoLinkBookingEventType {
   UPDATE,
   DELETE,
 }
-
-data class NomisDpsLocationMapping(
-  val dpsLocationId: String,
-  val nomisLocationId: Long,
-)
-
-data class BookingIds(val bookingIds: List<Long>)

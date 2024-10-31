@@ -44,7 +44,7 @@ class AppointmentsService(
         date = it.date!!,
         startTime = it.startTime!!,
         endTime = it.endTime!!,
-        locationId = locations.single { location -> location.key == it.locationKey }.id.toString(),
+        locationId = locations.single { location -> location.key == it.locationKey }.id,
       )
     }
   }
@@ -85,7 +85,7 @@ class AppointmentsService(
 
   private fun List<Appointment>.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode: String, locations: List<Location>) {
     forEach { newAppointment ->
-      val locationId = locations.single { it.key == newAppointment.locationKey }.id.toString()
+      val locationId = locations.single { it.key == newAppointment.locationKey }.id
 
       prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
         prisonCode,
@@ -130,7 +130,7 @@ class AppointmentsService(
         date = this.date!!,
         startTime = this.startTime!!,
         endTime = this.endTime!!,
-        locationId = location!!.id.toString(),
+        locationId = location!!.id,
       )
     }
   }
@@ -164,7 +164,7 @@ class AppointmentsService(
         date = appointment.date!!,
         startTime = appointment.startTime!!,
         endTime = appointment.endTime!!,
-        prisonLocationId = location!!.id.toString(),
+        prisonLocationId = location!!.id,
       )
     ) {
       throw IllegalArgumentException("Duplicate appointment requested for prisoner $prisonerNumber")
@@ -174,7 +174,7 @@ class AppointmentsService(
   private fun Appointment.checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode: String, location: Location) {
     prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
       prisonCode,
-      location.id.toString(),
+      location.id,
       date!!,
     ).forEach { existingAppointment ->
       require(

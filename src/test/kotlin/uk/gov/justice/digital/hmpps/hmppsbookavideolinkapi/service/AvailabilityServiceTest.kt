@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppoi
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 class AvailabilityServiceTest {
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
@@ -43,7 +44,7 @@ class AvailabilityServiceTest {
   private fun createVideoAppointment(
     videoBookId: Long,
     appId: Long,
-    locationId: String,
+    locationId: UUID,
     appType: String,
     startTime: LocalTime,
     endTime: LocalTime,
@@ -69,14 +70,14 @@ class AvailabilityServiceTest {
   private val room3 = location(WANDSWORTH, "VCC-3")
 
   private val videoAppointments = listOf(
-    createVideoAppointment(1L, 1L, room1.id.toString(), "VLB_COURT_PRE", LocalTime.of(9, 15), LocalTime.of(9, 30)),
-    createVideoAppointment(1L, 2L, room1.id.toString(), "VLB_COURT_MAIN", LocalTime.of(9, 30), LocalTime.of(10, 0)),
-    createVideoAppointment(2L, 3L, room1.id.toString(), "VLB_COURT_MAIN", LocalTime.of(10, 0), LocalTime.of(11, 0)),
-    createVideoAppointment(2L, 4L, room1.id.toString(), "VLB_COURT_POST", LocalTime.of(11, 0), LocalTime.of(11, 15)),
-    createVideoAppointment(3L, 5L, room1.id.toString(), "VLB_COURT_MAIN", LocalTime.of(11, 15), LocalTime.of(11, 45)),
-    createVideoAppointment(4L, 6L, room2.id.toString(), "VLB_COURT_MAIN", LocalTime.of(9, 30), LocalTime.of(12, 30)),
-    createVideoAppointment(5L, 7L, room2.id.toString(), "VLB_COURT_MAIN", LocalTime.of(13, 30), LocalTime.of(16, 30)),
-    createVideoAppointment(6L, 8L, room3.id.toString(), "VLB_COURT_MAIN", LocalTime.of(9, 0), LocalTime.of(19, 0)),
+    createVideoAppointment(1L, 1L, room1.id, "VLB_COURT_PRE", LocalTime.of(9, 15), LocalTime.of(9, 30)),
+    createVideoAppointment(1L, 2L, room1.id, "VLB_COURT_MAIN", LocalTime.of(9, 30), LocalTime.of(10, 0)),
+    createVideoAppointment(2L, 3L, room1.id, "VLB_COURT_MAIN", LocalTime.of(10, 0), LocalTime.of(11, 0)),
+    createVideoAppointment(2L, 4L, room1.id, "VLB_COURT_POST", LocalTime.of(11, 0), LocalTime.of(11, 15)),
+    createVideoAppointment(3L, 5L, room1.id, "VLB_COURT_MAIN", LocalTime.of(11, 15), LocalTime.of(11, 45)),
+    createVideoAppointment(4L, 6L, room2.id, "VLB_COURT_MAIN", LocalTime.of(9, 30), LocalTime.of(12, 30)),
+    createVideoAppointment(5L, 7L, room2.id, "VLB_COURT_MAIN", LocalTime.of(13, 30), LocalTime.of(16, 30)),
+    createVideoAppointment(6L, 8L, room3.id, "VLB_COURT_MAIN", LocalTime.of(9, 0), LocalTime.of(19, 0)),
   )
 
   @BeforeEach

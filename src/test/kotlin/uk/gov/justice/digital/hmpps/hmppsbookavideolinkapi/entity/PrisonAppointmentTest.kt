@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.UUID
 
 class PrisonAppointmentTest {
 
@@ -26,7 +27,7 @@ class PrisonAppointmentTest {
       startTime = LocalTime.now(),
       endTime = LocalTime.now().plusMinutes(1),
       appointmentType = "VLB_PROBATION",
-      locationKey = "LOCATION-KEY",
+      locationId = UUID.randomUUID(),
     ).start().isAfter(now) isBool true
 
     appointment(
@@ -37,7 +38,7 @@ class PrisonAppointmentTest {
       startTime = now.toLocalTime().plusHours(1),
       endTime = now.toLocalTime().plusHours(2),
       appointmentType = "VLB_PROBATION",
-      locationKey = "LOCATION-KEY",
+      locationId = UUID.randomUUID(),
     ).start().isAfter(now) isBool true
   }
 
@@ -51,7 +52,7 @@ class PrisonAppointmentTest {
       startTime = LocalTime.now(),
       endTime = LocalTime.now().plusMinutes(1),
       appointmentType = "VLB_PROBATION",
-      locationKey = "LOCATION-KEY",
+      locationId = UUID.randomUUID(),
     ).start().isAfter(now) isBool false
 
     appointment(
@@ -62,7 +63,7 @@ class PrisonAppointmentTest {
       startTime = now.toLocalTime(),
       endTime = now.toLocalTime().plusMinutes(1),
       appointmentType = "VLB_PROBATION",
-      locationKey = "LOCATION-KEY",
+      locationId = UUID.randomUUID(),
     ).start().isAfter(now) isBool false
   }
 }

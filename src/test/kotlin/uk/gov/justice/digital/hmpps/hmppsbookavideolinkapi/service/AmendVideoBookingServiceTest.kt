@@ -142,7 +142,7 @@ class AmendVideoBookingServiceTest {
         assertThat(this).extracting("prison").extracting("code").containsOnly(BIRMINGHAM)
         assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
         assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
-        assertThat(this).extracting("prisonLocationId").containsOnly(birminghamLocation.id.toString())
+        assertThat(this).extracting("prisonLocationId").containsOnly(birminghamLocation.id)
         assertThat(this).extracting("startTime").containsAll(
           listOf(
             LocalTime.of(9, 0),
@@ -482,7 +482,7 @@ class AmendVideoBookingServiceTest {
 
     whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
 
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
 
@@ -516,7 +516,7 @@ class AmendVideoBookingServiceTest {
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
 
     assertDoesNotThrow { service.amend(1, amendCourtBookingRequest, PRISON_USER_BIRMINGHAM) }
   }
@@ -573,7 +573,7 @@ class AmendVideoBookingServiceTest {
         appointmentDate isEqualTo onePrisoner.appointments.single().date!!
         startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
         endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
-        prisonLocationId isEqualTo birminghamLocation.id.toString()
+        prisonLocationId isEqualTo birminghamLocation.id
       }
     }
 
@@ -603,7 +603,7 @@ class AmendVideoBookingServiceTest {
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
     whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
 
     val error = assertThrows<IllegalArgumentException> { service.amend(2, probationBookingRequest, PROBATION_USER) }
 
@@ -631,7 +631,7 @@ class AmendVideoBookingServiceTest {
     whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
     assertDoesNotThrow {

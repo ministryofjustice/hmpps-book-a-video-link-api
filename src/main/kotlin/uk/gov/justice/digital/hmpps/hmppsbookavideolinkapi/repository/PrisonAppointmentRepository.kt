@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   fun findByVideoBooking(booking: VideoBooking): List<PrisonAppointment>
@@ -27,7 +28,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   fun existsActivePrisonAppointmentsByPrisonerNumberLocationDateAndTime(
     prisonerNumber: String,
     prisonCode: String,
-    prisonLocationId: String,
+    prisonLocationId: UUID,
     date: LocalDate,
     startTime: LocalTime,
     endTime: LocalTime,
@@ -53,7 +54,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   )
   fun findActivePrisonAppointmentsAtLocationOnDate(
     prisonCode: String,
-    prisonLocationId: String,
+    prisonLocationId: UUID,
     date: LocalDate,
   ): List<PrisonAppointment>
 

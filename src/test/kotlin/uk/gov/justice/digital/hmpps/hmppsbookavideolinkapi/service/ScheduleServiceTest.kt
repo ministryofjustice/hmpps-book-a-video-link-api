@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Bookin
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ScheduleRepository
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.*
 
 class ScheduleServiceTest {
   private val scheduleRepository: ScheduleRepository = mock()
@@ -60,7 +59,7 @@ class ScheduleServiceTest {
     appointmentType = AppointmentType.VLB_COURT_MAIN.name,
     appointmentTypeDescription = "Court main hearing",
     appointmentComments = null,
-    prisonLocationId = pentonvilleLocation.id.toString(),
+    prisonLocationId = pentonvilleLocation.id,
     bookingComments = null,
     videoUrl = "http://video.url",
     appointmentDate = date,
@@ -97,7 +96,7 @@ class ScheduleServiceTest {
     appointmentType = AppointmentType.VLB_PROBATION.name,
     appointmentTypeDescription = null,
     appointmentComments = null,
-    prisonLocationId = pentonvilleLocation.id.toString(),
+    prisonLocationId = pentonvilleLocation.id,
     bookingComments = null,
     videoUrl = "http://video.url",
     appointmentDate = date,

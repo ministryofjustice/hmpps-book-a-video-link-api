@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
+import java.util.UUID
 
 object CourtEmailFactory {
   fun user(
@@ -21,7 +22,7 @@ object CourtEmailFactory {
     main: PrisonAppointment,
     pre: PrisonAppointment?,
     post: PrisonAppointment?,
-    locations: Map<String, Location>,
+    locations: Map<UUID, Location>,
     action: BookingAction,
   ): Email? {
     booking.requireIsCourtBooking()
@@ -90,9 +91,9 @@ object CourtEmailFactory {
     main: PrisonAppointment,
     pre: PrisonAppointment?,
     post: PrisonAppointment?,
-    locations: Map<String, Location>,
+    locations: Map<UUID, Location>,
     action: BookingAction,
-  ): Email? {
+  ): Email {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.COURT) {
@@ -210,7 +211,7 @@ object CourtEmailFactory {
     main: PrisonAppointment,
     pre: PrisonAppointment?,
     post: PrisonAppointment?,
-    locations: Map<String, Location>,
+    locations: Map<UUID, Location>,
     action: BookingAction,
   ): Email? {
     booking.requireIsCourtBooking()
@@ -401,10 +402,10 @@ object CourtEmailFactory {
     }
   }
 
-  private fun PrisonAppointment.appointmentInformation(locations: Map<String, Location>) =
+  private fun PrisonAppointment.appointmentInformation(locations: Map<UUID, Location>) =
     "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
-  private fun Map<String, Location>.room(id: String) = this[id]?.localName ?: ""
+  private fun Map<UUID, Location>.room(id: UUID) = this[id]?.localName ?: ""
 
   private fun Collection<BookingContact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
 

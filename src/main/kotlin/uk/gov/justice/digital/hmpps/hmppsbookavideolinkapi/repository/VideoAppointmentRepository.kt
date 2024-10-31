@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 @Repository
 interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long> {
@@ -21,7 +22,7 @@ interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long
   fun findVideoAppointmentsAtPrison(
     forDate: LocalDate,
     forPrison: String,
-    forLocationIds: List<String>,
+    forLocationIds: List<UUID>,
   ): List<VideoAppointment>
 
   @Query(
@@ -38,7 +39,7 @@ interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long
   fun findActiveVideoAppointment(
     prisonerNumber: String,
     appointmentDate: LocalDate,
-    prisonLocationId: String,
+    prisonLocationId: UUID,
     startTime: LocalTime,
     endTime: LocalTime,
   ): VideoAppointment?

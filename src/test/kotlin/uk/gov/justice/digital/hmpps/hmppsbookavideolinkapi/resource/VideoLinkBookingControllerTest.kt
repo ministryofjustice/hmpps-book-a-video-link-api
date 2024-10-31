@@ -106,7 +106,7 @@ class VideoLinkBookingControllerTest {
       prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "ABCDEF",
       appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-      locationId = wandsworthLocation.id.toString(),
+      locationId = wandsworthLocation.id,
       date = tomorrow(),
       startTime = LocalTime.MIDNIGHT.plusHours(1),
       endTime = LocalTime.MIDNIGHT.plusHours(2),
@@ -203,7 +203,7 @@ class VideoLinkBookingControllerTest {
   fun `should get Wandsworth prison court video booking for external user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
     whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
-    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id.toString())) doReturn wandsworthLocation
+    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
@@ -219,7 +219,7 @@ class VideoLinkBookingControllerTest {
   fun `should get Wandsworth prison court video booking for Wandsworth prison user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
     whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
-    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id.toString())) doReturn wandsworthLocation
+    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON

@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCategorySummary
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentLocationSummary
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisDpsLocationMapping
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
@@ -40,6 +42,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByProb
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Optional
+import java.util.UUID
 
 class ManageExternalAppointmentsServiceTest {
 
@@ -48,6 +51,7 @@ class ManageExternalAppointmentsServiceTest {
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val prisonApiClient: PrisonApiClient = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
+  private val nomisMappingClient: NomisMappingClient = mock()
   private val birminghamLocation = Location(
     locationId = 123456,
     locationType = "VLB",
@@ -64,7 +68,7 @@ class ManageExternalAppointmentsServiceTest {
     date = LocalDate.of(2100, 1, 1),
     startTime = LocalTime.of(11, 0),
     endTime = LocalTime.of(11, 30),
-    locationKey = "ABC",
+    locationId = UUID.randomUUID(),
   )
   private val probationBooking = probationBooking()
   private val probationAppointment = appointment(
@@ -75,7 +79,7 @@ class ManageExternalAppointmentsServiceTest {
     date = LocalDate.of(2100, 1, 1),
     startTime = LocalTime.of(11, 0),
     endTime = LocalTime.of(11, 30),
-    locationKey = "DEF",
+    locationId = UUID.randomUUID(),
   )
   private val service =
     ManageExternalAppointmentsService(
@@ -84,18 +88,19 @@ class ManageExternalAppointmentsServiceTest {
       prisonApiClient,
       prisonerSearchClient,
       referenceCodeRepository,
+      nomisMappingClient,
     )
 
   @Test
   fun `should create court appointment via activities client when appointments rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(referenceCodeRepository.findByCourtHearingType("TRIBUNAL")) doReturn courtHearingType("Tribunal")
 
     service.createAppointment(1)
 
-    verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocationId)
+    verify(nomisMappingClient).getNomisLocationMappingBy(courtAppointment.prisonLocationId)
 
     verify(activitiesAppointmentsClient).createAppointment(
       prisonCode = BIRMINGHAM,
@@ -118,16 +123,16 @@ class ManageExternalAppointmentsServiceTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = "ABC",
+      locationId = UUID.randomUUID(),
     )
 
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointmentWithoutComments)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointmentWithoutComments.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
 
     service.createAppointment(1)
 
-    verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocationId)
+    verify(nomisMappingClient).getNomisLocationMappingBy(courtAppointmentWithoutComments.prisonLocationId)
 
     verify(activitiesAppointmentsClient).createAppointment(
       prisonCode = BIRMINGHAM,
@@ -144,7 +149,7 @@ class ManageExternalAppointmentsServiceTest {
   fun `should not create court appointment via activities client when appointment already exists`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(
       activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
         prisonCode = courtAppointment.prisonCode(),
@@ -182,8 +187,8 @@ class ManageExternalAppointmentsServiceTest {
 
     service.createAppointment(1)
 
-    inOrder(prisonApiClient, activitiesAppointmentsClient) {
-      verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocationId)
+    inOrder(nomisMappingClient, activitiesAppointmentsClient) {
+      verify(nomisMappingClient).getNomisLocationMappingBy(courtAppointment.prisonLocationId)
       verify(activitiesAppointmentsClient).getPrisonersAppointmentsAtLocations(
         prisonCode = courtAppointment.prisonCode(),
         prisonerNumber = courtAppointment.prisonerNumber,
@@ -199,12 +204,12 @@ class ManageExternalAppointmentsServiceTest {
   fun `should create probation appointment via activities client when appointments rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(probationAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(WANDSWORTH)) doReturn true
-    whenever(prisonApiClient.getInternalLocationByKey(probationAppointment.prisonLocationId)) doReturn wandsworthLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(probationAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = wandsworthLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(referenceCodeRepository.findByProbationMeetingType("PSR")) doReturn probationMeetingType("Pre-sentence report")
 
     service.createAppointment(1)
 
-    verify(prisonApiClient).getInternalLocationByKey(probationAppointment.prisonLocationId)
+    verify(nomisMappingClient).getNomisLocationMappingBy(probationAppointment.prisonLocationId)
 
     verify(activitiesAppointmentsClient).createAppointment(
       prisonCode = WANDSWORTH,
@@ -226,7 +231,7 @@ class ManageExternalAppointmentsServiceTest {
       prisonCode = courtAppointment.prisonCode(),
       bookingId = 1,
     )
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(referenceCodeRepository.findByCourtHearingType("TRIBUNAL")) doReturn courtHearingType("Tribunal")
 
     service.createAppointment(1)
@@ -252,7 +257,7 @@ class ManageExternalAppointmentsServiceTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = "ABC",
+      locationId = UUID.randomUUID(),
     )
 
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointmentWithoutComments)
@@ -262,7 +267,7 @@ class ManageExternalAppointmentsServiceTest {
       prisonCode = courtAppointment.prisonCode(),
       bookingId = 1,
     )
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointmentWithoutComments.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
 
     service.createAppointment(1)
 
@@ -286,7 +291,7 @@ class ManageExternalAppointmentsServiceTest {
       prisonCode = courtAppointment.prisonCode(),
       bookingId = 1,
     )
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(
       prisonApiClient.getPrisonersAppointmentsAtLocations(
         courtAppointment.prisonCode(),
@@ -309,8 +314,8 @@ class ManageExternalAppointmentsServiceTest {
 
     service.createAppointment(1)
 
-    inOrder(prisonApiClient) {
-      verify(prisonApiClient).getInternalLocationByKey(courtAppointment.prisonLocationId)
+    inOrder(nomisMappingClient, prisonApiClient) {
+      verify(nomisMappingClient).getNomisLocationMappingBy(courtAppointment.prisonLocationId)
       verify(prisonApiClient).getPrisonersAppointmentsAtLocations(
         prisonCode = courtAppointment.prisonCode(),
         prisonerNumber = courtAppointment.prisonerNumber,
@@ -331,7 +336,7 @@ class ManageExternalAppointmentsServiceTest {
       prisonCode = probationAppointment.prisonCode(),
       bookingId = 1,
     )
-    whenever(prisonApiClient.getInternalLocationByKey(probationAppointment.prisonLocationId)) doReturn wandsworthLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(probationAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = wandsworthLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(referenceCodeRepository.findByProbationMeetingType("PSR")) doReturn probationMeetingType("Pre-sentence report")
 
     service.createAppointment(1)
@@ -361,7 +366,7 @@ class ManageExternalAppointmentsServiceTest {
   fun `should cancel appointment via activities client when appointments rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(
       activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
         courtAppointment.prisonCode(),
@@ -406,7 +411,7 @@ class ManageExternalAppointmentsServiceTest {
   fun `should not cancel appointment via activities client when appointments rolled out but matching appointment not found`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(
       activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
         courtAppointment.prisonCode(),
@@ -452,7 +457,7 @@ class ManageExternalAppointmentsServiceTest {
   fun `should cancel appointment via prison api client when appointments not rolled out`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(
       prisonApiClient.getPrisonersAppointmentsAtLocations(
         courtAppointment.prisonCode(),
@@ -482,7 +487,7 @@ class ManageExternalAppointmentsServiceTest {
   fun `should not cancel appointment via prison api client when appointments not rolled out but matching appointment not found`() {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(
       prisonApiClient.getPrisonersAppointmentsAtLocations(
         courtAppointment.prisonCode(),
@@ -560,7 +565,7 @@ class ManageExternalAppointmentsServiceTest {
       ),
     )
 
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
 
     service.cancelPreviousAppointment(bookingHistory.appointments().first())
 
@@ -575,7 +580,7 @@ class ManageExternalAppointmentsServiceTest {
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
 
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(prisonApiClient.getInternalLocationByKey(courtAppointment.prisonLocationId)) doReturn birminghamLocation
+    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
     whenever(
       prisonApiClient.getPrisonersAppointmentsAtLocations(
         courtAppointment.prisonCode(),

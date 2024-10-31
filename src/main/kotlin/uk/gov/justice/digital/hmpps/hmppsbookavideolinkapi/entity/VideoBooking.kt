@@ -18,6 +18,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 import java.time.LocalTime
+import java.util.UUID
 
 @Entity
 @Table(name = "video_booking")
@@ -91,7 +92,7 @@ class VideoBooking private constructor(
     date: LocalDate,
     startTime: LocalTime,
     endTime: LocalTime,
-    locationId: String,
+    locationId: UUID,
   ) =
     apply {
       prisonAppointments.add(

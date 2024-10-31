@@ -55,7 +55,7 @@ class CourtEmailFactoryTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id,
     )
 
   private val probationBooking = probationBooking()
@@ -66,7 +66,7 @@ class CourtEmailFactoryTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id,
     )
 
   private val prison = prison(prisonCode = WANDSWORTH)
@@ -109,7 +109,7 @@ class CourtEmailFactoryTest {
       pre = null,
       main = courtBooking.appointments().single(),
       post = null,
-      locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+      locations = mapOf(wandsworthLocation.id to wandsworthLocation),
     )
 
     email isInstanceOf userEmails[action]!!
@@ -127,7 +127,7 @@ class CourtEmailFactoryTest {
       pre = null,
       main = courtBooking.appointments().single(),
       post = null,
-      locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+      locations = mapOf(wandsworthLocation.id to wandsworthLocation),
     )
 
     email isEqualTo null
@@ -145,7 +145,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = courtBooking.appointments().single(),
         post = null,
-        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+        locations = mapOf(wandsworthLocation.id to wandsworthLocation),
       )
     }
 
@@ -164,7 +164,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = probationBooking.appointments().single(),
         post = null,
-        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+        locations = mapOf(wandsworthLocation.id to wandsworthLocation),
       )
     }
 
@@ -183,7 +183,7 @@ class CourtEmailFactoryTest {
       pre = null,
       main = courtBooking.appointments().single(),
       post = null,
-      locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+      locations = mapOf(wandsworthLocation.id to wandsworthLocation),
     )
 
     email isInstanceOf courtEmails[action]!!
@@ -201,7 +201,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = courtBooking.appointments().single(),
         post = null,
-        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+        locations = mapOf(wandsworthLocation.id to wandsworthLocation),
       )
     }
 
@@ -220,7 +220,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = probationBooking.appointments().single(),
         post = null,
-        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+        locations = mapOf(wandsworthLocation.id to wandsworthLocation),
       )
     }
 
@@ -239,7 +239,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = courtBooking.appointments().single(),
         post = null,
-        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+        locations = mapOf(wandsworthLocation.id to wandsworthLocation),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),
       )
     }
@@ -259,7 +259,7 @@ class CourtEmailFactoryTest {
         pre = null,
         main = probationBooking.appointments().single(),
         post = null,
-        locations = mapOf(wandsworthLocation.key to wandsworthLocation),
+        locations = mapOf(wandsworthLocation.id to wandsworthLocation),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),
       )
     }

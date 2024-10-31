@@ -10,7 +10,7 @@ fun PrisonAppointmentEntity.toModel(locations: Set<Location>) = PrisonAppointmen
   prisonerNumber = prisonerNumber,
   appointmentType = appointmentType,
   comments = comments,
-  prisonLocKey = locations.find { it.id.toString() == prisonLocationId }?.key ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
+  prisonLocKey = locations.find { it.id == prisonLocationId }?.key ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
   appointmentDate = appointmentDate,
   startTime = startTime,
   endTime = endTime,

@@ -11,13 +11,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isAtPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
+import java.util.UUID
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 @Component
 class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient: WebClient) {
 
-  fun getLocationById(id: String): Location = locationsInsidePrisonApiWebClient.get()
+  fun getLocationById(id: UUID): Location = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/{id}", id)
     .retrieve()
     .bodyToMono(Location::class.java)

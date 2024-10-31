@@ -75,7 +75,7 @@ class VideoLinkBookingsServiceTest {
     ) doReturn courtHearingTypeRefCode
 
     whenever(locationsInsidePrisonClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
-    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id.toString())) doReturn wandsworthLocation
+    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
   }
 
   @Nested
@@ -91,7 +91,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_PRE.name,
-          locationId = wandsworthLocation.id.toString(),
+          locationId = wandsworthLocation.id,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT,
           endTime = LocalTime.MIDNIGHT.plusHours(1),
@@ -100,7 +100,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-          locationId = wandsworthLocation.id.toString(),
+          locationId = wandsworthLocation.id,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(1),
           endTime = LocalTime.MIDNIGHT.plusHours(2),
@@ -109,7 +109,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_POST.name,
-          locationId = wandsworthLocation.id.toString(),
+          locationId = wandsworthLocation.id,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(3),
           endTime = LocalTime.MIDNIGHT.plusHours(4),
@@ -174,7 +174,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_PROBATION.name,
-          locationId = wandsworthLocation.id.toString(),
+          locationId = wandsworthLocation.id,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT,
           endTime = LocalTime.MIDNIGHT.plusHours(1),
@@ -249,7 +249,7 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(12, 0),
-          locationId = wandsworthLocation.id.toString(),
+          locationId = wandsworthLocation.id,
         )
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
@@ -258,14 +258,14 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
-          locationId = wandsworthLocation.id.toString(),
+          locationId = wandsworthLocation.id,
         )
 
       whenever(
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
-          prisonLocationId = wandsworthLocation.id.toString(),
+          prisonLocationId = wandsworthLocation.id,
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 0),
         ),
@@ -297,7 +297,7 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(12, 0),
-          locationId = wandsworthLocation.id.toString(),
+          locationId = wandsworthLocation.id,
         )
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
@@ -306,14 +306,14 @@ class VideoLinkBookingsServiceTest {
           date = searchRequest.date!!,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
-          locationId = wandsworthLocation.id.toString(),
+          locationId = wandsworthLocation.id,
         )
 
       whenever(
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = "123456",
           appointmentDate = tomorrow(),
-          prisonLocationId = wandsworthLocation.id.toString(),
+          prisonLocationId = wandsworthLocation.id,
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 0),
         ),

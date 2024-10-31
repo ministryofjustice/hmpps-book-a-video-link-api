@@ -134,7 +134,7 @@ class BookingFacade(
     val (pre, main, post) = booking.courtAppointments()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
     val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
-    val locations = setOfNotNull(pre?.prisonLocationId, main.prisonLocationId, post?.prisonLocationId).map { locationsInsidePrisonClient.getLocationById(it) }.associateBy { it.id.toString() }
+    val locations = setOfNotNull(pre?.prisonLocationId, main.prisonLocationId, post?.prisonLocationId).map { locationsInsidePrisonClient.getLocationById(it) }.associateBy { it.id }
 
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {

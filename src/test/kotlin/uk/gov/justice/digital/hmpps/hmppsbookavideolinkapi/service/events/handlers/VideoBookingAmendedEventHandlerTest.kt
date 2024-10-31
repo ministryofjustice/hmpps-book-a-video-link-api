@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -49,7 +50,7 @@ class VideoBookingAmendedEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = "",
+      locationId = birminghamLocation.id,
     )
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
@@ -58,7 +59,7 @@ class VideoBookingAmendedEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 30),
-      locationId = "",
+      locationId = birminghamLocation.id,
     )
 
   // For use with the mock to return the booking history details
@@ -125,7 +126,7 @@ class VideoBookingAmendedEventHandlerTest {
           prisonerNumber = "123456",
           appointmentDate = LocalDate.of(2100, 1, 1),
           appointmentType = "VLB_COURT_PRE",
-          prisonLocationId = "",
+          prisonLocationId = birminghamLocation.id,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(11, 30),
           bookingHistory = hist,
@@ -136,7 +137,7 @@ class VideoBookingAmendedEventHandlerTest {
           prisonerNumber = "123456",
           appointmentDate = LocalDate.of(2100, 1, 1),
           appointmentType = "VLB_COURT_MAIN",
-          prisonLocationId = "",
+          prisonLocationId = birminghamLocation.id,
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(13, 30),
           bookingHistory = hist,

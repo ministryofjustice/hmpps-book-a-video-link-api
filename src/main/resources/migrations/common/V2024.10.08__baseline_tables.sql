@@ -216,7 +216,7 @@ CREATE TABLE prison_appointment
     prisoner_number        varchar(7) NOT NULL,  -- NOMS number
     appointment_type       varchar(40) NOT NULL,
     comments               varchar(1000),
-    prison_location_id     varchar(160) NOT NULL,  -- from locations API
+    prison_location_id     uuid NOT NULL,  -- from locations API
     appointment_date       date NOT NULL,
     start_time             time without time zone NOT NULL,
     end_time               time without time zone NOT NULL
@@ -350,7 +350,7 @@ CREATE TABLE booking_history_appointment
     prisoner_number        varchar(7) NOT NULL,
     appointment_date       date NOT NULL,
     appointment_type       varchar(40) NOT NULL,
-    prison_location_id     varchar(160) NOT NULL,
+    prison_location_id     uuid NOT NULL,
     start_time             time without time zone NOT NULL,
     end_time               time without time zone NOT NULL
 );

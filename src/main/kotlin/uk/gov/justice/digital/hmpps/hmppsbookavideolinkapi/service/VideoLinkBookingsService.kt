@@ -54,7 +54,7 @@ class VideoLinkBookingsService(
     return videoAppointmentRepository.findActiveVideoAppointment(
       prisonerNumber = searchRequest.prisonerNumber!!,
       appointmentDate = searchRequest.date!!,
-      prisonLocationId = location.id.toString(),
+      prisonLocationId = location.id,
       startTime = searchRequest.startTime!!,
       endTime = searchRequest.endTime!!,
     )

@@ -33,7 +33,7 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   appointmentType = AppointmentType.valueOf(appointmentType),
   appointmentTypeDescription = appointmentTypeDescription,
   appointmentComments = appointmentComments,
-  prisonLocKey = locations.find { it.id.toString() == prisonLocationId }?.key ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
+  prisonLocKey = locations.find { it.id == prisonLocationId }?.key ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
   appointmentDate = appointmentDate,
   startTime = startTime,
   endTime = endTime,

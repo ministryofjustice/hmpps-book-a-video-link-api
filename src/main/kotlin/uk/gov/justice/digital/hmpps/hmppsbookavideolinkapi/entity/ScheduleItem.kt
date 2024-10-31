@@ -6,6 +6,7 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.Immutable
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 /**
  * This entity represents a view projection for v_prison_schedule and contains the prison appointment times, locations
@@ -64,7 +65,7 @@ data class ScheduleItem(
 
   val appointmentComments: String?,
 
-  val prisonLocationId: String,
+  val prisonLocationId: UUID,
 
   val appointmentDate: LocalDate,
 

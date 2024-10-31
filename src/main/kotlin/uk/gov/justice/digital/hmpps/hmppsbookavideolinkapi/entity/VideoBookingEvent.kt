@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Immutable
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.UUID
 
 /**
  * This entity represents a view projection for v_video_booking_history, and contains the history of a booking.
@@ -40,9 +41,9 @@ data class VideoBookingEvent(
 
   val createdByPrison: Boolean,
 
-  val preLocationId: String?,
+  val preLocationId: UUID?,
 
-  val mainLocationId: String,
+  val mainLocationId: UUID,
 
   val mainDate: LocalDate,
 
@@ -56,7 +57,7 @@ data class VideoBookingEvent(
 
   val preEndTime: LocalTime? = null,
 
-  val postLocationId: String? = null,
+  val postLocationId: UUID? = null,
 
   val postDate: LocalDate? = null,
 

@@ -65,7 +65,7 @@ class ProbationEmailFactoryTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id,
     )
 
   private val probationBooking = probationBooking()
@@ -76,7 +76,7 @@ class ProbationEmailFactoryTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id,
     )
 
   private val userEmails = mapOf(

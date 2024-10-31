@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointme
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 val courtAppealReferenceCode = ReferenceCode(1, "COURT_HEARING_TYPE", "APPEAL", "Appeal", "TEST", enabled = true)
 
@@ -75,7 +76,7 @@ fun VideoBooking.withMainCourtPrisonAppointment(
     prison = prison(prisonCode = prisonCode),
     prisonerNumber = prisonerNumber,
     appointmentType = "VLB_COURT_MAIN",
-    locationId = location.key,
+    locationId = location.id,
     date = date,
     startTime = LocalTime.of(9, 30),
     endTime = LocalTime.of(10, 0),
@@ -103,7 +104,7 @@ fun VideoBooking.withProbationPrisonAppointment(
   date = tomorrow(),
   startTime = LocalTime.MIDNIGHT,
   endTime = LocalTime.MIDNIGHT.plusHours(1),
-  locationId = location.key,
+  locationId = location.id,
 )
 
 fun appointment(
@@ -114,7 +115,7 @@ fun appointment(
   startTime: LocalTime = LocalTime.of(9, 0),
   endTime: LocalTime = LocalTime.of(10, 0),
   appointmentType: String,
-  locationKey: String,
+  locationId: UUID,
 ) = PrisonAppointment.newAppointment(
   videoBooking = booking,
   prison = prison(prisonCode = prisonCode),
@@ -123,7 +124,7 @@ fun appointment(
   appointmentDate = date,
   startTime = startTime,
   endTime = endTime,
-  locationId = locationKey,
+  locationId = locationId,
 )
 
 fun bookingContact(contactType: ContactType, email: String?, name: String? = null) = BookingContact(
