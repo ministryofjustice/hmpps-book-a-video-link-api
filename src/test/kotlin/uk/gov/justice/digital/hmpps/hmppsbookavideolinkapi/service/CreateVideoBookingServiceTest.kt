@@ -14,6 +14,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -38,6 +39,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.readOnlyCourt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
@@ -60,9 +62,10 @@ class CreateVideoBookingServiceTest {
 
   private val persistedVideoBooking: VideoBooking = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val locationValidator: LocationValidator = mock()
 
-  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationValidator)
+  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationsInsidePrisonClient, locationValidator)
 
   private val service = CreateVideoBookingService(
     courtRepository,
@@ -114,6 +117,8 @@ class CreateVideoBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
+    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
 
     val (booking, prisoner) = service.create(courtBookingRequest, COURT_USER)
 
@@ -138,7 +143,7 @@ class CreateVideoBookingServiceTest {
         assertThat(this).extracting("prison").extracting("code").containsOnly(prisonCode)
         assertThat(this).extracting("prisonerNumber").containsOnly(prisonerNumber)
         assertThat(this).extracting("appointmentDate").containsOnly(tomorrow())
-        assertThat(this).extracting("prisonLocationId").containsOnly("$BIRMINGHAM-ABCEDFG")
+        assertThat(this).extracting("prisonLocationId").containsOnly(birminghamLocation.id.toString())
         assertThat(this).extracting("startTime").containsAll(
           listOf(
             LocalTime.of(9, 0),
@@ -197,28 +202,28 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -247,14 +252,14 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -283,14 +288,14 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -319,14 +324,14 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -355,21 +360,21 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -398,21 +403,21 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -441,21 +446,21 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
         ),
         Appointment(
           type = AppointmentType.VLB_PROBATION,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -484,7 +489,7 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -501,13 +506,15 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn requestedCourt
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
 
     val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, COURT_USER) }
 
-    error.message isEqualTo "One or more requested court appointments overlaps with an existing appointment at location $prisonCode-A-1-001"
+    error.message isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
   }
 
   @Test
@@ -520,7 +527,7 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -537,9 +544,12 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn requestedCourt
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
     assertDoesNotThrow {
       service.create(courtBookingRequest, PRISON_USER_BIRMINGHAM)
@@ -583,7 +593,7 @@ class CreateVideoBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = "$prisonCode-A-1-001",
+          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -600,9 +610,12 @@ class CreateVideoBookingServiceTest {
 
     whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn disabledCourt
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-A-1-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.key, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
     assertDoesNotThrow {
       service.create(courtBookingRequest, PRISON_USER_BIRMINGHAM)
@@ -655,6 +668,8 @@ class CreateVideoBookingServiceTest {
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
+    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
     val (booking, prisoner) = service.create(probationBookingRequest, PROBATION_USER)
 
@@ -684,7 +699,7 @@ class CreateVideoBookingServiceTest {
         appointmentDate isEqualTo onePrisoner.appointments.single().date!!
         startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
         endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
-        prisonLocationId isEqualTo onePrisoner.appointments.single().locationKey!!
+        prisonLocationId isEqualTo birminghamLocation.id.toString()
       }
     }
 
@@ -702,7 +717,7 @@ class CreateVideoBookingServiceTest {
       prisonerNumber = prisonerNumber,
       startTime = LocalTime.of(8, 30),
       endTime = LocalTime.of(9, 30),
-      locationSuffix = "B-2-001",
+      location = birminghamLocation,
     )
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
@@ -713,13 +728,15 @@ class CreateVideoBookingServiceTest {
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, "$BIRMINGHAM-B-2-001", tomorrow())) doReturn listOf(overlappingAppointment)
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id.toString(), tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
 
     val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, PROBATION_USER) }
 
-    error.message isEqualTo "Requested probation appointment overlaps with an existing appointment at location $BIRMINGHAM-B-2-001"
+    error.message isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.key}"
   }
 
   @Test
@@ -783,6 +800,8 @@ class CreateVideoBookingServiceTest {
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
+    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
     val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, PROBATION_USER) }
 

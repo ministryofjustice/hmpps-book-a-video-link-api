@@ -43,7 +43,8 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
+    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -78,7 +79,8 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
+    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -121,7 +123,9 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
+    locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, risleyLocation)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), setOf(risleyLocation))
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation.id, risleyLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,

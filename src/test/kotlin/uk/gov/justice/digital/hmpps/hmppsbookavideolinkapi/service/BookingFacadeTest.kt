@@ -126,7 +126,7 @@ class BookingFacadeTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id.toString(),
     )
   private val courtBookingAtDisabledCourt = courtBooking(court = court(enabled = false))
     .addAppointment(
@@ -136,7 +136,7 @@ class BookingFacadeTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id.toString(),
     )
   private val courtBookingInThePast = courtBooking()
     .addAppointment(
@@ -146,7 +146,7 @@ class BookingFacadeTest {
       date = LocalDate.now().minusDays(1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id.toString(),
     )
   private val courtBookingCreatedByPrison = courtBooking(createdByPrison = true)
     .addAppointment(
@@ -156,7 +156,7 @@ class BookingFacadeTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.key,
+      locationId = wandsworthLocation.id.toString(),
     )
 
   private val probationBookingAtBirminghamPrison = probationBooking()
@@ -164,7 +164,7 @@ class BookingFacadeTest {
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "654321",
       appointmentType = AppointmentType.VLB_PROBATION.name,
-      locationId = birminghamLocation.key,
+      locationId = birminghamLocation.id.toString(),
       date = tomorrow(),
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
@@ -177,7 +177,9 @@ class BookingFacadeTest {
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(wandsworthLocation.key))) doReturn listOf(wandsworthLocation)
+    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id.toString())) doReturn wandsworthLocation
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationsInsidePrisonClient.getLocationById(birminghamLocation.id.toString())) doReturn birminghamLocation
   }
 
   @Nested

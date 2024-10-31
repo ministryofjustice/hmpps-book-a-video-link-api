@@ -16,8 +16,6 @@ import java.util.UUID
 
 class LocationsInsidePrisonApiMockServer : MockServer(8091) {
 
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated(message = "Can be removed when migration is completed")
   fun stubGetLocationById(id: UUID, location: Location) {
     stubFor(
       get("/locations/$id").willReturn(
@@ -29,9 +27,18 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubGetLocationByKey(key: String, prisonId: String = "WWI") {
-    val id = UUID.randomUUID()
+  fun stubGetLocationByKey(key: String, location: Location) {
+    stubFor(
+      get("/locations/key/$key").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(mapper.writeValueAsString(location))
+          .withStatus(200),
+      ),
+    )
+  }
 
+  fun stubGetLocationByKey(key: String, prisonId: String = WANDSWORTH) {
     stubFor(
       get("/locations/key/$key").willReturn(
         aResponse()
@@ -39,7 +46,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
           .withBody(
             mapper.writeValueAsString(
               Location(
-                id = id,
+                id = UUID.randomUUID(),
                 prisonId = prisonId,
                 code = "001",
                 pathHierarchy = "A-1-001",
@@ -47,7 +54,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                 permanentlyInactive = false,
                 active = true,
                 deactivatedByParent = false,
-                topLevelId = id,
+                topLevelId = UUID.randomUUID(),
                 key = key,
                 isResidential = true,
                 lastModifiedBy = "test user",
@@ -60,6 +67,19 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
           )
           .withStatus(200),
       ),
+    )
+  }
+
+  fun stubPostLocationByKeys(keys: Set<String>, locations: Set<Location>) {
+    stubFor(
+      post("/locations/keys")
+        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(keys)))
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(locations))
+            .withStatus(200),
+        ),
     )
   }
 

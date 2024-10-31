@@ -404,7 +404,7 @@ object CourtEmailFactory {
   private fun PrisonAppointment.appointmentInformation(locations: Map<String, Location>) =
     "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
-  private fun Map<String, Location>.room(key: String) = this[key]?.localName ?: ""
+  private fun Map<String, Location>.room(id: String) = this[id]?.localName ?: ""
 
   private fun Collection<BookingContact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
 

@@ -34,7 +34,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
@@ -65,7 +66,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
   @Test
   fun `should return a list of prison and probation contacts for a booking`() {
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
+    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
+    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",
@@ -100,7 +102,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", WANDSWORTH)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(wandsworthLocation.key), WANDSWORTH)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(wandsworthLocation.key), setOf(wandsworthLocation))
+    locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation.id, wandsworthLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "NWPIAC",
@@ -128,7 +131,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
+    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
@@ -159,7 +163,8 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
