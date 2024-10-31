@@ -13,6 +13,7 @@ class NomisMappingClient(private val nomisMappingApiWebClient: WebClient) {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  @Deprecated(message = "Can be removed when migration is completed")
   fun getNomisLocationMappingBy(internalLocationId: Long): NomisDpsLocationMapping? = nomisMappingApiWebClient
     .get()
     .uri("/api/locations/nomis/{id}", internalLocationId)

@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiMockServer
@@ -18,7 +19,22 @@ class LocationsInsidePrisonClientTest {
   private val client = LocationsInsidePrisonClient(WebClient.create("http://localhost:${server.port()}"))
 
   @Test
-  fun `should get matching location`() {
+  fun `should get matching location by id`() {
+    val location = location(WANDSWORTH, locationKeySuffix = "A-1-001")
+    server.stubGetLocationById(location.id, location)
+
+    client.getLocationById(location.id).key isEqualTo locationKey
+  }
+
+  @Test
+  fun `should get matching location by key`() {
+    server.stubGetLocationByKey(locationKey, location(WANDSWORTH, locationKeySuffix = "A-1-001"))
+
+    client.getLocationByKey(locationKey)!!.key isEqualTo locationKey
+  }
+
+  @Test
+  fun `should get matching location by list of keys`() {
     server.stubPostLocationByKeys(setOf(locationKey))
 
     client.getLocationsByKeys(setOf(locationKey)).single().key isEqualTo locationKey
