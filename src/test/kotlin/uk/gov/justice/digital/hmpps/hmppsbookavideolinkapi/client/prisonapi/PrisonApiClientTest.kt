@@ -20,18 +20,6 @@ class PrisonApiClientTest {
   private val client = PrisonApiClient(WebClient.create("http://localhost:${server.port()}"))
 
   @Test
-  fun `should get location by key`() {
-    server.stubGetInternalLocationByKey("key", BIRMINGHAM, "A-123")
-
-    client.getInternalLocationByKey("key") isEqualTo Location(
-      locationId = 1,
-      locationType = "VIDEO_LINK",
-      agencyId = BIRMINGHAM,
-      description = "A-123",
-    )
-  }
-
-  @Test
   fun `should post appointment`() {
     server.stubPostCreateAppointment(
       bookingId = 1,

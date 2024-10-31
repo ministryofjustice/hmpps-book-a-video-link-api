@@ -27,15 +27,6 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getInternalLocationByKey(key: String): Location? =
-    prisonApiWebClient
-      .get()
-      .uri("/api/locations/code/{code}", key)
-      .retrieve()
-      .bodyToMono(Location::class.java)
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()
-
   fun createAppointment(
     bookingId: Long,
     locationId: Long,
