@@ -20,6 +20,12 @@ generic-service:
     BVLS_FRONTEND_URL: "https://book-a-video-link-preprod.prison.service.justice.gov.uk"
     FEATURE_EVENTS_SNS_ENABLED: true
 
+  allowlist:
+    pen-tester-1: 80.195.27.199/32
+    pen-tester-2: 109.151.94.16/32
+    groups:
+      - internal
+
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
