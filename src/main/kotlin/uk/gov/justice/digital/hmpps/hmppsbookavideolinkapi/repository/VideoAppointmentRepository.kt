@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 @Repository
 interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long> {
@@ -13,15 +14,15 @@ interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long
       FROM VideoAppointment va 
       WHERE va.appointmentDate = :forDate
       AND va.prisonCode  = :forPrison
-      AND va.prisonLocKey in (:forLocationKeys)
+      AND va.prisonLocationId in (:forLocationIds)
       AND va.statusCode = 'ACTIVE'
-      ORDER BY va.prisonLocKey, va.startTime
+      ORDER BY va.prisonLocationId, va.startTime
     """,
   )
   fun findVideoAppointmentsAtPrison(
     forDate: LocalDate,
     forPrison: String,
-    forLocationKeys: List<String>,
+    forLocationIds: List<UUID>,
   ): List<VideoAppointment>
 
   @Query(
@@ -29,7 +30,7 @@ interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long
       FROM VideoAppointment va 
       WHERE va.prisonerNumber = :prisonerNumber
       AND va.appointmentDate = :appointmentDate
-      AND va.prisonLocKey = :prisonLocKey
+      AND va.prisonLocationId = :prisonLocationId
       AND va.startTime = :startTime
       AND va.endTime = :endTime
       AND va.statusCode = 'ACTIVE'
@@ -38,7 +39,7 @@ interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long
   fun findActiveVideoAppointment(
     prisonerNumber: String,
     appointmentDate: LocalDate,
-    prisonLocKey: String,
+    prisonLocationId: UUID,
     startTime: LocalTime,
     endTime: LocalTime,
   ): VideoAppointment?

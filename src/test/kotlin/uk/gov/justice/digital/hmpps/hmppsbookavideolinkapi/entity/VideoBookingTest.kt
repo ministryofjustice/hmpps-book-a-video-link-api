@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalDateTime.now
 import java.time.LocalTime
+import java.util.UUID
 
 class VideoBookingTest {
 
@@ -36,7 +37,7 @@ class VideoBookingTest {
       date = tomorrow(),
       startTime = LocalTime.now(),
       endTime = LocalTime.now().plusHours(1),
-      locationKey = "loc-key",
+      locationId = UUID.randomUUID(),
     )
 
     booking.cancel(courtUser())
@@ -55,7 +56,7 @@ class VideoBookingTest {
       date = tomorrow(),
       startTime = LocalTime.now(),
       endTime = LocalTime.now().plusHours(1),
-      locationKey = "loc-key",
+      locationId = UUID.randomUUID(),
     )
 
     booking.cancel(courtUser())
@@ -76,7 +77,7 @@ class VideoBookingTest {
       date = yesterday(),
       startTime = LocalTime.now(),
       endTime = LocalTime.now().plusHours(1),
-      locationKey = "loc-key",
+      locationId = UUID.randomUUID(),
     )
 
     val exception = assertThrows<IllegalArgumentException> {

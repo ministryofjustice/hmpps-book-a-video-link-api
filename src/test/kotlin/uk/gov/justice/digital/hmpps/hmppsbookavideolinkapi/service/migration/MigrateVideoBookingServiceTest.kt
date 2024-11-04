@@ -67,7 +67,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a court booking with main appointment only`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn wandsworthLocation.id
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
@@ -125,7 +125,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.id
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -134,7 +134,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to an unknown court booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn wandsworthLocation.id
       on { mapCourtCodeToCourt(UNKNOWN_COURT_CODE) } doReturn court(UNKNOWN_COURT_CODE)
     }
 
@@ -193,7 +193,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.id
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -202,7 +202,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate (other court) booking to an unknown court booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn wandsworthLocation.id
       on { mapCourtCodeToCourt(UNKNOWN_COURT_CODE) } doReturn court(UNKNOWN_COURT_CODE)
     }
 
@@ -261,7 +261,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.id
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -270,8 +270,8 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a court booking with pre and main appointment`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
+      on { mapInternalLocationIdToLocationId(1) } doReturn wandsworthLocation.id
+      on { mapInternalLocationIdToLocationId(2) } doReturn wandsworthLocation2.id
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
@@ -331,7 +331,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.id
       comments isEqualTo "Migrated court comments"
     }
 
@@ -342,7 +342,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 0)
-      prisonLocKey isEqualTo wandsworthLocation2.key
+      prisonLocationId isEqualTo wandsworthLocation2.id
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -351,9 +351,9 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a court booking with pre, main and post appointment`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
-      on { mapInternalLocationIdToLocation(3) } doReturn wandsworthLocation3
+      on { mapInternalLocationIdToLocationId(1) } doReturn wandsworthLocation.id
+      on { mapInternalLocationIdToLocationId(2) } doReturn wandsworthLocation2.id
+      on { mapInternalLocationIdToLocationId(3) } doReturn wandsworthLocation3.id
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
@@ -413,7 +413,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(8, 0)
       endTime isEqualTo LocalTime.of(9, 0)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.id
       comments isEqualTo "Migrated court comments"
     }
 
@@ -424,7 +424,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo wandsworthLocation2.key
+      prisonLocationId isEqualTo wandsworthLocation2.id
       comments isEqualTo "Migrated court comments"
     }
 
@@ -435,7 +435,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 0)
-      prisonLocKey isEqualTo wandsworthLocation3.key
+      prisonLocationId isEqualTo wandsworthLocation3.id
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -444,8 +444,8 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a court booking with main and post appointment`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
+      on { mapInternalLocationIdToLocationId(1) } doReturn wandsworthLocation.id
+      on { mapInternalLocationIdToLocationId(2) } doReturn wandsworthLocation2.id
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
@@ -505,7 +505,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(8, 0)
       endTime isEqualTo LocalTime.of(9, 0)
-      prisonLocKey isEqualTo wandsworthLocation.key
+      prisonLocationId isEqualTo wandsworthLocation.id
       comments isEqualTo "Migrated court comments"
     }
 
@@ -516,7 +516,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(10, 0)
-      prisonLocKey isEqualTo wandsworthLocation2.key
+      prisonLocationId isEqualTo wandsworthLocation2.id
       comments isEqualTo "Migrated court comments"
     }
   }
@@ -525,7 +525,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn pentonvilleLocation.id
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
@@ -583,7 +583,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.id
       comments isEqualTo "Migrated probation comments"
     }
   }
@@ -592,7 +592,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate booking to an unknown probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn pentonvilleLocation.id
       on { mapProbationTeamCodeToProbationTeam(UNKNOWN_PROBATION_TEAM_CODE) } doReturn probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
     }
 
@@ -651,7 +651,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.id
       comments isEqualTo "Migrated probation comments"
     }
   }
@@ -660,7 +660,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate (other court) booking to an unknown probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn pentonvilleLocation.id
       on { mapProbationTeamCodeToProbationTeam(UNKNOWN_PROBATION_TEAM_CODE) } doReturn probationTeam(UNKNOWN_PROBATION_TEAM_CODE)
     }
 
@@ -719,7 +719,7 @@ class MigrateVideoBookingServiceTest {
       appointmentDate isEqualTo today()
       startTime isEqualTo LocalTime.MIDNIGHT
       endTime isEqualTo LocalTime.MIDNIGHT.plusHours(1)
-      prisonLocKey isEqualTo pentonvilleLocation.key
+      prisonLocationId isEqualTo pentonvilleLocation.id
       comments isEqualTo "Migrated probation comments"
     }
   }
@@ -728,9 +728,9 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate CREATE booking history for a court booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
-      on { mapInternalLocationIdToLocation(3) } doReturn wandsworthLocation3
+      on { mapInternalLocationIdToLocationId(1) } doReturn wandsworthLocation.id
+      on { mapInternalLocationIdToLocationId(2) } doReturn wandsworthLocation2.id
+      on { mapInternalLocationIdToLocationId(3) } doReturn wandsworthLocation3.id
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
@@ -820,9 +820,9 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate CANCELLED booking history for a court booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "ABC123"
-      on { mapInternalLocationIdToLocation(1) } doReturn wandsworthLocation
-      on { mapInternalLocationIdToLocation(2) } doReturn wandsworthLocation2
-      on { mapInternalLocationIdToLocation(3) } doReturn wandsworthLocation3
+      on { mapInternalLocationIdToLocationId(1) } doReturn wandsworthLocation.id
+      on { mapInternalLocationIdToLocationId(2) } doReturn wandsworthLocation2.id
+      on { mapInternalLocationIdToLocationId(3) } doReturn wandsworthLocation3.id
       on { mapCourtCodeToCourt(DERBY_JUSTICE_CENTRE) } doReturn court(DERBY_JUSTICE_CENTRE)
     }
 
@@ -961,7 +961,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate CREATE booking history for a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn pentonvilleLocation.id
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
@@ -1029,7 +1029,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate AMENDED booking history for a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn pentonvilleLocation.id
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
@@ -1128,7 +1128,7 @@ class MigrateVideoBookingServiceTest {
   fun `should migrate CANCELLED booking history for a probation booking`() {
     migrateMappingService.stub {
       on { mapBookingIdToPrisonerNumber(1) } doReturn "DEF123"
-      on { mapInternalLocationIdToLocation(1) } doReturn pentonvilleLocation
+      on { mapInternalLocationIdToLocationId(1) } doReturn pentonvilleLocation.id
       on { mapProbationTeamCodeToProbationTeam(BLACKPOOL_MC_PPOC) } doReturn probationTeam(BLACKPOOL_MC_PPOC)
     }
 
@@ -1229,7 +1229,7 @@ class MigrateVideoBookingServiceTest {
   private fun BookingHistoryAppointment.startsAt(startTime: LocalTime) = also { it.startTime isEqualTo startTime }
   private fun BookingHistoryAppointment.endsAt(endTime: LocalTime) = also { it.endTime isEqualTo endTime }
   private fun BookingHistoryAppointment.isForAppointmentType(appointmentType: String) = also { it.appointmentType isEqualTo appointmentType }
-  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocKey isEqualTo location.key }
+  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocationId isEqualTo location.id }
 
   // TODO more tests needed e.g. error conditions, history.
 }

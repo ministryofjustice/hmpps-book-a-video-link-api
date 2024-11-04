@@ -11,11 +11,19 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isAtPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
+import java.util.UUID
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 @Component
 class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient: WebClient) {
+
+  fun getLocationById(id: UUID): Location? = locationsInsidePrisonApiWebClient.get()
+    .uri("/locations/{id}", id)
+    .retrieve()
+    .bodyToMono(Location::class.java)
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block()
 
   fun getLocationByKey(key: String): Location? = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/key/{key}", key)
@@ -52,12 +60,16 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
 @Component
 class LocationValidator(private val locationsInsidePrisonClient: LocationsInsidePrisonClient) {
 
-  fun validatePrisonLocation(prisonCode: String, locationKey: String) {
-    validate(prisonCode, setOf(locationKey), listOfNotNull(locationsInsidePrisonClient.getLocationByKey(locationKey)))
+  fun validatePrisonLocation(prisonCode: String, locationKey: String): Location {
+    val location = locationsInsidePrisonClient.getLocationByKey(locationKey)
+    validate(prisonCode, setOf(locationKey), listOfNotNull(location))
+    return location!!
   }
 
-  fun validatePrisonLocations(prisonCode: String, locationKeys: Set<String>) {
-    validate(prisonCode, locationKeys, locationsInsidePrisonClient.getLocationsByKeys(locationKeys))
+  fun validatePrisonLocations(prisonCode: String, locationKeys: Set<String>): List<Location> {
+    val locations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys)
+    validate(prisonCode, locationKeys, locations)
+    return locations
   }
 
   private fun validate(prisonCode: String, locationKeys: Set<String>, maybeLocations: List<Location>) {

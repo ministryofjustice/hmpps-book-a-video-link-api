@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   fun findByVideoBooking(booking: VideoBooking): List<PrisonAppointment>
@@ -17,7 +18,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
       FROM PrisonAppointment pa 
      WHERE pa.prisonerNumber = :prisonerNumber
        AND pa.prison.code = :prisonCode
-       AND pa.prisonLocKey = :key
+       AND pa.prisonLocationId = :prisonLocationId
        AND pa.videoBooking.statusCode = 'ACTIVE'
        AND pa.appointmentDate = :date
        AND pa.startTime = :startTime
@@ -27,7 +28,7 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   fun existsActivePrisonAppointmentsByPrisonerNumberLocationDateAndTime(
     prisonerNumber: String,
     prisonCode: String,
-    key: String,
+    prisonLocationId: UUID,
     date: LocalDate,
     startTime: LocalTime,
     endTime: LocalTime,
@@ -46,14 +47,14 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
     value = """
     SELECT pa FROM PrisonAppointment pa 
      WHERE pa.prison.code = :prisonCode
-       AND pa.prisonLocKey = :key
+       AND pa.prisonLocationId = :prisonLocationId
        AND pa.videoBooking.statusCode = 'ACTIVE'
        AND pa.appointmentDate = :date
   """,
   )
   fun findActivePrisonAppointmentsAtLocationOnDate(
     prisonCode: String,
-    key: String,
+    prisonLocationId: UUID,
     date: LocalDate,
   ): List<PrisonAppointment>
 

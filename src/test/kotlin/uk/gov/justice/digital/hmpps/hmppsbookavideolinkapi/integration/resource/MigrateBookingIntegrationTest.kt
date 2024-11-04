@@ -33,7 +33,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Inboun
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEvent
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.UUID
 
 @Deprecated(message = "Can be removed when migration is completed")
 class MigrateBookingIntegrationTest : IntegrationTestBase() {
@@ -104,17 +103,8 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
     prisonerApi().stubGetPrisonerByBookingId(1, "ABC123")
 
-    // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
-    UUID.randomUUID().also { dpsLocationId ->
-      nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation)
-    }
-
-    // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
-    UUID.randomUUID().also { dpsLocationId ->
-      nomisMappingApi().stubGetNomisToDpsLocationMapping(2, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation2)
-    }
+    nomisMappingApi().stubGetNomisToDpsLocationMapping(1, wandsworthLocation.id)
+    nomisMappingApi().stubGetNomisToDpsLocationMapping(2, wandsworthLocation2.id)
 
     videoBookingRepository.findAll().filter(VideoBooking::isCourtBooking) hasSize 0
 
@@ -243,14 +233,14 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       courtCode isEqualTo DERBY_JUSTICE_CENTRE
       courtBooking isBool true
       createdByPrison isBool false
-      preLocationKey isEqualTo wandsworthLocation.key
+      preLocationId isEqualTo wandsworthLocation.id
       preStartTime isEqualTo LocalTime.of(9, 0)
       preEndTime isEqualTo LocalTime.of(10, 0)
-      mainLocationKey isEqualTo wandsworthLocation.key
+      mainLocationId isEqualTo wandsworthLocation.id
       mainDate isEqualTo yesterday()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo wandsworthLocation.key
+      preLocationId isEqualTo wandsworthLocation.id
       postStartTime isEqualTo LocalTime.of(11, 0)
       postEndTime isEqualTo LocalTime.of(12, 0)
     }
@@ -266,14 +256,14 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       courtCode isEqualTo DERBY_JUSTICE_CENTRE
       courtBooking isBool true
       createdByPrison isBool false
-      preLocationKey isEqualTo wandsworthLocation.key
+      preLocationId isEqualTo wandsworthLocation.id
       preStartTime isEqualTo LocalTime.of(9, 0)
       preEndTime isEqualTo LocalTime.of(10, 0)
-      mainLocationKey isEqualTo wandsworthLocation2.key
+      mainLocationId isEqualTo wandsworthLocation2.id
       mainDate isEqualTo yesterday()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo wandsworthLocation.key
+      preLocationId isEqualTo wandsworthLocation.id
       postStartTime isEqualTo LocalTime.of(11, 0)
       postEndTime isEqualTo LocalTime.of(12, 0)
     }
@@ -319,11 +309,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
     prisonerApi().stubGetPrisonerByBookingId(1, "ABC123")
 
-    // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
-    UUID.randomUUID().also { dpsLocationId ->
-      nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation)
-    }
+    nomisMappingApi().stubGetNomisToDpsLocationMapping(1, wandsworthLocation.id)
 
     videoBookingRepository.findAll().filter(VideoBooking::isCourtBooking) hasSize 0
 
@@ -430,17 +416,8 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
     prisonerApi().stubGetPrisonerByBookingId(2, "DEF123")
 
-    // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
-    UUID.randomUUID().also { dpsLocationId ->
-      nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation)
-    }
-
-    // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
-    UUID.randomUUID().also { dpsLocationId ->
-      nomisMappingApi().stubGetNomisToDpsLocationMapping(3, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation3)
-    }
+    nomisMappingApi().stubGetNomisToDpsLocationMapping(1, wandsworthLocation.id)
+    nomisMappingApi().stubGetNomisToDpsLocationMapping(3, wandsworthLocation3.id)
 
     videoBookingRepository.findAll().filter(VideoBooking::isProbationBooking) hasSize 0
 
@@ -520,14 +497,14 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       probationTeamCode isEqualTo BLACKPOOL_MC_PPOC
       courtBooking isBool false
       createdByPrison isBool false
-      preLocationKey isEqualTo null
+      preLocationId isEqualTo null
       preStartTime isEqualTo null
       preEndTime isEqualTo null
-      mainLocationKey isEqualTo wandsworthLocation.key
+      mainLocationId isEqualTo wandsworthLocation.id
       mainDate isEqualTo 2.daysAgo()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo null
+      preLocationId isEqualTo null
       postStartTime isEqualTo null
       postEndTime isEqualTo null
     }
@@ -543,14 +520,14 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
       probationTeamCode isEqualTo BLACKPOOL_MC_PPOC
       courtBooking isBool false
       createdByPrison isBool false
-      preLocationKey isEqualTo null
+      preLocationId isEqualTo null
       preStartTime isEqualTo null
       preEndTime isEqualTo null
-      mainLocationKey isEqualTo wandsworthLocation3.key
+      mainLocationId isEqualTo wandsworthLocation3.id
       mainDate isEqualTo 2.daysAgo()
       mainStartTime isEqualTo LocalTime.of(10, 0)
       mainEndTime isEqualTo LocalTime.of(11, 0)
-      preLocationKey isEqualTo null
+      preLocationId isEqualTo null
       postStartTime isEqualTo null
       postEndTime isEqualTo null
     }
@@ -596,11 +573,7 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
 
     prisonerApi().stubGetPrisonerByBookingId(2, "DEF123")
 
-    // Mapping NOMIS internal location ID's to locations to ultimately extract the location business keys
-    UUID.randomUUID().also { dpsLocationId ->
-      nomisMappingApi().stubGetNomisToDpsLocationMapping(1, dpsLocationId.toString())
-      locationsInsidePrisonApi().stubGetLocationById(dpsLocationId, wandsworthLocation)
-    }
+    nomisMappingApi().stubGetNomisToDpsLocationMapping(1, wandsworthLocation.id)
 
     videoBookingRepository.findAll().filter(VideoBooking::isProbationBooking) hasSize 0
 
@@ -669,5 +642,5 @@ class MigrateBookingIntegrationTest : IntegrationTestBase() {
   private fun BookingHistoryAppointment.startsAt(hour: Int, minute: Int) = also { it.startTime isEqualTo LocalTime.of(hour, minute) }
   private fun BookingHistoryAppointment.endsAt(hour: Int, minute: Int) = also { it.endTime isEqualTo LocalTime.of(hour, minute) }
   private fun BookingHistoryAppointment.isForAppointmentType(appointmentType: String) = also { it.appointmentType isEqualTo appointmentType }
-  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocKey isEqualTo location.key }
+  private fun BookingHistoryAppointment.isAtLocation(location: Location) = also { it.prisonLocationId isEqualTo location.id }
 }

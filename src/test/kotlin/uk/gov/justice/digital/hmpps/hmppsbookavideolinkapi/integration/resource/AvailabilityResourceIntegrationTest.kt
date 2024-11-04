@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
@@ -61,7 +62,8 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
@@ -104,7 +106,8 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
@@ -175,7 +178,9 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
+    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
+    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",
@@ -183,6 +188,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       videoLinkUrl = "https://probation.videolink.com",
       prisonCode = PENTONVILLE,
       prisonerNumber = "A1111AA",
+      appointmentDate = tomorrow(),
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
@@ -198,7 +204,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       bookingType = BookingType.PROBATION,
       courtOrProbationCode = "BLKPPP",
       prisonCode = PENTONVILLE,
-      date = LocalDate.now().plusDays(1),
+      date = tomorrow(),
       mainAppointment = LocationAndInterval(
         pentonvilleLocation.key,
         Interval(

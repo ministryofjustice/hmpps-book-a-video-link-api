@@ -5,15 +5,16 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.NomisDpsLocationMapping
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisDpsLocationMapping
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.MockServer
+import java.util.UUID
 
 @Deprecated(message = "Can be removed when migration is completed")
 class NomisMappingApiMockServer : MockServer(8096) {
 
   @Suppress("DeprecatedCallableAddReplaceWith")
   @Deprecated(message = "Can be removed when migration is completed")
-  fun stubGetNomisToDpsLocationMapping(internalLocationId: Long, dpsLocationId: String) {
+  fun stubGetNomisToDpsLocationMapping(internalLocationId: Long, dpsLocationId: UUID) {
     stubFor(
       WireMock.get("/api/locations/nomis/$internalLocationId")
         .willReturn(

@@ -11,13 +11,15 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
@@ -28,8 +30,8 @@ import java.util.stream.Stream
 
 class CsvDataExtractionServiceTest {
   private val videoBookingEventRepository: VideoBookingEventRepository = mock()
-  private val locationsService: LocationsService = mock()
-  private val service = CsvDataExtractionService(videoBookingEventRepository, locationsService)
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val service = CsvDataExtractionService(videoBookingEventRepository, locationsInsidePrisonClient)
   private val csvOutputStream = ByteArrayOutputStream()
   private val wandsworthCreateCourtBookingEvent = VideoBookingEvent(
     eventId = 1,
@@ -50,9 +52,9 @@ class CsvDataExtractionServiceTest {
     postDate = LocalDate.of(2024, Month.JULY, 10),
     postStartTime = LocalTime.of(11, 0),
     postEndTime = LocalTime.of(12, 0),
-    mainLocationKey = "main-loc-key",
-    preLocationKey = "pre-loc-key",
-    postLocationKey = "post-loc-key",
+    mainLocationId = wandsworthLocation.id,
+    preLocationId = wandsworthLocation.id,
+    postLocationId = wandsworthLocation.id,
     courtBooking = true,
   )
   private val wandsworthCancelCourtBookingEvent = wandsworthCreateCourtBookingEvent.copy(eventType = "CANCEL")
@@ -61,20 +63,15 @@ class CsvDataExtractionServiceTest {
   private val wandsworthCancelProbationBooking = wandsworthCreateProbationBookingEvent.copy(eventType = "CANCEL")
   private val wandsworthAmendProbationBooking = wandsworthCreateProbationBookingEvent.copy(eventType = "AMEND")
   private val wandsworthPrisonCourtBooking = wandsworthCreateCourtBookingEvent.copy(createdByPrison = true)
-  private val risleyCourtBooking = wandsworthCreateCourtBookingEvent.copy(prisonCode = RISLEY, eventType = "CANCEL")
+  private val risleyCourtBooking = wandsworthCreateCourtBookingEvent.copy(prisonCode = RISLEY, eventType = "CANCEL", mainLocationId = risleyLocation.id, preLocationId = risleyLocation.id, postLocationId = risleyLocation.id)
   private val risleyPrisonCourtBooking = risleyCourtBooking.copy(createdByPrison = true, courtBooking = false)
-  private val risleyProbationBooking = wandsworthCreateProbationBookingEvent.copy(prisonCode = RISLEY, createdByPrison = false)
-  private val locations = listOf(
-    location(key = "pre-loc-key", description = "Pre location"),
-    location(key = "main-loc-key", description = "Main location"),
-    location(key = "post-loc-key", description = "Post location"),
-  )
+  private val risleyProbationBooking = wandsworthCreateProbationBookingEvent.copy(prisonCode = RISLEY, createdByPrison = false, mainLocationId = risleyLocation.id, preLocationId = risleyLocation.id, postLocationId = risleyLocation.id)
 
   @BeforeEach
   fun before() {
-    locationsService.stub {
-      on { getVideoLinkLocationsAtPrison(WANDSWORTH, false) } doReturn locations
-      on { getVideoLinkLocationsAtPrison(RISLEY, false) } doReturn locations
+    locationsInsidePrisonClient.stub {
+      on { getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH) } doReturn listOf(wandsworthLocation)
+      on { getNonResidentialAppointmentLocationsAtPrison(RISLEY) } doReturn listOf(risleyLocation)
     }
   }
 
@@ -89,7 +86,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\"\n"
   }
 
   @Test
@@ -126,7 +123,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\"\n"
   }
 
   @Test
@@ -140,7 +137,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${risleyLocation.localName}\",\"${risleyLocation.localName}\",\"${risleyLocation.localName}\"\n"
   }
 
   @Test
@@ -156,7 +153,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${risleyLocation.localName}\",\"${risleyLocation.localName}\",\"${risleyLocation.localName}\"\n"
   }
 
   @Test
@@ -170,7 +167,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\"\n"
   }
 
   @Test
@@ -184,7 +181,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"Main location\",\"Pre location\",\"Post location\"\n"
+      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\"\n"
   }
 
   @Test
@@ -198,7 +195,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
+      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,\n"
   }
 
   @Test
@@ -212,7 +209,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
+      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,\n"
   }
 
   @Test
@@ -226,7 +223,7 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
+      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,\n"
   }
 
   @Test
@@ -240,9 +237,6 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"Main location\",,\n"
+      "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${risleyLocation.localName}\",,\n"
   }
-
-  private fun location(key: String, description: String) =
-    Location(key = key, description = description, enabled = true)
 }

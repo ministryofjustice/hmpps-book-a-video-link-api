@@ -40,7 +40,7 @@ class ProbationBookingAmendedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(14, 0),
       endTime = LocalTime.of(15, 0),
-      locationKey = birminghamLocation.key,
+      locationId = birminghamLocation.id,
     ).apply {
       amendedTime = amendedAt
       amendedBy = probationUser().username
@@ -54,7 +54,7 @@ class ProbationBookingAmendedTelemetryEventTest {
         "team_code" to BLACKPOOL_MC_PPOC,
         "meeting_type" to "PSR",
         "prison_code" to BIRMINGHAM,
-        "location_key" to birminghamLocation.key,
+        "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
         "cvp_link" to "true",
@@ -85,7 +85,7 @@ class ProbationBookingAmendedTelemetryEventTest {
       date = tomorrow(),
       startTime = LocalTime.of(14, 0),
       endTime = LocalTime.of(15, 0),
-      locationKey = birminghamLocation.key,
+      locationId = birminghamLocation.id,
     ).apply {
       amendedTime = amendedAt
       amendedBy = prisonUser().username
@@ -99,7 +99,7 @@ class ProbationBookingAmendedTelemetryEventTest {
         "team_code" to BLACKPOOL_MC_PPOC,
         "meeting_type" to "PSR",
         "prison_code" to BIRMINGHAM,
-        "location_key" to birminghamLocation.key,
+        "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
         "cvp_link" to "true",

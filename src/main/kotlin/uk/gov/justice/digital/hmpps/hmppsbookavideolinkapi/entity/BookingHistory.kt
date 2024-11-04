@@ -16,6 +16,7 @@ import org.hibernate.Hibernate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.UUID
 
 /**
  * This entity represents the history of a booking at a point in time, and is created/saved
@@ -108,7 +109,7 @@ data class BookingHistoryAppointment(
 
   val appointmentType: String,
 
-  val prisonLocKey: String,
+  val prisonLocationId: UUID,
 
   val startTime: LocalTime,
 

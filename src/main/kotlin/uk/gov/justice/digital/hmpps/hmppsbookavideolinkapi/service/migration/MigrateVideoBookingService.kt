@@ -45,20 +45,20 @@ class MigrateVideoBookingService(
     val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
       ?: throw MigrationException("Unable to find prisoner number for offender booking ID ${bookingToMigrate.offenderBookingId} for court booking ${bookingToMigrate.videoBookingId}")
 
-    val preLocation = bookingToMigrate.pre?.let {
-      mappingService.mapInternalLocationIdToLocation(it.locationId) ?: throw NullPointerException(
-        "Pre location not found for internal location ID ${bookingToMigrate.main.locationId} for court booking ${bookingToMigrate.videoBookingId}",
+    val preLocationId = bookingToMigrate.pre?.let {
+      mappingService.mapInternalLocationIdToLocationId(it.locationId) ?: throw NullPointerException(
+        "Pre location mapping not found for internal location ID ${bookingToMigrate.main.locationId} for court booking ${bookingToMigrate.videoBookingId}",
       )
     }
 
-    val mainLocation =
-      mappingService.mapInternalLocationIdToLocation(bookingToMigrate.main.locationId) ?: throw NullPointerException(
-        "Main location not found for internal location ID ${bookingToMigrate.main.locationId} for court booking ${bookingToMigrate.videoBookingId}",
+    val mainLocationId =
+      mappingService.mapInternalLocationIdToLocationId(bookingToMigrate.main.locationId) ?: throw NullPointerException(
+        "Main location mapping not found for internal location ID ${bookingToMigrate.main.locationId} for court booking ${bookingToMigrate.videoBookingId}",
       )
 
-    val postLocation = bookingToMigrate.post?.let {
-      mappingService.mapInternalLocationIdToLocation(it.locationId) ?: throw NullPointerException(
-        "Post location not found for internal location ID ${bookingToMigrate.main.locationId} for court booking ${bookingToMigrate.videoBookingId}",
+    val postLocationId = bookingToMigrate.post?.let {
+      mappingService.mapInternalLocationIdToLocationId(it.locationId) ?: throw NullPointerException(
+        "Post location mapping not found for internal location ID ${bookingToMigrate.main.locationId} for court booking ${bookingToMigrate.videoBookingId}",
       )
     }
 
@@ -93,7 +93,7 @@ class MigrateVideoBookingService(
           date = bookingToMigrate.pre.date,
           startTime = bookingToMigrate.pre.startTime,
           endTime = bookingToMigrate.pre.endTime,
-          locationKey = preLocation!!.key,
+          locationId = preLocationId!!,
         )
       }
 
@@ -104,7 +104,7 @@ class MigrateVideoBookingService(
         date = bookingToMigrate.main.date,
         startTime = bookingToMigrate.main.startTime,
         endTime = bookingToMigrate.main.endTime,
-        locationKey = mainLocation.key,
+        locationId = mainLocationId,
       )
 
       if (bookingToMigrate.post != null) {
@@ -115,7 +115,7 @@ class MigrateVideoBookingService(
           date = bookingToMigrate.post.date,
           startTime = bookingToMigrate.post.startTime,
           endTime = bookingToMigrate.post.endTime,
-          locationKey = postLocation!!.key,
+          locationId = postLocationId!!,
         )
       }
     }.let(videoBookingRepository::saveAndFlush)
@@ -129,9 +129,9 @@ class MigrateVideoBookingService(
     val prisonerNumber = mappingService.mapBookingIdToPrisonerNumber(bookingToMigrate.offenderBookingId)
       ?: throw MigrationException("Unable to find prisoner number for offender booking ID ${bookingToMigrate.offenderBookingId} for probation booking ${bookingToMigrate.videoBookingId}")
 
-    val mainLocation =
-      mappingService.mapInternalLocationIdToLocation(bookingToMigrate.main.locationId) ?: throw NullPointerException(
-        "Main location not found for internal location ID ${bookingToMigrate.main.locationId} for probation booking ${bookingToMigrate.videoBookingId}",
+    val mainLocationId =
+      mappingService.mapInternalLocationIdToLocationId(bookingToMigrate.main.locationId) ?: throw NullPointerException(
+        "Main location mapping not found for internal location ID ${bookingToMigrate.main.locationId} for probation booking ${bookingToMigrate.videoBookingId}",
       )
 
     val probationTeam = if (bookingToMigrate.courtCode != null && !bookingToMigrate.isOtherCourt()) {
@@ -163,7 +163,7 @@ class MigrateVideoBookingService(
       date = bookingToMigrate.main.date,
       startTime = bookingToMigrate.main.startTime,
       endTime = bookingToMigrate.main.endTime,
-      locationKey = mainLocation.key,
+      locationId = mainLocationId,
     ).let(videoBookingRepository::saveAndFlush)
 
     createHistoryFor(bookingToMigrate.events, migratedBooking)
@@ -207,7 +207,7 @@ class MigrateVideoBookingService(
         prisonerNumber = migratedBooking.prisoner(),
         appointmentDate = it.date,
         appointmentType = APPOINTMENT_TYPE_COURT_PRE,
-        prisonLocKey = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
+        prisonLocationId = mappingService.mapInternalLocationIdToLocationId(it.locationId)!!,
         startTime = it.startTime,
         endTime = it.endTime,
       )
@@ -220,7 +220,7 @@ class MigrateVideoBookingService(
         prisonerNumber = migratedBooking.prisoner(),
         appointmentDate = it.date,
         appointmentType = if (migratedBooking.isCourtBooking()) APPOINTMENT_TYPE_COURT_MAIN else APPOINTMENT_TYPE_PROBATION,
-        prisonLocKey = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
+        prisonLocationId = mappingService.mapInternalLocationIdToLocationId(it.locationId)!!,
         startTime = it.startTime,
         endTime = it.endTime,
       )
@@ -234,7 +234,7 @@ class MigrateVideoBookingService(
         prisonerNumber = migratedBooking.prisoner(),
         appointmentDate = it.date,
         appointmentType = APPOINTMENT_TYPE_COURT_POST,
-        prisonLocKey = mappingService.mapInternalLocationIdToLocation(it.locationId)!!.key,
+        prisonLocationId = mappingService.mapInternalLocationIdToLocationId(it.locationId)!!,
         startTime = it.startTime,
         endTime = it.endTime,
       )

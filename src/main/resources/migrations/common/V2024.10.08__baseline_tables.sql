@@ -216,7 +216,7 @@ CREATE TABLE prison_appointment
     prisoner_number        varchar(7) NOT NULL,  -- NOMS number
     appointment_type       varchar(40) NOT NULL,
     comments               varchar(1000),
-    prison_loc_key         varchar(160) NOT NULL,  -- from locations API
+    prison_location_id     uuid NOT NULL,  -- from locations API
     appointment_date       date NOT NULL,
     start_time             time without time zone NOT NULL,
     end_time               time without time zone NOT NULL
@@ -225,11 +225,11 @@ CREATE TABLE prison_appointment
 CREATE INDEX idx_prison_appointment_video_booking_id ON prison_appointment(video_booking_id);
 CREATE INDEX idx_prison_appointment_prison_id ON prison_appointment(prison_id);
 CREATE INDEX idx_prison_appointment_prisoner_number ON prison_appointment(prisoner_number);
-CREATE INDEX idx_prison_appointment_loc_key ON prison_appointment(prison_loc_key);
+CREATE INDEX idx_prison_appointment_loc_key ON prison_appointment(prison_location_id);
 CREATE INDEX idx_prison_appointment_date ON prison_appointment(appointment_date);
 CREATE INDEX idx_prison_appointment_start_time ON prison_appointment(start_time);
 CREATE INDEX idx_prison_appointment_end_time ON prison_appointment(end_time);
-CREATE INDEX idx_prison_appointment_loc_date_start_end on prison_appointment(prison_loc_key, appointment_date, start_time, end_time);
+CREATE INDEX idx_prison_appointment_loc_date_start_end on prison_appointment(prison_location_id, appointment_date, start_time, end_time);
 
 ---------------------------------------------------------------------------------------
 -- This is the third party contact details for attendees to a booking
@@ -350,7 +350,7 @@ CREATE TABLE booking_history_appointment
     prisoner_number        varchar(7) NOT NULL,
     appointment_date       date NOT NULL,
     appointment_type       varchar(40) NOT NULL,
-    prison_loc_key         varchar(160) NOT NULL,
+    prison_location_id     uuid NOT NULL,
     start_time             time without time zone NOT NULL,
     end_time               time without time zone NOT NULL
 );
@@ -359,7 +359,7 @@ CREATE INDEX idx_book_hist_app_booking_history_id ON booking_history_appointment
 CREATE INDEX idx_book_hist_app_prison_code ON booking_history_appointment(prison_code);
 CREATE INDEX idx_book_hist_app_prisoner ON booking_history_appointment(prisoner_number);
 CREATE INDEX idx_book_hist_app_date ON booking_history_appointment(appointment_date);
-CREATE INDEX idx_book_hist_app_loc_key ON booking_history_appointment(prison_loc_key);
+CREATE INDEX idx_book_hist_app_loc_key ON booking_history_appointment(prison_location_id);
 
 -- NOTES
 -- To follow:

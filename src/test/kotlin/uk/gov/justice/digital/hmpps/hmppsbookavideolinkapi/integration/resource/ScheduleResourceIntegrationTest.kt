@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
@@ -22,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.LocalDate
 import java.time.LocalTime
@@ -50,7 +50,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
@@ -78,7 +79,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
         assertThat(courtDescription).isEqualTo("Derby Justice Centre")
         assertThat(prisonCode).isEqualTo(PENTONVILLE)
-        assertThat(appointmentType).isEqualTo(AppointmentType.VLB_COURT_MAIN.name)
+        assertThat(appointmentType).isEqualTo(AppointmentType.VLB_COURT_MAIN)
+        assertThat(prisonLocKey).isEqualTo(pentonvilleLocation.key)
         assertThat(prisonerNumber).isEqualTo("A1111AA")
         assertThat(appointmentDate).isEqualTo(tomorrow())
         assertThat(startTime).isEqualTo(LocalTime.of(12, 0))
@@ -92,8 +94,9 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
-      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
+      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
@@ -132,13 +135,9 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       assertThat(scheduleResponse).isNotNull
       assertThat(scheduleResponse).hasSize(2)
 
-      assertThat(scheduleResponse.map { it.bookingType }).containsAll(
-        listOf(BookingType.COURT.name, BookingType.PROBATION.name),
-      )
+      assertThat(scheduleResponse.map { it.bookingType }).containsAll(listOf(BookingType.COURT, BookingType.PROBATION))
 
-      assertThat(scheduleResponse.map { it.appointmentType }).containsAll(
-        listOf(AppointmentType.VLB_COURT_MAIN.name, AppointmentType.VLB_PROBATION.name),
-      )
+      assertThat(scheduleResponse.map { it.appointmentType }).containsAll(listOf(AppointmentType.VLB_COURT_MAIN, AppointmentType.VLB_PROBATION))
 
       assertThat(scheduleResponse.map { it.appointmentDate }).containsOnly(tomorrow())
 
@@ -160,7 +159,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
+      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
+      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val probationBookingRequest = probationBookingRequest(
@@ -192,7 +192,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
@@ -220,7 +221,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
         assertThat(courtDescription).isEqualTo("Derby Justice Centre")
         assertThat(prisonCode).isEqualTo(PENTONVILLE)
-        assertThat(appointmentType).isEqualTo(AppointmentType.VLB_COURT_MAIN.name)
+        assertThat(appointmentType).isEqualTo(AppointmentType.VLB_COURT_MAIN)
+        assertThat(prisonLocKey).isEqualTo(pentonvilleLocation.key)
         assertThat(prisonerNumber).isEqualTo("A1111AA")
         assertThat(appointmentDate).isEqualTo(tomorrow())
         assertThat(startTime).isEqualTo(LocalTime.of(12, 0))
@@ -238,7 +240,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
+      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
+      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
@@ -268,7 +271,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, PENTONVILLE)
+      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
+      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val probationBookingRequest = probationBookingRequest(
@@ -297,7 +301,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       with(scheduleResponse.first()) {
         assertThat(probationTeamCode).isEqualTo("BLKPPP")
         assertThat(prisonCode).isEqualTo(PENTONVILLE)
-        assertThat(appointmentType).isEqualTo(AppointmentType.VLB_PROBATION.name)
+        assertThat(appointmentType).isEqualTo(AppointmentType.VLB_PROBATION)
+        assertThat(prisonLocKey).isEqualTo(pentonvilleLocation.key)
         assertThat(prisonerNumber).isEqualTo("A1111AA")
         assertThat(appointmentDate).isEqualTo(tomorrow())
         assertThat(startTime).isEqualTo(LocalTime.of(9, 0))

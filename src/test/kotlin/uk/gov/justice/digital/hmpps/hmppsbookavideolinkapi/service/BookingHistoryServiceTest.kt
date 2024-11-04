@@ -50,7 +50,7 @@ class BookingHistoryServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = wandsworthLocation.key,
+        locationId = wandsworthLocation.id,
       )
 
     service.createBookingHistory(HistoryType.CREATE, courtBooking)
@@ -72,7 +72,7 @@ class BookingHistoryServiceTest {
         appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
         startTime isEqualTo LocalTime.of(9, 30)
         endTime isEqualTo LocalTime.of(10, 30)
-        prisonLocKey isEqualTo wandsworthLocation.key
+        prisonLocationId isEqualTo wandsworthLocation.id
       }
     }
   }
@@ -87,7 +87,7 @@ class BookingHistoryServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = wandsworthLocation.key,
+        locationId = wandsworthLocation.id,
       )
 
     service.createBookingHistory(HistoryType.CREATE, probationBooking)
@@ -109,7 +109,7 @@ class BookingHistoryServiceTest {
         appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
         startTime isEqualTo LocalTime.of(9, 30)
         endTime isEqualTo LocalTime.of(10, 30)
-        prisonLocKey isEqualTo wandsworthLocation.key
+        prisonLocationId isEqualTo wandsworthLocation.id
       }
     }
   }
@@ -124,7 +124,7 @@ class BookingHistoryServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = wandsworthLocation.key,
+        locationId = wandsworthLocation.id,
       )
 
     service.createBookingHistory(HistoryType.AMEND, courtBooking)
@@ -147,7 +147,7 @@ class BookingHistoryServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = wandsworthLocation.key,
+        locationId = wandsworthLocation.id,
       )
 
     service.createBookingHistory(HistoryType.AMEND, probationBooking)
@@ -170,7 +170,7 @@ class BookingHistoryServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = wandsworthLocation.key,
+        locationId = wandsworthLocation.id,
       )
       .addAppointment(
         prison = prison(prisonCode = PENTONVILLE),
@@ -179,7 +179,7 @@ class BookingHistoryServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = pentonvilleLocation.key,
+        locationId = pentonvilleLocation.id,
       )
       .addAppointment(
         prison = prison(prisonCode = BIRMINGHAM),
@@ -188,7 +188,7 @@ class BookingHistoryServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
-        locationKey = birminghamLocation.key,
+        locationId = birminghamLocation.id,
       )
 
     service.createBookingHistory(HistoryType.CREATE, courtBooking)
@@ -208,8 +208,8 @@ class BookingHistoryServiceTest {
         .containsAll(listOf("A1111AA", "A2222AA", "A3333AA"))
 
       assertThat(appointments())
-        .extracting("prisonLocKey")
-        .containsAll(listOf(wandsworthLocation.key, pentonvilleLocation.key, birminghamLocation.key))
+        .extracting("prisonLocationId")
+        .containsAll(listOf(wandsworthLocation.id, pentonvilleLocation.id, birminghamLocation.id))
     }
   }
 }

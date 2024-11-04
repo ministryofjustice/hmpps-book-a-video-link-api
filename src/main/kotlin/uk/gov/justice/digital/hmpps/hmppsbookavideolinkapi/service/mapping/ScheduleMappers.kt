@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -8,7 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Bookin
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem as ScheduleItemEntity
 
-fun ScheduleItemEntity.toModel() = ScheduleItem(
+fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   videoBookingId = videoBookingId,
   prisonAppointmentId = prisonAppointmentId,
   bookingType = BookingType.valueOf(bookingType),
@@ -32,10 +33,10 @@ fun ScheduleItemEntity.toModel() = ScheduleItem(
   appointmentType = AppointmentType.valueOf(appointmentType),
   appointmentTypeDescription = appointmentTypeDescription,
   appointmentComments = appointmentComments,
-  prisonLocKey = prisonLocKey,
+  prisonLocKey = locations.find { it.id == prisonLocationId }?.key ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
   appointmentDate = appointmentDate,
   startTime = startTime,
   endTime = endTime,
 )
 
-fun List<ScheduleItemEntity>.toModel() = map { it.toModel() }
+fun List<ScheduleItemEntity>.toModel(locations: List<Location>) = map { it.toModel(locations) }

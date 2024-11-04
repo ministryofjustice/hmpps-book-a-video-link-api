@@ -27,7 +27,7 @@ class VideoLinkBookingMappersTest {
       createdByPrison = false,
     )
 
-    booking.toModel(courtHearingTypeDescription = "hearing type description") isEqualTo VideoLinkBooking(
+    booking.toModel(locations = emptySet(), courtHearingTypeDescription = "hearing type description") isEqualTo VideoLinkBooking(
       videoLinkBookingId = booking.videoBookingId,
       statusCode = BookingStatus.ACTIVE,
       bookingType = BookingType.COURT,
@@ -66,7 +66,7 @@ class VideoLinkBookingMappersTest {
       migratedDescription = "Free text probation team description",
     )
 
-    booking.toModel(courtHearingTypeDescription = "hearing type description") isEqualTo VideoLinkBooking(
+    booking.toModel(locations = emptySet(), courtHearingTypeDescription = "hearing type description") isEqualTo VideoLinkBooking(
       videoLinkBookingId = booking.videoBookingId,
       statusCode = BookingStatus.ACTIVE,
       bookingType = BookingType.PROBATION,

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -21,10 +21,9 @@ import java.time.LocalTime
 @Component
 @Deprecated(message = "Can be removed when migration is completed")
 class MigrationClient(
-  private val locationsInsidePrisonApiWebClient: WebClient,
   private val whereaboutsApiWebClient: WebClient,
-  private val nomisMappingApiWebClient: WebClient,
   private val prisonApiWebClient: WebClient,
+  private val nomisMappingClient: NomisMappingClient,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -45,27 +44,7 @@ class MigrationClient(
 
   // Unsure how effective this will be as requests will spread out over the pods unless we reduce number of pods.
   @Cacheable(CacheConfiguration.MIGRATION_LOCATIONS_CACHE_NAME)
-  fun getLocationByInternalId(id: Long): Location? =
-    // We have to do two trips to get the location, the NOMIS mapping service followed by the locations API.
-    getNomisLocationMappingBy(id)?.let { getLocationByDpsId(it.dpsLocationId) }
-
-  private fun getNomisLocationMappingBy(internalLocationId: Long): NomisDpsLocationMapping? = nomisMappingApiWebClient
-    .get()
-    .uri("/api/locations/nomis/{id}", internalLocationId)
-    .retrieve()
-    .bodyToMono(NomisDpsLocationMapping::class.java)
-    .doOnError { error -> log.info("Error looking up internal location mapping $internalLocationId in mapping service", error) }
-    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()
-
-  private fun getLocationByDpsId(id: String): Location? = locationsInsidePrisonApiWebClient
-    .get()
-    .uri("/locations/{id}", id)
-    .retrieve()
-    .bodyToMono(Location::class.java)
-    .doOnError { error -> log.info("Error looking up location by id $id in location service", error) }
-    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()
+  fun getLocationIdByInternalId(id: Long) = nomisMappingClient.getNomisLocationMappingBy(id)?.dpsLocationId
 
   fun findBookingToMigrate(videoBookingId: Long): VideoBookingMigrateResponse? = whereaboutsApiWebClient
     .get()
@@ -151,10 +130,3 @@ enum class VideoLinkBookingEventType {
   UPDATE,
   DELETE,
 }
-
-data class NomisDpsLocationMapping(
-  val dpsLocationId: String,
-  val nomisLocationId: Long,
-)
-
-data class BookingIds(val bookingIds: List<Long>)

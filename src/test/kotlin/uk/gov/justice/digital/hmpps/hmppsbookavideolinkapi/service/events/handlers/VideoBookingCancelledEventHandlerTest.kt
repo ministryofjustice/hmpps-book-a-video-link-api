@@ -10,6 +10,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -17,7 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Manage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCancelledEvent
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.*
+import java.util.Optional
 
 class VideoBookingCancelledEventHandlerTest {
   private val booking = courtBooking()
@@ -28,7 +29,7 @@ class VideoBookingCancelledEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      locationKey = "",
+      locationId = birminghamLocation.id,
     )
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
@@ -37,7 +38,7 @@ class VideoBookingCancelledEventHandlerTest {
       date = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 30),
-      locationKey = "",
+      locationId = birminghamLocation.id,
     )
 
   private val videoBookingRepository: VideoBookingRepository = mock()

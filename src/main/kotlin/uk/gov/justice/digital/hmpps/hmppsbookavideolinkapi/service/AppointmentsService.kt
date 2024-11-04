@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -16,6 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepo
 class AppointmentsService(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val prisonRepository: PrisonRepository,
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val locationValidator: LocationValidator,
 ) {
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
@@ -30,6 +33,8 @@ class AppointmentsService(
       ?.also { it.rejectIfCannotSelfServeAtPrisonFor(user) }
       ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
 
+    val locations = locationsInsidePrisonClient.getLocationsByKeys(prisoner.appointments.mapNotNull { it.locationKey }.toSet())
+
     // Add all appointments to the booking - they will be saved when the booking is saved
     prisoner.appointments.forEach {
       videoBooking.addAppointment(
@@ -39,21 +44,21 @@ class AppointmentsService(
         date = it.date!!,
         startTime = it.startTime!!,
         endTime = it.endTime!!,
-        locationKey = it.locationKey!!,
+        locationId = locations.single { location -> location.key == it.locationKey }.id,
       )
     }
   }
 
   fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
+    val locations = locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
+
     appointments.checkCourtAppointmentTypesOnly()
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
 
     // Prison users can have overlapping appointments
     if (user !is PrisonUser) {
-      appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode)
+      appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode, locations)
     }
-
-    locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
   }
 
   private fun List<Appointment>.checkCourtAppointmentTypesOnly() {
@@ -78,11 +83,13 @@ class AppointmentsService(
     }
   }
 
-  private fun List<Appointment>.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
+  private fun List<Appointment>.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode: String, locations: List<Location>) {
     forEach { newAppointment ->
+      val locationId = locations.single { it.key == newAppointment.locationKey }.id
+
       prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
         prisonCode,
-        newAppointment.locationKey!!,
+        locationId,
         newAppointment.date!!,
       ).forEach { existingAppointment ->
         require(
@@ -114,6 +121,8 @@ class AppointmentsService(
       ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
 
     with(prisoner.appointments.single()) {
+      val location = locationsInsidePrisonClient.getLocationByKey(this.locationKey!!)
+
       videoBooking.addAppointment(
         prison = prison,
         prisonerNumber = prisoner.prisonerNumber!!,
@@ -121,7 +130,7 @@ class AppointmentsService(
         date = this.date!!,
         startTime = this.startTime!!,
         endTime = this.endTime!!,
-        locationKey = this.locationKey!!,
+        locationId = location!!.id,
       )
     }
   }
@@ -136,17 +145,18 @@ class AppointmentsService(
         "Appointment type $type is not valid for probation appointments"
       }
 
+      val location = locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
+
       // Prison users can have overlapping appointments
       if (user !is PrisonUser) {
-        checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode)
+        checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode, location)
       }
-
-      locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
     }
   }
 
   private fun PrisonerDetails.checkForDuplicateAppointment(appointmentType: AppointmentType) {
     val appointment = appointments.single { it.type == appointmentType }
+    val location = locationsInsidePrisonClient.getLocationByKey(appointment.locationKey!!)
 
     if (prisonAppointmentRepository.existsActivePrisonAppointmentsByPrisonerNumberLocationDateAndTime(
         prisonCode = prisonCode!!,
@@ -154,17 +164,17 @@ class AppointmentsService(
         date = appointment.date!!,
         startTime = appointment.startTime!!,
         endTime = appointment.endTime!!,
-        key = appointment.locationKey!!,
+        prisonLocationId = location!!.id,
       )
     ) {
       throw IllegalArgumentException("Duplicate appointment requested for prisoner $prisonerNumber")
     }
   }
 
-  private fun Appointment.checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode: String) {
+  private fun Appointment.checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode: String, location: Location) {
     prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
       prisonCode,
-      locationKey!!,
+      location.id,
       date!!,
     ).forEach { existingAppointment ->
       require(

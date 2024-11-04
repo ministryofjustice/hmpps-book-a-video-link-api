@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CsvMapperConfig.csvMapper
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
 import java.io.OutputStream
 import java.time.LocalDate
@@ -19,7 +20,7 @@ import kotlin.system.measureTimeMillis
 @Service
 class CsvDataExtractionService(
   private val videoBookingEventRepository: VideoBookingEventRepository,
-  private val locationsService: LocationsService,
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -51,7 +52,7 @@ class CsvDataExtractionService(
     val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
 
     val courtEvents = events
-      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false) } }
+      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode) } }
       .map { CourtBookingEvent(it, locationsByPrisonCode) }
       .asSequence()
 
@@ -87,7 +88,7 @@ class CsvDataExtractionService(
     val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
 
     val probationEvents = events
-      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsService.getVideoLinkLocationsAtPrison(it.prisonCode, false) } }
+      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode) } }
       .map { ProbationBookingEvent(it, locationsByPrisonCode) }
       .asSequence()
 
@@ -158,9 +159,9 @@ data class CourtBookingEvent(
     vbh.preDate?.atTime(vbh.preEndTime),
     vbh.postDate?.atTime(vbh.postStartTime),
     vbh.postDate?.atTime(vbh.postEndTime),
-    vbh.mainLocationKey.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
-    vbh.preLocationKey?.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
-    vbh.postLocationKey?.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
+    vbh.mainLocationId.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbh.preLocationId?.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbh.postLocationId?.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
   )
 }
 
@@ -218,7 +219,7 @@ data class ProbationBookingEvent(
     null,
     null,
     null,
-    vbh.mainLocationKey.let { key -> locations[vbh.prisonCode]?.singleOrNull { it.key == key }?.description ?: key },
+    vbh.mainLocationId.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
     null,
     null,
   )

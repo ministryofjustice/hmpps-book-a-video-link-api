@@ -3,10 +3,14 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -19,8 +23,9 @@ import java.time.LocalTime
 
 class ScheduleServiceTest {
   private val scheduleRepository: ScheduleRepository = mock()
+  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
 
-  private val service = ScheduleService(scheduleRepository)
+  private val service = ScheduleService(scheduleRepository, locationsInsidePrisonClient)
 
   private val courtCode = "COURT"
   private val probationTeamCode = "PROBATION"
@@ -54,7 +59,7 @@ class ScheduleServiceTest {
     appointmentType = AppointmentType.VLB_COURT_MAIN.name,
     appointmentTypeDescription = "Court main hearing",
     appointmentComments = null,
-    prisonLocKey = "PVI-VCC-1",
+    prisonLocationId = pentonvilleLocation.id,
     bookingComments = null,
     videoUrl = "http://video.url",
     appointmentDate = date,
@@ -91,7 +96,7 @@ class ScheduleServiceTest {
     appointmentType = AppointmentType.VLB_PROBATION.name,
     appointmentTypeDescription = null,
     appointmentComments = null,
-    prisonLocKey = "PVI-VCC-1",
+    prisonLocationId = pentonvilleLocation.id,
     bookingComments = null,
     videoUrl = "http://video.url",
     appointmentDate = date,
@@ -144,6 +149,8 @@ class ScheduleServiceTest {
 
     whenever(scheduleRepository.getScheduleForPrisonIncludingCancelled(PENTONVILLE, LocalDate.now()))
       .thenReturn(prisonItems)
+
+    whenever(locationsInsidePrisonClient.getLocationById(any())) doReturn pentonvilleLocation
   }
 
   @Test
