@@ -25,10 +25,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEventType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrateVideoBookingService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.StandardTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalTime
 
 class MigrateVideoBookingEventHandlerTest {
@@ -53,7 +52,7 @@ class MigrateVideoBookingEventHandlerTest {
   private val whereaboutsApiClient: MigrationClient = mock()
   private val migrationService: MigrateVideoBookingService = mock()
   private val telemetryService: TelemetryService = mock()
-  private val telemetryCaptor = argumentCaptor<TelemetryEvent>()
+  private val telemetryCaptor = argumentCaptor<StandardTelemetryEvent>()
   private val handler = MigrateVideoBookingEventHandler(videoBookingRepository, whereaboutsApiClient, migrationService, telemetryService)
 
   @Test
@@ -77,9 +76,9 @@ class MigrateVideoBookingEventHandlerTest {
       verify(telemetryService).track(telemetryCaptor.capture())
     }
 
-    val successfulTelemetryEvent = telemetryCaptor.firstValue as MigratedBookingSuccessTelemetryEvent
+    val successfulTelemetryEvent = telemetryCaptor.firstValue as MigratedBookingSuccessStandardTelemetryEvent
 
-    successfulTelemetryEvent.eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_SUCCESS
+    successfulTelemetryEvent.eventType isEqualTo "BVLS-migrated-booking-success"
     successfulTelemetryEvent.properties() containsEntriesExactlyInAnyOrder mapOf(
       "video_booking_id" to "99",
       "migrated_video_booking_id" to "1",
@@ -100,8 +99,8 @@ class MigrateVideoBookingEventHandlerTest {
       verify(telemetryService).track(telemetryCaptor.capture())
     }
 
-    with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
-      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+    with(telemetryCaptor.firstValue as MigratedBookingFailureStandardTelemetryEvent) {
+      eventType isEqualTo "BVLS-migrated-booking-failure"
       properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2", "message" to "booking not found in whereabouts-api")
     }
 
@@ -122,8 +121,8 @@ class MigrateVideoBookingEventHandlerTest {
       verify(telemetryService).track(telemetryCaptor.capture())
     }
 
-    with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
-      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+    with(telemetryCaptor.firstValue as MigratedBookingFailureStandardTelemetryEvent) {
+      eventType isEqualTo "BVLS-migrated-booking-failure"
       properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3", "message" to "failed to migrate booking")
     }
   }
@@ -145,16 +144,16 @@ class MigrateVideoBookingEventHandlerTest {
     verify(videoBookingRepository).existsByMigratedVideoBookingId(3)
     verify(telemetryService, times(3)).track(telemetryCaptor.capture())
 
-    with(telemetryCaptor.firstValue as MigratedBookingFailureTelemetryEvent) {
-      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+    with(telemetryCaptor.firstValue as MigratedBookingFailureStandardTelemetryEvent) {
+      eventType isEqualTo "BVLS-migrated-booking-failure"
       properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "1", "message" to "booking already migrated")
     }
-    with(telemetryCaptor.secondValue as MigratedBookingFailureTelemetryEvent) {
-      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+    with(telemetryCaptor.secondValue as MigratedBookingFailureStandardTelemetryEvent) {
+      eventType isEqualTo "BVLS-migrated-booking-failure"
       properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "2", "message" to "booking already migrated")
     }
-    with(telemetryCaptor.thirdValue as MigratedBookingFailureTelemetryEvent) {
-      eventType isEqualTo TelemetryEventType.MIGRATED_BOOKING_FAILURE
+    with(telemetryCaptor.thirdValue as MigratedBookingFailureStandardTelemetryEvent) {
+      eventType isEqualTo "BVLS-migrated-booking-failure"
       properties() containsEntriesExactlyInAnyOrder mapOf("video_booking_id" to "3", "message" to "booking already migrated")
     }
 

@@ -25,8 +25,7 @@ class HealthCheckTest : IntegrationTestBase() {
       .jsonPath("components.manageUsersApi.status").isEqualTo("UP")
       .jsonPath("components.prisonerSearchApi.status").isEqualTo("UP")
       .jsonPath("components.db.status").isEqualTo("UP")
-      // If we were using postgres test container this would say PostgreSQL
-      .jsonPath("components.db.details.database").isEqualTo("H2")
+      .jsonPath("components.db.details.database").isEqualTo("PostgreSQL")
   }
 
   @Test

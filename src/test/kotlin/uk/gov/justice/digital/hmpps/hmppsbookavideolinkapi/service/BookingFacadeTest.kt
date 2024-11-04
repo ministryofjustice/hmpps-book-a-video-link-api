@@ -77,7 +77,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCancelledTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingAmendedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCancelledTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
+import java.time.LocalDateTime.now
 import java.time.LocalTime
 import java.util.UUID
 
@@ -94,6 +103,8 @@ class BookingFacadeTest {
   private val notificationCaptor = argumentCaptor<Notification>()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
+  private val telemetryService: TelemetryService = mock()
+  private val telemetryCaptor = argumentCaptor<TelemetryEvent>()
   private val facade = BookingFacade(
     createBookingService,
     amendBookingService,
@@ -105,6 +116,7 @@ class BookingFacadeTest {
     outboundEventsService,
     locationsInsidePrisonClient,
     prisonerSearchClient,
+    telemetryService,
   )
   private val courtBooking = courtBooking()
     .addAppointment(
@@ -183,13 +195,14 @@ class BookingFacadeTest {
 
       facade.create(bookingRequest, COURT_USER)
 
-      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(createBookingService).create(bookingRequest, COURT_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, courtBooking.videoBookingId)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -240,6 +253,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "CREATE"
       }
+
+      with(telemetryCaptor.firstValue as CourtBookingCreatedTelemetryEvent) {
+        properties()["created_by"] isEqualTo "court"
+      }
     }
 
     @Test
@@ -254,13 +271,14 @@ class BookingFacadeTest {
 
       facade.create(bookingRequest, PRISON_USER_BIRMINGHAM)
 
-      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(createBookingService).create(bookingRequest, PRISON_USER_BIRMINGHAM)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, courtBookingCreatedByPrison.videoBookingId)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -311,6 +329,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBookingCreatedByPrison
         reason isEqualTo "CREATE"
       }
+
+      with(telemetryCaptor.firstValue as CourtBookingCreatedTelemetryEvent) {
+        properties()["created_by"] isEqualTo "prison"
+      }
     }
 
     @Test
@@ -335,13 +357,14 @@ class BookingFacadeTest {
 
       facade.create(request, PROBATION_USER)
 
-      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(createBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(createBookingService).create(request, PROBATION_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, probationBookingAtBirminghamPrison.videoBookingId)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -391,6 +414,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo probationBookingAtBirminghamPrison
         reason isEqualTo "CREATE"
       }
+
+      with(telemetryCaptor.firstValue as ProbationBookingCreatedTelemetryEvent) {
+        properties()["created_by"] isEqualTo "probation"
+      }
     }
   }
 
@@ -410,13 +437,14 @@ class BookingFacadeTest {
 
       facade.cancel(1, COURT_USER)
 
-      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(cancelVideoBookingService).cancel(1, COURT_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -467,6 +495,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "CANCEL"
       }
+
+      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "court"
+      }
     }
 
     @Test
@@ -482,13 +514,14 @@ class BookingFacadeTest {
 
       facade.cancel(1, PRISON_USER_BIRMINGHAM)
 
-      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(cancelVideoBookingService).cancel(1, PRISON_USER_BIRMINGHAM)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -539,6 +572,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "CANCEL"
       }
+
+      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "prison"
+      }
     }
 
     @Test
@@ -554,13 +591,14 @@ class BookingFacadeTest {
 
       facade.cancel(1, PROBATION_USER)
 
-      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(cancelVideoBookingService).cancel(1, PROBATION_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -608,6 +646,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo probationBookingAtBirminghamPrison
         reason isEqualTo "CANCEL"
       }
+
+      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "probation"
+      }
     }
 
     @Test
@@ -623,13 +665,14 @@ class BookingFacadeTest {
 
       facade.cancel(1, PRISON_USER_BIRMINGHAM)
 
-      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(cancelVideoBookingService).cancel(1, PRISON_USER_BIRMINGHAM)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -677,6 +720,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo probationBookingAtBirminghamPrison
         reason isEqualTo "CANCEL"
       }
+
+      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "prison"
+      }
     }
   }
 
@@ -689,18 +736,32 @@ class BookingFacadeTest {
 
       val bookingRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
 
-      whenever(amendBookingService.amend(1, bookingRequest, COURT_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH))
+      whenever(
+        amendBookingService.amend(
+          1,
+          bookingRequest,
+          COURT_USER,
+        ),
+      ) doReturn Pair(
+        courtBooking.apply {
+          amendedTime = now()
+          amendedBy = COURT_USER.username
+        },
+        prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH),
+      )
+
       whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedCourtBookingPrisonNoCourtEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
       facade.amend(1, bookingRequest, COURT_USER)
 
-      inOrder(amendBookingService, emailService, notificationRepository) {
+      inOrder(amendBookingService, emailService, notificationRepository, telemetryService) {
         verify(amendBookingService).amend(1, bookingRequest, COURT_USER)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -751,6 +812,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "AMEND"
       }
+
+      with(telemetryCaptor.firstValue as CourtBookingAmendedTelemetryEvent) {
+        properties()["amended_by"] isEqualTo "court"
+      }
     }
 
     @Test
@@ -759,18 +824,27 @@ class BookingFacadeTest {
 
       val bookingRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
 
-      whenever(amendBookingService.amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH))
+      whenever(amendBookingService.amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)) doReturn
+        Pair(
+          courtBooking.apply {
+            amendedTime = now()
+            amendedBy = PRISON_USER_BIRMINGHAM.username
+          },
+          prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH),
+        )
+
       whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
 
       facade.amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)
 
-      inOrder(amendBookingService, emailService, notificationRepository) {
+      inOrder(amendBookingService, emailService, notificationRepository, telemetryService) {
         verify(amendBookingService).amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -821,6 +895,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "AMEND"
       }
+
+      with(telemetryCaptor.firstValue as CourtBookingAmendedTelemetryEvent) {
+        properties()["amended_by"] isEqualTo "prison"
+      }
     }
 
     @Test
@@ -833,19 +911,26 @@ class BookingFacadeTest {
 
       val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
 
-      whenever(amendBookingService.amend(1, amendRequest, PROBATION_USER)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!))
+      whenever(amendBookingService.amend(1, amendRequest, PROBATION_USER)) doReturn Pair(
+        probationBookingAtBirminghamPrison.apply {
+          amendedTime = now()
+          amendedBy = PROBATION_USER.username
+        },
+        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!),
+      )
       whenever(emailService.send(any<AmendedProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedProbationBookingPrisonNoProbationEmail>())) doReturn Result.success(emailNotificationId to "prison template id")
 
       facade.amend(1, amendRequest, PROBATION_USER)
 
-      inOrder(amendBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(amendBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(amendBookingService).amend(1, amendRequest, PROBATION_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -892,6 +977,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo probationBookingAtBirminghamPrison
         reason isEqualTo "AMEND"
       }
+
+      with(telemetryCaptor.firstValue as ProbationBookingAmendedTelemetryEvent) {
+        properties()["amended_by"] isEqualTo "probation"
+      }
     }
 
     @Test
@@ -904,19 +993,26 @@ class BookingFacadeTest {
 
       val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
 
-      whenever(amendBookingService.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!))
+      whenever(amendBookingService.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(
+        probationBookingAtBirminghamPrison.apply {
+          amendedTime = now()
+          amendedBy = PRISON_USER_BIRMINGHAM.username
+        },
+        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!),
+      )
       whenever(emailService.send(any<AmendedProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
 
       facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
 
-      inOrder(amendBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(amendBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(amendBookingService).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -963,6 +1059,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo probationBookingAtBirminghamPrison
         reason isEqualTo "AMEND"
       }
+
+      with(telemetryCaptor.firstValue as ProbationBookingAmendedTelemetryEvent) {
+        properties()["amended_by"] isEqualTo "prison"
+      }
     }
   }
 
@@ -979,7 +1079,7 @@ class BookingFacadeTest {
         dateOfBirth = LocalDate.EPOCH,
         lastPrisonId = WANDSWORTH,
       )
-      whenever(contactsService.getPrimaryBookingContacts(any(), anyOrNull())) doReturn listOf(
+      whenever(contactsService.getBookingContacts(any(), anyOrNull())) doReturn listOf(
         bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
       )
 
@@ -989,11 +1089,12 @@ class BookingFacadeTest {
 
       facade.prisonerTransferred(1, SERVICE_USER)
 
-      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(cancelVideoBookingService).cancel(1, SERVICE_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 1
@@ -1022,10 +1123,14 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "TRANSFERRED"
       }
+
+      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "transfer"
+      }
     }
 
     @Test
-    fun `should send events and emails on release of prisoner by service user for a probation booking`() {
+    fun `should send events and emails on transfer of prisoner by service user for a probation booking`() {
       val prisoner = Prisoner(
         prisonerNumber = probationBookingAtBirminghamPrison.prisoner(),
         prisonId = "TRN",
@@ -1044,13 +1149,14 @@ class BookingFacadeTest {
 
       facade.prisonerTransferred(1, SERVICE_USER)
 
-      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(cancelVideoBookingService).cancel(1, SERVICE_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -1099,6 +1205,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo probationBookingAtBirminghamPrison
         reason isEqualTo "TRANSFERRED"
       }
+
+      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "transfer"
+      }
     }
   }
 
@@ -1125,13 +1235,14 @@ class BookingFacadeTest {
 
       facade.prisonerReleased(1, SERVICE_USER)
 
-      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(cancelVideoBookingService).cancel(1, SERVICE_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -1184,6 +1295,10 @@ class BookingFacadeTest {
         videoBooking isEqualTo courtBooking
         reason isEqualTo "RELEASED"
       }
+
+      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "release"
+      }
     }
 
     @Test
@@ -1206,13 +1321,14 @@ class BookingFacadeTest {
 
       facade.prisonerReleased(1, SERVICE_USER)
 
-      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository) {
+      inOrder(cancelVideoBookingService, outboundEventsService, emailService, notificationRepository, telemetryService) {
         verify(cancelVideoBookingService).cancel(1, SERVICE_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
         verify(emailService).send(emailCaptor.capture())
         verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
       }
 
       emailCaptor.allValues hasSize 2
@@ -1260,6 +1376,10 @@ class BookingFacadeTest {
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo courtBooking
         reason isEqualTo "RELEASED"
+      }
+
+      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "release"
       }
     }
   }
@@ -1352,7 +1472,7 @@ class BookingFacadeTest {
 
     // Not ideal but have logic in test to mimic stubbed service behaviour regarding matching email addresses for contacts
     contactsService.stub {
-      on { getPrimaryBookingContacts(any(), eq(user)) } doReturn listOfNotNull(
+      on { getBookingContacts(any(), eq(user)) } doReturn listOfNotNull(
         bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
         bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name).takeUnless { it.email == mayBeEmail },
@@ -1369,7 +1489,7 @@ class BookingFacadeTest {
 
     // Not ideal but have logic in test to mimic stubbed service behaviour regarding matching email addresses for contacts
     contactsService.stub {
-      on { getPrimaryBookingContacts(any(), eq(user)) } doReturn listOfNotNull(
+      on { getBookingContacts(any(), eq(user)) } doReturn listOfNotNull(
         bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
         bookingContact(contactType = ContactType.COURT, email = COURT_USER.email, name = COURT_USER.name).takeUnless { it.email == mayBeEmail },

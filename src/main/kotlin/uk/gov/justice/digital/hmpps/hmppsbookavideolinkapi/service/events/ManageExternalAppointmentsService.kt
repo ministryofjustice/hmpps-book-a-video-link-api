@@ -11,6 +11,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByCourtHearingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByProbationMeetingType
 import java.time.LocalTime
 
 /**
@@ -27,6 +30,7 @@ class ManageExternalAppointmentsService(
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
   private val prisonApiClient: PrisonApiClient,
   private val prisonerSearchClient: PrisonerSearchClient,
+  private val referenceCodeRepository: ReferenceCodeRepository,
 ) {
 
   companion object {
@@ -203,9 +207,11 @@ class ManageExternalAppointmentsService(
   private fun PrisonAppointment.detailedComments(): String? {
     if (comments == null) return null
     return if (videoBooking.isCourtBooking()) {
-      "Video booking for court hearing type ${videoBooking.hearingType} at ${videoBooking.court?.description}\n\n$comments"
+      val hearingType = referenceCodeRepository.findByCourtHearingType(videoBooking.hearingType!!)!!
+      "Video booking for court hearing type ${hearingType.description} at ${videoBooking.court?.description}\n\n$comments"
     } else {
-      "Video booking for probation meeting type ${videoBooking.probationMeetingType} at ${videoBooking.probationTeam?.description}\n\n$comments"
+      val meetingType = referenceCodeRepository.findByProbationMeetingType(videoBooking.probationMeetingType!!)!!
+      "Video booking for probation meeting type ${meetingType.description} at ${videoBooking.probationTeam?.description}\n\n$comments"
     }
   }
 

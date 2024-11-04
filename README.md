@@ -21,6 +21,11 @@ Useful tools but not essential:
 * [k9s](https://k9scli.io/) a terminal based UI to interact with your Kubernetes clusters. Can be installed with `brew`.
 * [jq](https://jqlang.github.io/jq/) a lightweight and flexible command-line JSON processor. Can be installed with `brew`.
 
+### Start up the docker dependencies using the docker-compose file.
+```
+docker-compose up --remove-orphans
+```
+
 ## Install gradle and build the project
 
 ```
@@ -43,12 +48,6 @@ N.B. you must escape any '$' characters with '\\$'
 ```
 SYSTEM_CLIENT_ID=<system.client.id>
 SYSTEM_CLIENT_SECRET=<system.client.secret>
-```
-
-Start up the docker dependencies using the docker-compose file.
-
-```
-docker-compose up --remove-orphans
 ```
 
 There is a script to help, which sets local profiles, port and DB connection properties to the

@@ -3,14 +3,13 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.MigrationClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryEventType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AdditionalInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrateVideoBookingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.migration.MigrationException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.StandardTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 
 @Component
 @Deprecated(message = "Can be removed when migration is completed")
@@ -32,7 +31,7 @@ class MigrateVideoBookingEventHandler(
         migrateVideoBookingService.migrate(bookingToMigrate)
       }
         .onFailure {
-          telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoLinkBookingId, message = it.message))
+          telemetryService.track(MigratedBookingFailureStandardTelemetryEvent(event.additionalInformation.videoLinkBookingId, message = it.message))
 
           if (it !is MigrationException) {
             throw it
@@ -40,7 +39,7 @@ class MigrateVideoBookingEventHandler(
         }
         .onSuccess {
           telemetryService.track(
-            MigratedBookingSuccessTelemetryEvent(
+            MigratedBookingSuccessStandardTelemetryEvent(
               videoBookingId = it.videoBookingId,
               migratedVideoBookingId = it.migratedVideoBookingId!!,
               court = it.court?.code ?: it.probationTeam?.code!!,
@@ -49,7 +48,7 @@ class MigrateVideoBookingEventHandler(
           )
         }
     } else {
-      telemetryService.track(MigratedBookingFailureTelemetryEvent(event.additionalInformation.videoLinkBookingId, "booking already migrated"))
+      telemetryService.track(MigratedBookingFailureStandardTelemetryEvent(event.additionalInformation.videoLinkBookingId, "booking already migrated"))
     }
   }
 
@@ -63,10 +62,10 @@ class MigrateVideoBookingEvent(additionalInformation: VideoLinkBookingMigrate) :
 }
 data class VideoLinkBookingMigrate(val videoLinkBookingId: Long) : AdditionalInformation
 
-class MigratedBookingFailureTelemetryEvent(
+class MigratedBookingFailureStandardTelemetryEvent(
   private val videoBookingId: Long,
   private val message: String? = null,
-) : TelemetryEvent(TelemetryEventType.MIGRATED_BOOKING_FAILURE) {
+) : StandardTelemetryEvent("BVLS-migrated-booking-failure") {
   override fun properties(): Map<String, String> =
     mapOf(
       "video_booking_id" to videoBookingId.toString(),
@@ -74,12 +73,12 @@ class MigratedBookingFailureTelemetryEvent(
     )
 }
 
-class MigratedBookingSuccessTelemetryEvent(
+class MigratedBookingSuccessStandardTelemetryEvent(
   val videoBookingId: Long,
   val migratedVideoBookingId: Long,
   val court: String,
   val prison: String,
-) : TelemetryEvent(TelemetryEventType.MIGRATED_BOOKING_SUCCESS) {
+) : StandardTelemetryEvent("BVLS-migrated-booking-success") {
   override fun properties(): Map<String, String> = mapOf(
     "video_booking_id" to videoBookingId.toString(),
     "migrated_video_booking_id" to migratedVideoBookingId.toString(),

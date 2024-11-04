@@ -21,6 +21,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCancelledTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingAmendedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCancelledTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
 
 /**
@@ -38,7 +45,7 @@ class BookingFacade(
   private val outboundEventsService: OutboundEventsService,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val prisonerSearchClient: PrisonerSearchClient,
-
+  private val telemetryService: TelemetryService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -48,6 +55,7 @@ class BookingFacade(
     val (booking, prisoner) = createVideoBookingService.create(bookingRequest, createdBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
     sendBookingEmails(BookingAction.CREATE, booking, prisoner, createdBy)
+    sendTelemetry(BookingAction.CREATE, booking, createdBy)
     return booking.videoBookingId
   }
 
@@ -55,6 +63,7 @@ class BookingFacade(
     val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, amendedBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
     sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
+    sendTelemetry(BookingAction.AMEND, booking, amendedBy)
     return booking.videoBookingId
   }
 
@@ -63,6 +72,7 @@ class BookingFacade(
     log.info("Video booking ${booking.videoBookingId} cancelled by user")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
+    sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
   fun courtHearingLinkReminder(videoBooking: VideoBooking, user: User) {
@@ -78,6 +88,7 @@ class BookingFacade(
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+    sendTelemetry(BookingAction.TRANSFERRED, booking, user)
   }
 
   fun prisonerReleased(videoBookingId: Long, user: User) {
@@ -85,6 +96,23 @@ class BookingFacade(
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+    sendTelemetry(BookingAction.RELEASED, booking, user)
+  }
+
+  private fun sendTelemetry(action: BookingAction, booking: VideoBooking, user: User) {
+    when {
+      action == BookingAction.CREATE && booking.isCourtBooking() -> CourtBookingCreatedTelemetryEvent(booking)
+      action == BookingAction.CREATE && booking.isProbationBooking() -> ProbationBookingCreatedTelemetryEvent(booking)
+      action == BookingAction.AMEND && booking.isCourtBooking() -> CourtBookingAmendedTelemetryEvent(booking, user)
+      action == BookingAction.AMEND && booking.isProbationBooking() -> ProbationBookingAmendedTelemetryEvent(booking, user)
+      action == BookingAction.CANCEL && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.user(booking, user)
+      action == BookingAction.CANCEL && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.user(booking, user)
+      action == BookingAction.TRANSFERRED && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.transferred(booking)
+      action == BookingAction.TRANSFERRED && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.transferred(booking)
+      action == BookingAction.RELEASED && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.released(booking)
+      action == BookingAction.RELEASED && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.released(booking)
+      else -> null
+    }?.let(telemetryService::track)
   }
 
   private fun getPrisoner(prisonerNumber: String) =
@@ -105,7 +133,7 @@ class BookingFacade(
   private fun sendCourtBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User) {
     val (pre, main, post) = booking.courtAppointments()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
-    val contacts = contactsService.getPrimaryBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
+    val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
     val locations = locationsInsidePrisonClient.getLocationsByKeys(setOfNotNull(pre?.prisonLocKey, main.prisonLocKey, post?.prisonLocKey)).associateBy { it.key }
 
     val emails = contacts.mapNotNull { contact ->
@@ -123,7 +151,7 @@ class BookingFacade(
   private fun sendProbationBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User) {
     val appointment = booking.appointments().single()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
-    val contacts = contactsService.getPrimaryBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
+    val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
     val location = locationsInsidePrisonClient.getLocationByKey(appointment.prisonLocKey)!!
 
     val emails = contacts.mapNotNull { contact ->
@@ -161,11 +189,11 @@ class BookingFacade(
 
   private fun Collection<PrisonAppointment>.prisonAppointmentsForCourtHearing() = Triple(pre(), main(), post())
 
-  private fun Collection<PrisonAppointment>.pre() = singleOrNull { it.appointmentType == "VLB_COURT_PRE" }
+  private fun Collection<PrisonAppointment>.pre() = singleOrNull { it.isType("VLB_COURT_PRE") }
 
-  private fun Collection<PrisonAppointment>.main() = single { it.appointmentType == "VLB_COURT_MAIN" }
+  private fun Collection<PrisonAppointment>.main() = single { it.isType("VLB_COURT_MAIN") }
 
-  private fun Collection<PrisonAppointment>.post() = singleOrNull { it.appointmentType == "VLB_COURT_POST" }
+  private fun Collection<PrisonAppointment>.post() = singleOrNull { it.isType("VLB_COURT_POST") }
 }
 
 enum class BookingAction {

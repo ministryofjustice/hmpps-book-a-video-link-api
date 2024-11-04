@@ -32,3 +32,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 )
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class AuthApiResponses
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+annotation class ProtectedByIngress

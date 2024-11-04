@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.SpyBean
@@ -11,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -27,6 +30,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.MergeI
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerMergedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReleasedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReleaseInformation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.PrisonerMergedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalTime
 
 class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
@@ -45,6 +50,11 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
   @Autowired
   private lateinit var bookingHistoryAppointmentRepository: BookingHistoryAppointmentRepository
+
+  @MockBean
+  private lateinit var telemetryService: TelemetryService
+
+  private val telemetryCaptor = argumentCaptor<PrisonerMergedTelemetryEvent>()
 
   @DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
   @Test
@@ -198,10 +208,12 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   @Test
   @Sql("classpath:integration-test-data/seed-prisoner-merge.sql")
   fun `should merge prison appointments and booking appointment history when prison merged`() {
-    val existingBooking = videoBookingRepository.findById(-1).orElseThrow()
+    val firstBooking = videoBookingRepository.findById(-1).orElseThrow()
+    val secondBooking = videoBookingRepository.findById(-2).orElseThrow()
 
-    prisonAppointmentRepository.findByVideoBooking(existingBooking).single { it.prisonerNumber == "OLD123" }
-    bookingHistoryAppointmentRepository.findAll().single { it.prisonerNumber == "OLD123" }
+    prisonAppointmentRepository.findByVideoBooking(firstBooking).single { it.prisonerNumber == "OLD123" }
+    prisonAppointmentRepository.findByVideoBooking(secondBooking).single { it.prisonerNumber == "OLD123" }
+    bookingHistoryAppointmentRepository.countByPrisonerNumber("OLD123") isEqualTo 2
 
     inboundEventsListener.onMessage(
       raw(
@@ -214,7 +226,18 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       ),
     )
 
-    prisonAppointmentRepository.findByVideoBooking(existingBooking).single { it.prisonerNumber == "NEW123" }
-    bookingHistoryAppointmentRepository.findAll().single { it.prisonerNumber == "NEW123" }
+    prisonAppointmentRepository.findByVideoBooking(firstBooking).single { it.prisonerNumber == "NEW123" }
+    prisonAppointmentRepository.findByVideoBooking(secondBooking).single { it.prisonerNumber == "NEW123" }
+    bookingHistoryAppointmentRepository.countByPrisonerNumber("NEW123") isEqualTo 2
+    verify(telemetryService).track(telemetryCaptor.capture())
+
+    with(telemetryCaptor.firstValue) {
+      properties() containsEntriesExactlyInAnyOrder mapOf(
+        "previous_prisoner_number" to "OLD123",
+        "new_prisoner_number" to "NEW123",
+      )
+
+      metrics() containsEntriesExactlyInAnyOrder mapOf("bookings_updated" to 2.0)
+    }
   }
 }

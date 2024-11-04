@@ -6,7 +6,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.argumentCaptor
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.TelemetryService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 
 class TestJob(block: () -> Unit = {}) : JobDefinition(
   jobType = JobType.COURT_HEARING_LINK_REMINDER,
@@ -20,7 +20,7 @@ class JobRunnerTest {
 
   @Test
   fun `runs job without error`() {
-    val telemetryCaptor = argumentCaptor<JobSuccessTelemetryEvent>()
+    val telemetryCaptor = argumentCaptor<JobSuccessStandardTelemetryEvent>()
     runner.runJob(TestJob())
     verify(telemetryService).track(telemetryCaptor.capture())
     with(telemetryCaptor.firstValue) {
@@ -30,7 +30,7 @@ class JobRunnerTest {
 
   @Test
   fun `runs job with error`() {
-    val telemetryCaptor = argumentCaptor<JobFailureTelemetryEvent>()
+    val telemetryCaptor = argumentCaptor<JobFailureStandardTelemetryEvent>()
     assertThrows<Exception> { runner.runJob(TestJob { throw Exception("Test error") }) }
     verify(telemetryService).track(telemetryCaptor.capture())
     with(telemetryCaptor.firstValue) {
