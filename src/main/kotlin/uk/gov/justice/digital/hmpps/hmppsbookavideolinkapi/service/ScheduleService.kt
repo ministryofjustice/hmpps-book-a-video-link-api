@@ -38,7 +38,7 @@ class ScheduleService(
   }
 
   private fun List<ScheduleItemEntity>.mapScheduleToModel(): List<ScheduleItem> {
-    val locations = map { locationsInsidePrisonClient.getLocationById(it.prisonLocationId) }
+    val locations = mapNotNull { locationsInsidePrisonClient.getLocationById(it.prisonLocationId) }
     return toModel(locations)
   }
 }

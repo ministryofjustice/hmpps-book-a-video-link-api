@@ -18,11 +18,12 @@ inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>(
 @Component
 class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient: WebClient) {
 
-  fun getLocationById(id: UUID): Location = locationsInsidePrisonApiWebClient.get()
+  fun getLocationById(id: UUID): Location? = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/{id}", id)
     .retrieve()
     .bodyToMono(Location::class.java)
-    .block()!!
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block()
 
   fun getLocationByKey(key: String): Location? = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/key/{key}", key)

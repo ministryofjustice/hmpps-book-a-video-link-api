@@ -134,7 +134,7 @@ class BookingFacade(
     val (pre, main, post) = booking.courtAppointments()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
     val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
-    val locations = setOfNotNull(pre?.prisonLocationId, main.prisonLocationId, post?.prisonLocationId).map { locationsInsidePrisonClient.getLocationById(it) }.associateBy { it.id }
+    val locations = setOfNotNull(pre?.prisonLocationId, main.prisonLocationId, post?.prisonLocationId).mapNotNull { locationsInsidePrisonClient.getLocationById(it) }.associateBy { it.id }
 
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
@@ -152,7 +152,7 @@ class BookingFacade(
     val appointment = booking.appointments().single()
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
     val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
-    val location = locationsInsidePrisonClient.getLocationById(appointment.prisonLocationId)
+    val location = locationsInsidePrisonClient.getLocationById(appointment.prisonLocationId)!!
 
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {

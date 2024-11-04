@@ -38,7 +38,7 @@ class VideoLinkBookingsService(
       .takeIf(VideoBooking::isProbationBooking)
       ?.let { referenceCodeRepository.findByProbationMeetingType(booking.probationMeetingType!!) }
 
-    val locations = booking.appointments().map { locationsInsidePrisonClient.getLocationById(it.prisonLocationId) }.toSet()
+    val locations = booking.appointments().mapNotNull { locationsInsidePrisonClient.getLocationById(it.prisonLocationId) }.toSet()
 
     return booking.toModel(
       locations = locations,

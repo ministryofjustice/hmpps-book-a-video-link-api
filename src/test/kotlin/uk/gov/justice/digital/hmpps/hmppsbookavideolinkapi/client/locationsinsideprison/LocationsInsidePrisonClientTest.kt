@@ -23,7 +23,7 @@ class LocationsInsidePrisonClientTest {
     val location = location(WANDSWORTH, locationKeySuffix = "A-1-001")
     server.stubGetLocationById(location.id, location)
 
-    client.getLocationById(location.id).key isEqualTo locationKey
+    client.getLocationById(location.id)?.key isEqualTo locationKey
   }
 
   @Test
