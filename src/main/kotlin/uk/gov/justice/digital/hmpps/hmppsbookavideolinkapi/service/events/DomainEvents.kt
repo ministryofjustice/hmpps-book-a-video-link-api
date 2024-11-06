@@ -77,7 +77,7 @@ class PrisonerMergedEvent(additionalInformation: MergeInformation) :
 data class MergeInformation(val nomsNumber: String, val removedNomsNumber: String) : AdditionalInformation
 
 class PrisonerVideoAppointmentCancelledEvent(
-  private val personReference: PersonReference,
+  val personReference: PersonReference,
   additionalInformation: AppointmentScheduleInformation,
 ) :
   DomainEvent<AppointmentScheduleInformation>(DomainEventType.PRISONER_VIDEO_APPOINTMENT_CANCELLED, additionalInformation) {

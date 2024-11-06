@@ -77,7 +77,7 @@ class BookingFacade(
 
   private fun cancelBooking(videoBookingId: Long, cancelledBy: User) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
-    log.info("Video booking ${booking.videoBookingId} cancelled by user")
+    log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
     sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
@@ -86,7 +86,7 @@ class BookingFacade(
   fun cancel(videoBookingId: Long, cancelledBy: ServiceUser) {
     // No events should be raised on the back of calling this function, this is by design.
     val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
-    log.info("Video booking ${booking.videoBookingId} cancelled by user")
+    log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
     sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
