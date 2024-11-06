@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.serviceUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -77,6 +78,34 @@ class ProbationBookingCancelledTelemetryEventTest {
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
         "cancelled_by" to "prison",
+        "team_code" to BLACKPOOL_MC_PPOC,
+        "meeting_type" to "PSR",
+        "prison_code" to BIRMINGHAM,
+        "location_id" to birminghamLocation.id.toString(),
+        "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
+        "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "cvp_link" to "true",
+      )
+
+      metrics() containsEntriesExactlyInAnyOrder mapOf(
+        "hoursBeforeStartTime" to hoursBetween(
+          booking.amendedTime!!,
+          tomorrow().atTime(LocalTime.of(14, 0)),
+        ).toDouble(),
+      )
+    }
+  }
+
+  @Test
+  fun `should raise a probation booking cancelled telemetry event cancelled by service`() {
+    booking.cancel(serviceUser())
+
+    with(ProbationBookingCancelledTelemetryEvent.user(booking, serviceUser())) {
+      eventType isEqualTo "BVLS-probation-booking-cancelled"
+
+      properties() containsEntriesExactlyInAnyOrder mapOf(
+        "video_booking_id" to "0",
+        "cancelled_by" to "service",
         "team_code" to BLACKPOOL_MC_PPOC,
         "meeting_type" to "PSR",
         "prison_code" to BIRMINGHAM,

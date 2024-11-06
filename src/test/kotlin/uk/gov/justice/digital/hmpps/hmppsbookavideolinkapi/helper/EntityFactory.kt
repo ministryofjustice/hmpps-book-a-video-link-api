@@ -97,9 +97,10 @@ fun probationBooking(probationTeam: ProbationTeam = probationTeam()) = VideoBook
 fun VideoBooking.withProbationPrisonAppointment(
   prisonCode: String = BIRMINGHAM,
   location: Location = birminghamLocation,
+  prisonerNumber: String = "123456",
 ) = addAppointment(
   prison = prison(prisonCode = prisonCode),
-  prisonerNumber = "123456",
+  prisonerNumber = prisonerNumber,
   appointmentType = "VLB_PROBATION",
   date = tomorrow(),
   startTime = LocalTime.MIDNIGHT,

@@ -67,10 +67,26 @@ class BookingFacade(
     return booking.videoBookingId
   }
 
-  fun cancel(videoBookingId: Long, cancelledBy: User) {
+  fun cancel(videoBookingId: Long, cancelledBy: PrisonUser) {
+    cancelBooking(videoBookingId, cancelledBy)
+  }
+
+  fun cancel(videoBookingId: Long, cancelledBy: ExternalUser) {
+    cancelBooking(videoBookingId, cancelledBy)
+  }
+
+  private fun cancelBooking(videoBookingId: Long, cancelledBy: User) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
-    log.info("Video booking ${booking.videoBookingId} cancelled by user")
+    log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
+    sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
+    sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
+  }
+
+  fun cancel(videoBookingId: Long, cancelledBy: ServiceUser) {
+    // No events should be raised on the back of calling this function, this is by design.
+    val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
+    log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
     sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
@@ -83,7 +99,7 @@ class BookingFacade(
     sendBookingEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
-  fun prisonerTransferred(videoBookingId: Long, user: User) {
+  fun prisonerTransferred(videoBookingId: Long, user: ServiceUser) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
@@ -91,7 +107,7 @@ class BookingFacade(
     sendTelemetry(BookingAction.TRANSFERRED, booking, user)
   }
 
-  fun prisonerReleased(videoBookingId: Long, user: User) {
+  fun prisonerReleased(videoBookingId: Long, user: ServiceUser) {
     val booking = cancelVideoBookingService.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)

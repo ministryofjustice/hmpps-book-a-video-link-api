@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
-import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
@@ -14,11 +13,6 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
 
   fun getByVideoBookingId(videoBookingId: Long): List<BookingHistory> =
     bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(videoBookingId)
-
-  // TODO: For use in retrieving a specific history row - coming soon
-  fun getByBookingHistoryId(bookingHistoryId: Long): BookingHistory =
-    bookingHistoryRepository.findById(bookingHistoryId)
-      .orElseThrow { EntityNotFoundException("Video booking history with ID $bookingHistoryId not found") }
 
   @Transactional
   fun createBookingHistory(historyType: HistoryType, booking: VideoBooking) =

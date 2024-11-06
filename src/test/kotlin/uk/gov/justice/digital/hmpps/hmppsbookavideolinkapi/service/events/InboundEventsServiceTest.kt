@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerMergedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerVideoAppointmentCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingAmendedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCreatedEventHandler
@@ -22,6 +23,7 @@ class InboundEventsServiceTest {
   private val prisonerReleasedEventHandler: PrisonerReleasedEventHandler = mock()
   private val prisonerMergedEventHandler: PrisonerMergedEventHandler = mock()
   private val migrateVideoBookingEventHandler: MigrateVideoBookingEventHandler = mock()
+  private val prisonerVideoAppointmentCancelledEventHandler: PrisonerVideoAppointmentCancelledEventHandler = mock()
 
   private val service = InboundEventsService(
     appointmentCreatedEventHandler,
@@ -31,6 +33,7 @@ class InboundEventsServiceTest {
     prisonerReleasedEventHandler,
     prisonerMergedEventHandler,
     migrateVideoBookingEventHandler,
+    prisonerVideoAppointmentCancelledEventHandler,
   )
 
   @Test
@@ -100,5 +103,12 @@ class InboundEventsServiceTest {
     val event = MigrateVideoBookingEvent(1)
     service.process(event)
     verify(migrateVideoBookingEventHandler).handle(event)
+  }
+
+  @Test
+  fun `should call prison video appointment cancelled handler when appointment cancelled event`() {
+    val event = mock<PrisonerVideoAppointmentCancelledEvent>()
+    service.process(event)
+    verify(prisonerVideoAppointmentCancelledEventHandler).handle(event)
   }
 }

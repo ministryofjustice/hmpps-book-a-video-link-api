@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerMergedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerVideoAppointmentCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingAmendedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCreatedEventHandler
@@ -21,6 +22,7 @@ class InboundEventsService(
   private val prisonerReleasedEventHandler: PrisonerReleasedEventHandler,
   private val prisonerMergedEventHandler: PrisonerMergedEventHandler,
   private val migrateVideoBookingEventHandler: MigrateVideoBookingEventHandler,
+  private val prisonerVideoAppointmentCancelledEventHandler: PrisonerVideoAppointmentCancelledEventHandler,
 ) {
   companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -35,6 +37,7 @@ class InboundEventsService(
       is VideoBookingCancelledEvent -> videoBookingCancelledEventHandler.handle(event)
       is VideoBookingCreatedEvent -> videoBookingCreatedEventHandler.handle(event)
       is MigrateVideoBookingEvent -> migrateVideoBookingEventHandler.handle(event)
+      is PrisonerVideoAppointmentCancelledEvent -> prisonerVideoAppointmentCancelledEventHandler.handle(event)
       else -> log.warn("Unsupported domain event ${event.javaClass.name}")
     }
   }

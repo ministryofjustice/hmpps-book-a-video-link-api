@@ -43,4 +43,21 @@ interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long
     startTime: LocalTime,
     endTime: LocalTime,
   ): VideoAppointment?
+
+  @Query(
+    value = """
+      FROM VideoAppointment va 
+      WHERE va.prisonCode = :prisonCode
+      AND va.prisonerNumber = :prisonerNumber
+      AND va.appointmentDate = :appointmentDate
+      AND va.startTime = :startTime
+      AND va.statusCode = 'ACTIVE'
+    """,
+  )
+  fun findActiveVideoAppointments(
+    prisonCode: String,
+    prisonerNumber: String,
+    appointmentDate: LocalDate,
+    startTime: LocalTime,
+  ): List<VideoAppointment>
 }

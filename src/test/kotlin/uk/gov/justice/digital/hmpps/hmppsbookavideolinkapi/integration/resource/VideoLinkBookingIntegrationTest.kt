@@ -13,6 +13,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
@@ -42,7 +43,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
@@ -66,6 +66,19 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.Notificati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentCreatedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
@@ -77,6 +90,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoB
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
+import kotlin.reflect.KClass
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 // This is not ideal. Due to potential timing issues with messages/events we disable this on the CI pipeline.
@@ -162,9 +176,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 4 notifications - 1 user email and 2 prison emails
     val notifications = notificationRepository.findAll().also { it hasSize 3 }
 
-    notifications.isPresent("p@p.com", "new court booking prison template id with email address", persistedBooking)
-    notifications.isPresent("g@g.com", "new court booking prison template id with email address", persistedBooking)
-    notifications.isPresent(COURT_USER.email!!, "new court booking user template id", persistedBooking)
+    notifications.isPresent("p@p.com", NewCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent("g@g.com", NewCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, NewCourtBookingUserEmail::class, persistedBooking)
 
     2.messagesShouldBePublished {
       firstValue isInstanceOf VideoBookingCreatedEvent::class.java
@@ -238,11 +252,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 5 notifications - 1 user email, 2 court emails and 2 prison emails
     val notifications = notificationRepository.findAll().also { it hasSize 5 }
 
-    notifications.isPresent("p@p.com", "new court booking prison template id with email address", persistedBooking)
-    notifications.isPresent("g@g.com", "new court booking prison template id with email address", persistedBooking)
-    notifications.isPresent("j@j.com", "new court booking court template id", persistedBooking)
-    notifications.isPresent("b@b.com", "new court booking court template id", persistedBooking)
-    notifications.isPresent(prisonUser.email!!, "new court booking user template id", persistedBooking)
+    notifications.isPresent("p@p.com", NewCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent("g@g.com", NewCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent("j@j.com", NewCourtBookingCourtEmail::class, persistedBooking)
+    notifications.isPresent("b@b.com", NewCourtBookingCourtEmail::class, persistedBooking)
+    notifications.isPresent(prisonUser.email!!, NewCourtBookingUserEmail::class, persistedBooking)
 
     2.messagesShouldBePublished {
       firstValue isInstanceOf VideoBookingCreatedEvent::class.java
@@ -368,8 +382,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 2 - notifications one user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("a@a.com", "new court booking prison template id no email address", persistedBooking)
-    notifications.isPresent(COURT_USER.email!!, "new court booking user template id", persistedBooking)
+    notifications.isPresent("a@a.com", NewCourtBookingPrisonNoCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, NewCourtBookingUserEmail::class, persistedBooking)
   }
 
   @Test
@@ -1051,9 +1065,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 4 notifications, 1 user email and 2 prison emails
     val notifications = notificationRepository.findAll().also { it hasSize 3 }
 
-    notifications.isPresent("p@p.com", "amended court booking prison template id with email address", persistedBooking)
-    notifications.isPresent("g@g.com", "amended court booking prison template id with email address", persistedBooking)
-    notifications.isPresent(COURT_USER.email!!, "amended court booking user template id", persistedBooking)
+    notifications.isPresent("p@p.com", AmendedCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent("g@g.com", AmendedCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, AmendedCourtBookingUserEmail::class, persistedBooking)
   }
 
   @Test
@@ -1119,8 +1133,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 2 notifications - one user email and 1 prisoner email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("a@a.com", "amended court booking prison template id no email address", persistedBooking)
-    notifications.isPresent(COURT_USER.email!!, "amended court booking user template id", persistedBooking)
+    notifications.isPresent("a@a.com", AmendedCourtBookingPrisonNoCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, AmendedCourtBookingUserEmail::class, persistedBooking)
   }
 
   @Test
@@ -1594,8 +1608,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 2 notifications - 1 user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("r@r.com", "requested court booking prison template id with email address")
-    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, "requested court booking user template id")
+    notifications.isPresent("r@r.com", CourtBookingRequestPrisonCourtEmail::class)
+    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, CourtBookingRequestUserEmail::class)
   }
 
   @Test
@@ -1621,8 +1635,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 2 notifications - one user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("a@a.com", "requested court booking prison template id with no email address")
-    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, "requested court booking user template id")
+    notifications.isPresent("a@a.com", CourtBookingRequestPrisonNoCourtEmail::class)
+    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, CourtBookingRequestUserEmail::class)
   }
 
   @Test
@@ -1697,8 +1711,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 2 notifications - one user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("r@r.com", "requested probation booking prison template id with email address")
-    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, "requested probation booking user template id")
+    notifications.isPresent("r@r.com", ProbationBookingRequestPrisonProbationTeamEmail::class)
+    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, ProbationBookingRequestUserEmail::class)
   }
 
   @Test
@@ -1724,8 +1738,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 2 notifications - one user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("a@a.com", "requested probation booking prison template id with no email address")
-    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, "requested probation booking user template id")
+    notifications.isPresent("a@a.com", ProbationBookingRequestPrisonNoProbationTeamEmail::class)
+    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, ProbationBookingRequestUserEmail::class)
   }
 
   @Test
@@ -1900,10 +1914,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .expectBody(ErrorResponse::class.java)
       .returnResult().responseBody!!
 
-  private fun Collection<Notification>.isPresent(email: String, template: String, booking: VideoBooking? = null) {
-    with(single { it.email == email }) {
-      templateName isEqualTo template
-      videoBooking isEqualTo booking
-    }
+  private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
+    single { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
   }
 }

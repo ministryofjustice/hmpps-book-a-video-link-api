@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.serviceUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
@@ -101,6 +102,40 @@ class CourtBookingCancelledTelemetryEventTest {
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
         "cancelled_by" to "prison",
+        "court_code" to DERBY_JUSTICE_CENTRE,
+        "hearing_type" to "APPEAL",
+        "prison_code" to WANDSWORTH,
+        "pre_location_id" to wandsworthLocation.id.toString(),
+        "pre_start" to tomorrow().atTime(LocalTime.of(9, 0)).toIsoDateTime(),
+        "pre_end" to tomorrow().atTime(LocalTime.of(10, 0)).toIsoDateTime(),
+        "main_location_id" to wandsworthLocation2.id.toString(),
+        "main_start" to tomorrow().atTime(LocalTime.of(10, 0)).toIsoDateTime(),
+        "main_end" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
+        "post_location_id" to wandsworthLocation3.id.toString(),
+        "post_start" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
+        "post_end" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
+        "cvp_link" to "true",
+      )
+
+      metrics() containsEntriesExactlyInAnyOrder mapOf(
+        "hoursBeforeStartTime" to hoursBetween(
+          booking.amendedTime!!,
+          tomorrow().atTime(LocalTime.of(10, 0)),
+        ).toDouble(),
+      )
+    }
+  }
+
+  @Test
+  fun `should raise a court booking cancelled telemetry event cancelled by service`() {
+    booking.cancel(serviceUser())
+
+    with(CourtBookingCancelledTelemetryEvent.user(booking, serviceUser())) {
+      eventType isEqualTo "BVLS-court-booking-cancelled"
+
+      properties() containsEntriesExactlyInAnyOrder mapOf(
+        "video_booking_id" to "0",
+        "cancelled_by" to "service",
         "court_code" to DERBY_JUSTICE_CENTRE,
         "hearing_type" to "APPEAL",
         "prison_code" to WANDSWORTH,

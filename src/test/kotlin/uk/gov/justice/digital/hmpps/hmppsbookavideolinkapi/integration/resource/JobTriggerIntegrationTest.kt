@@ -6,6 +6,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -24,9 +25,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType
 import java.nio.charset.StandardCharsets
 import java.time.LocalTime
+import kotlin.reflect.KClass
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 class JobTriggerIntegrationTest : IntegrationTestBase() {
@@ -69,8 +72,8 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     // There should be 2 notifications - one email to each enabled court contact to remind them to add the court hearing link
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("j@j.com", "court hearing link reminder template id", persistedBooking)
-    notifications.isPresent("b@b.com", "court hearing link reminder template id", persistedBooking)
+    notifications.isPresent("j@j.com", CourtHearingLinkReminderEmail::class, persistedBooking)
+    notifications.isPresent("b@b.com", CourtHearingLinkReminderEmail::class, persistedBooking)
   }
 
   @Test
@@ -160,11 +163,8 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     notificationRepository.findAll().also { it hasSize 0 }
   }
 
-  private fun Collection<Notification>.isPresent(email: String, template: String, booking: VideoBooking? = null) {
-    with(single { it.email == email }) {
-      templateName isEqualTo template
-      videoBooking isEqualTo booking
-    }
+  private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
+    single { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
   }
 
   private fun WebTestClient.triggerJob(jobType: JobType) =
