@@ -5,7 +5,7 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.6"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.8"
   id("org.openapi.generator") version "7.9.0"
   kotlin("plugin.spring") version "2.0.21"
   kotlin("plugin.jpa") version "2.0.21"
@@ -27,12 +27,12 @@ dependencies {
   // Spring boot dependencies
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.7")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.8")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.1.0")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.18.0")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.18.1")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
@@ -49,15 +49,15 @@ dependencies {
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
-  testImplementation("net.javacrumbs.json-unit:json-unit:3.4.1")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.4.1")
-  testImplementation("net.javacrumbs.json-unit:json-unit-json-path:3.4.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit:3.5.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.5.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-json-path:3.5.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:localstack:1.20.2")
-  testImplementation("org.wiremock:wiremock-standalone:3.9.1")
+  testImplementation("org.testcontainers:localstack:1.20.3")
+  testImplementation("org.wiremock:wiremock-standalone:3.9.2")
 }
 
 kotlin {
