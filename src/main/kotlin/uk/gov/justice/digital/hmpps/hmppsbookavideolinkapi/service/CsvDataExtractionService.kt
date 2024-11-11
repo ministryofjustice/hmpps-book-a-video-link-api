@@ -30,25 +30,27 @@ class CsvDataExtractionService(
   fun courtBookingsByHearingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
+    val total: Int
     val elapsed = measureTimeMillis {
-      writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, fromDate, toDate), csvOutputStream)
+      total = writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, fromDate, toDate), csvOutputStream)
     }
 
-    log.info("CSV: time taken downloading court bookings by hearing date from $fromDate to $toDate in millis=$elapsed")
+    log.info("CSV: time taken downloading $total court bookings by hearing date from $fromDate to $toDate in millis=$elapsed")
   }
 
   @Transactional(readOnly = true)
   fun courtBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
+    val total: Int
     val elapsed = measureTimeMillis {
-      writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, fromDate, toDate), csvOutputStream)
+      total = writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, fromDate, toDate), csvOutputStream)
     }
 
-    log.info("CSV: time taken downloading court bookings by booking date from $fromDate to $toDate in millis=$elapsed")
+    log.info("CSV: time taken downloading $total court bookings by booking date from $fromDate to $toDate in millis=$elapsed")
   }
 
-  private fun writeCourtBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {
+  private fun writeCourtBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream): Int {
     val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
 
     val courtEvents = events
@@ -56,35 +58,46 @@ class CsvDataExtractionService(
       .map { CourtBookingEvent(it, locationsByPrisonCode) }
       .asSequence()
 
+    var counter = 0
     csvMapper
       .writer(csvMapper.schemaFor(CourtBookingEvent::class.java).withHeader())
       .writeValues(csvOutputStream.bufferedWriter())
-      .use { writer -> courtEvents.forEach(writer::write) }
+      .use { writer ->
+        courtEvents.forEach { event ->
+          writer.write(event)
+          counter++
+          if (counter % 50 == 0) log.info("CSV: extracted $counter court events so far ...")
+        }
+      }
+
+    return counter
   }
 
   @Transactional(readOnly = true)
   fun probationBookingsByMeetingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
+    val total: Int
     val elapsed = measureTimeMillis {
-      writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, fromDate, toDate), csvOutputStream)
+      total = writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, fromDate, toDate), csvOutputStream)
     }
 
-    log.info("CSV: time taken downloading probation bookings by meeting date from $fromDate to $toDate in millis=$elapsed")
+    log.info("CSV: time taken downloading $total probation bookings by meeting date from $fromDate to $toDate in millis=$elapsed")
   }
 
   @Transactional(readOnly = true)
   fun probationBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
     checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
 
+    val total: Int
     val elapsed = measureTimeMillis {
-      writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, fromDate, toDate), csvOutputStream)
+      total = writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, fromDate, toDate), csvOutputStream)
     }
 
-    log.info("CSV: time taken downloading probation bookings by booking date from $fromDate to $toDate in millis=$elapsed")
+    log.info("CSV: time taken downloading $total probation bookings by booking date from $fromDate to $toDate in millis=$elapsed")
   }
 
-  private fun writeProbationBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream) {
+  private fun writeProbationBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream): Int {
     val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
 
     val probationEvents = events
@@ -92,10 +105,19 @@ class CsvDataExtractionService(
       .map { ProbationBookingEvent(it, locationsByPrisonCode) }
       .asSequence()
 
+    var counter = 0
     csvMapper
       .writer(csvMapper.schemaFor(ProbationBookingEvent::class.java).withHeader())
       .writeValues(csvOutputStream.bufferedWriter())
-      .use { writer -> probationEvents.forEach(writer::write) }
+      .use { writer ->
+        probationEvents.forEach { event ->
+          writer.write(event)
+          counter++
+          if (counter % 50 == 0) log.info("CSV: extracted $counter probation events so far ...")
+        }
+      }
+
+    return counter
   }
 
   private fun checkDaysBetweenDoesNotExceedAYear(fromDate: LocalDate, toDate: LocalDate) {
