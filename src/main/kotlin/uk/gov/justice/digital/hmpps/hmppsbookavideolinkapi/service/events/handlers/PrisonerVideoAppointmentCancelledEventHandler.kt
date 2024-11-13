@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
@@ -24,6 +25,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Prison
  */
 @Component
 class PrisonerVideoAppointmentCancelledEventHandler(
+  private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
   private val videoAppointmentRepository: VideoAppointmentRepository,
   private val bookingFacade: BookingFacade,
   private val videoBookingRepository: VideoBookingRepository,
@@ -37,7 +39,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
 
   @Transactional
   override fun handle(event: PrisonerVideoAppointmentCancelledEvent) {
-    if (event.isVideoLinkBooking()) {
+    if (event.isVideoLinkBooking() && appointmentsNotManagedExternallyAt(event.prisonCode())) {
       val activeAppointments = videoAppointmentRepository.findActiveVideoAppointments(
         prisonCode = event.prisonCode(),
         prisonerNumber = event.prisonerNumber(),
@@ -46,6 +48,8 @@ class PrisonerVideoAppointmentCancelledEventHandler(
       )
 
       if (activeAppointments.size == 1) {
+        log.info("PRISONER VIDEO APPOINTMENT CANCELLED: processing $event")
+
         val appointment = activeAppointments.single()
 
         when {
@@ -69,6 +73,8 @@ class PrisonerVideoAppointmentCancelledEventHandler(
       log.info("PRISON_APPOINTMENT_CANCELLATION: ignoring event ${event.additionalInformation}, could not find a unique match.")
     }
   }
+
+  private fun appointmentsNotManagedExternallyAt(prisonCode: String) = !activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)
 
   private fun VideoAppointment.isForCourtBooking() =
     listOf("VLB_COURT_PRE", "VLB_COURT_MAIN", "VLB_COURT_POST").contains(appointmentType)

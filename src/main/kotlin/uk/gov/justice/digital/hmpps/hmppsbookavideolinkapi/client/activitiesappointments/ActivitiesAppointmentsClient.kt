@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments
 
 import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -29,6 +31,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  @Cacheable(CacheConfiguration.ROLLED_OUT_PRISONS_CACHE_NAME)
   fun isAppointmentsRolledOutAt(prisonCode: String) =
     activitiesAppointmentsApiWebClient
       .get()

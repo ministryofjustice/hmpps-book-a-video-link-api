@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -106,7 +105,6 @@ class InboundEventsServiceTest {
     verify(migrateVideoBookingEventHandler).handle(event)
   }
 
-  @Disabled
   @Test
   fun `should call prison video appointment cancelled handler when appointment cancelled event`() {
     val event = mock<PrisonerVideoAppointmentCancelledEvent>()
