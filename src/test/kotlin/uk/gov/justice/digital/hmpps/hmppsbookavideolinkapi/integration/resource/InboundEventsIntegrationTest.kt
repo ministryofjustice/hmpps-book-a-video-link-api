@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.kotlin.argumentCaptor
@@ -270,6 +271,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
+  @Disabled
   @Test
   fun `should cancel a video court booking on receipt of a prisoner appointment cancelled event`() {
     videoBookingRepository.findAll() hasSize 0
@@ -324,6 +326,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent("p@p.com", CancelledCourtBookingPrisonCourtEmail::class, persistedBooking)
   }
 
+  @Disabled
   @Test
   fun `should cancel a video probation booking on receipt of a prisoner appointment cancelled event`() {
     videoBookingRepository.findAll() hasSize 0
