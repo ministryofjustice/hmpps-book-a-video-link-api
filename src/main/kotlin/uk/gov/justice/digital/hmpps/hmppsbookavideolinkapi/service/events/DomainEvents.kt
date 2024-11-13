@@ -21,7 +21,7 @@ abstract class DomainEvent<T : AdditionalInformation>(
   fun toEventType() = DomainEventType.valueOf(eventType)
 
   override fun toString() =
-    this::class.simpleName + "(eventType = $eventType, additionalInformation = $additionalInformation)"
+    this::class.simpleName + " - (eventType = $eventType, , occurredAt = $occurredAt, additionalInformation = $additionalInformation)"
 }
 
 interface AdditionalInformation
