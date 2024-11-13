@@ -37,12 +37,7 @@ class InboundEventsService(
       is VideoBookingCancelledEvent -> videoBookingCancelledEventHandler.handle(event)
       is VideoBookingCreatedEvent -> videoBookingCreatedEventHandler.handle(event)
       is MigrateVideoBookingEvent -> migrateVideoBookingEventHandler.handle(event)
-      is PrisonerVideoAppointmentCancelledEvent -> {
-        // Ignoring for now due to an issue with processing of the event.
-        if (event.isVideoLinkBooking()) {
-          log.info("Ignoring event ${event.additionalInformation}")
-        }
-      }
+      is PrisonerVideoAppointmentCancelledEvent -> prisonerVideoAppointmentCancelledEventHandler.handle(event)
       else -> log.warn("Unsupported domain event ${event.javaClass.name}")
     }
   }
