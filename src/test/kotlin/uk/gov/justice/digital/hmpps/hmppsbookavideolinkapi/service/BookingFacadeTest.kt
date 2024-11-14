@@ -631,7 +631,7 @@ class BookingFacadeTest {
       }
 
       with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
-        properties()["cancelled_by"] isEqualTo "service"
+        properties()["cancelled_by"] isEqualTo "prison"
       }
     }
 
@@ -831,7 +831,7 @@ class BookingFacadeTest {
       }
 
       with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
-        properties()["cancelled_by"] isEqualTo "service"
+        properties()["cancelled_by"] isEqualTo "prison"
       }
     }
   }
