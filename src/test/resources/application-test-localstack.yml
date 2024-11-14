@@ -3,9 +3,6 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
-  jpa:
-    show-sql: true
-
   datasource:
     url: 'jdbc:postgresql://localhost:5432/book-a-video-link-test-db'
     username: book-a-video-link
