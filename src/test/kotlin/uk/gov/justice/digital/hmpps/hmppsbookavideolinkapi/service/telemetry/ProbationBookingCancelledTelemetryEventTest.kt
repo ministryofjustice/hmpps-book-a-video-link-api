@@ -105,7 +105,7 @@ class ProbationBookingCancelledTelemetryEventTest {
 
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
-        "cancelled_by" to "service",
+        "cancelled_by" to "prison",
         "team_code" to BLACKPOOL_MC_PPOC,
         "meeting_type" to "PSR",
         "prison_code" to BIRMINGHAM,
