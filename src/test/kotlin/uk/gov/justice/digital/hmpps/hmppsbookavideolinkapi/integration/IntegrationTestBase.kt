@@ -8,12 +8,15 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
@@ -122,4 +125,18 @@ abstract class IntegrationTestBase {
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody(Long::class.java)
       .returnResult().responseBody!!
+
+  companion object {
+    private val pgContainer = PostgresContainer.instance
+
+    @JvmStatic
+    @DynamicPropertySource
+    fun properties(registry: DynamicPropertyRegistry) {
+      pgContainer?.run {
+        registry.add("spring.datasource.url", pgContainer::getJdbcUrl)
+        registry.add("spring.datasource.username", pgContainer::getUsername)
+        registry.add("spring.datasource.password", pgContainer::getPassword)
+      }
+    }
+  }
 }
