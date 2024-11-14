@@ -37,9 +37,9 @@ class ProbationBookingCancelledTelemetryEvent private constructor(
       }
 
       val cancelledBy = when (user) {
-        is PrisonUser -> "prison"
         is ExternalUser -> "probation"
-        is ServiceUser -> "service"
+        is PrisonUser -> "prison"
+        is ServiceUser -> "prison"
         else -> throw IllegalArgumentException("Unsupported user type.")
       }
 

@@ -22,6 +22,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Prison
  * cancelled appointment is a pre-meeting or post-meeting then appointment is removed from the court booking.
  *
  * If zero or more than one matching appointment is found then we log and ignore this event entirely.
+ *
+ * For A&A rolled out prisons we can safely ignore this event. Appointments cannot be changed in NOMIS for rolled out
+ * prisons, the screens are disabled. However the event still gets raised on the back of syncing from A&A when we delete
+ * appointments in BVLS and then in A&A.
  */
 @Component
 class PrisonerVideoAppointmentCancelledEventHandler(
@@ -48,7 +52,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
       )
 
       if (activeAppointments.size == 1) {
-        log.info("PRISONER VIDEO APPOINTMENT CANCELLED: processing $event")
+        log.info("PRISONER_APPOINTMENT_CANCELLATION: processing $event")
 
         val appointment = activeAppointments.single()
 
@@ -70,7 +74,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
         return
       }
 
-      log.info("PRISON_APPOINTMENT_CANCELLATION: ignoring event ${event.additionalInformation}, could not find a unique match.")
+      log.info("PRISONER_APPOINTMENT_CANCELLATION: ignoring event ${event.additionalInformation}, could not find a unique match.")
     }
   }
 
