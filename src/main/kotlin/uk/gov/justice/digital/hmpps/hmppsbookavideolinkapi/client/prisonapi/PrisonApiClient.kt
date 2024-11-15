@@ -69,6 +69,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .bodyValue(listOf(prisonerNumber))
       .retrieve()
       .bodyToMono(typeReference<List<PrisonerSchedule>>())
+      .doOnError { error -> log.info("Error looking up prisoners appointments by prison code $prisonCode, prisoner number $prisonerNumber, on date $onDate in prison api client", error) }
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block() ?: emptyList()
 
@@ -81,6 +82,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .header("no-event-propagation", DO_NOT_PROPAGATE)
       .retrieve()
       .bodyToMono(Void::class.java)
+      .doOnError { error -> log.info("Error cancelling appointment by appointment id $appointmentId in prison api client", error) }
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
   }

@@ -1,17 +1,18 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 
 import jakarta.validation.ValidationException
-import org.springframework.core.ParameterizedTypeReference
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import java.time.LocalDate
 
-inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
-
 @Component
 class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   fun getPrisoner(prisonerNumber: String): Prisoner? =
     prisonerSearchApiWebClient
@@ -19,6 +20,7 @@ class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
       .uri("/prisoner/{prisonerNumber}", prisonerNumber)
       .retrieve()
       .bodyToMono(Prisoner::class.java)
+      .doOnError { error -> log.info("Error looking up prisoner by prisoner number $prisonerNumber in prisoner search client", error) }
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
 }

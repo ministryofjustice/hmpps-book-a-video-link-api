@@ -37,6 +37,7 @@ class MigrationClient(
       .uri("/api/bookings/{bookingId}?basicInfo=true", bookingId)
       .retrieve()
       .bodyToMono(Prisoner::class.java)
+      .doOnError { error -> log.info("Error looking up prisoner by booking id $bookingId in migration client", error) }
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
 
@@ -51,6 +52,7 @@ class MigrationClient(
     .uri("/migrate/video-link-booking/{videoBookingId}", videoBookingId)
     .retrieve()
     .bodyToMono(VideoBookingMigrateResponse::class.java)
+    .doOnError { error -> log.info("Error looking up booking to migrate by booking id $videoBookingId in migration client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()
 }
