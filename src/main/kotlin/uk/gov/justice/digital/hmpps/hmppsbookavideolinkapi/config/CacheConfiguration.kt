@@ -63,8 +63,8 @@ class CacheConfiguration {
   }
 
   @CacheEvict(value = [ROLLED_OUT_PRISONS_CACHE_NAME])
-  @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.DAYS)
+  @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.HOURS)
   fun cacheEvictRolledOutPrisons() {
-    log.info("Evicting cache: $ROLLED_OUT_PRISONS_CACHE_NAME after 1 day")
+    log.info("Evicting cache: $ROLLED_OUT_PRISONS_CACHE_NAME after 3 hours")
   }
 }
