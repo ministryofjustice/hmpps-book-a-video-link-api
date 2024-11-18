@@ -135,7 +135,7 @@ class CourtBookingCancelledTelemetryEventTest {
 
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
-        "cancelled_by" to "service",
+        "cancelled_by" to "prison",
         "court_code" to DERBY_JUSTICE_CENTRE,
         "hearing_type" to "APPEAL",
         "prison_code" to WANDSWORTH,

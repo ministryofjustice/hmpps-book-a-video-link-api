@@ -48,6 +48,13 @@ class WebClientConfiguration(
     builder.authorisedWebClient(authorizedClientManager, "manage-users", manageUsersBaseUri, timeout)
 
   @Bean
+  fun nomisMappingApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
+    builder.authorisedWebClient(authorizedClientManager, "nomis-mapping-api", nomisMappingBaseUri, timeout)
+
+  @Bean
+  fun nomisMappingApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(nomisMappingBaseUri, healthTimeout)
+
+  @Bean
   fun prisonApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
     builder.authorisedWebClient(authorizedClientManager, "prisoner-api", prisonApiBaseUri, timeout)
 
@@ -66,6 +73,5 @@ class WebClientConfiguration(
     builder.authorisedWebClient(authorizedClientManager, "whereabouts-api", whereaboutsBaseUri, timeout)
 
   @Bean
-  fun nomisMappingApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
-    builder.authorisedWebClient(authorizedClientManager, "nomis-mapping-api", nomisMappingBaseUri, timeout)
+  fun whereaboutsApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(whereaboutsBaseUri, healthTimeout)
 }

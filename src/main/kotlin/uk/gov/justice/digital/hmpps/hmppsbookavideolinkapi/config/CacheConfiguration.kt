@@ -23,6 +23,7 @@ class CacheConfiguration {
     const val NON_RESIDENTIAL_LOCATIONS_CACHE_NAME: String = "non_residential_locations"
     const val MIGRATION_LOCATIONS_CACHE_NAME: String = "locations_by_internal_id"
     const val MIGRATION_PRISONERS_CACHE_NAME: String = "prisoners_by_booking_id"
+    const val ROLLED_OUT_PRISONS_CACHE_NAME = "rolled_out_prisons"
   }
 
   @Bean
@@ -32,6 +33,7 @@ class CacheConfiguration {
       NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
       MIGRATION_LOCATIONS_CACHE_NAME,
       MIGRATION_PRISONERS_CACHE_NAME,
+      ROLLED_OUT_PRISONS_CACHE_NAME,
     )
 
   @CacheEvict(value = [VIDEO_LINK_LOCATIONS_CACHE_NAME])
@@ -58,5 +60,11 @@ class CacheConfiguration {
   @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.HOURS)
   fun cacheEvictPrisonersByBookingId() {
     log.info("Evicting cache: $MIGRATION_PRISONERS_CACHE_NAME after 3 hours")
+  }
+
+  @CacheEvict(value = [ROLLED_OUT_PRISONS_CACHE_NAME])
+  @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.DAYS)
+  fun cacheEvictRolledOutPrisons() {
+    log.info("Evicting cache: $ROLLED_OUT_PRISONS_CACHE_NAME after 1 day")
   }
 }

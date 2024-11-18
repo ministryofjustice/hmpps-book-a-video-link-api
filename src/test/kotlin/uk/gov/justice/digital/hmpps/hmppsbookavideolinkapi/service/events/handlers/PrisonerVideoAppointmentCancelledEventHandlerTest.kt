@@ -1,12 +1,15 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
@@ -35,12 +38,14 @@ import java.util.*
 
 class PrisonerVideoAppointmentCancelledEventHandlerTest {
 
+  private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
   private val bookingFacade: BookingFacade = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val bookingHistoryService: BookingHistoryService = mock()
   private val handler = PrisonerVideoAppointmentCancelledEventHandler(
+    activitiesAppointmentsClient,
     videoAppointmentRepository,
     bookingFacade,
     videoBookingRepository,
@@ -48,8 +53,14 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
     bookingHistoryService,
   )
 
+  @BeforeEach
+  fun before() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn true
+  }
+
   @Test
   fun `should attempt to cancel a court booking when main appointment removed in NOMIS`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
     val courtBooking = courtBooking().withMainCourtPrisonAppointment(prisonerNumber = "ABC345", prisonCode = WANDSWORTH)
     val courtAppointment = videoAppointment(courtBooking, courtBooking.appointments().single())
 
@@ -83,6 +94,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
 
   @Test
   fun `should attempt to remove a court booking appointment when pre-appointment removed in NOMIS`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
     val courtBooking = courtBooking()
 
     val courtAppointment = videoAppointment(
@@ -137,6 +149,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
 
   @Test
   fun `should attempt to remove a court booking appointment when post-appointment removed in NOMIS`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
     val courtBooking = courtBooking()
 
     val courtAppointment = videoAppointment(
@@ -191,6 +204,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
 
   @Test
   fun `should attempt to cancel a probation booking removed in NOMIS`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
     val probationBooking = probationBooking().withProbationPrisonAppointment(prisonerNumber = "DEF345", prisonCode = PENTONVILLE)
     val probationAppointment = videoAppointment(probationBooking, probationBooking.appointments().single())
 
@@ -223,7 +237,24 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
   }
 
   @Test
+  fun `should not attempt to cancel a booking when activities and appointments is active`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(PENTONVILLE)) doReturn true
+
+    handler.handle(
+      cancellationEvent(
+        prisonCode = PENTONVILLE,
+        prisonerNumber = "DEF345",
+        start = tomorrow().atStartOfDay(),
+      ),
+    )
+
+    verifyNoInteractions(videoAppointmentRepository)
+    verifyNoInteractions(bookingFacade)
+  }
+
+  @Test
   fun `should be a no-op when multiple appointments found`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
     val courtBooking = courtBooking().withMainCourtPrisonAppointment(prisonerNumber = "ABC345", prisonCode = WANDSWORTH)
     val courtAppointment = videoAppointment(courtBooking, courtBooking.appointments().single())
     val probationBooking = probationBooking().withProbationPrisonAppointment(prisonerNumber = "ABC345", prisonCode = WANDSWORTH)
@@ -258,6 +289,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
 
   @Test
   fun `should be a no-op when not a video link appointment`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
     handler.handle(
       cancellationEvent(
         prisonCode = WANDSWORTH,

@@ -89,6 +89,10 @@ spring:
         max-size: 4
         queue-capacity: 50
 
+  mvc:
+    async:
+      request-timeout: 60000 # one minute request timeout
+
 server:
   port: 8080
   servlet:

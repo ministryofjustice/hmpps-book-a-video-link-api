@@ -2,9 +2,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
-import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -93,13 +92,12 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
-// This is not ideal. Due to potential timing issues with messages/events we disable this on the CI pipeline.
-// We need a better solution to this.
-@DisabledIfEnvironmentVariable(named = "CIRCLECI", matches = "true")
 class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @SpyBean
   private lateinit var outboundEventsPublisher: OutboundEventsPublisher
+
+  private val eventCaptor = argumentCaptor<DomainEvent<*>>()
 
   @MockBean
   private lateinit var manageExternalAppointmentsService: ManageExternalAppointmentsService
@@ -180,12 +178,20 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent("g@g.com", NewCourtBookingPrisonCourtEmail::class, persistedBooking)
     notifications.isPresent(COURT_USER.email!!, NewCourtBookingUserEmail::class, persistedBooking)
 
-    2.messagesShouldBePublished {
+    waitUntil {
+      verify(outboundEventsPublisher, times(2)).send(eventCaptor.capture())
+    }
+
+    with(eventCaptor) {
       firstValue isInstanceOf VideoBookingCreatedEvent::class.java
       firstValue.additionalInformation isEqualTo VideoBookingInformation(persistedBooking.videoBookingId)
 
       secondValue isInstanceOf AppointmentCreatedEvent::class.java
       secondValue.additionalInformation isEqualTo AppointmentInformation(persistedAppointment.prisonAppointmentId)
+    }
+
+    waitUntil {
+      verify(manageExternalAppointmentsService).createAppointment(persistedAppointment.prisonAppointmentId)
     }
   }
 
@@ -258,12 +264,20 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent("b@b.com", NewCourtBookingCourtEmail::class, persistedBooking)
     notifications.isPresent(prisonUser.email!!, NewCourtBookingUserEmail::class, persistedBooking)
 
-    2.messagesShouldBePublished {
+    waitUntil {
+      verify(outboundEventsPublisher, times(2)).send(eventCaptor.capture())
+    }
+
+    with(eventCaptor) {
       firstValue isInstanceOf VideoBookingCreatedEvent::class.java
       firstValue.additionalInformation isEqualTo VideoBookingInformation(persistedBooking.videoBookingId)
 
       secondValue isInstanceOf AppointmentCreatedEvent::class.java
       secondValue.additionalInformation isEqualTo AppointmentInformation(persistedAppointment.prisonAppointmentId)
+    }
+
+    waitUntil {
+      verify(manageExternalAppointmentsService).createAppointment(persistedAppointment.prisonAppointmentId)
     }
   }
 
@@ -1574,7 +1588,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     webTestClient.cancelBooking(bookingId, COURT_USER)
 
-    3.messagesShouldBePublished {
+    waitUntil {
+      verify(outboundEventsPublisher, times(3)).send(eventCaptor.capture())
+    }
+
+    with(eventCaptor) {
       firstValue isInstanceOf VideoBookingCreatedEvent::class.java
       secondValue isInstanceOf AppointmentCreatedEvent::class.java
       thirdValue isInstanceOf VideoBookingCancelledEvent::class.java
@@ -1823,17 +1841,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       ),
       COURT_USER,
     ).videoLinkBookingId isEqualTo 3000
-  }
-
-  private fun Int.messagesShouldBePublished(f: KArgumentCaptor<DomainEvent<*>>.() -> Unit) {
-    waitForMessagesOnQueue(this)
-
-    val times = this
-
-    argumentCaptor<DomainEvent<*>> {
-      verify(outboundEventsPublisher, org.mockito.kotlin.times(times)).send(capture())
-      this.apply(f)
-    }
   }
 
   private fun WebTestClient.createBookingFails(request: CreateVideoBookingRequest, user: User) =

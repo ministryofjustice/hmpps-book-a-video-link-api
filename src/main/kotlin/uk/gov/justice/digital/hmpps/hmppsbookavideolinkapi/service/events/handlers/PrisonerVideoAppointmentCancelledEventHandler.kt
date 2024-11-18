@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
@@ -21,9 +22,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Prison
  * cancelled appointment is a pre-meeting or post-meeting then appointment is removed from the court booking.
  *
  * If zero or more than one matching appointment is found then we log and ignore this event entirely.
+ *
+ * For A&A rolled out prisons we can safely ignore this event. Appointments cannot be changed in NOMIS for rolled out
+ * prisons, the screens are disabled. However the event still gets raised on the back of syncing from A&A when we delete
+ * appointments in BVLS and then in A&A.
  */
 @Component
 class PrisonerVideoAppointmentCancelledEventHandler(
+  private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
   private val videoAppointmentRepository: VideoAppointmentRepository,
   private val bookingFacade: BookingFacade,
   private val videoBookingRepository: VideoBookingRepository,
@@ -37,7 +43,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
 
   @Transactional
   override fun handle(event: PrisonerVideoAppointmentCancelledEvent) {
-    if (event.isVideoLinkBooking()) {
+    if (event.isVideoLinkBooking() && appointmentsNotManagedExternallyAt(event.prisonCode())) {
       val activeAppointments = videoAppointmentRepository.findActiveVideoAppointments(
         prisonCode = event.prisonCode(),
         prisonerNumber = event.prisonerNumber(),
@@ -46,6 +52,8 @@ class PrisonerVideoAppointmentCancelledEventHandler(
       )
 
       if (activeAppointments.size == 1) {
+        log.info("PRISONER_APPOINTMENT_CANCELLATION: processing $event")
+
         val appointment = activeAppointments.single()
 
         when {
@@ -66,9 +74,11 @@ class PrisonerVideoAppointmentCancelledEventHandler(
         return
       }
 
-      log.info("PRISON_APPOINTMENT_CANCELLATION: ignoring event ${event.additionalInformation}, could not find a unique match.")
+      log.info("PRISONER_APPOINTMENT_CANCELLATION: ignoring event ${event.additionalInformation}, could not find a unique match.")
     }
   }
+
+  private fun appointmentsNotManagedExternallyAt(prisonCode: String) = !activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)
 
   private fun VideoAppointment.isForCourtBooking() =
     listOf("VLB_COURT_PRE", "VLB_COURT_MAIN", "VLB_COURT_POST").contains(appointmentType)
