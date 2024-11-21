@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handle
 
 @Tag(name = "Migrate a video link booking from old BVLS")
 @RestController
-@RequestMapping(value = ["migrate"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping(value = ["migrate"])
 @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
 @Deprecated(message = "Can be removed when migration is completed")
 class MigrationController(private val migrateVideoBookingEventHandler: MigrateVideoBookingEventHandler) {

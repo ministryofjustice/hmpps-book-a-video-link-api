@@ -21,14 +21,14 @@ class LocationsInsidePrisonClientTest {
   @Test
   fun `should get matching location by id`() {
     val location = location(WANDSWORTH, locationKeySuffix = "A-1-001")
-    server.stubGetLocationById(location.id, location)
+    server.stubGetLocationById(location)
 
     client.getLocationById(location.id)?.key isEqualTo locationKey
   }
 
   @Test
   fun `should get matching location by key`() {
-    server.stubGetLocationByKey(locationKey, location(WANDSWORTH, locationKeySuffix = "A-1-001"))
+    server.stubGetLocationByKey(location(WANDSWORTH, locationKeySuffix = "A-1-001"))
 
     client.getLocationByKey(locationKey)!!.key isEqualTo locationKey
   }

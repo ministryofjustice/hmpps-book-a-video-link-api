@@ -88,10 +88,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should cancel a video booking on receipt of a permanent release event`() {
     videoBookingRepository.findAll() hasSize 0
-
     prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -128,8 +125,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -167,7 +162,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     val historicBooking = videoBookingRepository.findById(-3).orElseThrow()
 
     prisonSearchApi().stubGetPrisoner("ABCDEF", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     inboundEventsListener.onMessage(
       raw(
@@ -187,8 +181,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should not attempt to cancel an already cancelled future booking`() {
     prisonSearchApi().stubGetPrisoner("YD1234", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -276,7 +268,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), PENTONVILLE)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -330,8 +321,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, birminghamLocation)
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,

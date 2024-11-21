@@ -50,8 +50,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
@@ -94,9 +92,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
-      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
@@ -159,8 +154,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
-      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val probationBookingRequest = probationBookingRequest(
@@ -192,8 +185,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
@@ -240,8 +231,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val courtBookingRequest = courtBookingRequest(
@@ -271,8 +260,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-      locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
-      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
       // Will default to tomorrow's date
       val probationBookingRequest = probationBookingRequest(

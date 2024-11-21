@@ -120,8 +120,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -203,9 +201,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
-    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -290,9 +285,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
     prisonSearchApi().stubGetPrisoner("789101", PENTONVILLE)
-    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -328,10 +320,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
-    prisonSearchApi().stubGetPrisoner("789101", PENTONVILLE)
-    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -353,8 +341,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = CHESTERFIELD_JUSTICE_CENTRE,
@@ -405,8 +391,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -451,8 +435,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -482,7 +464,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -516,7 +497,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -550,8 +530,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, birminghamLocation)
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -608,8 +586,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, birminghamLocation)
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -649,10 +625,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should fail to create a clashing probation booking as probation user`() {
+  fun `should fail to create a overlapping probation booking as probation user`() {
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
-    locationsInsidePrisonApi().stubGetLocationByKey(wandsworthLocation.key, wandsworthLocation)
-    locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation.id, wandsworthLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -737,7 +711,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should fail to create a probation booking when prison is not enabled for self service`() {
     prisonSearchApi().stubGetPrisoner("789012", RISLEY)
-    locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, RISLEY)
 
     val clashingBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -790,8 +763,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -844,9 +815,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), setOf(risleyLocation))
-    locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, risleyLocation)
-    locationsInsidePrisonApi().stubGetLocationById(risleyLocation.id, risleyLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -899,9 +867,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), setOf(risleyLocation))
-    locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, risleyLocation)
-    locationsInsidePrisonApi().stubGetLocationById(risleyLocation.id, risleyLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -939,8 +904,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
-    locationsInsidePrisonApi().stubGetLocationByKey(wandsworthLocation.key, wandsworthLocation)
-    locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation.id, wandsworthLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -993,8 +956,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -1022,8 +983,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -1090,8 +1049,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notificationRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = CHESTERFIELD_JUSTICE_CENTRE,
@@ -1156,8 +1113,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest1 = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -1212,8 +1167,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -1260,7 +1213,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-bookings-happening-tomorrow.sql")
   fun `should fail to amend a court booking when the prison is not enabled for self service as court user`() {
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), RISLEY)
 
     val amendBookingRequest = amendCourtBookingRequest(
       prisonCode = RISLEY,
@@ -1295,9 +1247,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(risleyLocation.key), setOf(risleyLocation))
-    locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, risleyLocation)
-    locationsInsidePrisonApi().stubGetLocationById(risleyLocation.id, risleyLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -1336,8 +1285,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, birminghamLocation)
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1400,8 +1347,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, birminghamLocation)
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val probationBookingRequest1 = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1466,8 +1411,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, birminghamLocation)
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1485,7 +1428,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val videoBookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val amendBookingRequest = amendProbationBookingRequest(
       probationMeetingType = ProbationMeetingType.PSR,
@@ -1521,7 +1463,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-bookings-happening-tomorrow.sql")
   fun `should fail to amend a probation booking when the prison is not enabled for self service`() {
     prisonSearchApi().stubGetPrisoner("123456", RISLEY)
-    locationsInsidePrisonApi().stubGetLocationByKey(risleyLocation.key, RISLEY)
 
     val amendBookingRequest = amendProbationBookingRequest(
       probationMeetingType = ProbationMeetingType.PSR,
@@ -1566,9 +1507,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should cancel a Chesterfield court booking`() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    prisonerApi().stubGetInternalLocationByKey(birminghamLocation.key, BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = CHESTERFIELD_JUSTICE_CENTRE,
@@ -1607,8 +1545,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should request a Derby court booking and emails sent to Norwich prison`() {
     notificationRepository.findAll() hasSize 0
 
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(norwichLocation.key), NORWICH)
-
     val courtRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       firstName = "John",
@@ -1633,8 +1569,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should request a Chesterfield court booking and emails sent to Birmingham prison`() {
     notificationRepository.findAll() hasSize 0
-
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
 
     val courtRequest = requestCourtVideoLinkRequest(
       courtCode = CHESTERFIELD_JUSTICE_CENTRE,
@@ -1662,8 +1596,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), setOf(birminghamLocation))
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -1710,8 +1642,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should request a Blackpool probation team booking and emails sent to Norwich prison`() {
     notificationRepository.findAll() hasSize 0
 
-    locationsInsidePrisonApi().stubGetLocationByKey(norwichLocation.key, NORWICH)
-
     val probationRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       firstName = "John",
@@ -1736,8 +1666,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should request a Harrow probation booking and emails sent to Birmingham prison`() {
     notificationRepository.findAll() hasSize 0
-
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, BIRMINGHAM)
 
     val probationRequest = requestProbationVideoLinkRequest(
       probationTeamCode = HARROW,
@@ -1765,8 +1693,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    locationsInsidePrisonApi().stubGetLocationByKey(birminghamLocation.key, birminghamLocation)
-    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation.id, birminghamLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1813,13 +1739,13 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
   fun `should find matching court video link bookings`() {
     val location1 = pentonvilleLocation.copy(id = UUID.fromString("b13f9018-f22d-456f-a690-d80e3d0feb5f"))
-    locationsInsidePrisonApi().stubGetLocationByKey("PVI-123456", location1)
-    locationsInsidePrisonApi().stubGetLocationById(location1.id, location1)
+    locationsInsidePrisonApi().stubGetLocationByKey(location1)
+    locationsInsidePrisonApi().stubGetLocationById(location1)
 
     webTestClient.searchForBooking(
       VideoBookingSearchRequest(
         prisonerNumber = "123456",
-        locationKey = "PVI-123456",
+        locationKey = location1.key,
         date = today(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
@@ -1827,14 +1753,14 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       COURT_USER,
     ).videoLinkBookingId isEqualTo 1000
 
-    val location2 = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"))
-    locationsInsidePrisonApi().stubGetLocationByKey("PVI-78910", location2)
-    locationsInsidePrisonApi().stubGetLocationById(location2.id, location2)
+    val location2 = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
+    locationsInsidePrisonApi().stubGetLocationByKey(location2)
+    locationsInsidePrisonApi().stubGetLocationById(location2)
 
     webTestClient.searchForBooking(
       VideoBookingSearchRequest(
         prisonerNumber = "78910",
-        locationKey = "PVI-78910",
+        locationKey = location2.key,
         date = tomorrow(),
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(10, 0),

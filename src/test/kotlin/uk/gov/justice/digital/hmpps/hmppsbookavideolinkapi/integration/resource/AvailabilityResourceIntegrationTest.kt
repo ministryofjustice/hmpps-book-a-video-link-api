@@ -62,8 +62,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
@@ -106,8 +104,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = "DRBYMC",
@@ -178,9 +174,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-    locationsInsidePrisonApi().stubGetLocationByKey(pentonvilleLocation.key, pentonvilleLocation)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(pentonvilleLocation.key), setOf(pentonvilleLocation))
-    locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation.id, pentonvilleLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",
