@@ -5,7 +5,7 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.9"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.0"
   id("org.openapi.generator") version "7.10.0"
   kotlin("plugin.spring") version "2.0.21"
   kotlin("plugin.jpa") version "2.0.21"
@@ -56,8 +56,8 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:localstack:1.20.3")
-  testImplementation("org.testcontainers:postgresql:1.20.3")
+  testImplementation("org.testcontainers:localstack:1.20.4")
+  testImplementation("org.testcontainers:postgresql:1.20.4")
   testImplementation("org.wiremock:wiremock-standalone:3.9.2")
 }
 
