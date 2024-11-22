@@ -25,6 +25,7 @@ class AppointmentsService(
   fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
     checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
+    // We don't need to do a check for non-prison users as this is covered by the overlapping appointment check.
     if (user is PrisonUser) {
       prisoner.checkForDuplicateAppointment(AppointmentType.VLB_COURT_MAIN)
     }
@@ -112,6 +113,7 @@ class AppointmentsService(
   fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
     checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
 
+    // We don't need to do a check for non-prison users as this is covered by the overlapping appointment check.
     if (user is PrisonUser) {
       prisoner.checkForDuplicateAppointment(AppointmentType.VLB_PROBATION)
     }

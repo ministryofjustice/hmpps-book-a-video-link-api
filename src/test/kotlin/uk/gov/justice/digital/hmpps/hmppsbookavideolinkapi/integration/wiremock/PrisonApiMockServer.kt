@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.Migr
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.VIDEO_LINK_BOOKING
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
@@ -29,27 +28,6 @@ class PrisonApiMockServer : MockServer(8094) {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(mapper.writeValueAsString(MigrationClient.Prisoner(prisonerNumber)))
-            .withStatus(200),
-        ),
-    )
-  }
-
-  fun stubGetInternalLocationByKey(key: String, prisonCode: String, description: String = "location description") {
-    stubFor(
-      get("/api/locations/code/$key")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              mapper.writeValueAsString(
-                Location(
-                  locationId = 1,
-                  locationType = "VIDEO_LINK",
-                  agencyId = prisonCode,
-                  description = description,
-                ),
-              ),
-            )
             .withStatus(200),
         ),
     )

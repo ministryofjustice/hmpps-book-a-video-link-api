@@ -16,6 +16,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.mo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
@@ -58,6 +63,15 @@ abstract class IntegrationTestBase {
     stubUser(PRISON_USER_BIRMINGHAM)
     stubUser(COURT_USER)
     stubUser(PROBATION_USER)
+  }
+
+  @BeforeEach
+  fun `stub default locations`() {
+    setOf(birminghamLocation, norwichLocation, pentonvilleLocation, risleyLocation, wandsworthLocation).forEach {
+      locationsInsidePrisonApi().stubGetLocationByKey(it)
+      locationsInsidePrisonApi().stubPostLocationByKeys(it)
+      locationsInsidePrisonApi().stubGetLocationById(it)
+    }
   }
 
   protected fun setAuthorisation(

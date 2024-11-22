@@ -16,9 +16,9 @@ import java.util.UUID
 
 class LocationsInsidePrisonApiMockServer : MockServer(8091) {
 
-  fun stubGetLocationById(id: UUID, location: Location) {
+  fun stubGetLocationById(location: Location) {
     stubFor(
-      get("/locations/$id").willReturn(
+      get("/locations/${location.id}").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(mapper.writeValueAsString(location))
@@ -27,9 +27,9 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubGetLocationByKey(key: String, location: Location) {
+  fun stubGetLocationByKey(location: Location) {
     stubFor(
-      get("/locations/key/$key").willReturn(
+      get("/locations/key/${location.key}").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(mapper.writeValueAsString(location))
@@ -38,35 +38,16 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubGetLocationByKey(key: String, prisonId: String = WANDSWORTH) {
+  fun stubPostLocationByKeys(vararg locations: Location) {
     stubFor(
-      get("/locations/key/$key").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            mapper.writeValueAsString(
-              Location(
-                id = UUID.randomUUID(),
-                prisonId = prisonId,
-                code = "001",
-                pathHierarchy = "A-1-001",
-                locationType = Location.LocationType.VIDEO_LINK,
-                permanentlyInactive = false,
-                active = true,
-                deactivatedByParent = false,
-                topLevelId = UUID.randomUUID(),
-                key = key,
-                isResidential = true,
-                lastModifiedBy = "test user",
-                lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
-                level = 2,
-                leafLevel = true,
-                status = Location.Status.ACTIVE,
-              ),
-            ),
-          )
-          .withStatus(200),
-      ),
+      post("/locations/keys")
+        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(locations.map(Location::key))))
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(locations))
+            .withStatus(200),
+        ),
     )
   }
 
