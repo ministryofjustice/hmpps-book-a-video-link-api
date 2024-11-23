@@ -2,4 +2,4 @@
 update court
 set description = 'Torquay and Newton Abbot County'
 where court_id = 373
-and name = 'TORQCC';
+and code = 'TORQCC';
