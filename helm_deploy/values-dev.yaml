@@ -30,3 +30,6 @@ generic-prometheus-alerts:
     - "hmpps-book-a-video-link-dev-hmpps_book_a_video_link_domain_queue"
   sqsNumberAlertQueueNames:
     - "hmpps-book-a-video-link-dev-hmpps_book_a_video_link_domain_dlq"
+
+cron:
+  courtHearingLinkReminderJob: "0 15 * * 1-5"
