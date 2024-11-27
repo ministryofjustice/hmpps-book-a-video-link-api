@@ -29,8 +29,8 @@ select
     pa.start_time,
     pa.end_time
 from video_booking vlb
-  left join court c on c.court_id = vlb.court_id and c.enabled = true
-  left join probation_team pt on pt.probation_team_id = vlb.probation_team_id and pt.enabled = true
+  left join court c on c.court_id = vlb.court_id
+  left join probation_team pt on pt.probation_team_id = vlb.probation_team_id
   join prison_appointment pa on pa.video_booking_id = vlb.video_booking_id
   join prison p on p.prison_id = pa.prison_id
   left join reference_code rc1 on rc1.group_code = 'COURT_HEARING_TYPE' and rc1.code = vlb.hearing_type
