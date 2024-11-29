@@ -13,12 +13,6 @@ fi
 
 shopt -s nocasematch
 
-# Temporarily disable any prod runs
-if [ "$ENVIRONMENT" = "prod" ]; then
-  echo "Prod is currently disabled."
-  return 1 2> /dev/null || exit 1
-fi
-
 while true; do
 
 read -r -p "You are about to rollout the new BVLS service in the '$ENVIRONMENT' environment. Are you sure you want to proceed? (y/n) " yn
