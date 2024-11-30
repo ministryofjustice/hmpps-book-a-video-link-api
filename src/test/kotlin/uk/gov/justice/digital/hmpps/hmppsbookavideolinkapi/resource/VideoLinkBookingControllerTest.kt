@@ -27,8 +27,6 @@ import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.HmppsBookAVideoLinkApiExceptionHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
@@ -95,12 +93,6 @@ class VideoLinkBookingControllerTest {
 
   @MockBean
   private lateinit var locationsInsidePrisonClient: LocationsInsidePrisonClient
-
-  @MockBean
-  private lateinit var prisonApiClient: PrisonApiClient
-
-  @MockBean
-  private lateinit var nomisMappingClient: NomisMappingClient
 
   @Autowired
   private lateinit var context: WebApplicationContext
