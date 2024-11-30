@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 
 const val VIDEO_LINK_BOOKING = "VLB"
 
@@ -25,6 +26,15 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
+
+  fun getInternalLocationByKey(key: String): Location? =
+    prisonApiWebClient
+      .get()
+      .uri("/api/locations/code/{code}", key)
+      .retrieve()
+      .bodyToMono(Location::class.java)
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()
 
   fun createAppointment(
     bookingId: Long,

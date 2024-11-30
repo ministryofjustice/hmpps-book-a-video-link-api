@@ -58,6 +58,8 @@ import uk.gov.justice.hmpps.kotlin.auth.HmppsResourceServerConfiguration
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 
 /**
  * As a general guideline we primarily test controllers in integration tests. This is an exception due to wanting to get
@@ -93,6 +95,12 @@ class VideoLinkBookingControllerTest {
 
   @MockBean
   private lateinit var locationsInsidePrisonClient: LocationsInsidePrisonClient
+
+  @MockBean
+  private lateinit var prisonApiClient: PrisonApiClient
+
+  @MockBean
+  private lateinit var nomisMappingClient: NomisMappingClient
 
   @Autowired
   private lateinit var context: WebApplicationContext

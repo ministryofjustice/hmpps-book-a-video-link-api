@@ -41,18 +41,24 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 
 class VideoLinkBookingsServiceTest {
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val referenceCodeRepository: ReferenceCodeRepository = mock()
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val prisonApiClient: PrisonApiClient = mock()
+  private val nomisMappingClient: NomisMappingClient = mock()
 
   private val service = VideoLinkBookingsService(
     videoBookingRepository,
     referenceCodeRepository,
     videoAppointmentRepository,
     locationsInsidePrisonClient,
+    prisonApiClient,
+    nomisMappingClient,
   )
 
   @BeforeEach
