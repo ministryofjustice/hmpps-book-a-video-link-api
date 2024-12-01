@@ -4,6 +4,8 @@ import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
@@ -23,6 +25,8 @@ class VideoLinkBookingsService(
   private val referenceCodeRepository: ReferenceCodeRepository,
   private val videoAppointmentRepository: VideoAppointmentRepository,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
+  private val prisonApiClient: PrisonApiClient,
+  private val nomisMappingClient: NomisMappingClient,
 ) {
   fun getVideoLinkBookingById(videoBookingId: Long, user: User): VideoLinkBooking {
     val booking = videoBookingRepository.findById(videoBookingId)
@@ -48,13 +52,14 @@ class VideoLinkBookingsService(
   }
 
   fun findMatchingVideoLinkBooking(searchRequest: VideoBookingSearchRequest, user: User): VideoLinkBooking {
-    val location = locationsInsidePrisonClient.getLocationByKey(searchRequest.locationKey!!)
+    val locationId = locationsInsidePrisonClient.getLocationByKey(searchRequest.locationKey!!)?.id
+      ?: prisonApiClient.getInternalLocationByKey(searchRequest.locationKey)?.let { nomisMappingClient.getNomisLocationMappingBy(it.locationId)?.dpsLocationId }
       ?: throw EntityNotFoundException("Location with key ${searchRequest.locationKey} not found")
 
     return videoAppointmentRepository.findActiveVideoAppointment(
       prisonerNumber = searchRequest.prisonerNumber!!,
       appointmentDate = searchRequest.date!!,
-      prisonLocationId = location.id,
+      prisonLocationId = locationId,
       startTime = searchRequest.startTime!!,
       endTime = searchRequest.endTime!!,
     )
