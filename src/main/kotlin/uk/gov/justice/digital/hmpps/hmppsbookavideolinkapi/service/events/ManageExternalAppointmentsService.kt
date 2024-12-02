@@ -191,7 +191,7 @@ class ManageExternalAppointmentsService(
   private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(appointment: PrisonAppointment): List<PrisonerSchedule> =
     filter {
       it.startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
-        it.endTime == appointment.appointmentDate.atTime(appointment.endTime)
+        appointment.appointmentDate.atTime(appointment.endTime) == it.endTime
     }.ifEmpty {
       emptyList<PrisonerSchedule>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
@@ -200,7 +200,7 @@ class ManageExternalAppointmentsService(
   private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(bha: BookingHistoryAppointment): List<PrisonerSchedule> =
     filter {
       it.startTime == bha.appointmentDate.atTime(bha.startTime) &&
-        it.endTime == bha.appointmentDate.atTime(bha.endTime)
+        bha.appointmentDate.atTime(bha.endTime) == it.endTime
     }.ifEmpty {
       emptyList<PrisonerSchedule>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
