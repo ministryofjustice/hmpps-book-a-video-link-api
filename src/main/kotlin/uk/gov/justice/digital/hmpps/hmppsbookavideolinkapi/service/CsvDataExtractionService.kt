@@ -241,7 +241,7 @@ data class ProbationBookingEvent(
     null,
     null,
     null,
-    vbh.mainLocationId.let { id -> locations[vbh.prisonCode]?.firstOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbh.mainLocationId.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
     null,
     null,
   )

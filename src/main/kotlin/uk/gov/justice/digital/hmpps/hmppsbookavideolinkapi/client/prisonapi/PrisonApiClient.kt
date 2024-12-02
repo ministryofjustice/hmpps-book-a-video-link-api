@@ -100,5 +100,5 @@ data class PrisonerSchedule(
   val eventId: Long,
   val event: String,
   val startTime: LocalDateTime,
-  val endTime: LocalDateTime,
+  val endTime: LocalDateTime?,
 )
