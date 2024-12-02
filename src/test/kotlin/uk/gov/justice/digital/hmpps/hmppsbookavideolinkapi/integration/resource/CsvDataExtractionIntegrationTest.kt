@@ -11,12 +11,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contains
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import java.time.LocalDate
+import java.util.UUID
 
 class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
   @BeforeEach
   fun before() {
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf(pentonvilleLocation.key), prisonCode = PENTONVILLE)
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, pentonvilleLocation.copy(id = UUID.fromString("926d8f38-7149-4fda-b51f-85abcbcb0d00")))
   }
 
   @Sql("classpath:integration-test-data/seed-court-events-by-hearing-date-data-extract.sql")
@@ -26,8 +27,8 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     // This should pick up the amended event in favour of the create event.
     response contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
-    response contains "-2000,2024-07-24T01:00:00,-2000,CREATE,PVI,\"Free text court name\",UNKNOWN,true,2100-07-24T12:00:00,2100-07-24T13:00:00,,,,,\"926d8f38-7149-4fda-b51f-85abcbcb0d00\",,\n"
-    response contains "-1100,2024-07-24T02:00:00,-1000,UPDATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2100-07-25T12:00:00,2100-07-25T13:00:00,,,,,\"926d8f38-7149-4fda-b51f-85abcbcb0d00\",,"
+    response contains "-2000,2024-07-24T01:00:00,-2000,CREATE,PVI,\"Free text court name\",UNKNOWN,true,2100-07-24T12:00:00,2100-07-24T13:00:00,,,,,\"Pentonville room 3\",,\n"
+    response contains "-1100,2024-07-24T02:00:00,-1000,UPDATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2100-07-25T12:00:00,2100-07-25T13:00:00,,,,,\"Pentonville room 3\",,"
   }
 
   @Sql("classpath:integration-test-data/seed-events-by-booking-date-data-extract.sql")
@@ -37,13 +38,13 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     courtResponse contains "video-links-by-court-booking-date-from-2024-01-01-for-1-days.csv"
     courtResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
-    courtResponse contains "-2000,2024-01-01T01:00:00,-2000,CREATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2099-01-24T12:00:00,2099-01-24T13:00:00,,,,,\"926d8f38-7149-4fda-b51f-85abcbcb0d00\",,"
+    courtResponse contains "-2000,2024-01-01T01:00:00,-2000,CREATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2099-01-24T12:00:00,2099-01-24T13:00:00,,,,,\"Pentonville room 3\",,"
 
     val probationResponse = webTestClient.downloadProbationDataByBookingDate(LocalDate.of(2024, 1, 1), 2)
 
     probationResponse contains "video-links-by-probation-booking-date-from-2024-01-01-for-2-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
-    probationResponse contains "-3000,2024-01-01T01:00:00,-3000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"926d8f38-7149-4fda-b51f-85abcbcb0d00\",,"
+    probationResponse contains "-3000,2024-01-01T01:00:00,-3000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"Pentonville room 3\",,"
   }
 
   @Sql("classpath:integration-test-data/seed-probation-events-by-meeting-date-data.sql")
@@ -53,8 +54,8 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-25-for-365-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
-    probationResponse contains "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Free text probation team name\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"926d8f38-7149-4fda-b51f-85abcbcb0d00\",,\n"
-    probationResponse contains "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"926d8f38-7149-4fda-b51f-85abcbcb0d00\",,\n"
+    probationResponse contains "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Free text probation team name\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,\n"
+    probationResponse contains "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,\n"
   }
 
   @Test
