@@ -51,11 +51,8 @@ class CsvDataExtractionService(
   }
 
   private fun writeCourtBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream): Int {
-    val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
-
     val courtEvents = events
-      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode) } }
-      .map { CourtBookingEvent(it, locationsByPrisonCode) }
+      .map { CourtBookingEvent(it, locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode).toSet()) }
       .asSequence()
 
     var counter = 0
@@ -98,11 +95,8 @@ class CsvDataExtractionService(
   }
 
   private fun writeProbationBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream): Int {
-    val locationsByPrisonCode = mutableMapOf<String, List<Location>>()
-
     val probationEvents = events
-      .peek { locationsByPrisonCode.getOrPut(it.prisonCode) { locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode) } }
-      .map { ProbationBookingEvent(it, locationsByPrisonCode) }
+      .map { ProbationBookingEvent(it, locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode).toSet()) }
       .asSequence()
 
     var counter = 0
@@ -165,7 +159,7 @@ data class CourtBookingEvent(
   val preLocationName: String?,
   val postLocationName: String?,
 ) {
-  constructor(vbh: VideoBookingEvent, locations: Map<String, List<Location>>) : this(
+  constructor(vbh: VideoBookingEvent, locations: Set<Location>) : this(
     vbh.eventId,
     vbh.timestamp,
     vbh.videoBookingId,
@@ -181,9 +175,9 @@ data class CourtBookingEvent(
     vbh.preDate?.atTime(vbh.preEndTime),
     vbh.postDate?.atTime(vbh.postStartTime),
     vbh.postDate?.atTime(vbh.postEndTime),
-    vbh.mainLocationId.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
-    vbh.preLocationId?.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
-    vbh.postLocationId?.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbh.mainLocationId.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbh.preLocationId?.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbh.postLocationId?.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
   )
 }
 
@@ -225,7 +219,7 @@ data class ProbationBookingEvent(
   val preLocationName: String?,
   val postLocationName: String?,
 ) {
-  constructor(vbh: VideoBookingEvent, locations: Map<String, List<Location>>) : this(
+  constructor(vbh: VideoBookingEvent, locations: Set<Location>) : this(
     vbh.eventId,
     vbh.timestamp,
     vbh.videoBookingId,
@@ -241,7 +235,7 @@ data class ProbationBookingEvent(
     null,
     null,
     null,
-    vbh.mainLocationId.let { id -> locations[vbh.prisonCode]?.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbh.mainLocationId.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
     null,
     null,
   )

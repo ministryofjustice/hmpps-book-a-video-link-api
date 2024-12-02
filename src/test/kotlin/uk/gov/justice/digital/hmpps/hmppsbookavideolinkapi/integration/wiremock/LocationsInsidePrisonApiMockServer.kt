@@ -100,6 +100,18 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
+  fun stubNonResidentialAppointmentLocationsAtPrison(prisonCode: String, vararg locations: Location) {
+    stubFor(
+      get("/locations/prison/$prisonCode/non-residential-usage-type/APPOINTMENT")
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(locations))
+            .withStatus(200),
+        ),
+    )
+  }
+
   fun stubNonResidentialAppointmentLocationsAtPrison(
     keys: Set<String>,
     enabled: Boolean = true,
