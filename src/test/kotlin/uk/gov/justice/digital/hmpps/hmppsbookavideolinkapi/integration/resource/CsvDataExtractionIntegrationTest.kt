@@ -17,7 +17,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
   @BeforeEach
   fun before() {
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, pentonvilleLocation.copy(id = UUID.fromString("926d8f38-7149-4fda-b51f-85abcbcb0d00")))
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, pentonvilleLocation.copy(id = UUID.fromString("926d8f38-7149-4fda-b51f-85abcbcb0d00"), leafLevel = false))
   }
 
   @Sql("classpath:integration-test-data/seed-court-events-by-hearing-date-data-extract.sql")

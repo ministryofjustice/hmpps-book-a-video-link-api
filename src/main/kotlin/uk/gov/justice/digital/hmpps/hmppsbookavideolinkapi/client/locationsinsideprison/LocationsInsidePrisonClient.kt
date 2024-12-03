@@ -48,13 +48,13 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .block() ?: emptyList()
 
   @Cacheable(CacheConfiguration.NON_RESIDENTIAL_LOCATIONS_CACHE_NAME)
-  fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
+  fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String, leafOnly: Boolean = true) = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/prison/{prisonCode}/non-residential-usage-type/APPOINTMENT", prisonCode)
     .retrieve()
     .bodyToMono(typeReference<List<Location>>())
     .doOnError { error -> log.info("Error looking up non-residential appointment locations by prison code $prisonCode in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()?.filter(Location::leafLevel) ?: emptyList()
+    .block()?.filter { if (leafOnly) it.leafLevel else true } ?: emptyList()
 
   @Cacheable(CacheConfiguration.VIDEO_LINK_LOCATIONS_CACHE_NAME)
   fun getVideoLinkLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
