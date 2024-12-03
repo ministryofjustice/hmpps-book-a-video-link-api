@@ -21,7 +21,7 @@ spring:
       ddl-auto: none
 
   flyway:
-    locations: classpath:/migrations/common
+    locations: classpath:/migrations/common,classpath:/migrations/prod
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
