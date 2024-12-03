@@ -44,11 +44,11 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should return a list of all prisons`() {
-    prisonRepository.findAll() hasSize 127
+    prisonRepository.findAll() hasSize 125
 
     val listOfAllPrisons = webTestClient.getPrisons(false)
 
-    assertThat(listOfAllPrisons).hasSize(127)
+    assertThat(listOfAllPrisons).hasSize(125)
     assertThat(listOfAllPrisons).extracting("code").containsAll(listOf("LEI", "BMI", "WWI"))
   }
 
