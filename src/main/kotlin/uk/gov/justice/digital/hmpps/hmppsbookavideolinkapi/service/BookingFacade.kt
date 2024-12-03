@@ -91,7 +91,7 @@ class BookingFacade(
     sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
-  fun courtHearingLinkReminder(videoBooking: VideoBooking, user: User) {
+  fun courtHearingLinkReminder(videoBooking: VideoBooking, user: ServiceUser) {
     require(videoBooking.isCourtBooking()) { "Video booking with id ${videoBooking.videoBookingId} is not a court booking" }
     require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} has already taken place" }
