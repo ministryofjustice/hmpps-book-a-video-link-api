@@ -129,24 +129,24 @@ notify:
   templates:
     court:
       new-booking:
-        user: "c8d61c0f-1fa0-4281-9597-a45780e345d4"
-        court: "f1713d8d-b622-4b07-8182-27275bfbb24d"
-        prison-court-email: "bf2c340e-31a4-45db-bc70-e902ee499ec5"
-        prison-no-court-email: "d555929e-c8a5-4771-911b-4538ba259eba"
+        user: "b1a3c944-d0d3-4846-94ca-ca03373b7d40"
+        court: "c6a1abba-125e-4936-bd20-7a5e14ee2ffe"
+        prison-court-email: "9e4d64e1-5b81-4f06-a43e-63eacc46f865"
+        prison-no-court-email: "ae433efa-a2a6-47c6-8165-54ed8a8f9dc1"
       amended-booking:
-        user: "443760a3-e644-4228-8c60-ecb76fb39664"
-        court: "9507f9ee-670d-4715-b2ad-62eaa945e25b"
-        prison-court-email: "9edef9a6-df69-462a-995c-010c2b4f2cbf"
-        prison-no-court-email: "d756d798-bf1b-4651-85e5-6f42c741e33b"
+        user: "fb5c7f72-2f20-4009-adef-0defe304f486"
+        court: "16c1e0cb-41bf-484e-aa0f-80161a0715ed"
+        prison-court-email: "2d08400e-012d-44a0-a110-3904f54bc006"
+        prison-no-court-email: "35a771f3-14f7-44be-ac73-fec8f0ee056e"
       cancelled-booking:
         user: "946a129a-ed09-40ca-b0ac-a39ec6c1bc2b"
         court: "cfac8ef0-dc03-403b-bf8b-bea6356561ff"
         prison-court-email: "9c80bb57-abed-4316-8404-cbdcd48b8f25"
         prison-no-court-email: "602981eb-cc7f-4a85-aba3-577167f1ee83"
       booking-request:
-        user: "cccb8914-8418-4382-9a9d-2d5defe7c1c6"
-        prison-court-email: "7c246d95-60b5-4c3c-a7b3-2c43c42b61b0"
-        prison-no-court-email: "a82f319b-1a44-4d0f-aed5-a7b28857cc42"
+        user: "fcc3f591-81c2-4b8d-9b3c-a4051cd19e9d"
+        prison-court-email: "d6c04a5e-3866-4b7e-b892-f41add21f47a"
+        prison-no-court-email: "7a1fe877-321c-4a3d-8c5a-af15e7432ba9"
       transfer-booking:
         court: "3fe1e9d5-3319-496c-90df-0115087cd31b"
         prison-court-email: "6fdf202b-01f9-48e7-b216-35c695f84df3"

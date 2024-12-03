@@ -165,6 +165,7 @@ class RequestBookingService(
     mainAppointmentInfo = main.appointmentInformation(locations),
     postAppointmentInfo = post?.appointmentInformation(locations),
     comments = request.comments,
+    courtHearingLink = request.videoLinkUrl,
   )
 
   private fun createCourtPrisonEmail(
@@ -195,6 +196,7 @@ class RequestBookingService(
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = request.comments,
+        courtHearingLink = request.videoLinkUrl,
       )
     } else {
       CourtBookingRequestPrisonNoCourtEmail(
@@ -210,6 +212,7 @@ class RequestBookingService(
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = request.comments,
+        courtHearingLink = request.videoLinkUrl,
       )
     }
   }
