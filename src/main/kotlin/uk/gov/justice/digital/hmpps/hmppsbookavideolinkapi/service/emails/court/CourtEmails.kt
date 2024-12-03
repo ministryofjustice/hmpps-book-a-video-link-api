@@ -369,6 +369,7 @@ class CourtBookingRequestUserEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
+  courtHearingLink: String?,
 ) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("userName", userName)
@@ -379,6 +380,7 @@ class CourtBookingRequestUserEmail(
     addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
     addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
     addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+    addPersonalisation("courtHearingLink", courtHearingLink ?: "Not yet known")
   }
 }
 
@@ -396,6 +398,7 @@ class CourtBookingRequestPrisonCourtEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
+  courtHearingLink: String?,
 ) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
@@ -406,6 +409,7 @@ class CourtBookingRequestPrisonCourtEmail(
     addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
     addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
     addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+    addPersonalisation("courtHearingLink", courtHearingLink ?: "Not yet known")
   }
 }
 
@@ -422,6 +426,7 @@ class CourtBookingRequestPrisonNoCourtEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
+  courtHearingLink: String?,
 ) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
@@ -431,6 +436,7 @@ class CourtBookingRequestPrisonNoCourtEmail(
     addPersonalisation("preAppointmentInfo", preAppointmentInfo ?: "Not required")
     addPersonalisation("mainAppointmentInfo", mainAppointmentInfo)
     addPersonalisation("postAppointmentInfo", postAppointmentInfo ?: "Not required")
+    addPersonalisation("courtHearingLink", courtHearingLink ?: "Not yet known")
   }
 }
 
