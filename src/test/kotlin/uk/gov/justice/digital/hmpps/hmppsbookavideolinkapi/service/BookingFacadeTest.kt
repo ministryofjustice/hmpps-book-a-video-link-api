@@ -223,6 +223,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
       with(emailCaptor.secondValue) {
@@ -238,6 +239,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
 
@@ -299,6 +301,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
       with(emailCaptor.secondValue) {
@@ -314,6 +317,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
 
@@ -465,6 +469,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
       with(emailCaptor.secondValue) {
@@ -480,6 +485,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
 
@@ -542,6 +548,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
       with(emailCaptor.secondValue) {
@@ -557,6 +564,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
 
@@ -619,6 +627,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
 
@@ -888,6 +897,7 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "prison" to "Wandsworth",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
       with(emailCaptor.secondValue) {
@@ -903,6 +913,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
 
@@ -971,6 +982,7 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "prison" to "Wandsworth",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
       with(emailCaptor.secondValue) {
@@ -986,6 +998,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "https://court.hearing.link",
         )
       }
 
@@ -1533,6 +1546,7 @@ class BookingFacadeTest {
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
+          "courtHearingLink" to "Not yet known",
           "bookingId" to "0",
         )
       }

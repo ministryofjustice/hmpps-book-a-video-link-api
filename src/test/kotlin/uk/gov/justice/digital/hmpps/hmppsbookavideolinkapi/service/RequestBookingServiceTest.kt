@@ -131,6 +131,7 @@ class RequestBookingServiceTest {
         "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
         "postAppointmentInfo" to "Not required",
         "comments" to "court booking comments",
+        "courtHearingLink" to "https://video.link.com",
       )
     }
     with(emailCaptor.secondValue) {
@@ -147,6 +148,7 @@ class RequestBookingServiceTest {
         "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
         "postAppointmentInfo" to "Not required",
         "comments" to "court booking comments",
+        "courtHearingLink" to "https://video.link.com",
       )
     }
 

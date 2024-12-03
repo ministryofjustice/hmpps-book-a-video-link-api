@@ -105,6 +105,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -124,6 +125,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -131,7 +133,7 @@ class GovNotifyEmailServiceTest {
   }
 
   @Test
-  fun `should send user new booking email with no pre and post appoint or no comments, and return a notification ID`() {
+  fun `should send user new booking email with no pre and post appointment, no comments, and no court hearing link, and return a notification ID`() {
     val result = service.send(
       NewCourtBookingUserEmail(
         address = "recipient@emailaddress.com",
@@ -146,6 +148,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = null,
         court = "the court",
         prison = "the prison",
+        courtHearingLink = null,
       ),
     )
 
@@ -165,6 +168,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "Not required",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "Not required",
+        "courtHearingLink" to "Not yet known",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -186,6 +190,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -204,6 +209,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -226,6 +232,7 @@ class GovNotifyEmailServiceTest {
         court = "the court",
         courtEmailAddress = "court@emailaddress.com",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -245,6 +252,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -266,6 +274,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -284,6 +293,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -306,6 +316,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -325,6 +336,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -347,6 +359,7 @@ class GovNotifyEmailServiceTest {
         court = "the court",
         courtEmailAddress = "court@emailaddress.com",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -366,6 +379,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -387,6 +401,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -405,6 +420,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -427,6 +443,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -446,6 +463,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -468,6 +486,7 @@ class GovNotifyEmailServiceTest {
         court = "the court",
         courtEmailAddress = "court@emailaddress.com",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -487,6 +506,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -508,6 +528,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -526,6 +547,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -549,6 +571,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -569,6 +592,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -592,6 +616,7 @@ class GovNotifyEmailServiceTest {
         court = "the court",
         courtEmailAddress = "court@emailaddress.com",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -612,6 +637,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -634,6 +660,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 
@@ -653,6 +680,7 @@ class GovNotifyEmailServiceTest {
         "preAppointmentInfo" to "bobs pre-appointment info",
         "mainAppointmentInfo" to "bobs main appointment info",
         "postAppointmentInfo" to "bob post appointment info",
+        "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
       ),
       null,
@@ -804,6 +832,7 @@ class GovNotifyEmailServiceTest {
         postAppointmentInfo = "bob post appointment info",
         court = "the court",
         prison = "the prison",
+        courtHearingLink = "https://video.link.com",
       ),
     )
 

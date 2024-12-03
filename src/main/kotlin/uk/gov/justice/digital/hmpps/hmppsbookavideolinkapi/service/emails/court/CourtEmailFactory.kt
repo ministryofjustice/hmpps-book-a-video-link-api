@@ -45,6 +45,7 @@ object CourtEmailFactory {
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
+        courtHearingLink = booking.videoUrl,
       )
       BookingAction.AMEND -> AmendedCourtBookingUserEmail(
         address = contact.email!!,
@@ -59,6 +60,7 @@ object CourtEmailFactory {
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
+        courtHearingLink = booking.videoUrl,
       )
       BookingAction.CANCEL -> {
         booking.requireIsCancelled()
@@ -76,6 +78,7 @@ object CourtEmailFactory {
           mainAppointmentInfo = main.appointmentInformation(locations),
           postAppointmentInfo = post?.appointmentInformation(locations),
           comments = booking.comments,
+          courtHearingLink = booking.videoUrl,
         )
       }
 
@@ -113,6 +116,7 @@ object CourtEmailFactory {
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
+        courtHearingLink = booking.videoUrl,
       )
 
       BookingAction.AMEND -> AmendedCourtBookingCourtEmail(
@@ -127,6 +131,7 @@ object CourtEmailFactory {
         mainAppointmentInfo = main.appointmentInformation(locations),
         postAppointmentInfo = post?.appointmentInformation(locations),
         comments = booking.comments,
+        courtHearingLink = booking.videoUrl,
       )
 
       BookingAction.CANCEL -> {
@@ -144,6 +149,7 @@ object CourtEmailFactory {
           mainAppointmentInfo = main.appointmentInformation(locations),
           postAppointmentInfo = post?.appointmentInformation(locations),
           comments = booking.comments,
+          courtHearingLink = booking.videoUrl,
         )
       }
 
@@ -238,6 +244,7 @@ object CourtEmailFactory {
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
             comments = booking.comments,
+            courtHearingLink = booking.videoUrl,
           )
         } else {
           NewCourtBookingPrisonNoCourtEmail(
@@ -252,6 +259,7 @@ object CourtEmailFactory {
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
             comments = booking.comments,
+            courtHearingLink = booking.videoUrl,
           )
         }
       }
@@ -271,6 +279,7 @@ object CourtEmailFactory {
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
             comments = booking.comments,
+            courtHearingLink = booking.videoUrl,
           )
         } else {
           AmendedCourtBookingPrisonNoCourtEmail(
@@ -285,6 +294,7 @@ object CourtEmailFactory {
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
             comments = booking.comments,
+            courtHearingLink = booking.videoUrl,
           )
         }
       }
@@ -306,6 +316,7 @@ object CourtEmailFactory {
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
             comments = booking.comments,
+            courtHearingLink = booking.videoUrl,
           )
         } else {
           CancelledCourtBookingPrisonNoCourtEmail(
@@ -320,6 +331,7 @@ object CourtEmailFactory {
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
             comments = booking.comments,
+            courtHearingLink = booking.videoUrl,
           )
         }
       }
