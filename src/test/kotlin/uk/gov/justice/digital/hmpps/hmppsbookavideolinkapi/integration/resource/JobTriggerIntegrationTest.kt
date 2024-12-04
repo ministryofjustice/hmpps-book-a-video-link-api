@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
+import org.junit.jupiter.api.Assumptions.assumingThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.daysFromNow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
@@ -28,6 +30,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType
 import java.nio.charset.StandardCharsets
+import java.time.DayOfWeek.FRIDAY
+import java.time.DayOfWeek.MONDAY
+import java.time.DayOfWeek.SUNDAY
+import java.time.DayOfWeek.THURSDAY
+import java.time.DayOfWeek.TUESDAY
+import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalTime
 import kotlin.reflect.KClass
 
@@ -41,66 +49,106 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
   private lateinit var notificationRepository: NotificationRepository
 
   @Test
-  fun `should send an email to the court to remind them to add the court hearing link to a booking scheduled for tomorrow`() {
-    videoBookingRepository.findAll() hasSize 0
-    notificationRepository.findAll() hasSize 0
+  fun `should send an email to the court to remind them to add the court hearing link to a booking scheduled for tomorrow for Monday to Thursday and Sunday`() {
+    assumingThat(today().dayOfWeek in listOf(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, SUNDAY)) {
+      videoBookingRepository.findAll() hasSize 0
+      notificationRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+      prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
 
-    val courtBookingRequest = courtBookingRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
-      prisonerNumber = "123456",
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
-      date = tomorrow(),
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
-      videoLinkUrl = null,
-    )
+      val courtBookingRequest = courtBookingRequest(
+        courtCode = DERBY_JUSTICE_CENTRE,
+        prisonerNumber = "123456",
+        prisonCode = BIRMINGHAM,
+        location = birminghamLocation,
+        date = tomorrow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(12, 30),
+        comments = "integration test court booking comments",
+        videoLinkUrl = null,
+      )
 
-    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+      val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
-    notificationRepository.deleteAll()
+      notificationRepository.deleteAll()
 
-    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+      val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
-    webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
+      webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
 
-    // There should be 2 notifications - one email to each enabled court contact to remind them to add the court hearing link
-    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+      // There should be 2 notifications - one email to each enabled court contact to remind them to add the court hearing link
+      val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
-    notifications.isPresent("j@j.com", CourtHearingLinkReminderEmail::class, persistedBooking)
-    notifications.isPresent("b@b.com", CourtHearingLinkReminderEmail::class, persistedBooking)
+      notifications.isPresent("j@j.com", CourtHearingLinkReminderEmail::class, persistedBooking)
+      notifications.isPresent("b@b.com", CourtHearingLinkReminderEmail::class, persistedBooking)
+    }
+  }
+
+  @Test
+  fun `should send an email to the court to remind them to add the court hearing link to a booking scheduled for 3 days from Friday`() {
+    assumingThat(today().dayOfWeek == FRIDAY) {
+      videoBookingRepository.findAll() hasSize 0
+      notificationRepository.findAll() hasSize 0
+
+      prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+
+      val courtBookingRequest = courtBookingRequest(
+        courtCode = DERBY_JUSTICE_CENTRE,
+        prisonerNumber = "123456",
+        prisonCode = BIRMINGHAM,
+        location = birminghamLocation,
+        date = 3.daysFromNow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(12, 30),
+        comments = "integration test court booking comments",
+        videoLinkUrl = null,
+      )
+
+      val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+      notificationRepository.deleteAll()
+
+      val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+      webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
+
+      // There should be 2 notifications - one email to each enabled court contact to remind them to add the court hearing link
+      val notifications = notificationRepository.findAll().also { it hasSize 2 }
+
+      notifications.isPresent("j@j.com", CourtHearingLinkReminderEmail::class, persistedBooking)
+      notifications.isPresent("b@b.com", CourtHearingLinkReminderEmail::class, persistedBooking)
+    }
   }
 
   @Test
   fun `should not send a court hearing link reminder email to the court for bookings after tomorrow`() {
-    videoBookingRepository.findAll() hasSize 0
-    notificationRepository.findAll() hasSize 0
+    assumingThat(today().dayOfWeek in listOf(MONDAY, TUESDAY, WEDNESDAY, THURSDAY)) {
+      videoBookingRepository.findAll() hasSize 0
+      notificationRepository.findAll() hasSize 0
 
-    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+      prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
 
-    val courtBookingRequest = courtBookingRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
-      prisonerNumber = "123456",
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
-      date = 2.daysFromNow(),
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
-      videoLinkUrl = null,
-    )
+      val courtBookingRequest = courtBookingRequest(
+        courtCode = DERBY_JUSTICE_CENTRE,
+        prisonerNumber = "123456",
+        prisonCode = BIRMINGHAM,
+        location = birminghamLocation,
+        date = 2.daysFromNow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(12, 30),
+        comments = "integration test court booking comments",
+        videoLinkUrl = null,
+      )
 
-    webTestClient.createBooking(courtBookingRequest, COURT_USER)
+      webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
-    notificationRepository.deleteAll()
+      notificationRepository.deleteAll()
 
-    webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
+      webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
 
-    // There should be 0 notifications
-    notificationRepository.findAll().also { it hasSize 0 }
+      // There should be 0 notifications
+      notificationRepository.findAll().also { it hasSize 0 }
+    }
   }
 
   @Test
