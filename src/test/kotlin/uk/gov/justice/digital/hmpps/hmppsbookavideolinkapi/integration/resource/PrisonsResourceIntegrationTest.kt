@@ -74,7 +74,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
     val response = webTestClient.getAppointmentLocations(WANDSWORTH)
 
-    response.single() isEqualTo Location(key = "VIDEOLINK", description = "$WANDSWORTH VIDEOLINK", true)
+    response.single() isEqualTo Location(key = "VIDEOLINK", description = "Wwi Videolink", true)
   }
 
   @Test
@@ -84,8 +84,8 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
     val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?videoLinkOnly=false")
 
     response containsExactlyInAnyOrder listOf(
-      Location(key = "VIDEOLINK", description = "$WANDSWORTH VIDEOLINK", true),
-      Location(key = "NOT_VIDEO_LINK", description = "$WANDSWORTH NOT_VIDEO_LINK", true),
+      Location(key = "VIDEOLINK", description = "Wwi Videolink", true),
+      Location(key = "NOT_VIDEO_LINK", description = "Wwi Not_video_link", true),
     )
   }
 
