@@ -18,7 +18,7 @@ generic-service:
     FEATURE_EVENTS_SNS_ENABLED: true
 
     postgresDatabaseRestore:
-      enabled: false
+      enabled: true
       namespace_secrets:
         rds-postgresql-instance-output:
           DB_NAME: "database_name"
