@@ -25,7 +25,6 @@ class HealthCheckTest : IntegrationTestBase() {
       .jsonPath("components.manageUsersApi.status").isEqualTo("UP")
       .jsonPath("components.prisonerSearchApi.status").isEqualTo("UP")
       .jsonPath("components.nomisMappingApi.status").isEqualTo("UP")
-      .jsonPath("components.whereaboutsApi.status").isEqualTo("UP")
       .jsonPath("components.db.status").isEqualTo("UP")
       .jsonPath("components.db.details.database").isEqualTo("PostgreSQL")
   }
@@ -46,7 +45,6 @@ class HealthCheckTest : IntegrationTestBase() {
       .jsonPath("components.manageUsersApi.status").isEqualTo("DOWN")
       .jsonPath("components.prisonerSearchApi.status").isEqualTo("DOWN")
       .jsonPath("components.nomisMappingApi.status").isEqualTo("DOWN")
-      .jsonPath("components.whereaboutsApi.status").isEqualTo("DOWN")
   }
 
   @Test

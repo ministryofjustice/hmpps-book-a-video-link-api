@@ -22,7 +22,7 @@ class TelemetryServiceTest {
   }
 
   @Test
-  fun `should raise a migration telemetry event`() {
+  fun `should raise a metric telemetry event`() {
     val standardEvent = object : MetricTelemetryEvent("FAKE-metric-event") {
       override fun properties() = mapOf("metric property key" to "metric property value")
       override fun metrics() = mapOf("metric metric key" to 1.0)

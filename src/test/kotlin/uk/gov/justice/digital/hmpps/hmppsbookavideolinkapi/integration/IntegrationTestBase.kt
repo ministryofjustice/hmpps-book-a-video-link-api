@@ -26,10 +26,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.NomisMappingApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.migration.NomisMappingApiExtension
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.migration.WhereaboutsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
@@ -44,7 +43,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
   ManageUsersApiExtension::class,
   PrisonApiExtension::class,
   PrisonerSearchApiExtension::class,
-  WhereaboutsApiExtension::class,
   NomisMappingApiExtension::class,
 )
 @Sql(
@@ -87,7 +85,6 @@ abstract class IntegrationTestBase {
     manageUsersApi().stubHealthPing(status)
     prisonerApi().stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
-    whereaboutsApi().stubHealthPing(status)
     nomisMappingApi().stubHealthPing(status)
   }
 
@@ -97,8 +94,6 @@ abstract class IntegrationTestBase {
   protected fun locationsInsidePrisonApi() = LocationsInsidePrisonApiExtension.server
 
   protected fun manageUsersApi() = ManageUsersApiExtension.server
-
-  protected fun whereaboutsApi() = WhereaboutsApiExtension.server
 
   protected fun nomisMappingApi() = NomisMappingApiExtension.server
 
