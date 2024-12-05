@@ -27,6 +27,3 @@ class PrisonerSearchApiHealthPingCheck(@Qualifier("prisonerSearchApiHealthWebCli
 
 @Component("nomisMappingApi")
 class NomisMappingApiHealthPingCheck(@Qualifier("nomisMappingApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
-
-@Component("whereaboutsApi")
-class WhereaboutsApiHealthPingCheck(@Qualifier("whereaboutsApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)

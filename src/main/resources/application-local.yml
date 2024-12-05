@@ -26,7 +26,6 @@ api:
       manage-users: https://manage-users-api-dev.hmpps.service.justice.gov.uk
       prison-api: https://prison-api-dev.prison.service.justice.gov.uk
       prisoner-search: https://prisoner-search-dev.prison.service.justice.gov.uk
-      whereabouts: https://whereabouts-api-dev.service.justice.gov.uk
       nomis-mapping: https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk
 bvls:
   frontend:

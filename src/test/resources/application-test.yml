@@ -30,7 +30,6 @@ api:
       prisoner-search: http://localhost:8092
       manage-users: http://localhost:8093
       prison-api: http://localhost:8094
-      whereabouts: http://localhost:8095
       nomis-mapping: http://localhost:8096
 
 bvls:
