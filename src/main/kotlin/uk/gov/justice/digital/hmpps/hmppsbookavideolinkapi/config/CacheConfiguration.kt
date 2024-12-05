@@ -21,8 +21,6 @@ class CacheConfiguration {
 
     const val VIDEO_LINK_LOCATIONS_CACHE_NAME: String = "video_link_locations"
     const val NON_RESIDENTIAL_LOCATIONS_CACHE_NAME: String = "non_residential_locations"
-    const val MIGRATION_LOCATIONS_CACHE_NAME: String = "locations_by_internal_id"
-    const val MIGRATION_PRISONERS_CACHE_NAME: String = "prisoners_by_booking_id"
     const val ROLLED_OUT_PRISONS_CACHE_NAME = "rolled_out_prisons"
   }
 
@@ -31,40 +29,24 @@ class CacheConfiguration {
     ConcurrentMapCacheManager(
       VIDEO_LINK_LOCATIONS_CACHE_NAME,
       NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
-      MIGRATION_LOCATIONS_CACHE_NAME,
-      MIGRATION_PRISONERS_CACHE_NAME,
       ROLLED_OUT_PRISONS_CACHE_NAME,
     )
 
   @CacheEvict(value = [VIDEO_LINK_LOCATIONS_CACHE_NAME])
-  @Scheduled(fixedDelay = 12, timeUnit = TimeUnit.HOURS)
+  @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
   fun cacheEvictVideoLinkLocations() {
-    log.info("Evicting cache: $VIDEO_LINK_LOCATIONS_CACHE_NAME after 12 hours")
+    log.info("Evicting cache: $VIDEO_LINK_LOCATIONS_CACHE_NAME after 5 mins")
   }
 
   @CacheEvict(value = [NON_RESIDENTIAL_LOCATIONS_CACHE_NAME])
-  @Scheduled(fixedDelay = 12, timeUnit = TimeUnit.HOURS)
+  @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
   fun cacheEvictNonResidentialLocations() {
-    log.info("Evicting cache: $NON_RESIDENTIAL_LOCATIONS_CACHE_NAME after 12 hours")
-  }
-
-  @Deprecated(message = "Can be removed when migration is completed")
-  @CacheEvict(value = [MIGRATION_LOCATIONS_CACHE_NAME])
-  @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.HOURS)
-  fun cacheEvictLocationsById() {
-    log.info("Evicting cache: $MIGRATION_LOCATIONS_CACHE_NAME after 3 hours")
-  }
-
-  @Deprecated(message = "Can be removed when migration is completed")
-  @CacheEvict(value = [MIGRATION_PRISONERS_CACHE_NAME])
-  @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.HOURS)
-  fun cacheEvictPrisonersByBookingId() {
-    log.info("Evicting cache: $MIGRATION_PRISONERS_CACHE_NAME after 3 hours")
+    log.info("Evicting cache: $NON_RESIDENTIAL_LOCATIONS_CACHE_NAME after 5 mins")
   }
 
   @CacheEvict(value = [ROLLED_OUT_PRISONS_CACHE_NAME])
-  @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.HOURS)
+  @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
   fun cacheEvictRolledOutPrisons() {
-    log.info("Evicting cache: $ROLLED_OUT_PRISONS_CACHE_NAME after 3 hours")
+    log.info("Evicting cache: $ROLLED_OUT_PRISONS_CACHE_NAME after 5 mins")
   }
 }
