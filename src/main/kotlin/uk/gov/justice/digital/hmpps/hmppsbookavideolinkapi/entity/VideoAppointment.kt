@@ -35,11 +35,19 @@ data class VideoAppointment(
 
   val appointmentType: String,
 
-  val prisonLocationId: UUID,
+  override val prisonLocationId: UUID,
 
   val appointmentDate: LocalDate,
 
-  val startTime: LocalTime,
+  override val startTime: LocalTime,
 
-  val endTime: LocalTime,
-)
+  override val endTime: LocalTime,
+) : AppointmentSlot
+
+interface AppointmentSlot {
+  val prisonLocationId: UUID
+
+  val startTime: LocalTime
+
+  val endTime: LocalTime
+}

@@ -3,13 +3,13 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AppointmentSlot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingOption
 import java.time.LocalTime
-import java.util.TreeMap
+import java.util.*
 
 @Service
 class AvailabilityFinderService(
@@ -19,7 +19,7 @@ class AvailabilityFinderService(
   private val maxAlternatives: Int = 3,
 ) {
 
-  fun getOptions(request: AvailabilityRequest, appointments: List<VideoAppointment>, locations: List<Location>): AvailabilityResponse {
+  fun getOptions(request: AvailabilityRequest, appointments: List<AppointmentSlot>, locations: List<Location>): AvailabilityResponse {
     // Create a Map of <PrisonLocKey, Timeline> from the existing appointments - so we can check and find gaps
     val timelinesByLocation = timelinesByLocationKey(appointments, locations)
 
@@ -49,14 +49,14 @@ class AvailabilityFinderService(
         .toLocationsAndIntervals()
         .all { timelinesByLocationId[it.prisonLocKey]?.isFreeForInterval(it.interval) ?: true }
 
-    fun timelinesByLocationKey(appointments: List<VideoAppointment>, locations: List<Location>): Map<String, Timeline> =
-      appointments
+    fun timelinesByLocationKey(slots: List<AppointmentSlot>, locations: List<Location>): Map<String, Timeline> =
+      slots
         .groupBy { a -> locations.single { it.id == a.prisonLocationId }.key }
         .mapValues { (_, appointments) -> appointments.flatMap(::toEvents) }
         .mapValues { Timeline(it.value) }
 
-    private fun toEvents(appointment: VideoAppointment) =
-      listOf(StartEvent(appointment.startTime), EndEvent(appointment.endTime))
+    private fun toEvents(slot: AppointmentSlot) =
+      listOf(StartEvent(slot.startTime), EndEvent(slot.endTime))
   }
 }
 
