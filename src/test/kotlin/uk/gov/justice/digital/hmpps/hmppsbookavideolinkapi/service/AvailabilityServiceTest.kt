@@ -26,6 +26,7 @@ import java.util.UUID
 class AvailabilityServiceTest {
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val externalAppointmentsService: ExternalAppointmentsService = mock()
 
   private val availabilityOptionsGenerator = AvailabilityOptionsGenerator(
     dayStart = LocalTime.of(9, 0),
@@ -39,6 +40,7 @@ class AvailabilityServiceTest {
     videoAppointmentRepository,
     locationsInsidePrisonClient,
     availabilityFinderService,
+    externalAppointmentsService,
   )
 
   private fun createVideoAppointment(
