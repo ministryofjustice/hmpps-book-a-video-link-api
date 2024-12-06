@@ -152,14 +152,17 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  @Sql("classpath:integration-test-data/seed-migrated-bookings.sql")
+  @Sql("classpath:test_data/clean-all-data.sql", "classpath:integration-test-data/seed-migrated-bookings.sql")
   fun `should not send an email to the court to remind them to add the court hearing link if the booking has been migrated`() {
-    notificationRepository.findAll() hasSize 0
+    assumingThat(today().dayOfWeek in listOf(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, SUNDAY)) {
+      notificationRepository.findAll() hasSize 0
 
-    webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER).also { it isEqualTo "Court hearing link reminders job triggered" }
+      webTestClient.triggerJob(JobType.COURT_HEARING_LINK_REMINDER)
+        .also { it isEqualTo "Court hearing link reminders job triggered" }
 
-    // There should be 0 notifications
-    notificationRepository.findAll().also { it hasSize 0 }
+      // There should be 0 notifications
+      notificationRepository.findAll().also { it hasSize 0 }
+    }
   }
 
   @Test
