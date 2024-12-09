@@ -89,8 +89,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
   }
 
   /**
-   * This will only return appointments that have an end time. We need this so we can match it to booked appointments in
-   * BVLS should we have to.
+   * Gets appointments in this prison, on this date, at a specific internal location ID.
    */
   fun getScheduledAppointments(prisonCode: String, date: LocalDate, locationId: Long) =
     prisonApiWebClient.get()
@@ -103,7 +102,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       }
       .retrieve()
       .bodyToMono(typeReference<List<ScheduledAppointment>>())
-      .block()?.filter { it.endTime != null } ?: emptyList()
+      .block() ?: emptyList()
 }
 
 // Overriding due to deserialisation issues from generated type. Only including fields we are interested in.

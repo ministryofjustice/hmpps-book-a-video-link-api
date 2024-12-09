@@ -38,11 +38,11 @@ class AvailabilityService(
    */
   fun checkAvailability(request: AvailabilityRequest, includeExternalAppointments: Boolean = false): AvailabilityResponse {
     if (!includeExternalAppointments) {
-      log.info("Availability check looking in BVLS only")
-      return checkAvailability(request)
+      log.info("Availability check looking in BVLS at type VLB appointments only")
+      return checkAvailabilityVlbOnly(request)
     }
 
-    log.info("Availability check looking in BVLS and external.")
+    log.info("Availability check looking at BVLS and other non-VLB appointment types")
 
     // Gather the distinct list of locations from the request
     val locationKeys = setOfNotNull(
@@ -55,7 +55,7 @@ class AvailabilityService(
 
     val requestedLocations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys)
 
-    // Get the existing VLB appointments at these locations, on this date
+    // Build a list of AppointmentSlot for existing VLBs from BVLS at these locations on this date
     val (bvlsAppointmentSlotsToInclude: List<AppointmentSlot>, appointmentsToExclude: List<AppointmentSlot>) = videoAppointmentRepository.findVideoAppointmentsAtPrison(
       forDate = request.date!!,
       forPrison = request.prisonCode!!,
@@ -65,6 +65,7 @@ class AvailabilityService(
     log.info("Found ${bvlsAppointmentSlotsToInclude.size}, including appointments in these rooms")
     log.info("Found ${appointmentsToExclude.size}, excluding appointments in these rooms")
 
+    // Build list of AppointmentSlot for all external non-VLB appointments from NOMIS in these locations on this date
     val externalAppointmentSlotsToInclude: List<AppointmentSlot> =
       requestedLocations
         .flatMap { externalAppointmentsService.getAppointmentSlots(request.prisonCode, request.date, it.id) }
@@ -79,6 +80,10 @@ class AvailabilityService(
         }
 
     log.info("Found ${externalAppointmentSlotsToInclude.size}, including external appointments in these rooms")
+
+    bvlsAppointmentSlotsToInclude.plus(externalAppointmentSlotsToInclude).map { slot ->
+      log.info("${slot.prisonLocationId} - ${slot.prisonerNumber} - ${slot.appointmentDate} - ${slot.startTime} - ${slot.endTime}")
+    }
 
     // Check if the requested times are free, and offer alternatives if not
     return availabilityFinderService.getOptions(
@@ -101,7 +106,7 @@ class AvailabilityService(
    *  - Get other VCC-enabled rooms at these prison(s) and offer them?
    *  - Incorporate prison room decoration logic here, to find other rooms?
    */
-  private fun checkAvailability(request: AvailabilityRequest): AvailabilityResponse {
+  fun checkAvailabilityVlbOnly(request: AvailabilityRequest): AvailabilityResponse {
     // Gather the distinct list of locations from the request
     val locationKeys = setOfNotNull(
       request.preAppointment?.prisonLocKey,
@@ -113,7 +118,7 @@ class AvailabilityService(
 
     val locations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys)
 
-    // Get the existing VLB appointments at these locations, on this date
+    // Get the existing VLB appointments at these locations on this date, and ignore any VLBs to exclude
     val videoAppointments = videoAppointmentRepository.findVideoAppointmentsAtPrison(
       forDate = request.date!!,
       forPrison = request.prisonCode!!,
@@ -132,9 +137,16 @@ class ExternalAppointmentsService(
   private val prisonApiClient: PrisonApiClient,
   private val nomisMappingClient: NomisMappingClient,
 ) {
+  /**
+   * Get the prison appointments on a date at a specific internal location ID in the prison
+   * - filter any appointments where the end-time is null (we cannot infer the duration)
+   * - filter any VLB appointment types as these will be retrieved from BVLS itself for checking.
+   */
   fun getAppointmentSlots(prisonCode: String, date: LocalDate, location: UUID) =
     nomisMappingClient.getNomisLocationMappingBy(location)
       ?.let { prisonApiClient.getScheduledAppointments(prisonCode, date, it.nomisLocationId) }
+      ?.filter { it.endTime != null }
+      ?.filter { it.appointmentTypeCode != "VLB" }
       ?.map { ExternalAppointmentSlot(location, it.offenderNo, it.startTime.toLocalDate(), it.startTime.toLocalTime(), it.endTime!!.toLocalTime()) }
       ?: emptyList()
 
