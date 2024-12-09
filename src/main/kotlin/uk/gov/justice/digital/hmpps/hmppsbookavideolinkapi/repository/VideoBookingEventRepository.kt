@@ -21,7 +21,7 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
   @Query(
     value = """
       FROM VideoBookingEvent vbe 
-      WHERE (vbe.dateOfBooking >= :fromDate AND vbe.dateOfBooking < :toDate)
+      WHERE (cast(vbe.timestamp AS LocalDate) >= :fromDate AND vbe.dateOfBooking < :toDate)
       AND   vbe.courtBooking = :isCourtBooking
       ORDER BY vbe.eventId
     """,
