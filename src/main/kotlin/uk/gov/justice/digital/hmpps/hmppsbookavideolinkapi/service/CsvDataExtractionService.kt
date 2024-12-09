@@ -26,28 +26,34 @@ class CsvDataExtractionService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  /**
+   * fromDate is inclusive and endDate is exclusive
+   */
   @Transactional(readOnly = true)
-  fun courtBookingsByHearingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
-    checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+  fun courtBookingsByHearingDateToCsv(inclusiveFromDate: LocalDate, exclusiveToDate: LocalDate, csvOutputStream: OutputStream) {
+    checkDaysBetweenDoesNotExceedAYear(inclusiveFromDate, exclusiveToDate)
 
     val total: Int
     val elapsed = measureTimeMillis {
-      total = writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, fromDate, toDate), csvOutputStream)
+      total = writeCourtBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(true, inclusiveFromDate, exclusiveToDate), csvOutputStream)
     }
 
-    log.info("CSV: time taken downloading $total court bookings by hearing date from $fromDate to $toDate in millis=$elapsed")
+    log.info("CSV: time taken downloading $total court bookings by hearing date from $inclusiveFromDate to $exclusiveToDate in millis=$elapsed")
   }
 
+  /**
+   * fromDate is inclusive and endDate is exclusive
+   */
   @Transactional(readOnly = true)
-  fun courtBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
-    checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+  fun courtBookingsByBookingDateToCsv(inclusiveFromDate: LocalDate, exclusiveToDate: LocalDate, csvOutputStream: OutputStream) {
+    checkDaysBetweenDoesNotExceedAYear(inclusiveFromDate, exclusiveToDate)
 
     val total: Int
     val elapsed = measureTimeMillis {
-      total = writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, fromDate, toDate), csvOutputStream)
+      total = writeCourtBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(true, inclusiveFromDate, exclusiveToDate), csvOutputStream)
     }
 
-    log.info("CSV: time taken downloading $total court bookings by booking date from $fromDate to $toDate in millis=$elapsed")
+    log.info("CSV: time taken downloading $total court bookings by booking date from $inclusiveFromDate to $exclusiveToDate in millis=$elapsed")
   }
 
   private fun writeCourtBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream): Int {
@@ -71,28 +77,34 @@ class CsvDataExtractionService(
     return counter
   }
 
+  /**
+   * fromDate is inclusive and endDate is exclusive
+   */
   @Transactional(readOnly = true)
-  fun probationBookingsByMeetingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
-    checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+  fun probationBookingsByMeetingDateToCsv(inclusiveFromDate: LocalDate, exclusiveToDate: LocalDate, csvOutputStream: OutputStream) {
+    checkDaysBetweenDoesNotExceedAYear(inclusiveFromDate, exclusiveToDate)
 
     val total: Int
     val elapsed = measureTimeMillis {
-      total = writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, fromDate, toDate), csvOutputStream)
+      total = writeProbationBookingsToCsv(videoBookingEventRepository.findByMainDateBetween(false, inclusiveFromDate, exclusiveToDate), csvOutputStream)
     }
 
-    log.info("CSV: time taken downloading $total probation bookings by meeting date from $fromDate to $toDate in millis=$elapsed")
+    log.info("CSV: time taken downloading $total probation bookings by meeting date from $inclusiveFromDate to $exclusiveToDate in millis=$elapsed")
   }
 
+  /**
+   * fromDate is inclusive and endDate is exclusive
+   */
   @Transactional(readOnly = true)
-  fun probationBookingsByBookingDateToCsv(fromDate: LocalDate, toDate: LocalDate, csvOutputStream: OutputStream) {
-    checkDaysBetweenDoesNotExceedAYear(fromDate, toDate)
+  fun probationBookingsByBookingDateToCsv(inclusiveFromDate: LocalDate, exclusiveToDate: LocalDate, csvOutputStream: OutputStream) {
+    checkDaysBetweenDoesNotExceedAYear(inclusiveFromDate, exclusiveToDate)
 
     val total: Int
     val elapsed = measureTimeMillis {
-      total = writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, fromDate, toDate), csvOutputStream)
+      total = writeProbationBookingsToCsv(videoBookingEventRepository.findByDateOfBookingBetween(false, inclusiveFromDate, exclusiveToDate), csvOutputStream)
     }
 
-    log.info("CSV: time taken downloading $total probation bookings by booking date from $fromDate to $toDate in millis=$elapsed")
+    log.info("CSV: time taken downloading $total probation bookings by booking date from $inclusiveFromDate to $exclusiveToDate in millis=$elapsed")
   }
 
   private fun writeProbationBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream): Int {
