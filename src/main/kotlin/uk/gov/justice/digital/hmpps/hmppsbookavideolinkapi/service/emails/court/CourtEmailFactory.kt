@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.allCapitals
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.capitalisedWords
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
@@ -418,7 +419,7 @@ object CourtEmailFactory {
   private fun PrisonAppointment.appointmentInformation(locations: Map<UUID, Location>) =
     "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
-  private fun Map<UUID, Location>.room(id: UUID) = this[id]?.localName?.capitalisedWords() ?: ""
+  private fun Map<UUID, Location>.room(id: UUID) = this[id]?.localName?.capitalisedWords()?.allCapitals("VCC")?.allCapitals("PCVL") ?: ""
 
   private fun Collection<BookingContact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
 

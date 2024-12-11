@@ -12,6 +12,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
@@ -79,13 +81,17 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should get all possible appointment locations`() {
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("VIDEOLINK", "NOT_VIDEO_LINK"), prisonCode = WANDSWORTH)
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(
+      WANDSWORTH,
+      wandsworthLocation.copy(key = "VIDEOLINK", localName = "VCC - ROOM - 1"),
+      wandsworthLocation2.copy(key = "NOT_VIDEO_LINK", localName = "PCVL - ROOM - 2"),
+    )
 
     val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?videoLinkOnly=false")
 
     response containsExactlyInAnyOrder listOf(
-      Location(key = "VIDEOLINK", description = "Wwi Videolink", true),
-      Location(key = "NOT_VIDEO_LINK", description = "Wwi Not_video_link", true),
+      Location(key = "VIDEOLINK", description = "VCC - Room - 1", true),
+      Location(key = "NOT_VIDEO_LINK", description = "PCVL - Room - 2", true),
     )
   }
 

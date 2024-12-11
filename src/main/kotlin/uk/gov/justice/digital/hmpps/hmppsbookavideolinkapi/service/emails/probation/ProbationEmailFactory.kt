@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.allCapitals
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.capitalisedWords
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
@@ -347,7 +348,7 @@ object ProbationEmailFactory {
   }
 
   private fun PrisonAppointment.appointmentInformation(location: Location) =
-    "${location.localName?.capitalisedWords()} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
+    "${location.localName?.capitalisedWords()?.allCapitals("VCC")?.allCapitals("PCVL")} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Collection<BookingContact>.primaryProbationContact() =
     singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
