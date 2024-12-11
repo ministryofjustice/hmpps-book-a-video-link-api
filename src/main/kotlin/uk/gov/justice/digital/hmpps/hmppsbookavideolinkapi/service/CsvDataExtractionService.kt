@@ -59,7 +59,7 @@ class CsvDataExtractionService(
   private fun writeCourtBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream): Int {
     val courtEvents = events
       // We include all non-residential locations for CSV to support migrated bookings which could be at any appointment location
-      .map { CourtBookingEvent(it, locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode, false).toSet()) }
+      .map { CourtBookingEvent(it, locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode).toSet()) }
       .asSequence()
 
     var counter = 0
@@ -110,7 +110,7 @@ class CsvDataExtractionService(
   private fun writeProbationBookingsToCsv(events: Stream<VideoBookingEvent>, csvOutputStream: OutputStream): Int {
     val probationEvents = events
       // We include all non-residential locations for CSV to support migrated bookings which could be at any appointment location
-      .map { ProbationBookingEvent(it, locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode, false).toSet()) }
+      .map { ProbationBookingEvent(it, locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(it.prisonCode).toSet()) }
       .asSequence()
 
     var counter = 0

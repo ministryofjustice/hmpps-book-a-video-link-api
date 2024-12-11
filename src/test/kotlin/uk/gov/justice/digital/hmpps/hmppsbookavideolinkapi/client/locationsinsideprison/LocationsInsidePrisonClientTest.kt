@@ -50,21 +50,12 @@ class LocationsInsidePrisonClientTest {
   }
 
   @Test
-  fun `should only return leaf level non-residential locations`() {
-    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = true))
+  fun `should return all non-residential locations`() {
+    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = false))
     client.getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH).single().key isEqualTo wandsworthLocation.key
 
     server.stubNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, pentonvilleLocation.copy(leafLevel = false))
-    client.getNonResidentialAppointmentLocationsAtPrison(PENTONVILLE) hasSize 0
-  }
-
-  @Test
-  fun `should return all non-residential locations`() {
-    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = false))
-    client.getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, false).single().key isEqualTo wandsworthLocation.key
-
-    server.stubNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, pentonvilleLocation.copy(leafLevel = false))
-    client.getNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, false).single().key isEqualTo pentonvilleLocation.key
+    client.getNonResidentialAppointmentLocationsAtPrison(PENTONVILLE).single().key isEqualTo pentonvilleLocation.key
   }
 
   @AfterEach

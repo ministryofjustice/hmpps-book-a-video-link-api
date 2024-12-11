@@ -70,8 +70,8 @@ class CsvDataExtractionServiceTest {
   @BeforeEach
   fun before() {
     locationsInsidePrisonClient.stub {
-      on { getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, false) } doReturn listOf(wandsworthLocation)
-      on { getNonResidentialAppointmentLocationsAtPrison(RISLEY, false) } doReturn listOf(risleyLocation)
+      on { getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH) } doReturn listOf(wandsworthLocation)
+      on { getNonResidentialAppointmentLocationsAtPrison(RISLEY) } doReturn listOf(risleyLocation)
     }
   }
 
