@@ -16,6 +16,8 @@ import java.util.UUID
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
+private const val RETURN_TO_UNIT = "RTU"
+
 @Component
 class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient: WebClient) {
   companion object {
@@ -54,7 +56,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .bodyToMono(typeReference<List<Location>>())
     .doOnError { error -> log.info("Error looking up non-residential appointment locations by prison code $prisonCode in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block() ?: emptyList()
+    .block()?.filterNot { it.code == RETURN_TO_UNIT } ?: emptyList()
 
   @Cacheable(CacheConfiguration.VIDEO_LINK_LOCATIONS_CACHE_NAME)
   fun getVideoLinkLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
@@ -63,7 +65,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .bodyToMono(typeReference<List<Location>>())
     .doOnError { error -> log.info("Error looking up video link locations by prison code $prisonCode in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()?.filter(Location::leafLevel) ?: emptyList()
+    .block()?.filterNot { it.code == RETURN_TO_UNIT }?.filter(Location::leafLevel) ?: emptyList()
 }
 
 @Component

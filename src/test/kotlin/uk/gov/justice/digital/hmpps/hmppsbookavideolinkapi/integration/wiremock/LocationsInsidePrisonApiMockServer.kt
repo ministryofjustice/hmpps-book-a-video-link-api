@@ -193,6 +193,21 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
         ),
     )
   }
+
+  fun stubVideoLinkLocationsAtPrison(
+    prisonCode: String = WANDSWORTH,
+    vararg locations: Location,
+  ) {
+    stubFor(
+      get("/locations/prison/$prisonCode/location-type/VIDEO_LINK")
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(locations))
+            .withStatus(200),
+        ),
+    )
+  }
 }
 
 class LocationsInsidePrisonApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
