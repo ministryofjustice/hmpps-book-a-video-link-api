@@ -13,16 +13,6 @@ class NomisMappingClient(private val nomisMappingApiWebClient: WebClient) {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @Deprecated(message = "Can be removed when migration is completed")
-  fun getNomisLocationMappingBy(internalLocationId: Long): NomisDpsLocationMapping? = nomisMappingApiWebClient
-    .get()
-    .uri("/api/locations/nomis/{id}", internalLocationId)
-    .retrieve()
-    .bodyToMono(NomisDpsLocationMapping::class.java)
-    .doOnError { error -> log.info("Error looking up internal location mapping by nomis location id $internalLocationId in mapping service", error) }
-    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()
-
   fun getNomisLocationMappingBy(dpsLocationId: UUID): NomisDpsLocationMapping? = nomisMappingApiWebClient
     .get()
     .uri("/api/locations/dps/{id}", dpsLocationId)

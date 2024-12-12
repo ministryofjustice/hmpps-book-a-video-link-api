@@ -1,13 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.migration.MigrationClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.VIDEO_LINK_BOOKING
@@ -18,20 +16,6 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class PrisonApiMockServer : MockServer(8094) {
-
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated(message = "Can be removed when migration is completed")
-  fun stubGetPrisonerByBookingId(bookingId: Long, prisonerNumber: String) {
-    stubFor(
-      get("/api/bookings/$bookingId?basicInfo=true")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(MigrationClient.Prisoner(prisonerNumber)))
-            .withStatus(200),
-        ),
-    )
-  }
 
   fun stubPostCreateAppointment(
     bookingId: Long,

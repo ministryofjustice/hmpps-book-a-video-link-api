@@ -5,8 +5,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.AppointmentCreatedEventHandler
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.MigrateVideoBookingEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerMergedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerVideoAppointmentCancelledEventHandler
@@ -22,7 +20,6 @@ class InboundEventsServiceTest {
   private val videoBookingAmendedEventHandler: VideoBookingAmendedEventHandler = mock()
   private val prisonerReleasedEventHandler: PrisonerReleasedEventHandler = mock()
   private val prisonerMergedEventHandler: PrisonerMergedEventHandler = mock()
-  private val migrateVideoBookingEventHandler: MigrateVideoBookingEventHandler = mock()
   private val prisonerVideoAppointmentCancelledEventHandler: PrisonerVideoAppointmentCancelledEventHandler = mock()
 
   private val service = InboundEventsService(
@@ -32,7 +29,6 @@ class InboundEventsServiceTest {
     videoBookingAmendedEventHandler,
     prisonerReleasedEventHandler,
     prisonerMergedEventHandler,
-    migrateVideoBookingEventHandler,
     prisonerVideoAppointmentCancelledEventHandler,
   )
 
@@ -96,13 +92,6 @@ class InboundEventsServiceTest {
     val event = PrisonerMergedEvent(MergeInformation(nomsNumber = "NEW", removedNomsNumber = "OLD"))
     service.process(event)
     verify(prisonerMergedEventHandler).handle(event)
-  }
-
-  @Test
-  fun `should call migrate booking handler when for migrated booking event`() {
-    val event = MigrateVideoBookingEvent(1)
-    service.process(event)
-    verify(migrateVideoBookingEventHandler).handle(event)
   }
 
   @Test
