@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
@@ -50,21 +51,24 @@ class LocationsInsidePrisonClientTest {
   }
 
   @Test
-  fun `should only return leaf level non-residential locations`() {
-    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = true))
+  fun `should return all non-residential locations`() {
+    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = false))
     client.getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH).single().key isEqualTo wandsworthLocation.key
 
     server.stubNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, pentonvilleLocation.copy(leafLevel = false))
-    client.getNonResidentialAppointmentLocationsAtPrison(PENTONVILLE) hasSize 0
+    client.getNonResidentialAppointmentLocationsAtPrison(PENTONVILLE).single().key isEqualTo pentonvilleLocation.key
   }
 
   @Test
-  fun `should return all non-residential locations`() {
-    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = false))
-    client.getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, false).single().key isEqualTo wandsworthLocation.key
+  fun `should filter out return to unit from video link locations as these are not bookable`() {
+    server.stubVideoLinkLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = true, code = "NOT_RTU"), wandsworthLocation.copy(leafLevel = true, code = "RTU"))
+    client.getVideoLinkLocationsAtPrison(WANDSWORTH) containsExactlyInAnyOrder setOf(wandsworthLocation.copy(leafLevel = true, code = "NOT_RTU"))
+  }
 
-    server.stubNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, pentonvilleLocation.copy(leafLevel = false))
-    client.getNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, false).single().key isEqualTo pentonvilleLocation.key
+  @Test
+  fun `should filter out return to unit from non-residential locations as these are not bookable`() {
+    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = true, code = "NOT_RTU"), wandsworthLocation.copy(leafLevel = true, code = "RTU"))
+    client.getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH) containsExactlyInAnyOrder setOf(wandsworthLocation.copy(leafLevel = true, code = "NOT_RTU"))
   }
 
   @AfterEach

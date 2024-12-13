@@ -26,6 +26,7 @@ import java.util.UUID
 class AvailabilityServiceTest {
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val externalAppointmentsService: ExternalAppointmentsService = mock()
 
   private val availabilityOptionsGenerator = AvailabilityOptionsGenerator(
     dayStart = LocalTime.of(9, 0),
@@ -39,6 +40,7 @@ class AvailabilityServiceTest {
     videoAppointmentRepository,
     locationsInsidePrisonClient,
     availabilityFinderService,
+    externalAppointmentsService,
   )
 
   private fun createVideoAppointment(
@@ -108,7 +110,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailability(request)
+    val response = service.checkAvailabilityVlbOnly(request)
 
     assertThat(response).isNotNull
     with(response) {
@@ -133,7 +135,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailability(request)
+    val response = service.checkAvailabilityVlbOnly(request)
 
     assertThat(response).isNotNull
     with(response) {
@@ -182,7 +184,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailability(request)
+    val response = service.checkAvailabilityVlbOnly(request)
 
     assertThat(response).isNotNull
     with(response) {
@@ -223,7 +225,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailability(request)
+    val response = service.checkAvailabilityVlbOnly(request)
 
     // Room3 is busy all day
     assertThat(response).isNotNull
@@ -250,7 +252,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailability(request)
+    val response = service.checkAvailabilityVlbOnly(request)
 
     // We should exclude appointments with videoBookingId == 2L
     assertThat(response).isNotNull
@@ -277,7 +279,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailability(request)
+    val response = service.checkAvailabilityVlbOnly(request)
 
     // We should not exclude appointments with videoBookingId == 2L (conflict exists)
     assertThat(response).isNotNull

@@ -52,7 +52,7 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
       startDate,
       days,
       "video-links-by-court-hearing-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-    ) { os -> service.courtBookingsByHearingDateToCsv(fromDate = startDate, toDate = startDate.plusDays(days), os) }
+    ) { os -> service.courtBookingsByHearingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
   @GetMapping(path = ["/probation-data-by-meeting-date"])
   @Operation(description = "Return details of probation video link bookings by meeting date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
@@ -70,7 +70,7 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
       startDate,
       days,
       "video-links-by-probation-meeting-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-    ) { os -> service.probationBookingsByMeetingDateToCsv(fromDate = startDate, toDate = startDate.plusDays(days), os) }
+    ) { os -> service.probationBookingsByMeetingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
   @GetMapping(path = ["/court-data-by-booking-date"])
   @Operation(description = "Return details of court video link bookings by booking date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
@@ -88,7 +88,7 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
       startDate,
       days,
       "video-links-by-court-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-    ) { os -> service.courtBookingsByBookingDateToCsv(fromDate = startDate, toDate = startDate.plusDays(days), os) }
+    ) { os -> service.courtBookingsByBookingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
   @GetMapping(path = ["/probation-data-by-booking-date"])
   @Operation(description = "Return details of probation video link bookings by booking date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
@@ -106,7 +106,7 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
       startDate,
       days,
       "video-links-by-probation-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-    ) { os -> service.probationBookingsByBookingDateToCsv(fromDate = startDate, toDate = startDate.plusDays(days), os) }
+    ) { os -> service.probationBookingsByBookingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
   private fun streamedCsvResponse(startDate: LocalDate, days: Long, filename: String, block: (outputStream: OutputStream) -> Unit): ResponseEntity<StreamingResponseBody> {
     require(ChronoUnit.DAYS.between(startDate, startDate.plusDays(days)) <= 365) {

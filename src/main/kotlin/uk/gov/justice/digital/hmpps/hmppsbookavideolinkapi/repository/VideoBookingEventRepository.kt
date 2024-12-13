@@ -21,7 +21,7 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
   @Query(
     value = """
       FROM VideoBookingEvent vbe 
-      WHERE vbe.dateOfBooking >= :fromDate AND vbe.dateOfBooking <= :toDate
+      WHERE (cast(vbe.timestamp AS LocalDate) >= :fromDate AND cast(vbe.timestamp AS LocalDate) < :toDate)
       AND   vbe.courtBooking = :isCourtBooking
       ORDER BY vbe.eventId
     """,
@@ -44,7 +44,7 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
       FROM VideoBookingEvent vbe
       LEFT JOIN VideoBookingEvent later on vbe.videoBookingId = later.videoBookingId and vbe.timestamp < later.timestamp
       WHERE later.videoBookingId is null
-      AND   vbe.mainDate >= :fromDate and vbe.mainDate <= :toDate
+      AND   (vbe.mainDate >= :fromDate and vbe.mainDate < :toDate)
       AND   vbe.eventType != 'CANCEL'
       AND   vbe.courtBooking = :isCourtBooking
       ORDER BY vbe.mainDate, vbe.mainStartTime

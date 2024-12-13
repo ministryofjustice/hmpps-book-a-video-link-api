@@ -28,7 +28,6 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
     // This should pick up the amended event in favour of the create event.
     response contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
     response contains "-2000,2024-07-24T01:00:00,-2000,CREATE,PVI,\"Free text court name\",UNKNOWN,true,2100-07-24T12:00:00,2100-07-24T13:00:00,,,,,\"Pentonville room 3\",,\n"
-    response contains "-1100,2024-07-24T02:00:00,-1000,UPDATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2100-07-25T12:00:00,2100-07-25T13:00:00,,,,,\"Pentonville room 3\",,"
   }
 
   @Sql("classpath:integration-test-data/seed-events-by-booking-date-data-extract.sql")
