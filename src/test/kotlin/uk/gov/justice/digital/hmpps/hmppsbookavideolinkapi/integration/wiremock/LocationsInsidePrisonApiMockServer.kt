@@ -18,7 +18,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
 
   fun stubGetLocationById(location: Location) {
     stubFor(
-      get("/locations/${location.id}").willReturn(
+      get("/locations/${location.id}?formatLocalName=true").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(mapper.writeValueAsString(location))
@@ -42,19 +42,6 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     stubFor(
       post("/locations/keys")
         .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(locations.map(Location::key))))
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(locations))
-            .withStatus(200),
-        ),
-    )
-  }
-
-  fun stubPostLocationByKeys(keys: Set<String>, locations: Set<Location>) {
-    stubFor(
-      post("/locations/keys")
-        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(keys)))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -119,7 +106,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     leafLevel: Boolean = true,
   ) {
     stubFor(
-      get("/locations/prison/$prisonCode/non-residential-usage-type/APPOINTMENT")
+      get("/locations/prison/$prisonCode/non-residential-usage-type/APPOINTMENT?sortByLocalName=true&formatLocalName=true")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")

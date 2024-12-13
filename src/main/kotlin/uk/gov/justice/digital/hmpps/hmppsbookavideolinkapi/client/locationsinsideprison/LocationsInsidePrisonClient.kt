@@ -26,7 +26,12 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
   }
 
   fun getLocationById(id: UUID): Location? = locationsInsidePrisonApiWebClient.get()
-    .uri("/locations/{id}", id)
+    .uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/locations/{id}")
+        .queryParam("formatLocalName", true)
+        .build(id)
+    }
     .retrieve()
     .bodyToMono(Location::class.java)
     .doOnError { error -> log.info("Error looking up location by location id $id in locations inside prison client", error) }
