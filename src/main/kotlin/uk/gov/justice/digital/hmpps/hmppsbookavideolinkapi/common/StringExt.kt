@@ -7,7 +7,3 @@ fun String.isEmail() = this.matches(
 )
 
 fun String.toOffsetDateTime(): OffsetDateTime = OffsetDateTime.parse(this)
-
-fun String.capitalisedWords() = lowercase().split("\\s+".toRegex()).joinToString(" ") { it.replaceFirstChar(Char::uppercaseChar) }
-
-fun String.allCapitals(matching: String) = replace(matching, matching, true)

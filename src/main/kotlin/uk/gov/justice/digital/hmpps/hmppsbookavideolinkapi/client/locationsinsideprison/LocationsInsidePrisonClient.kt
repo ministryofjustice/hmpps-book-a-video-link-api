@@ -7,6 +7,7 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.util.UriBuilder
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isActive
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isAtPrison
@@ -25,7 +26,12 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
   }
 
   fun getLocationById(id: UUID): Location? = locationsInsidePrisonApiWebClient.get()
-    .uri("/locations/{id}", id)
+    .uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/locations/{id}")
+        .queryParam("formatLocalName", true)
+        .build(id)
+    }
     .retrieve()
     .bodyToMono(Location::class.java)
     .doOnError { error -> log.info("Error looking up location by location id $id in locations inside prison client", error) }
@@ -51,7 +57,13 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
 
   @Cacheable(CacheConfiguration.NON_RESIDENTIAL_LOCATIONS_CACHE_NAME)
   fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String) = locationsInsidePrisonApiWebClient.get()
-    .uri("/locations/prison/{prisonCode}/non-residential-usage-type/APPOINTMENT", prisonCode)
+    .uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/locations/prison/{prisonCode}/non-residential-usage-type/APPOINTMENT")
+        .queryParam("sortByLocalName", true)
+        .queryParam("formatLocalName", true)
+        .build(prisonCode)
+    }
     .retrieve()
     .bodyToMono(typeReference<List<Location>>())
     .doOnError { error -> log.info("Error looking up non-residential appointment locations by prison code $prisonCode in locations inside prison client", error) }
@@ -60,7 +72,13 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
 
   @Cacheable(CacheConfiguration.VIDEO_LINK_LOCATIONS_CACHE_NAME)
   fun getVideoLinkLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
-    .uri("/locations/prison/{prisonCode}/location-type/VIDEO_LINK", prisonCode)
+    .uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/locations/prison/{prisonCode}/location-type/VIDEO_LINK")
+        .queryParam("sortByLocalName", true)
+        .queryParam("formatLocalName", true)
+        .build(prisonCode)
+    }
     .retrieve()
     .bodyToMono(typeReference<List<Location>>())
     .doOnError { error -> log.info("Error looking up video link locations by prison code $prisonCode in locations inside prison client", error) }
