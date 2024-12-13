@@ -47,6 +47,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 )
 @Sql(
   "classpath:test_data/clean-all-data.sql",
+  "classpath:test_data/seed-contacts.sql",
 )
 abstract class IntegrationTestBase {
 
