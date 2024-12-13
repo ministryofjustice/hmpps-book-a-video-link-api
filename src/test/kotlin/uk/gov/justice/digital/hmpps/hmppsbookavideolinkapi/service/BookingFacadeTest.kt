@@ -18,7 +18,6 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.capitalisedWords
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
@@ -221,7 +220,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -237,7 +236,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -299,7 +298,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -315,7 +314,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -387,7 +386,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -401,7 +400,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -467,7 +466,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -483,7 +482,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -546,7 +545,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -562,7 +561,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -625,7 +624,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -679,7 +678,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -693,7 +692,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -753,7 +752,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -767,7 +766,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -827,7 +826,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -894,7 +893,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "prison" to "Wandsworth",
@@ -911,7 +910,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -979,7 +978,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "prison" to "Wandsworth",
@@ -996,7 +995,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
@@ -1067,7 +1066,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Fred Bloggs",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -1080,7 +1079,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Fred Bloggs",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -1149,7 +1148,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Fred Bloggs",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -1162,7 +1161,7 @@ class BookingFacadeTest {
           "offenderNo" to "654321",
           "prisonerName" to "Fred Bloggs",
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -1232,7 +1231,7 @@ class BookingFacadeTest {
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -1294,7 +1293,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -1308,7 +1307,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -1380,7 +1379,7 @@ class BookingFacadeTest {
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -1397,7 +1396,7 @@ class BookingFacadeTest {
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
         )
@@ -1466,7 +1465,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -1480,7 +1479,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to tomorrow().toMediumFormatStyle(),
-          "appointmentInfo" to "${birminghamLocation.localName?.capitalisedWords()} - 00:00 to 01:00",
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
         )
       }
@@ -1544,7 +1543,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to "1 Jan 2100",
           "preAppointmentInfo" to "Not required",
-          "mainAppointmentInfo" to "${wandsworthLocation.localName?.capitalisedWords()} - 11:00 to 11:30",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "Not yet known",

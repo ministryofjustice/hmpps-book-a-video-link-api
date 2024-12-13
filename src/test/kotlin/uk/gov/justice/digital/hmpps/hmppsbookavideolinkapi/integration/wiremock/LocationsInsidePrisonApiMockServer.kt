@@ -102,7 +102,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
 
   fun stubNonResidentialAppointmentLocationsAtPrison(prisonCode: String, vararg locations: Location) {
     stubFor(
-      get("/locations/prison/$prisonCode/non-residential-usage-type/APPOINTMENT")
+      get("/locations/prison/$prisonCode/non-residential-usage-type/APPOINTMENT?sortByLocalName=true&formatLocalName=true")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -160,7 +160,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     leafLevel: Boolean = true,
   ) {
     stubFor(
-      get("/locations/prison/$prisonCode/location-type/VIDEO_LINK")
+      get("/locations/prison/$prisonCode/location-type/VIDEO_LINK?sortByLocalName=true&formatLocalName=true")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -199,7 +199,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     vararg locations: Location,
   ) {
     stubFor(
-      get("/locations/prison/$prisonCode/location-type/VIDEO_LINK")
+      get("/locations/prison/$prisonCode/location-type/VIDEO_LINK?sortByLocalName=true&formatLocalName=true")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")

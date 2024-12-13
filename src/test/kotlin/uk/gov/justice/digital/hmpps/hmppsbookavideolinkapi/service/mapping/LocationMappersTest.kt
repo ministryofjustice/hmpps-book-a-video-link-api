@@ -11,15 +11,15 @@ class LocationMappersTest {
 
   @Test
   fun `should map active location to model representation`() {
-    val location = location(PENTONVILLE, "SUFFIX", true, "vCc PENTONVILLE    ROOM A1")
+    val location = location(PENTONVILLE, "SUFFIX", true, "VCC PENTONVILLE ROOM A1")
 
-    location.toModel() isEqualTo ModelLocation("PVI-SUFFIX", "VCC Pentonville Room A1", true)
+    location.toModel() isEqualTo ModelLocation("PVI-SUFFIX", "VCC PENTONVILLE ROOM A1", true)
   }
 
   @Test
   fun `should map inactive location to model representation`() {
-    val location = location(RISLEY, "SUFFIX", false, "pcVl    RISLEY ROOM    B1")
+    val location = location(RISLEY, "SUFFIX", false, "PCVL RISLEY ROOM B1")
 
-    location.toModel() isEqualTo ModelLocation("RSI-SUFFIX", "PCVL Risley Room B1", false)
+    location.toModel() isEqualTo ModelLocation("RSI-SUFFIX", "PCVL RISLEY ROOM B1", false)
   }
 }
