@@ -32,19 +32,19 @@ class CacheConfiguration {
       ROLLED_OUT_PRISONS_CACHE_NAME,
     )
 
-  @CacheEvict(value = [VIDEO_LINK_LOCATIONS_CACHE_NAME])
+  @CacheEvict(value = [VIDEO_LINK_LOCATIONS_CACHE_NAME], allEntries = true)
   @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
   fun cacheEvictVideoLinkLocations() {
     log.info("Evicting cache: $VIDEO_LINK_LOCATIONS_CACHE_NAME after 5 mins")
   }
 
-  @CacheEvict(value = [NON_RESIDENTIAL_LOCATIONS_CACHE_NAME])
+  @CacheEvict(value = [NON_RESIDENTIAL_LOCATIONS_CACHE_NAME], allEntries = true)
   @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
   fun cacheEvictNonResidentialLocations() {
     log.info("Evicting cache: $NON_RESIDENTIAL_LOCATIONS_CACHE_NAME after 5 mins")
   }
 
-  @CacheEvict(value = [ROLLED_OUT_PRISONS_CACHE_NAME])
+  @CacheEvict(value = [ROLLED_OUT_PRISONS_CACHE_NAME], allEntries = true)
   @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
   fun cacheEvictRolledOutPrisons() {
     log.info("Evicting cache: $ROLLED_OUT_PRISONS_CACHE_NAME after 5 mins")
