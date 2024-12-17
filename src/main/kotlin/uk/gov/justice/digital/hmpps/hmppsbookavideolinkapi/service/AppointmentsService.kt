@@ -55,11 +55,6 @@ class AppointmentsService(
 
     appointments.checkCourtAppointmentTypesOnly()
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
-
-    // Prison users can have overlapping appointments
-    if (user !is PrisonUser) {
-      appointments.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode, locations)
-    }
   }
 
   private fun List<Appointment>.checkCourtAppointmentTypesOnly() {
@@ -81,29 +76,6 @@ class AppointmentsService(
 
     require((pre == null || pre.isBefore(hearing)) && (post == null || hearing.isBefore(post))) {
       "Requested court booking appointments must not overlap."
-    }
-  }
-
-  private fun List<Appointment>.checkExistingCourtAppointmentDateAndTimesDoNotOverlap(prisonCode: String, locations: List<Location>) {
-    forEach { newAppointment ->
-      val locationId = locations.single { it.key == newAppointment.locationKey }.id
-
-      prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
-        prisonCode,
-        locationId,
-        newAppointment.date!!,
-      ).forEach { existingAppointment ->
-        require(
-          !isTimesOverlap(
-            newAppointment.startTime!!,
-            newAppointment.endTime!!,
-            existingAppointment.startTime,
-            existingAppointment.endTime,
-          ),
-        ) {
-          "One or more requested court appointments overlaps with an existing appointment at location ${newAppointment.locationKey}"
-        }
-      }
     }
   }
 

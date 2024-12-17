@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -479,6 +480,7 @@ class CreateVideoBookingServiceTest {
     error.message isEqualTo "Court bookings can only have one pre hearing, one hearing and one post hearing."
   }
 
+  @Disabled("Temporary disabling as part of availability ticket BAVL-534. Will be moving clashing check into the facade")
   @Test
   fun `should fail to create a court video booking when new appointment overlaps existing for court user`() {
     val prisonCode = BIRMINGHAM
