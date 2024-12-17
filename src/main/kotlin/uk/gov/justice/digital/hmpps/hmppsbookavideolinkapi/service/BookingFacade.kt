@@ -52,6 +52,7 @@ class BookingFacade(
   }
 
   fun create(bookingRequest: CreateVideoBookingRequest, createdBy: User): Long {
+    // TODO - add overlapping booking check hear
     val (booking, prisoner) = createVideoBookingService.create(bookingRequest, createdBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
     sendBookingEmails(BookingAction.CREATE, booking, prisoner, createdBy)
@@ -60,6 +61,7 @@ class BookingFacade(
   }
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, amendedBy: User): Long {
+    // TODO - add overlapping booking check hear
     val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, amendedBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
     sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
