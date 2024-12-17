@@ -142,6 +142,14 @@ class VideoBooking private constructor(
     return this::class.simpleName + "(videoBookingId = $videoBookingId)"
   }
 
+  fun preHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_COURT_PRE" }
+
+  fun mainHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_COURT_MAIN" }
+
+  fun postHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_COURT_POST" }
+
+  fun probationMeeting(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_PROBATION" }
+
   companion object {
     fun newCourtBooking(
       court: Court,

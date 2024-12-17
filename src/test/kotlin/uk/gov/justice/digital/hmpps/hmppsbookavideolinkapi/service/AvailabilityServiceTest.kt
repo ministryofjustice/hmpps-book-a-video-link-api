@@ -7,26 +7,37 @@ import org.mockito.ArgumentMatchers.anyList
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.LocationAndInterval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Optional
 import java.util.UUID
 
 class AvailabilityServiceTest {
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val externalAppointmentsService: ExternalAppointmentsService = mock()
+  private val videoBookingRepository: VideoBookingRepository = mock()
 
   private val availabilityOptionsGenerator = AvailabilityOptionsGenerator(
     dayStart = LocalTime.of(9, 0),
@@ -41,6 +52,7 @@ class AvailabilityServiceTest {
     locationsInsidePrisonClient,
     availabilityFinderService,
     externalAppointmentsService,
+    videoBookingRepository,
   )
 
   private fun createVideoAppointment(
@@ -110,7 +122,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailabilityVlbOnly(request)
+    val response = service.checkAvailability(request)
 
     assertThat(response).isNotNull
     with(response) {
@@ -135,7 +147,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailabilityVlbOnly(request)
+    val response = service.checkAvailability(request)
 
     assertThat(response).isNotNull
     with(response) {
@@ -184,7 +196,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailabilityVlbOnly(request)
+    val response = service.checkAvailability(request)
 
     assertThat(response).isNotNull
     with(response) {
@@ -225,7 +237,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailabilityVlbOnly(request)
+    val response = service.checkAvailability(request)
 
     // Room3 is busy all day
     assertThat(response).isNotNull
@@ -252,7 +264,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailabilityVlbOnly(request)
+    val response = service.checkAvailability(request)
 
     // We should exclude appointments with videoBookingId == 2L
     assertThat(response).isNotNull
@@ -279,7 +291,7 @@ class AvailabilityServiceTest {
 
     whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1, room2, room3)
 
-    val response = service.checkAvailabilityVlbOnly(request)
+    val response = service.checkAvailability(request)
 
     // We should not exclude appointments with videoBookingId == 2L (conflict exists)
     assertThat(response).isNotNull
@@ -287,5 +299,73 @@ class AvailabilityServiceTest {
       assertThat(availabilityOk).isFalse()
       assertThat(alternatives).hasSize(3)
     }
+  }
+
+  @Test
+  fun `should be available if request matches existing court booking main hearing booking date, time and location`() {
+    val existingCourtBookingRequest = AvailabilityRequest(
+      bookingType = BookingType.COURT,
+      courtOrProbationCode = "TESTC",
+      prisonCode = WANDSWORTH,
+      date = today(),
+      mainAppointment = LocationAndInterval(
+        prisonLocKey = room1.key,
+        interval = Interval(start = LocalTime.of(10, 0), end = LocalTime.of(11, 0)),
+      ),
+      vlbIdToExclude = 2L,
+    )
+
+    whenever(videoBookingRepository.findById(2L)) doReturn Optional.of(
+      courtBooking().withMainCourtPrisonAppointment(
+        date = today(),
+        prisonCode = WANDSWORTH,
+        location = room1,
+        startTime = LocalTime.of(10, 0),
+        endTime = LocalTime.of(11, 0),
+      ),
+    )
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1)
+
+    with(service.checkAvailability(existingCourtBookingRequest)) {
+      availabilityOk isBool true
+      alternatives hasSize 0
+    }
+
+    verifyNoInteractions(videoAppointmentRepository)
+    verifyNoInteractions(externalAppointmentsService)
+  }
+
+  @Test
+  fun `should be available if request matches existing probation booking meeting date, time and location`() {
+    val existingProbationBookingRequest = AvailabilityRequest(
+      bookingType = BookingType.PROBATION,
+      courtOrProbationCode = "TESTP",
+      prisonCode = WANDSWORTH,
+      date = today(),
+      mainAppointment = LocationAndInterval(
+        prisonLocKey = room2.key,
+        interval = Interval(start = LocalTime.of(11, 0), end = LocalTime.of(12, 0)),
+      ),
+      vlbIdToExclude = 3L,
+    )
+
+    whenever(videoBookingRepository.findById(3L)) doReturn Optional.of(
+      probationBooking().withProbationPrisonAppointment(
+        date = today(),
+        prisonCode = WANDSWORTH,
+        location = room2,
+        startTime = LocalTime.of(11, 0),
+        endTime = LocalTime.of(12, 0),
+      ),
+    )
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room2)
+
+    with(service.checkAvailability(existingProbationBookingRequest)) {
+      availabilityOk isBool true
+      alternatives hasSize 0
+    }
+
+    verifyNoInteractions(videoAppointmentRepository)
+    verifyNoInteractions(externalAppointmentsService)
   }
 }
