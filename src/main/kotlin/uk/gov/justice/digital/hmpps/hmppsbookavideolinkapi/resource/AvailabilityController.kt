@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,10 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AvailabilityS
 @RestController
 @RequestMapping(value = ["availability"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @AuthApiResponses
-class AvailabilityController(
-  private val availabilityService: AvailabilityService,
-  @Value("\${feature.check.external-availability.enabled:false}") val externalAvailabilityEnabled: Boolean,
-) {
+class AvailabilityController(private val availabilityService: AvailabilityService) {
 
   @Operation(summary = "Endpoint to assess booking availability and to suggest alternatives")
   @ApiResponses(
@@ -50,5 +46,5 @@ class AvailabilityController(
     @RequestBody
     @Parameter(description = "The request containing the times and locations of hearings to check for availability", required = true)
     request: AvailabilityRequest,
-  ) = availabilityService.checkAvailability(request, externalAvailabilityEnabled)
+  ) = availabilityService.checkAvailability(request)
 }

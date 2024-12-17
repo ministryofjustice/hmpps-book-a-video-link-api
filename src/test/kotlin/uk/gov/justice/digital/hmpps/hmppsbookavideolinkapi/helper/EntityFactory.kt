@@ -71,6 +71,8 @@ fun VideoBooking.withMainCourtPrisonAppointment(
   prisonCode: String = BIRMINGHAM,
   location: Location = birminghamLocation,
   prisonerNumber: String = "123456",
+  startTime: LocalTime = LocalTime.of(9, 30),
+  endTime: LocalTime = LocalTime.of(10, 0),
 ) =
   addAppointment(
     prison = prison(prisonCode = prisonCode),
@@ -78,8 +80,8 @@ fun VideoBooking.withMainCourtPrisonAppointment(
     appointmentType = "VLB_COURT_MAIN",
     locationId = location.id,
     date = date,
-    startTime = LocalTime.of(9, 30),
-    endTime = LocalTime.of(10, 0),
+    startTime = startTime,
+    endTime = endTime,
   )
 
 fun probationBooking(probationTeam: ProbationTeam = probationTeam()) = VideoBooking.newProbationBooking(
@@ -95,16 +97,19 @@ fun probationBooking(probationTeam: ProbationTeam = probationTeam()) = VideoBook
  * This adds a prison appointment to meet the basic needs of a test. We don't care about the details of the appointment.
  */
 fun VideoBooking.withProbationPrisonAppointment(
+  date: LocalDate = tomorrow(),
   prisonCode: String = BIRMINGHAM,
   location: Location = birminghamLocation,
   prisonerNumber: String = "123456",
+  startTime: LocalTime = LocalTime.MIDNIGHT,
+  endTime: LocalTime = LocalTime.MIDNIGHT.plusHours(1),
 ) = addAppointment(
   prison = prison(prisonCode = prisonCode),
   prisonerNumber = prisonerNumber,
   appointmentType = "VLB_PROBATION",
-  date = tomorrow(),
-  startTime = LocalTime.MIDNIGHT,
-  endTime = LocalTime.MIDNIGHT.plusHours(1),
+  date = date,
+  startTime = startTime,
+  endTime = endTime,
   locationId = location.id,
 )
 
