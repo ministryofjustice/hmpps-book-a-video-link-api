@@ -124,7 +124,7 @@ class AvailabilityService(
           mayBeExistingBooking.mainHearing()!!.dateTimeAndLocationIsTheSame(date!!, mainAppointment.interval, mainLocation)
 
         val postHearingIsTheSame = (mayBeExistingBooking.postHearing() == null && postLocation == null) ||
-          mayBeExistingBooking.postHearing() != null && mayBeExistingBooking.postHearing()!!.dateTimeAndLocationIsTheSame(date, postAppointment?.interval, preLocation)
+          mayBeExistingBooking.postHearing() != null && mayBeExistingBooking.postHearing()!!.dateTimeAndLocationIsTheSame(date, postAppointment?.interval, postLocation)
 
         return preHearingIsTheSame && mainHearingIsTheSame && postHearingIsTheSame
       }
