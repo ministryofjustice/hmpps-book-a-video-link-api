@@ -20,7 +20,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
@@ -37,6 +39,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -61,6 +64,7 @@ class RequestBookingServiceTest {
   private val referenceCodeRepository: ReferenceCodeRepository = mock()
   private val notificationRepository: NotificationRepository = mock()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val availabilityService: AvailabilityService = mock()
   private val service = RequestBookingService(
     emailService,
     contactsService,
@@ -71,6 +75,7 @@ class RequestBookingServiceTest {
     referenceCodeRepository,
     notificationRepository,
     locationsInsidePrisonClient,
+    availabilityService,
   )
 
   @BeforeEach
@@ -89,6 +94,7 @@ class RequestBookingServiceTest {
       contact(contactType = ContactType.USER, email = "jon@somewhere.com", name = "Jon"),
       contact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
     )
+    whenever(availabilityService.isAvailable(any<RequestVideoBookingRequest>())) doReturn true
   }
 
   @Test
@@ -418,6 +424,34 @@ class RequestBookingServiceTest {
 
     val error = assertThrows<EntityNotFoundException> { service.request(bookingRequest, probationUser("probation user")) }
     error.message isEqualTo "PROBATION_MEETING_TYPE with code PSR not found"
+
+    verify(emailService, never()).send(any())
+    verify(notificationRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
+  fun `should fail if the requested court booking is not available`() {
+    val courtBookingRequest = requestCourtVideoLinkRequest()
+
+    whenever(availabilityService.isAvailable(courtBookingRequest)) doReturn false
+
+    val error = assertThrows<IllegalArgumentException> { service.request(courtBookingRequest, COURT_USER) }
+
+    error.message isEqualTo "Unable to request court booking, booking overlaps with an existing appointment."
+
+    verify(emailService, never()).send(any())
+    verify(notificationRepository, never()).saveAndFlush(any())
+  }
+
+  @Test
+  fun `should fail if the requested probation meeting is not available`() {
+    val probationBookingRequest = requestProbationVideoLinkRequest()
+
+    whenever(availabilityService.isAvailable(probationBookingRequest)) doReturn false
+
+    val error = assertThrows<IllegalArgumentException> { service.request(probationBookingRequest, PROBATION_USER) }
+
+    error.message isEqualTo "Unable to request probation booking, booking overlaps with an existing appointment."
 
     verify(emailService, never()).send(any())
     verify(notificationRepository, never()).saveAndFlush(any())

@@ -311,6 +311,7 @@ fun amendCourtBookingRequest(
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
+  appointmentDate: LocalDate = tomorrow(),
 ): AmendVideoBookingRequest {
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
@@ -320,7 +321,7 @@ fun amendCourtBookingRequest(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
           locationKey = location?.key ?: "$prisonCode-$locationSuffix",
-          date = tomorrow(),
+          date = appointmentDate,
           startTime = startTime,
           endTime = endTime,
         ),

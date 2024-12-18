@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
@@ -65,6 +64,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHis
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
@@ -387,7 +387,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent(COURT_USER.email!!, NewCourtBookingUserEmail::class, persistedBooking)
   }
 
-  @Disabled("Temporary disabling as part of availability ticket BAVL-534. Will be moving clashing check into the facade")
   @Test
   fun `should fail to create a clashing court booking as court user`() {
     videoBookingRepository.findAll() hasSize 0
@@ -427,8 +426,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
-      developerMessage isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
+      userMessage isEqualTo "Exception: Unable to create court booking, booking overlaps with an existing appointment."
+      developerMessage isEqualTo "Unable to create court booking, booking overlaps with an existing appointment."
     }
   }
 
@@ -671,8 +670,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Requested probation appointment overlaps with an existing appointment at location ${wandsworthLocation.key}"
-      developerMessage isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${wandsworthLocation.key}"
+      userMessage isEqualTo "Exception: Unable to create probation booking, booking overlaps with an existing appointment."
+      developerMessage isEqualTo "Unable to create probation booking, booking overlaps with an existing appointment."
     }
   }
 
@@ -1110,7 +1109,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent(COURT_USER.email!!, AmendedCourtBookingUserEmail::class, persistedBooking)
   }
 
-  @Disabled("Temporary disabling as part of availability ticket BAVL-534. Will be moving clashing check into the facade")
   @Test
   fun `should fail to amend to a clashing court booking`() {
     videoBookingRepository.findAll() hasSize 0
@@ -1159,8 +1157,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
-      developerMessage isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
+      userMessage isEqualTo "Exception: Unable to amend court booking, booking overlaps with an existing appointment."
+      developerMessage isEqualTo "Unable to amend court booking, booking overlaps with an existing appointment."
     }
   }
 
@@ -1404,8 +1402,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.key}"
-      developerMessage isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.key}"
+      userMessage isEqualTo "Exception: Unable to amend probation booking, booking overlaps with an existing appointment."
+      developerMessage isEqualTo "Unable to amend probation booking, booking overlaps with an existing appointment."
     }
   }
 
@@ -1560,13 +1558,13 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court request comments",
     )
 
-    webTestClient.requestVideoLink(courtRequest)
+    webTestClient.requestVideoLink(courtRequest, COURT_USER)
 
     // There should be 2 notifications - 1 user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("r@r.com", CourtBookingRequestPrisonCourtEmail::class)
-    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, CourtBookingRequestUserEmail::class)
+    notifications.isPresent(COURT_USER.email!!, CourtBookingRequestUserEmail::class)
   }
 
   @Test
@@ -1585,16 +1583,15 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test court request comments",
     )
 
-    webTestClient.requestVideoLink(courtRequest)
+    webTestClient.requestVideoLink(courtRequest, COURT_USER)
 
     // There should be 2 notifications - one user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("a@a.com", CourtBookingRequestPrisonNoCourtEmail::class)
-    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, CourtBookingRequestUserEmail::class)
+    notifications.isPresent(COURT_USER.email!!, CourtBookingRequestUserEmail::class)
   }
 
-  @Disabled("Temporary disabling as part of availability ticket BAVL-534. Will be moving clashing check into the facade")
   @Test
   fun `should fail to request a clashing court booking`() {
     videoBookingRepository.findAll() hasSize 0
@@ -1637,8 +1634,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
-      developerMessage isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
+      userMessage isEqualTo "Exception: Unable to request court booking, booking overlaps with an existing appointment."
+      developerMessage isEqualTo "Unable to request court booking, booking overlaps with an existing appointment."
     }
   }
 
@@ -1658,13 +1655,13 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test probation request comments",
     )
 
-    webTestClient.requestVideoLink(probationRequest)
+    webTestClient.requestVideoLink(probationRequest, PROBATION_USER)
 
     // There should be 2 notifications - one user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("r@r.com", ProbationBookingRequestPrisonProbationTeamEmail::class)
-    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, ProbationBookingRequestUserEmail::class)
+    notifications.isPresent(PROBATION_USER.email!!, ProbationBookingRequestUserEmail::class)
   }
 
   @Test
@@ -1683,13 +1680,13 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test probation request comments",
     )
 
-    webTestClient.requestVideoLink(probationRequest)
+    webTestClient.requestVideoLink(probationRequest, PROBATION_USER)
 
     // There should be 2 notifications - one user email and 1 prison email
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
 
     notifications.isPresent("a@a.com", ProbationBookingRequestPrisonNoProbationTeamEmail::class)
-    notifications.isPresent(PRISON_USER_BIRMINGHAM.email!!, ProbationBookingRequestUserEmail::class)
+    notifications.isPresent(PROBATION_USER.email!!, ProbationBookingRequestUserEmail::class)
   }
 
   @Test
@@ -1734,8 +1731,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Exception: Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.key}"
-      developerMessage isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.key}"
+      userMessage isEqualTo "Exception: Unable to request probation booking, booking overlaps with an existing appointment."
+      developerMessage isEqualTo "Unable to request probation booking, booking overlaps with an existing appointment."
     }
   }
 
@@ -1817,13 +1814,13 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isNoContent
 
-  private fun WebTestClient.requestVideoLink(request: RequestVideoBookingRequest) =
+  private fun WebTestClient.requestVideoLink(request: RequestVideoBookingRequest, externalUser: ExternalUser) =
     this
       .post()
       .uri("/video-link-booking/request")
       .bodyValue(request)
       .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = PRISON_USER_BIRMINGHAM.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+      .headers(setAuthorisation(user = externalUser.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
       .exchange()
       .expectStatus().isOk
 

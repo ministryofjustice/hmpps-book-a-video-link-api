@@ -9,8 +9,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.N
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AppointmentSlot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.LocationAndInterval
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -33,6 +38,62 @@ class AvailabilityService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  fun isAvailable(request: CreateVideoBookingRequest) =
+    checkAvailability(
+      AvailabilityRequest(
+        bookingType = request.bookingType,
+        courtOrProbationCode = request.courtCode ?: request.probationTeamCode,
+        prisonCode = request.prisoners.first().prisonCode,
+        date = request.prisoners.first().appointments.first().date,
+        preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
+        mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
+          ?: request.appointment(AppointmentType.VLB_PROBATION),
+        postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
+      ),
+    ).availabilityOk
+
+  private fun CreateVideoBookingRequest.appointment(type: AppointmentType) =
+    prisoners.single().appointments.singleOrNull { it.type == type }
+      ?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
+
+  fun isAvailable(videoBookingId: Long, request: AmendVideoBookingRequest): Boolean {
+    val existingBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
+
+    return checkAvailability(
+      AvailabilityRequest(
+        bookingType = request.bookingType,
+        courtOrProbationCode = existingBooking?.court?.code ?: existingBooking?.probationTeam?.code,
+        prisonCode = request.prisoners.first().prisonCode,
+        date = request.prisoners.first().appointments.first().date,
+        preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
+        mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
+          ?: request.appointment(AppointmentType.VLB_PROBATION),
+        postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
+        vlbIdToExclude = videoBookingId,
+      ),
+    ).availabilityOk
+  }
+
+  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) =
+    prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
+
+  fun isAvailable(request: RequestVideoBookingRequest) =
+    checkAvailability(
+      AvailabilityRequest(
+        bookingType = request.bookingType,
+        courtOrProbationCode = request.courtCode ?: request.probationTeamCode,
+        prisonCode = request.prisoners.first().prisonCode,
+        date = request.prisoners.first().appointments.first().date,
+        preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
+        mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
+          ?: request.appointment(AppointmentType.VLB_PROBATION),
+        postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
+      ),
+    ).availabilityOk
+
+  private fun RequestVideoBookingRequest.appointment(type: AppointmentType) =
+    prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
+
   /**
    * Assumptions:
    *  - current booking journeys for BVLS allows only one person at one prison per booking.
@@ -45,7 +106,7 @@ class AvailabilityService(
    *  - Incorporate prison room decoration logic here, to find other rooms?
    */
   fun checkAvailability(request: AvailabilityRequest): AvailabilityResponse {
-    log.info("Availability check looking at BVLS and other non-VLB appointment types")
+    log.info("AVAILABILITY CHECK: looking at BVLS and other non-VLB appointment types")
 
     // Gather the distinct list of locations from the request
     val locationKeys = setOfNotNull(
@@ -54,7 +115,7 @@ class AvailabilityService(
       request.mainAppointment!!.prisonLocKey,
     )
 
-    log.info("Checking availability for locationKeys $locationKeys")
+    log.info("AVAILABILITY CHECK: for the following location keys $locationKeys")
 
     val requestedLocations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys).associateBy { it.key }
 
@@ -62,15 +123,12 @@ class AvailabilityService(
       return AvailabilityResponse(true)
     }
 
-    // Build a list of AppointmentSlot for existing VLBs from BVLS at these locations on this date
+    // Build a list of AppointmentSlots for existing VLBs from BVLS at these locations on this date
     val (bvlsAppointmentSlotsToInclude: List<AppointmentSlot>, appointmentsToExclude: List<AppointmentSlot>) = videoAppointmentRepository.findVideoAppointmentsAtPrison(
       forDate = request.date!!,
       forPrison = request.prisonCode!!,
       forLocationIds = requestedLocations.values.map { it.id },
     ).partition { vlb -> vlb.videoBookingId != request.vlbIdToExclude }
-
-    log.info("Found ${bvlsAppointmentSlotsToInclude.size}, including appointments in these rooms")
-    log.info("Found ${appointmentsToExclude.size}, excluding appointments in these rooms")
 
     // Build list of AppointmentSlot for all external non-VLB appointments from NOMIS in these locations on this date
     val externalAppointmentSlotsToInclude: List<AppointmentSlot> =
@@ -86,18 +144,12 @@ class AvailabilityService(
           }
         }
 
-    log.info("Found ${externalAppointmentSlotsToInclude.size}, including external appointments in these rooms")
-
-    bvlsAppointmentSlotsToInclude.plus(externalAppointmentSlotsToInclude).map { slot ->
-      log.info("${slot.prisonLocationId} - ${slot.prisonerNumber} - ${slot.appointmentDate} - ${slot.startTime} - ${slot.endTime}")
+    val slotsToCheck = bvlsAppointmentSlotsToInclude.plus(externalAppointmentSlotsToInclude).onEach { slot ->
+      log.info("AVAILABILITY CHECK: slot - ${slot.prisonLocationId} - ${slot.prisonerNumber} - ${slot.appointmentDate} - ${slot.startTime} - ${slot.endTime}")
     }
 
     // Check if the requested times are free, and offer alternatives if not
-    return availabilityFinderService.getOptions(
-      request,
-      bvlsAppointmentSlotsToInclude.plus(externalAppointmentSlotsToInclude),
-      requestedLocations.values.toList(),
-    )
+    return availabilityFinderService.getOptions(request, slotsToCheck, requestedLocations.values.toList())
   }
 
   private fun AvailabilityRequest.isForAnExistingBooking() = vlbIdToExclude != null

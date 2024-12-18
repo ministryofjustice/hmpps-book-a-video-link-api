@@ -43,12 +43,21 @@ class RequestBookingService(
   private val referenceCodeRepository: ReferenceCodeRepository,
   private val notificationRepository: NotificationRepository,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
+  private val availabilityService: AvailabilityService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun request(request: RequestVideoBookingRequest, user: User) {
+  fun request(request: RequestVideoBookingRequest, user: ExternalUser) {
+    require(availabilityService.isAvailable(request)) {
+      if (request.bookingType == BookingType.COURT) {
+        "Unable to request court booking, booking overlaps with an existing appointment."
+      } else {
+        "Unable to request probation booking, booking overlaps with an existing appointment."
+      }
+    }
+
     when (request.bookingType!!) {
       BookingType.COURT -> processCourtBookingRequest(request, user)
       BookingType.PROBATION -> processProbationBookingRequest(request, user)
