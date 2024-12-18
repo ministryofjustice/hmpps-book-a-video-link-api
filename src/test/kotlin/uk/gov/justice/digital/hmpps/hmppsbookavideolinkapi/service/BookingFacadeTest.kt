@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
@@ -49,6 +50,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingCourtEmail
@@ -106,6 +108,7 @@ class BookingFacadeTest {
   private val prisonerSearchClient: PrisonerSearchClient = mock()
   private val telemetryService: TelemetryService = mock()
   private val telemetryCaptor = argumentCaptor<TelemetryEvent>()
+  private val availabilityService: AvailabilityService = mock()
   private val facade = BookingFacade(
     createBookingService,
     amendBookingService,
@@ -118,6 +121,7 @@ class BookingFacadeTest {
     locationsInsidePrisonClient,
     prisonerSearchClient,
     telemetryService,
+    availabilityService,
   )
   private val courtBooking = courtBooking()
     .addAppointment(
@@ -181,6 +185,8 @@ class BookingFacadeTest {
     whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
     whenever(locationsInsidePrisonClient.getLocationById(birminghamLocation.id)) doReturn birminghamLocation
+    whenever(availabilityService.isAvailable(any<CreateVideoBookingRequest>())) doReturn true
+    whenever(availabilityService.isAvailable(anyLong(), any())) doReturn true
   }
 
   @Nested
@@ -262,6 +268,16 @@ class BookingFacadeTest {
       with(telemetryCaptor.firstValue as CourtBookingCreatedTelemetryEvent) {
         properties()["created_by"] isEqualTo "court"
       }
+    }
+
+    @Test
+    fun `should fail to create court booking if location not available`() {
+      val createdRequest = courtBookingRequest()
+
+      whenever(availabilityService.isAvailable(createdRequest)) doReturn false
+
+      val error = assertThrows<IllegalArgumentException> { facade.create(createdRequest, COURT_USER) }
+      error.message isEqualTo "Unable to create court booking, booking overlaps with an existing appointment."
     }
 
     @Test
@@ -425,6 +441,16 @@ class BookingFacadeTest {
       with(telemetryCaptor.firstValue as ProbationBookingCreatedTelemetryEvent) {
         properties()["created_by"] isEqualTo "probation"
       }
+    }
+
+    @Test
+    fun `should fail to create probation booking if location not available`() {
+      val createdRequest = probationBookingRequest()
+
+      whenever(availabilityService.isAvailable(createdRequest)) doReturn false
+
+      val error = assertThrows<IllegalArgumentException> { facade.create(createdRequest, PROBATION_USER) }
+      error.message isEqualTo "Unable to create probation booking, booking overlaps with an existing appointment."
     }
   }
 
@@ -939,6 +965,16 @@ class BookingFacadeTest {
     }
 
     @Test
+    fun `should fail to amend court booking if location not available`() {
+      val amendRequest = amendCourtBookingRequest()
+
+      whenever(availabilityService.isAvailable(1, amendRequest)) doReturn false
+
+      val error = assertThrows<IllegalArgumentException> { facade.amend(1, amendRequest, COURT_USER) }
+      error.message isEqualTo "Unable to amend court booking, booking overlaps with an existing appointment."
+    }
+
+    @Test
     fun `should send events and emails on amendment of court booking by prison user`() {
       setupCourtPrimaryContactsFor(PRISON_USER_BIRMINGHAM)
 
@@ -1185,6 +1221,16 @@ class BookingFacadeTest {
       with(telemetryCaptor.firstValue as ProbationBookingAmendedTelemetryEvent) {
         properties()["amended_by"] isEqualTo "prison"
       }
+    }
+
+    @Test
+    fun `should fail to amend probation booking if location not available`() {
+      val amendRequest = amendProbationBookingRequest()
+
+      whenever(availabilityService.isAvailable(1, amendRequest)) doReturn false
+
+      val error = assertThrows<IllegalArgumentException> { facade.amend(1, amendRequest, PROBATION_USER) }
+      error.message isEqualTo "Unable to amend probation booking, booking overlaps with an existing appointment."
     }
   }
 

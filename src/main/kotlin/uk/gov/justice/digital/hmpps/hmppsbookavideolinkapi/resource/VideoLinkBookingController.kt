@@ -187,7 +187,7 @@ class VideoLinkBookingController(
     }
   }
 
-  @Operation(summary = "Endpoint to support the request for a prison to create a video link booking for a prisoner due to arrive")
+  @Operation(summary = "Endpoint to allow external users request a prison to create a video link booking for a prisoner due to arrive")
   @ApiResponses(
     value = [
       ApiResponse(
@@ -205,7 +205,7 @@ class VideoLinkBookingController(
     @Parameter(description = "The request with the requested video link booking details", required = true)
     request: RequestVideoBookingRequest,
     httpRequest: HttpServletRequest,
-  ) = requestBookingService.request(request, httpRequest.getBvlsRequestContext().user)
+  ) = requestBookingService.request(request, httpRequest.getBvlsRequestContext().user as ExternalUser)
 
   @Operation(summary = "Endpoint to search for a unique matching video link booking.")
   @ApiResponses(

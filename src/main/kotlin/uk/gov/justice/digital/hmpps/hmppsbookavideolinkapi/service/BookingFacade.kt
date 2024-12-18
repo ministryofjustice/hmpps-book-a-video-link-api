@@ -46,13 +46,21 @@ class BookingFacade(
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val telemetryService: TelemetryService,
+  private val availabilityService: AvailabilityService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   fun create(bookingRequest: CreateVideoBookingRequest, createdBy: User): Long {
-    // TODO - add overlapping booking check hear
+    require(createdBy is PrisonUser || availabilityService.isAvailable(bookingRequest)) {
+      if (bookingRequest.bookingType == BookingType.COURT) {
+        "Unable to create court booking, booking overlaps with an existing appointment."
+      } else {
+        "Unable to create probation booking, booking overlaps with an existing appointment."
+      }
+    }
+
     val (booking, prisoner) = createVideoBookingService.create(bookingRequest, createdBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
     sendBookingEmails(BookingAction.CREATE, booking, prisoner, createdBy)
@@ -61,7 +69,14 @@ class BookingFacade(
   }
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, amendedBy: User): Long {
-    // TODO - add overlapping booking check hear
+    require(amendedBy is PrisonUser || availabilityService.isAvailable(videoBookingId, bookingRequest)) {
+      if (bookingRequest.bookingType == BookingType.COURT) {
+        "Unable to amend court booking, booking overlaps with an existing appointment."
+      } else {
+        "Unable to amend probation booking, booking overlaps with an existing appointment."
+      }
+    }
+
     val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, amendedBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
     sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
