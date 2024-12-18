@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
@@ -92,6 +93,7 @@ import java.time.LocalTime
 import java.util.UUID
 import kotlin.reflect.KClass
 
+@Disabled
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 

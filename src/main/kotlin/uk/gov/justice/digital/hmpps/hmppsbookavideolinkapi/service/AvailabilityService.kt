@@ -50,6 +50,7 @@ class AvailabilityService(
           ?: request.appointment(AppointmentType.VLB_PROBATION),
         postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
       ),
+      false,
     ).availabilityOk
 
   private fun CreateVideoBookingRequest.appointment(type: AppointmentType) =
@@ -71,6 +72,7 @@ class AvailabilityService(
         postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
         vlbIdToExclude = videoBookingId,
       ),
+      false,
     ).availabilityOk
   }
 
@@ -89,6 +91,7 @@ class AvailabilityService(
           ?: request.appointment(AppointmentType.VLB_PROBATION),
         postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
       ),
+      false,
     ).availabilityOk
 
   private fun RequestVideoBookingRequest.appointment(type: AppointmentType) =
@@ -105,7 +108,7 @@ class AvailabilityService(
    *  - Get other VCC-enabled rooms at these prison(s) and offer them?
    *  - Incorporate prison room decoration logic here, to find other rooms?
    */
-  fun checkAvailability(request: AvailabilityRequest): AvailabilityResponse {
+  fun checkAvailability(request: AvailabilityRequest, includeExternalAppointmentsInCheck: Boolean = true): AvailabilityResponse {
     log.info("AVAILABILITY CHECK: looking at BVLS and other non-VLB appointment types")
 
     // Gather the distinct list of locations from the request
@@ -131,7 +134,7 @@ class AvailabilityService(
     ).partition { vlb -> vlb.videoBookingId != request.vlbIdToExclude }
 
     // Build list of AppointmentSlot for all external non-VLB appointments from NOMIS in these locations on this date
-    val externalAppointmentSlotsToInclude: List<AppointmentSlot> =
+    val externalAppointmentSlotsToInclude: List<AppointmentSlot> = if (includeExternalAppointmentsInCheck) {
       requestedLocations.values
         .flatMap { externalAppointmentsService.getAppointmentSlots(request.prisonCode, request.date, it.id) }
         .filterNot { external ->
@@ -143,6 +146,9 @@ class AvailabilityService(
               internal.endTime == external.endTime
           }
         }
+    } else {
+      emptyList()
+    }
 
     val slotsToCheck = bvlsAppointmentSlotsToInclude.plus(externalAppointmentSlotsToInclude).onEach { slot ->
       log.info("AVAILABILITY CHECK: slot - ${slot.prisonLocationId} - ${slot.prisonerNumber} - ${slot.appointmentDate} - ${slot.startTime} - ${slot.endTime}")
