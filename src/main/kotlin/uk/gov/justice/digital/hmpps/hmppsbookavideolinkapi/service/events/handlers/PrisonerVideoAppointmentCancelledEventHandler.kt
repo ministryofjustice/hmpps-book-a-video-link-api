@@ -13,8 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerVideoAppointmentCancelledEvent
-import java.time.LocalDate
-import java.time.LocalTime
+import java.time.LocalDateTime
 
 /**
  * The nature of this event handler is to do our best to cancel (or delete an appointment) providing we can match the
@@ -94,7 +93,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
 
   private fun VideoAppointment.isMainAppointment() = listOf("VLB_COURT_MAIN").contains(appointmentType)
 
-  private fun VideoAppointment.isFutureAppointment() = appointmentDate > LocalDate.now() || startTime > LocalTime.now()
+  private fun VideoAppointment.isFutureAppointment() = this.start() > LocalDateTime.now()
 
   private fun cancelTheBookingForThe(appointment: VideoAppointment) {
     bookingFacade.cancel(appointment.videoBookingId, UserService.getServiceAsUser())
