@@ -105,7 +105,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
         prison = prison(),
         prisonerNumber = "ABC345",
         appointmentType = "VLB_COURT_PRE",
-        appointmentDate = today(),
+        appointmentDate = tomorrow(),
         startTime = LocalTime.MIDNIGHT,
         endTime = LocalTime.MIDNIGHT,
         locationId = UUID.randomUUID(),
@@ -116,7 +116,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
       videoAppointmentRepository.findActiveVideoAppointments(
         prisonCode = WANDSWORTH,
         prisonerNumber = "ABC345",
-        appointmentDate = today(),
+        appointmentDate = tomorrow(),
         startTime = LocalTime.MIDNIGHT,
       ),
     ) doReturn listOf(courtAppointment)
@@ -127,7 +127,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
       cancellationEvent(
         prisonCode = WANDSWORTH,
         prisonerNumber = "ABC345",
-        start = today().atStartOfDay(),
+        start = tomorrow().atStartOfDay(),
       ),
     )
 
@@ -135,7 +135,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
       verify(videoAppointmentRepository).findActiveVideoAppointments(
         WANDSWORTH,
         "ABC345",
-        appointmentDate = today(),
+        appointmentDate = tomorrow(),
         startTime = LocalTime.MIDNIGHT,
       )
 
@@ -160,7 +160,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
         prison = prison(),
         prisonerNumber = "ABC345",
         appointmentType = "VLB_COURT_POST",
-        appointmentDate = today(),
+        appointmentDate = tomorrow(),
         startTime = LocalTime.MIDNIGHT,
         endTime = LocalTime.MIDNIGHT,
         locationId = UUID.randomUUID(),
@@ -171,7 +171,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
       videoAppointmentRepository.findActiveVideoAppointments(
         prisonCode = WANDSWORTH,
         prisonerNumber = "ABC345",
-        appointmentDate = today(),
+        appointmentDate = tomorrow(),
         startTime = LocalTime.MIDNIGHT,
       ),
     ) doReturn listOf(courtAppointment)
@@ -182,7 +182,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
       cancellationEvent(
         prisonCode = WANDSWORTH,
         prisonerNumber = "ABC345",
-        start = today().atStartOfDay(),
+        start = tomorrow().atStartOfDay(),
       ),
     )
 
@@ -190,7 +190,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
       verify(videoAppointmentRepository).findActiveVideoAppointments(
         WANDSWORTH,
         "ABC345",
-        appointmentDate = today(),
+        appointmentDate = tomorrow(),
         startTime = LocalTime.MIDNIGHT,
       )
 
