@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -300,6 +301,60 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
     )
 
     verifyNoInteractions(videoAppointmentRepository)
+    verifyNoInteractions(bookingFacade)
+  }
+
+  @Test
+  fun `should be a no-op when the appointment happened yesterday`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+    val probationBooking = probationBooking().withProbationPrisonAppointment(prisonerNumber = "DEF345", prisonCode = PENTONVILLE, date = yesterday())
+    val probationAppointment = videoAppointment(probationBooking, probationBooking.appointments().single())
+
+    whenever(
+      videoAppointmentRepository.findActiveVideoAppointments(
+        prisonCode = PENTONVILLE,
+        prisonerNumber = "DEF345",
+        appointmentDate = yesterday(),
+        startTime = LocalTime.MIDNIGHT,
+      ),
+    ) doReturn listOf(probationAppointment)
+
+    handler.handle(
+      cancellationEvent(
+        prisonCode = PENTONVILLE,
+        prisonerNumber = "DEF345",
+        start = yesterday().atStartOfDay(),
+      ),
+    )
+
+    verifyNoInteractions(bookingFacade)
+  }
+
+  @Test
+  fun `should be a no-op when the appointment happened earlier today`() {
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+    val probationBooking = probationBooking().withProbationPrisonAppointment(prisonerNumber = "DEF345", prisonCode = PENTONVILLE, date = today())
+    val probationAppointment = videoAppointment(probationBooking, probationBooking.appointments().single())
+
+    val now = LocalTime.now()
+
+    whenever(
+      videoAppointmentRepository.findActiveVideoAppointments(
+        prisonCode = PENTONVILLE,
+        prisonerNumber = "DEF345",
+        appointmentDate = today(),
+        startTime = now,
+      ),
+    ) doReturn listOf(probationAppointment)
+
+    handler.handle(
+      cancellationEvent(
+        prisonCode = PENTONVILLE,
+        prisonerNumber = "DEF345",
+        start = today().atTime(now),
+      ),
+    )
+
     verifyNoInteractions(bookingFacade)
   }
 
