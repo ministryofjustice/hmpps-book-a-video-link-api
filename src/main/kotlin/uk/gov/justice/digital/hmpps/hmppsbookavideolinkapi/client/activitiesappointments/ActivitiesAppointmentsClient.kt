@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
@@ -25,7 +24,10 @@ inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>(
 const val CANCELLED_BY_EXTERNAL_SERVICE = 4L
 
 @Component
-class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClient: WebClient) {
+class ActivitiesAppointmentsClient(
+  private val activitiesAppointmentsApiWebClient: WebClient,
+  private val activitiesAppointmentsFrontendWebClient: WebClient,
+) {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -33,13 +35,12 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
 
   @Cacheable(CacheConfiguration.ROLLED_OUT_PRISONS_CACHE_NAME)
   fun isAppointmentsRolledOutAt(prisonCode: String) =
-    activitiesAppointmentsApiWebClient
+    activitiesAppointmentsFrontendWebClient
       .get()
-      .uri("/rollout/{prisonCode}", prisonCode)
+      .uri("/info")
       .retrieve()
-      .bodyToMono(RolloutPrisonPlan::class.java)
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()?.appointmentsRolledOut == true
+      .bodyToMono(ActivitiesAndAppointmentsInformation::class.java)
+      .block()!!.activeAgencies.contains(prisonCode)
 
   fun createAppointment(
     prisonCode: String,
@@ -115,4 +116,6 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
   }
+
+  data class ActivitiesAndAppointmentsInformation(val activeAgencies: List<String> = emptyList())
 }

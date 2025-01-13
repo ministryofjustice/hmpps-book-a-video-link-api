@@ -110,7 +110,7 @@ class EmailConfiguration(
   }
 
   @Bean
-  fun emailService(@Value("\${bvls.frontend.url}") frontendDomain: String) =
+  fun emailService(@Value("\${frontend.base.url.bvls}") frontendDomain: String) =
     if (apiKey.isBlank()) {
       EmailService { email -> Result.success(UUID.randomUUID() to "fake template id").also { log.info("Email ${email.javaClass.simpleName} not sent.") } }.also { log.info("Gov Notify emails are disabled") }
     } else {

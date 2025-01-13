@@ -29,6 +29,12 @@ api:
       prison-api:  http://localhost:8094
       nomis-mapping: http://localhost:8096
 
+frontend:
+  base:
+    url:
+      bvls: http://localhost:3000
+      activities-appointments: http://localhost:3001
+
 hmpps.sqs:
   provider: localstack
   queues:
@@ -44,7 +50,3 @@ feature:
   events:
     sns:
       enabled: true
-
-bvls:
-  frontend:
-    url: http://localhost:3000

@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsFrontendExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
@@ -38,6 +39,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 @ActiveProfiles("test")
 @ExtendWith(
   ActivitiesAppointmentsApiExtension::class,
+  ActivitiesAppointmentsFrontendExtension::class,
   HmppsAuthApiExtension::class,
   LocationsInsidePrisonApiExtension::class,
   ManageUsersApiExtension::class,
@@ -56,6 +58,11 @@ abstract class IntegrationTestBase {
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthHelper
+
+  @BeforeEach
+  fun `stub rolled out prisons`() {
+    activitiesAndAppointmentsFrontEnd().stubRolledOutPrisons()
+  }
 
   @BeforeEach
   fun `stub default users`() {
@@ -89,7 +96,10 @@ abstract class IntegrationTestBase {
     nomisMappingApi().stubHealthPing(status)
   }
 
+  protected fun activitiesAndAppointmentsFrontEnd() = ActivitiesAppointmentsFrontendExtension.server
+
   protected fun prisonerApi() = PrisonApiExtension.server
+
   protected fun prisonSearchApi() = PrisonerSearchApiExtension.server
 
   protected fun locationsInsidePrisonApi() = LocationsInsidePrisonApiExtension.server

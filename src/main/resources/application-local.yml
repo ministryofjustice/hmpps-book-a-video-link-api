@@ -27,9 +27,12 @@ api:
       prison-api: https://prison-api-dev.prison.service.justice.gov.uk
       prisoner-search: https://prisoner-search-dev.prison.service.justice.gov.uk
       nomis-mapping: https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk
-bvls:
-  frontend:
-    url: http://localhost:3000
+
+frontend:
+  base:
+    url:
+      bvls: http://localhost:3000
+      activities-appointments: "https://activities-dev.prison.service.justice.gov.uk"
 
 feature:
   check:

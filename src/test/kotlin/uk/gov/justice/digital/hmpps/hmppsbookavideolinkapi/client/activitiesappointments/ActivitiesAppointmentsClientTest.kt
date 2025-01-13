@@ -4,21 +4,26 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiMockServer
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsFrontendMockServer
 import java.time.LocalTime
 
 class ActivitiesAppointmentsClientTest {
 
-  private val server = ActivitiesAppointmentsApiMockServer().also { it.start() }
-  private val client = ActivitiesAppointmentsClient(WebClient.create("http://localhost:${server.port()}"))
+  private val apiServer = ActivitiesAppointmentsApiMockServer().also { it.start() }
+  private val frontendServer = ActivitiesAppointmentsFrontendMockServer().also { it.start() }
+  private val client = ActivitiesAppointmentsClient(WebClient.create("http://localhost:${apiServer.port()}"), WebClient.create("http://localhost:${frontendServer.port()}"))
 
   @Test
   fun `should post new appointment`() {
-    server.stubPostCreateAppointment(
+    apiServer.stubPostCreateAppointment(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startDate = tomorrow(),
@@ -41,7 +46,7 @@ class ActivitiesAppointmentsClientTest {
 
   @Test
   fun `should get single prisoners appointment`() {
-    server.stubGetPrisonersAppointments(
+    apiServer.stubGetPrisonersAppointments(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       date = tomorrow(),
@@ -55,7 +60,7 @@ class ActivitiesAppointmentsClientTest {
 
   @Test
   fun `should get multiple prisoner appointments at locations`() {
-    server.stubGetPrisonersAppointments(
+    apiServer.stubGetPrisonersAppointments(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       date = tomorrow(),
@@ -70,7 +75,7 @@ class ActivitiesAppointmentsClientTest {
 
   @Test
   fun `should get no prisoner appointments at locations when not video link locations`() {
-    server.stubGetPrisonersAppointments(
+    apiServer.stubGetPrisonersAppointments(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       date = tomorrow(),
@@ -85,7 +90,7 @@ class ActivitiesAppointmentsClientTest {
 
   @Test
   fun `should get no prisoner appointments at locations`() {
-    server.stubGetPrisonersAppointments(
+    apiServer.stubGetPrisonersAppointments(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       date = tomorrow(),
@@ -95,8 +100,24 @@ class ActivitiesAppointmentsClientTest {
     client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 4000) hasSize 0
   }
 
+  @Test
+  fun `should be rolled out prison`() {
+    frontendServer.stubRolledOutPrisons(PENTONVILLE, RISLEY)
+
+    client.isAppointmentsRolledOutAt(PENTONVILLE) isBool true
+    client.isAppointmentsRolledOutAt(RISLEY) isBool true
+  }
+
+  @Test
+  fun `should not be rolled out prison`() {
+    frontendServer.stubRolledOutPrisons(PENTONVILLE)
+
+    client.isAppointmentsRolledOutAt(RISLEY) isBool false
+  }
+
   @AfterEach
   fun after() {
-    server.stop()
+    apiServer.stop()
+    frontendServer.stop()
   }
 }

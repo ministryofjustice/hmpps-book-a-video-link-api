@@ -3,8 +3,10 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.web.reactive.function.client.WebClient
+import reactor.netty.http.client.HttpClient
 import uk.gov.justice.hmpps.kotlin.auth.authorisedWebClient
 import uk.gov.justice.hmpps.kotlin.auth.healthWebClient
 import java.time.Duration
@@ -12,6 +14,7 @@ import java.time.Duration
 @Configuration
 class WebClientConfiguration(
   @Value("\${api.base.url.activities-appointments}") val activitiesAppointmentsApiBaseUri: String,
+  @Value("\${frontend.base.url.activities-appointments}") val activitiesAppointmentsFrontendUri: String,
   @Value("\${api.base.url.hmpps-auth}") val hmppsAuthBaseUri: String,
   @Value("\${api.base.url.locations-inside-prison}") val locationsInsidePrisonApiBaseUri: String,
   @Value("\${api.base.url.manage-users}") private val manageUsersBaseUri: String,
@@ -66,4 +69,8 @@ class WebClientConfiguration(
   @Bean
   fun prisonerSearchApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
     builder.authorisedWebClient(authorizedClientManager, "prisoner-search", prisonerSearchBaseUri, timeout)
+
+  @Bean
+  fun activitiesAppointmentsFrontendWebClient(builder: WebClient.Builder): WebClient =
+    builder.baseUrl(activitiesAppointmentsFrontendUri).clientConnector(ReactorClientHttpConnector(HttpClient.create().responseTimeout(healthTimeout))).build()
 }

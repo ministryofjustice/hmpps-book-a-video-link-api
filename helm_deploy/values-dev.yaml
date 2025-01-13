@@ -17,8 +17,9 @@ generic-service:
     API_BASE_URL_PRISON_API: "https://prison-api-dev.prison.service.justice.gov.uk"
     API_BASE_URL_PRISONER_SEARCH: "https://prisoner-search-dev.prison.service.justice.gov.uk"
     API_BASE_URL_NOMIS_MAPPING: "https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk"
-    BVLS_FRONTEND_URL: "https://book-a-video-link-dev.prison.service.justice.gov.uk"
     FEATURE_EVENTS_SNS_ENABLED: true
+    FRONTEND_BASE_URL_ACTIVITIES_APPOINTMENTS: "https://activities-dev.prison.service.justice.gov.uk"
+    FRONTEND_BASE_URL_BVLS: "https://book-a-video-link-dev.prison.service.justice.gov.uk"
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
