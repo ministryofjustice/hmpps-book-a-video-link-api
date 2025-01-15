@@ -56,10 +56,12 @@ class CsvDataExtractionServiceTest {
     preLocationId = wandsworthLocation.id,
     postLocationId = wandsworthLocation.id,
     courtBooking = true,
+    type = "Appeal",
+    user = "court_user",
   )
   private val wandsworthCancelCourtBookingEvent = wandsworthCreateCourtBookingEvent.copy(eventType = "CANCEL")
   private val wandsworthAmendCourtBookingEvent = wandsworthCreateCourtBookingEvent.copy(eventType = "AMEND")
-  private val wandsworthCreateProbationBookingEvent = wandsworthCreateCourtBookingEvent.copy(courtDescription = null, courtCode = null, probationTeamCode = "probation code", probationTeamDescription = "probation team description", courtBooking = false)
+  private val wandsworthCreateProbationBookingEvent = wandsworthCreateCourtBookingEvent.copy(courtDescription = null, courtCode = null, probationTeamCode = "probation code", probationTeamDescription = "probation team description", courtBooking = false, type = "Pre-sentence report", user = "probation_user")
   private val wandsworthCancelProbationBooking = wandsworthCreateProbationBookingEvent.copy(eventType = "CANCEL")
   private val wandsworthAmendProbationBooking = wandsworthCreateProbationBookingEvent.copy(eventType = "AMEND")
   private val wandsworthPrisonCourtBooking = wandsworthCreateCourtBookingEvent.copy(createdByPrison = true)
@@ -85,8 +87,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user\n" +
+      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",Appeal,court_user\n"
   }
 
   @Test
@@ -122,8 +124,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user\n" +
+      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",Appeal,court_user\n"
   }
 
   @Test
@@ -136,8 +138,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByMainDateBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${risleyLocation.localName}\",\"${risleyLocation.localName}\",\"${risleyLocation.localName}\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${risleyLocation.localName}\",\"${risleyLocation.localName}\",\"${risleyLocation.localName}\",Appeal,court_user\n"
   }
 
   @Test
@@ -152,8 +154,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByMainDateBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${risleyLocation.localName}\",\"${risleyLocation.localName}\",\"${risleyLocation.localName}\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$RISLEY,\"court description\",\"court code\",false,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${risleyLocation.localName}\",\"${risleyLocation.localName}\",\"${risleyLocation.localName}\",Appeal,court_user\n"
   }
 
   @Test
@@ -166,8 +168,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",Appeal,court_user\n"
   }
 
   @Test
@@ -180,8 +182,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\"\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user\n" +
+      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"court description\",\"court code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T09:00:00,2024-07-10T10:00:00,2024-07-10T11:00:00,2024-07-10T12:00:00,\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",\"${wandsworthLocation.localName}\",Appeal,court_user\n"
   }
 
   @Test
@@ -194,8 +196,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
+      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
   }
 
   @Test
@@ -208,8 +210,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
   }
 
   @Test
@@ -222,8 +224,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
+      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
   }
 
   @Test
@@ -236,7 +238,7 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByMainDateBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${risleyLocation.localName}\",,\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
+      "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${risleyLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
   }
 }

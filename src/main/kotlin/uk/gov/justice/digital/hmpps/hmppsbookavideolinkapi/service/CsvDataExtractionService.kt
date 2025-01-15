@@ -153,6 +153,8 @@ class CsvDataExtractionService(
   "mainLocationName",
   "preLocationName",
   "postLocationName",
+  "hearingType",
+  "user",
 )
 data class CourtBookingEvent(
   val eventId: Long,
@@ -172,6 +174,8 @@ data class CourtBookingEvent(
   val mainLocationName: String,
   val preLocationName: String?,
   val postLocationName: String?,
+  val hearingType: String,
+  val user: String,
 ) {
   constructor(vbh: VideoBookingEvent, locations: Set<Location>) : this(
     vbh.eventId,
@@ -192,6 +196,8 @@ data class CourtBookingEvent(
     vbh.mainLocationId.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
     vbh.preLocationId?.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
     vbh.postLocationId?.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbh.type,
+    vbh.user,
   )
 }
 
@@ -213,6 +219,8 @@ data class CourtBookingEvent(
   "mainLocationName",
   "preLocationName",
   "postLocationName",
+  "meetingType",
+  "user",
 )
 data class ProbationBookingEvent(
   val eventId: Long,
@@ -232,6 +240,8 @@ data class ProbationBookingEvent(
   val mainLocationName: String,
   val preLocationName: String?,
   val postLocationName: String?,
+  val meetingType: String,
+  val user: String,
 ) {
   constructor(vbh: VideoBookingEvent, locations: Set<Location>) : this(
     vbh.eventId,
@@ -252,5 +262,7 @@ data class ProbationBookingEvent(
     vbh.mainLocationId.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
     null,
     null,
+    vbh.type,
+    vbh.user,
   )
 }

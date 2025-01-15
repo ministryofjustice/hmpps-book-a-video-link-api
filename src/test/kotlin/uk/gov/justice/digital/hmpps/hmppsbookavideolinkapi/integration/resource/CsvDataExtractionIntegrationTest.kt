@@ -26,8 +26,8 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
     val response = webTestClient.downloadCourtDataByHearingDate(LocalDate.of(2100, 7, 24), 1)
 
     // This should pick up the amended event in favour of the create event.
-    response contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
-    response contains "-2000,2024-07-24T01:00:00,-2000,CREATE,PVI,\"Free text court name\",UNKNOWN,true,2100-07-24T12:00:00,2100-07-24T13:00:00,,,,,\"Pentonville room 3\",,\n"
+    response contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user\n"
+    response contains "-2000,2024-07-24T01:00:00,-2000,CREATE,PVI,\"Free text court name\",UNKNOWN,true,2100-07-24T12:00:00,2100-07-24T13:00:00,,,,,\"Pentonville room 3\",,,Tribunal,court_user\n"
   }
 
   @Sql("classpath:integration-test-data/seed-events-by-booking-date-data-extract.sql")
@@ -36,14 +36,14 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
     val courtResponse = webTestClient.downloadCourtDataByBookingDate(LocalDate.of(2024, 1, 1), 1)
 
     courtResponse contains "video-links-by-court-booking-date-from-2024-01-01-for-1-days.csv"
-    courtResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
-    courtResponse contains "-2000,2024-01-01T01:00:00,-2000,CREATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2099-01-24T12:00:00,2099-01-24T13:00:00,,,,,\"Pentonville room 3\",,"
+    courtResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user\n"
+    courtResponse contains "-2000,2024-01-01T01:00:00,-2000,CREATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2099-01-24T12:00:00,2099-01-24T13:00:00,,,,,\"Pentonville room 3\",,,Tribunal,test_user"
 
     val probationResponse = webTestClient.downloadProbationDataByBookingDate(LocalDate.of(2024, 1, 1), 2)
 
     probationResponse contains "video-links-by-probation-booking-date-from-2024-01-01-for-2-days.csv"
-    probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
-    probationResponse contains "-3000,2024-01-01T01:00:00,-3000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"Pentonville room 3\",,"
+    probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n"
+    probationResponse contains "-3000,2024-01-01T01:00:00,-3000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report\",test_user"
   }
 
   @Sql("classpath:integration-test-data/seed-probation-events-by-meeting-date-data.sql")
@@ -52,9 +52,9 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
     val probationResponse = webTestClient.downloadProbationDataByMeetingDate(LocalDate.of(2099, 1, 25), 365)
 
     probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-25-for-365-days.csv"
-    probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName\n"
-    probationResponse contains "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Free text probation team name\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,\n"
-    probationResponse contains "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,\n"
+    probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n"
+    probationResponse contains "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Free text probation team name\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report\",probation_user\n"
+    probationResponse contains "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report\",probation_user\n"
   }
 
   @Test
