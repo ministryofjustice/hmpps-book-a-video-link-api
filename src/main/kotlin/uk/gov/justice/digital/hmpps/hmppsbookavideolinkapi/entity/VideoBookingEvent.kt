@@ -66,4 +66,8 @@ data class VideoBookingEvent(
   val postEndTime: LocalTime? = null,
 
   val courtBooking: Boolean,
+
+  val type: String,
+
+  val user: String,
 )
