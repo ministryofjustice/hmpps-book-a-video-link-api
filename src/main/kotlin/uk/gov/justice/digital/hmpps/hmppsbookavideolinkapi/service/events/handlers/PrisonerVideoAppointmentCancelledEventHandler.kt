@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerVideoAppointmentCancelledEvent
+import java.time.LocalDateTime
 
 /**
  * The nature of this event handler is to do our best to cancel (or delete an appointment) providing we can match the
@@ -52,9 +53,14 @@ class PrisonerVideoAppointmentCancelledEventHandler(
       )
 
       if (activeAppointments.size == 1) {
-        log.info("PRISONER_APPOINTMENT_CANCELLATION: processing $event")
-
         val appointment = activeAppointments.single()
+
+        if (!appointment.isFutureAppointment()) {
+          log.info("PRISONER_APPOINTMENT_CANCELLATION: ignoring event ${event.additionalInformation}, appointment has already taken place.")
+          return
+        }
+
+        log.info("PRISONER_APPOINTMENT_CANCELLATION: processing $event")
 
         when {
           appointment.isForCourtBooking() -> {
@@ -86,6 +92,8 @@ class PrisonerVideoAppointmentCancelledEventHandler(
   private fun VideoAppointment.isForProbationBooking() = appointmentType == "VLB_PROBATION"
 
   private fun VideoAppointment.isMainAppointment() = listOf("VLB_COURT_MAIN").contains(appointmentType)
+
+  private fun VideoAppointment.isFutureAppointment() = this.start() > LocalDateTime.now()
 
   private fun cancelTheBookingForThe(appointment: VideoAppointment) {
     bookingFacade.cancel(appointment.videoBookingId, UserService.getServiceAsUser())

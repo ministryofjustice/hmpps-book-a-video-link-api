@@ -12,6 +12,8 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -424,6 +426,62 @@ class AvailabilityServiceTest {
       availabilityOk isBool true
       alternatives hasSize 0
     }
+
+    verifyNoInteractions(videoAppointmentRepository)
+    verifyNoInteractions(externalAppointmentsService)
+  }
+
+  @Test
+  fun `is available if request matches existing court booking main hearing booking date, time and location`() {
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1)
+
+    val request = amendCourtBookingRequest(
+      prisonCode = WANDSWORTH,
+      appointmentDate = today(),
+      startTime = LocalTime.of(10, 0),
+      endTime = LocalTime.of(11, 0),
+      location = room1,
+    )
+
+    whenever(videoBookingRepository.findById(2L)) doReturn Optional.of(
+      courtBooking().withMainCourtPrisonAppointment(
+        date = today(),
+        prisonCode = WANDSWORTH,
+        location = room1,
+        startTime = LocalTime.of(10, 0),
+        endTime = LocalTime.of(11, 0),
+      ),
+    )
+
+    service.isAvailable(2, request) isBool true
+
+    verifyNoInteractions(videoAppointmentRepository)
+    verifyNoInteractions(externalAppointmentsService)
+  }
+
+  @Test
+  fun `is available if request matches existing probation booking meeting date, time and location`() {
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room2)
+
+    val request = amendProbationBookingRequest(
+      prisonCode = WANDSWORTH,
+      appointmentDate = today(),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(12, 0),
+      location = room2,
+    )
+
+    whenever(videoBookingRepository.findById(3L)) doReturn Optional.of(
+      probationBooking().withProbationPrisonAppointment(
+        date = today(),
+        prisonCode = WANDSWORTH,
+        location = room2,
+        startTime = LocalTime.of(11, 0),
+        endTime = LocalTime.of(12, 0),
+      ),
+    )
+
+    service.isAvailable(3, request) isBool true
 
     verifyNoInteractions(videoAppointmentRepository)
     verifyNoInteractions(externalAppointmentsService)

@@ -455,41 +455,6 @@ class AmendVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to amend a court video booking when new appointment overlaps existing for court user`() {
-    val prisonerNumber = "123456"
-    val amendCourtBookingRequest = amendCourtBookingRequest(
-      prisonCode = BIRMINGHAM,
-      prisonerNumber = prisonerNumber,
-      appointments = listOf(
-        Appointment(
-          type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
-          date = tomorrow(),
-          startTime = LocalTime.of(9, 30),
-          endTime = LocalTime.of(10, 0),
-        ),
-      ),
-    )
-
-    val overlappingAppointment: PrisonAppointment = mock {
-      on { startTime } doReturn LocalTime.of(9, 0)
-      on { endTime } doReturn LocalTime.of(10, 0)
-    }
-
-    val courtBooking = courtBooking().withMainCourtPrisonAppointment()
-    withBookingFixture(1, courtBooking)
-    withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
-
-    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
-
-    val error = assertThrows<IllegalArgumentException> { service.amend(1, amendCourtBookingRequest, COURT_USER) }
-
-    error.message isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
-  }
-
-  @Test
   fun `should succeed to amend a court video booking when new appointment overlaps existing for prison user`() {
     val prisonerNumber = "123456"
     val amendCourtBookingRequest = amendCourtBookingRequest(

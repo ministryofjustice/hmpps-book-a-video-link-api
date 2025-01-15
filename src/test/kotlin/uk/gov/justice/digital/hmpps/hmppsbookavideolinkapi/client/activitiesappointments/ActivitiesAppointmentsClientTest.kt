@@ -4,8 +4,11 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiMockServer
@@ -93,6 +96,24 @@ class ActivitiesAppointmentsClientTest {
     )
 
     client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 4000) hasSize 0
+  }
+
+  @Test
+  fun `should be rolled out prison`() {
+    server.stubGetRolledOutPrison(PENTONVILLE, true)
+    client.isAppointmentsRolledOutAt(PENTONVILLE) isBool true
+
+    server.stubGetRolledOutPrison(RISLEY, true)
+    client.isAppointmentsRolledOutAt(RISLEY) isBool true
+  }
+
+  @Test
+  fun `should not be rolled out prison`() {
+    server.stubGetRolledOutPrison(PENTONVILLE, false)
+    client.isAppointmentsRolledOutAt(PENTONVILLE) isBool false
+
+    server.stubGetRolledOutPrison(RISLEY, false)
+    client.isAppointmentsRolledOutAt(RISLEY) isBool false
   }
 
   @AfterEach

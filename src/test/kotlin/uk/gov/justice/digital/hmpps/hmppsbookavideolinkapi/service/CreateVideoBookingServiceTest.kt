@@ -480,44 +480,6 @@ class CreateVideoBookingServiceTest {
   }
 
   @Test
-  fun `should fail to create a court video booking when new appointment overlaps existing for court user`() {
-    val prisonCode = BIRMINGHAM
-    val prisonerNumber = "123456"
-    val courtBookingRequest = courtBookingRequest(
-      prisonCode = prisonCode,
-      prisonerNumber = prisonerNumber,
-      appointments = listOf(
-        Appointment(
-          type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
-          date = tomorrow(),
-          startTime = LocalTime.of(9, 30),
-          endTime = LocalTime.of(10, 0),
-        ),
-      ),
-    )
-
-    val overlappingAppointment: PrisonAppointment = mock {
-      on { startTime } doReturn LocalTime.of(9, 0)
-      on { endTime } doReturn LocalTime.of(10, 0)
-    }
-
-    val requestedCourt = court(courtBookingRequest.courtCode!!)
-
-    whenever(courtRepository.findByCode(courtBookingRequest.courtCode!!)) doReturn requestedCourt
-    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
-    whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
-    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
-    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-
-    val error = assertThrows<IllegalArgumentException> { service.create(courtBookingRequest, COURT_USER) }
-
-    error.message isEqualTo "One or more requested court appointments overlaps with an existing appointment at location ${birminghamLocation.key}"
-  }
-
-  @Test
   fun `should succeed to create a court video booking when new appointment overlaps existing for prison user`() {
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"

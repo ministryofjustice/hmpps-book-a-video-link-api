@@ -5,6 +5,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.data.annotation.Immutable
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
@@ -42,7 +43,9 @@ data class VideoAppointment(
   override val startTime: LocalTime,
 
   override val endTime: LocalTime,
-) : AppointmentSlot
+) : AppointmentSlot {
+  fun start(): LocalDateTime = appointmentDate.atTime(startTime)
+}
 
 interface AppointmentSlot {
   val prisonLocationId: UUID
