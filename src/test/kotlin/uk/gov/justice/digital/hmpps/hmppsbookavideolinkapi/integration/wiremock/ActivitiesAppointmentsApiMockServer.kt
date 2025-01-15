@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
@@ -150,6 +151,28 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
             .withHeader("Content-Type", "application/json")
             .withBody(mapper.writeValueAsString(appointments))
             .withStatus(201),
+        ),
+    )
+  }
+
+  fun stubGetRolledOutPrison(prisonCode: String, isLive: Boolean) {
+    stubFor(
+      WireMock.get("/rollout/$prisonCode")
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              mapper.writeValueAsString(
+                RolloutPrisonPlan(
+                  prisonCode = prisonCode,
+                  activitiesRolledOut = true,
+                  appointmentsRolledOut = true,
+                  maxDaysToExpiry = 1,
+                  prisonLive = isLive,
+                ),
+              ),
+            )
+            .withStatus(200),
         ),
     )
   }
