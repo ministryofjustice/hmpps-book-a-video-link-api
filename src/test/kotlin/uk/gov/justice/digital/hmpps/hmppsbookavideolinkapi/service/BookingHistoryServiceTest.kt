@@ -15,12 +15,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -125,7 +128,10 @@ class BookingHistoryServiceTest {
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
         locationId = wandsworthLocation.id,
-      )
+      ).apply {
+        amendedBy = "amended by someone else"
+        amendedTime = today().atStartOfDay()
+      }
 
     service.createBookingHistory(HistoryType.AMEND, courtBooking)
 
@@ -133,6 +139,33 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.AMEND
+      createdBy isEqualTo "amended by someone else"
+      createdTime isEqualTo today().atStartOfDay()
+      appointments() hasSize 1
+    }
+  }
+
+  @Test
+  fun `Should create history for a court booking cancellation`() {
+    val courtBooking = courtBooking(COURT_USER.username)
+      .addAppointment(
+        prison = prison(prisonCode = WANDSWORTH),
+        prisonerNumber = "A1234AA",
+        appointmentType = AppointmentType.VLB_COURT_MAIN.name,
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 30),
+        endTime = LocalTime.of(10, 30),
+        locationId = wandsworthLocation.id,
+      ).cancel(courtUser(username = "court cancellation user"))
+
+    service.createBookingHistory(HistoryType.CANCEL, courtBooking)
+
+    verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
+
+    with(historyCaptor.firstValue) {
+      historyType isEqualTo HistoryType.CANCEL
+      createdBy isEqualTo "court cancellation user"
+      createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
     }
   }
@@ -148,7 +181,10 @@ class BookingHistoryServiceTest {
         startTime = LocalTime.of(9, 30),
         endTime = LocalTime.of(10, 30),
         locationId = wandsworthLocation.id,
-      )
+      ).apply {
+        amendedBy = "amended by someone else"
+        amendedTime = today().atStartOfDay()
+      }
 
     service.createBookingHistory(HistoryType.AMEND, probationBooking)
 
@@ -156,6 +192,33 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.AMEND
+      createdBy isEqualTo "amended by someone else"
+      createdTime isEqualTo today().atStartOfDay()
+      appointments() hasSize 1
+    }
+  }
+
+  @Test
+  fun `Should create a booking history for a probation booking cancellation`() {
+    val probationBooking = probationBooking()
+      .addAppointment(
+        prison = prison(prisonCode = WANDSWORTH),
+        prisonerNumber = "A1234AA",
+        appointmentType = AppointmentType.VLB_PROBATION.name,
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 30),
+        endTime = LocalTime.of(10, 30),
+        locationId = wandsworthLocation.id,
+      ).cancel(probationUser(username = "probation cancellation user"))
+
+    service.createBookingHistory(HistoryType.CANCEL, probationBooking)
+
+    verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
+
+    with(historyCaptor.firstValue) {
+      historyType isEqualTo HistoryType.CANCEL
+      createdBy isEqualTo "probation cancellation user"
+      createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
     }
   }

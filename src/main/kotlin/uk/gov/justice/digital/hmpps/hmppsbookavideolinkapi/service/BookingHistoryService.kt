@@ -25,7 +25,8 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
       probationMeetingType = booking.probationMeetingType.takeUnless { booking.isCourtBooking() },
       videoUrl = booking.videoUrl,
       comments = booking.comments,
-      createdBy = booking.createdBy,
+      createdBy = booking.amendedBy ?: booking.createdBy,
+      createdTime = booking.amendedTime ?: booking.createdTime,
     ).apply {
       addBookingHistoryAppointments(getAppointmentsForHistory(this, booking))
     }.also(bookingHistoryRepository::saveAndFlush)
