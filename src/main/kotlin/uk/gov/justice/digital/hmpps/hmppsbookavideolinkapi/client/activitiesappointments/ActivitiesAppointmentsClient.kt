@@ -39,7 +39,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .retrieve()
       .bodyToMono(RolloutPrisonPlan::class.java)
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()?.appointmentsRolledOut == true
+      .block()?.prisonLive == true
 
   fun createAppointment(
     prisonCode: String,
