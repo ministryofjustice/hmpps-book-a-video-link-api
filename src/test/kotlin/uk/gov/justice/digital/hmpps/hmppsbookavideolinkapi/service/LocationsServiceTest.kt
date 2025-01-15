@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 
@@ -19,7 +20,9 @@ class LocationsServiceTest {
 
   private val prisonRepository: PrisonRepository = mock()
   private val locationsClient: LocationsInsidePrisonClient = mock()
-  private val service = LocationsService(prisonRepository, locationsClient)
+  private val locationAttributeRepository: LocationAttributeRepository = mock()
+
+  private val service = LocationsService(prisonRepository, locationsClient, locationAttributeRepository)
 
   @Test
   fun `should return a list of non-residential enabled locations sorted by description`() {
