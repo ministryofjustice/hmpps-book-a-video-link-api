@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 
@@ -15,7 +16,19 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
     bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(videoBookingId)
 
   @Transactional
-  fun createBookingHistory(historyType: HistoryType, booking: VideoBooking) =
+  fun createBookingHistory(historyType: HistoryType, booking: VideoBooking) {
+    when (historyType) {
+      HistoryType.CREATE -> require(booking.isStatus(StatusCode.ACTIVE) && booking.amendedBy == null) {
+        "Booking ${booking.videoBookingId} must be new for $historyType booking history"
+      }
+      HistoryType.AMEND -> require(booking.isStatus(StatusCode.ACTIVE) && booking.amendedBy != null) {
+        "Booking ${booking.videoBookingId} must be amended for $historyType booking history"
+      }
+      HistoryType.CANCEL -> require(booking.isStatus(StatusCode.CANCELLED)) {
+        "Booking ${booking.videoBookingId} must be cancelled for $historyType booking history"
+      }
+    }
+
     BookingHistory(
       videoBookingId = booking.videoBookingId,
       historyType = historyType,
@@ -30,6 +43,7 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
     ).apply {
       addBookingHistoryAppointments(getAppointmentsForHistory(this, booking))
     }.also(bookingHistoryRepository::saveAndFlush)
+  }
 
   private fun getAppointmentsForHistory(history: BookingHistory, booking: VideoBooking) =
     booking.appointments().map { appointment ->

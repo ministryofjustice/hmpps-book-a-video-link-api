@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
@@ -273,6 +274,39 @@ class BookingHistoryServiceTest {
       assertThat(appointments())
         .extracting("prisonLocationId")
         .containsAll(listOf(wandsworthLocation.id, pentonvilleLocation.id, birminghamLocation.id))
+    }
+  }
+
+  @Test
+  fun `Should fail to create new booking history when booking is not new`() {
+    with(assertThrows<IllegalArgumentException> { service.createBookingHistory(HistoryType.CREATE, courtBooking().apply { amendedBy = "amend user" }) }) {
+      message isEqualTo "Booking 0 must be new for CREATE booking history"
+    }
+
+    with(assertThrows<IllegalArgumentException> { service.createBookingHistory(HistoryType.CREATE, courtBooking().cancel(courtUser())) }) {
+      message isEqualTo "Booking 0 must be new for CREATE booking history"
+    }
+  }
+
+  @Test
+  fun `Should fail to create amend booking history when booking is not amended`() {
+    with(assertThrows<IllegalArgumentException> { service.createBookingHistory(HistoryType.AMEND, courtBooking()) }) {
+      message isEqualTo "Booking 0 must be amended for AMEND booking history"
+    }
+
+    with(assertThrows<IllegalArgumentException> { service.createBookingHistory(HistoryType.AMEND, courtBooking().cancel(courtUser())) }) {
+      message isEqualTo "Booking 0 must be amended for AMEND booking history"
+    }
+  }
+
+  @Test
+  fun `Should fail to create cancel booking history when booking is not cancelled`() {
+    with(assertThrows<IllegalArgumentException> { service.createBookingHistory(HistoryType.CANCEL, courtBooking()) }) {
+      message isEqualTo "Booking 0 must be cancelled for CANCEL booking history"
+    }
+
+    with(assertThrows<IllegalArgumentException> { service.createBookingHistory(HistoryType.CANCEL, courtBooking().apply { amendedBy = "amend user" }) }) {
+      message isEqualTo "Booking 0 must be cancelled for CANCEL booking history"
     }
   }
 }
