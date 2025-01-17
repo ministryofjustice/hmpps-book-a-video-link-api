@@ -12,9 +12,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByCourtHearingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByProbationMeetingType
 import java.time.LocalTime
 
 /**
@@ -31,7 +28,6 @@ class ManageExternalAppointmentsService(
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
   private val prisonApiClient: PrisonApiClient,
   private val prisonerSearchClient: PrisonerSearchClient,
-  private val referenceCodeRepository: ReferenceCodeRepository,
   private val nomisMappingClient: NomisMappingClient,
 ) {
 
@@ -65,7 +61,7 @@ class ManageExternalAppointmentsService(
               startTime = appointment.startTime,
               endTime = appointment.endTime,
               internalLocationId = internalLocationId,
-              comments = appointment.detailedComments(),
+              comments = appointment.comments,
             )?.let { appointmentSeries ->
               log.info("EXTERNAL APPOINTMENTS: created activities and appointments series ${appointmentSeries.id} for prison appointment $prisonAppointmentId")
             }
@@ -90,7 +86,7 @@ class ManageExternalAppointmentsService(
               appointmentDate = appointment.appointmentDate,
               startTime = appointment.startTime,
               endTime = appointment.endTime,
-              comments = appointment.detailedComments(),
+              comments = appointment.comments,
             )?.let { event ->
               log.info("EXTERNAL APPOINTMENTS: created prison api event ${event.eventId} for prison appointment $prisonAppointmentId")
             }
@@ -205,17 +201,6 @@ class ManageExternalAppointmentsService(
       emptyList<PrisonerSchedule>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
     }
-
-  private fun PrisonAppointment.detailedComments(): String? {
-    if (comments == null) return null
-    return if (videoBooking.isCourtBooking()) {
-      val hearingType = referenceCodeRepository.findByCourtHearingType(videoBooking.hearingType!!)!!
-      "Video booking for court hearing type ${hearingType.description} at ${videoBooking.court?.description}\n\n$comments"
-    } else {
-      val meetingType = referenceCodeRepository.findByProbationMeetingType(videoBooking.probationMeetingType!!)!!
-      "Video booking for probation meeting type ${meetingType.description} at ${videoBooking.probationTeam?.description}\n\n$comments"
-    }
-  }
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
   private fun PrisonAppointment.internalLocationId() =
