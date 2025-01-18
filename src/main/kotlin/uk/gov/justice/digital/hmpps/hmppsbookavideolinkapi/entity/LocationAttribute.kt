@@ -32,18 +32,18 @@ data class LocationAttribute(
   @Enumerated(EnumType.STRING)
   val locationStatus: LocationStatus = LocationStatus.ACTIVE,
 
-  val statusMessage: String?,
+  val statusMessage: String? = null,
 
-  val expectedActiveDate: LocalDate?,
+  val expectedActiveDate: LocalDate? = null,
 
   @Enumerated(EnumType.STRING)
   val locationUsage: LocationUsage,
 
-  val allowedParties: String?,
+  val allowedParties: String? = null,
 
-  val prisonVideoUrl: String?,
+  val prisonVideoUrl: String? = null,
 
-  val notes: String?,
+  val notes: String? = null,
 
   val createdBy: String,
 
@@ -56,7 +56,7 @@ data class LocationAttribute(
     private set
 
   @OneToMany(mappedBy = "locationAttribute", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-  val locationSchedule: MutableList<LocationSchedule> = mutableListOf()
+  var locationSchedule: MutableList<LocationSchedule> = mutableListOf()
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

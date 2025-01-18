@@ -35,10 +35,14 @@ class LocationsService(
 
     val locationsById = prisonLocations.associateBy { it.key }
 
-    return locationAttributeRepository.findByPrisonCode(prisonCode)
+    val decoratedLocations = locationAttributeRepository.findByPrisonCode(prisonCode)
       .filter { locationsById[it.locationKey] != null }
       .mapNotNull { attributes ->
         locationsById[attributes.locationKey]?.toDecoratedLocation(attributes.toRoomAttributes())
       }
+
+    return decoratedLocations.ifEmpty {
+      prisonLocations
+    }
   }
 }

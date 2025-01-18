@@ -25,20 +25,20 @@ data class Location(
 
 @Schema(description = "The additional attributes of a video location")
 data class RoomAttributes(
-  @Schema(description = "The status of the room (ACTIVE or INACTIVE)", example = "ACTIVE")
+  @Schema(description = "The status of the room (ACTIVE or INACTIVE)", example = "ACTIVE", required = true)
   val locationStatus: LocationStatus,
 
   @Schema(description = "An optional message relating to an inactive status", example = "Room damaged")
   val statusMessage: String?,
 
-  @Schema(description = "The data that the room might be operational again", example = "22/0/2025")
+  @Schema(description = "The date the room is expected to be operational again", example = "2025-02-12")
   val expectedActiveDate: LocalDate?,
 
-  @Schema(description = "The preferred usage for this room (COURT, PROBATION, SHARED, SCHEDULE)", example = "SHARED")
+  @Schema(description = "The preferred usage for this room (COURT, PROBATION, SHARED, SCHEDULE)", example = "SHARED", required = true)
   @Enumerated(EnumType.STRING)
   val locationUsage: LocationUsage,
 
-  @Schema(description = "Court or probation team codes that can use the room (comma-separated)", example = "YRKMAG,DRBYJS")
+  @Schema(description = "Court or probation team codes allowed to use the room (comma-separated list)", example = "YRKMAG,DRBYJS")
   val allowedParties: String?,
 
   @Schema(description = "The video URL to access the equipment in this room", example = "https://prison.video.link/123")
@@ -50,19 +50,19 @@ data class RoomAttributes(
 
 @Schema(description = "The additional schedule of usage for a video room")
 data class RoomSchedule(
-  @Schema(description = "The day when this time-slot starts", example = "Monday")
+  @Schema(description = "The day when this time-slot starts", example = "Monday", required = true)
   val startDayOfWeek: DayOfWeek,
 
-  @Schema(description = "The day when this time-slot ends", example = "Friday")
+  @Schema(description = "The day when this time-slot ends", example = "Friday", required = true)
   val endDayOfWeek: DayOfWeek,
 
-  @Schema(description = "Start time of this slot (24 hr clock, HH:MI)", example = "10:00")
+  @Schema(description = "Start time of this slot (24 hr clock, HH:MI)", example = "10:00", required = true)
   val startTime: LocalTime,
 
-  @Schema(description = "End time of this slot (24 hr clock, HH:MI)", example = "16:00")
+  @Schema(description = "End time of this slot (24 hr clock, HH:MI)", example = "16:00", required = true)
   val endTime: LocalTime,
 
-  @Schema(description = "The usage of this room within this slot (PROBATION, COURT, SHARED)", example = "SHARED")
+  @Schema(description = "The usage of this room within this slot (PROBATION, COURT, SHARED)", example = "SHARED", required = true)
   @Enumerated(EnumType.STRING)
   val locationUsage: LocationUsage,
 

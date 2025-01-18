@@ -37,9 +37,9 @@ data class LocationSchedule(
   @Enumerated(EnumType.STRING)
   val locationUsage: LocationUsage,
 
-  val allowedParties: String?,
+  val allowedParties: String? = null,
 
-  val notes: String?,
+  val notes: String? = null,
 
   val createdBy: String,
 

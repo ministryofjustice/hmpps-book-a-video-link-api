@@ -1,20 +1,26 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import java.time.DayOfWeek
+import java.time.LocalTime
 
 class LocationsServiceTest {
 
@@ -143,5 +149,119 @@ class LocationsServiceTest {
     result.isEmpty() isBool true
 
     verifyNoInteractions(locationsClient)
+  }
+
+  @Test
+  fun `should return video link locations with extra attributes whether active or not`() {
+    val locationA = location(WANDSWORTH, "A", active = true)
+    val locationB = location(WANDSWORTH, "B", active = false)
+
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
+    whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
+
+    val roomAttributesA = videoRoomAttributes(
+      prisonCode = WANDSWORTH,
+      attributeId = 1,
+      locationKey = locationA.key,
+    )
+
+    val roomAttributesB = videoRoomAttributes(
+      prisonCode = WANDSWORTH,
+      attributeId = 1,
+      locationKey = locationB.key,
+    )
+
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesA + roomAttributesB
+
+    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = false)
+
+    assertThat(result).hasSize(2)
+    with(result[0]) {
+      assertThat(key).isEqualTo(locationA.key)
+      assertThat(enabled).isTrue()
+      assertThat(extraAttributes).isNotNull
+      with(extraAttributes!!) {
+        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        assertThat(schedule).hasSize(1)
+        with(schedule[0]!!) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
+          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        }
+      }
+    }
+
+    with(result[1]) {
+      assertThat(key).isEqualTo(locationB.key)
+      assertThat(enabled).isFalse()
+      assertThat(extraAttributes).isNotNull
+      with(extraAttributes!!) {
+        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        assertThat(schedule).hasSize(1)
+        with(schedule[0]!!) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
+          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        }
+      }
+    }
+  }
+
+  @Test
+  fun `should return only enabled video link locations with extra attributes`() {
+    val locationA = location(WANDSWORTH, "A", active = true)
+    val locationB = location(WANDSWORTH, "B", active = false)
+
+    val roomAttributes = videoRoomAttributes(
+      prisonCode = WANDSWORTH,
+      attributeId = 1,
+      locationKey = locationA.key,
+    )
+
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
+    whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributes
+
+    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = true)
+
+    assertThat(result).hasSize(1)
+    with(result[0]) {
+      assertThat(key).isEqualTo(locationA.key)
+      assertThat(enabled).isTrue()
+      assertThat(extraAttributes).isNotNull
+      with(extraAttributes!!) {
+        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        assertThat(schedule).hasSize(1)
+        with(schedule[0]!!) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
+          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        }
+      }
+    }
+  }
+
+  @Test
+  fun `should return a list of enabled video link locations with no extra attributes if none exist`() {
+    val locationA = location(WANDSWORTH, "A", active = true)
+    val locationB = location(WANDSWORTH, "B", active = false)
+
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
+    whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn emptyList()
+
+    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = true)
+
+    result containsExactlyInAnyOrder listOf(locationA.toModel())
+    assertThat(result[0].extraAttributes).isNull()
   }
 }
