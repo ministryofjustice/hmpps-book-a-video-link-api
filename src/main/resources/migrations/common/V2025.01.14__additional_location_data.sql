@@ -7,7 +7,7 @@
 CREATE TABLE location_attribute
 (
     location_attribute_id  bigserial NOT NULL CONSTRAINT location_attribute_pk PRIMARY KEY,
-    location_key           uuid NOT NULL,  -- from locations API unique key (uuid)
+    location_key           varchar(100) NOT NULL,  -- from locations API key (e.g. MDI-VIDEO-ROOM-1)
     prison_id              bigint NOT NULL REFERENCES prison(prison_id),
     location_status        varchar(20) NOT NULL, -- ACTIVE or INACTIVE
     status_message         varchar(100), -- Description for inactive rooms and why
@@ -37,8 +37,8 @@ CREATE TABLE location_schedule
 (
     location_schedule_id  bigserial NOT NULL CONSTRAINT location_schedule_pk PRIMARY KEY,
     location_attribute_id bigint NOT NULL REFERENCES location_attribute(location_attribute_id),
-    start_day_of_week     varchar(12), -- Day of the week
-    end_day_of_week       varchar(12), -- Day of the week
+    start_day_of_week     int NOT NULL, -- Day of the week  Monday=1, Sunday=7
+    end_day_of_week       int NOT NULL, -- Day of the week, Monday=1, Sunday=7
     start_time            time without time zone NOT NULL,
     end_time              time without time zone NOT NULL,
     location_usage        varchar(20) NOT NULL,  -- COURT, PROBATION, or SHARED
@@ -50,4 +50,4 @@ CREATE TABLE location_schedule
     amended_time          timestamp
 );
 
-CREATE UNIQUE INDEX idx_location_schedule_attribute_id ON location_schedule(location_attribute_id);
+CREATE INDEX idx_location_schedule_attribute_id ON location_schedule(location_attribute_id);

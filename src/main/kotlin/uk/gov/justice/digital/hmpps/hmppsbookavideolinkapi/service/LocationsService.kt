@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
@@ -27,12 +28,15 @@ class LocationsService(
       ?.filter { !enabledOnly || it.active }
       ?.toModel() ?: emptyList()
 
+  @Transactional(readOnly = true)
   fun getDecoratedVideoLocations(prisonCode: String, enabledOnly: Boolean): List<Location> {
     val prisonLocations = prisonRepository.findByCode(prisonCode)
       ?.let { locationsInsidePrisonClient.getVideoLinkLocationsAtPrison(prisonCode) }
       ?.filter { !enabledOnly || it.active }
       ?.toModel() ?: emptyList()
 
+    // TODO: Associate by UUID (locationId) rather than the key (MDI-VIDEO-ROOM-1) - the key can change!
+    // But this is a wider change throughout the API when dealing with locations - to follow.
     val locationsById = prisonLocations.associateBy { it.key }
 
     val decoratedLocations = locationAttributeRepository.findByPrisonCode(prisonCode)

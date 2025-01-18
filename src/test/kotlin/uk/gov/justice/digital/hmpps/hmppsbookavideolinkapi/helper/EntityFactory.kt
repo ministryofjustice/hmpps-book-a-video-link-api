@@ -222,8 +222,8 @@ fun videoRoomAttributes(
   val roomSchedule = mutableListOf(
     LocationSchedule(
       locationScheduleId = 1,
-      startDayOfWeek = DayOfWeek.MONDAY,
-      endDayOfWeek = DayOfWeek.SUNDAY,
+      startDayOfWeek = DayOfWeek.MONDAY.value,
+      endDayOfWeek = DayOfWeek.SUNDAY.value,
       startTime = LocalTime.of(1, 0),
       endTime = LocalTime.of(23, 0),
       locationUsage = locationUsage,

@@ -6,7 +6,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.CacheManager
 import org.springframework.http.MediaType
+import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -18,6 +21,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
+import java.time.DayOfWeek
+import java.time.LocalTime
 
 class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
@@ -111,6 +116,53 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
     val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?enabledOnly=true")
 
     response.isEmpty() isBool true
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-locations-with-extended-attributes.sql")
+  fun `should get video link locations with additional room attributes`() {
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(setOf("VIDEOLINK"), prisonCode = WANDSWORTH)
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("NOT_VIDEO_LINK"), prisonCode = WANDSWORTH)
+
+    val response = webTestClient.getAppointmentLocations(prisonCode = WANDSWORTH, requestParams = "?extendedAttributes=true")
+
+    assertThat(response).isNotEmpty
+
+    with(response[0]) {
+      assertThat(key).isEqualTo("VIDEOLINK")
+      assertThat(description).isEqualTo("WWI VIDEOLINK")
+      assertThat(enabled).isTrue()
+      assertThat(extraAttributes).isNotNull
+
+      with(extraAttributes!!) {
+        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
+        assertThat(prisonVideoUrl).isEqualTo("/video-link/xxx")
+        assertThat(notes).isEqualTo("some notes")
+        assertThat(schedule).hasSize(3)
+        with(schedule[0]) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.THURSDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
+          assertThat(locationUsage).isEqualTo(LocationUsage.COURT)
+        }
+        with(schedule[1]) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.FRIDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.FRIDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
+          assertThat(locationUsage).isEqualTo(LocationUsage.PROBATION)
+        }
+        with(schedule[2]) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.SATURDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
+          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        }
+      }
+    }
   }
 
   private fun WebTestClient.getAppointmentLocations(prisonCode: String, requestParams: String = "") =

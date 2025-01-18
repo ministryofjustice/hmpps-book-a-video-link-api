@@ -44,6 +44,9 @@ data class RoomAttributes(
   @Schema(description = "The video URL to access the equipment in this room", example = "https://prison.video.link/123")
   val prisonVideoUrl: String?,
 
+  @Schema(description = "Notes for these additional attributes", example = "some notes")
+  val notes: String?,
+
   @Schema(description = "A schedule for this room. Only present if the locationUsage is SCHEDULE.")
   val schedule: List<RoomSchedule> = emptyList(),
 )

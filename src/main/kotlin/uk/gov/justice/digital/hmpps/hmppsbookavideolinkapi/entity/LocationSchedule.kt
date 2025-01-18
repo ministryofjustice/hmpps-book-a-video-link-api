@@ -11,7 +11,6 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
-import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -26,9 +25,9 @@ data class LocationSchedule(
   @ManyToOne(fetch = FetchType.LAZY)
   val locationAttribute: LocationAttribute,
 
-  val startDayOfWeek: DayOfWeek,
+  val startDayOfWeek: Int,
 
-  val endDayOfWeek: DayOfWeek,
+  val endDayOfWeek: Int,
 
   val startTime: LocalTime,
 

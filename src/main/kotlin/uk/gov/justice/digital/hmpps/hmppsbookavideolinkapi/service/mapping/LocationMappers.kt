@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttrib
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomSchedule
+import java.time.DayOfWeek
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location as ModelLocation
 
 // Undecorated locations
@@ -33,14 +34,15 @@ fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   locationUsage = this.locationUsage,
   allowedParties = this.allowedParties,
   prisonVideoUrl = this.prisonVideoUrl,
+  notes = this.notes,
   schedule = this.locationSchedule.toRoomSchedule(),
 )
 
 // Additional location schedule
 fun List<LocationSchedule>.toRoomSchedule() = map {
   RoomSchedule(
-    startDayOfWeek = it.startDayOfWeek,
-    endDayOfWeek = it.endDayOfWeek,
+    startDayOfWeek = DayOfWeek.of(it.startDayOfWeek),
+    endDayOfWeek = DayOfWeek.of(it.endDayOfWeek),
     startTime = it.startTime,
     endTime = it.endTime,
     locationUsage = it.locationUsage,
