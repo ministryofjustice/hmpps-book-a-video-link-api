@@ -199,13 +199,13 @@ fun videoAppointment(
 fun videoRoomAttributes(
   prisonCode: String,
   attributeId: Long = 1,
-  locationKey: String,
+  dpsLocationId: UUID,
   locationStatus: LocationStatus = LocationStatus.ACTIVE,
   locationUsage: LocationUsage = LocationUsage.SHARED,
 ): MutableList<LocationAttribute> {
   val roomAttributes = LocationAttribute(
     locationAttributeId = attributeId,
-    locationKey = locationKey,
+    dpsLocationId = dpsLocationId,
     prison = Prison(
       prisonId = 1,
       code = prisonCode,
@@ -233,7 +233,7 @@ fun videoRoomAttributes(
     ),
   )
 
-  roomAttributes.locationSchedule = roomSchedule
+  roomAttributes.setLocationSchedule(roomSchedule)
 
   return mutableListOf(roomAttributes)
 }

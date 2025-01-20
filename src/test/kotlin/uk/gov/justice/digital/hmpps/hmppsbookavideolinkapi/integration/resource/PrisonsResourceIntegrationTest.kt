@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,8 +11,8 @@ import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import java.time.DayOfWeek
 import java.time.LocalTime
+import java.util.UUID
 
 class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
@@ -76,12 +78,21 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should get video link locations only`() {
-    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(setOf("VIDEOLINK"), prisonCode = WANDSWORTH)
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("NOT_VIDEO_LINK"), prisonCode = WANDSWORTH)
+    val videoUUID = UUID.randomUUID()
+
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(
+      listOf(LocationKeyValue(key = "VIDEOLINK", id = videoUUID)),
+      prisonCode = WANDSWORTH,
+    )
+
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(
+      listOf(LocationKeyValue("NOT_VIDEO_LINK", UUID.randomUUID())),
+      prisonCode = WANDSWORTH,
+    )
 
     val response = webTestClient.getAppointmentLocations(WANDSWORTH)
 
-    response.single() isEqualTo Location(key = "VIDEOLINK", description = "WWI VIDEOLINK", true)
+    response.single() isEqualTo Location(key = "VIDEOLINK", description = "WWI VIDEOLINK", enabled = true, dpsLocationId = videoUUID)
   }
 
   @Test
@@ -94,15 +105,26 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
     val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?videoLinkOnly=false")
 
-    response containsExactlyInAnyOrder listOf(
-      Location(key = "VIDEOLINK", description = "VCC - ROOM - 1", true),
-      Location(key = "NOT_VIDEO_LINK", description = "PCVL - ROOM - 2", true),
-    )
+    assertThat(response)
+      .extracting("key", "description", "enabled")
+      .containsAll(
+        listOf(
+          Tuple("VIDEOLINK", "VCC - ROOM - 1", true),
+          Tuple("NOT_VIDEO_LINK", "PCVL - ROOM - 2", true),
+        ),
+      )
   }
 
   @Test
   fun `should be no appointment locations if not enabled`() {
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("VIDEOLINK", "NOT_VIDEO_LINK"), enabled = false, prisonCode = WANDSWORTH)
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(
+      listOf(
+        LocationKeyValue("VIDEOLINK", UUID.randomUUID()),
+        LocationKeyValue("NOT_VIDEO_LINK", UUID.randomUUID()),
+      ),
+      enabled = false,
+      prisonCode = WANDSWORTH,
+    )
 
     val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?videoLinkOnly=false&enabledOnly=true")
 
@@ -111,7 +133,11 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should be no video link locations if not enabled`() {
-    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(setOf("VIDEOLINK"), enabled = false, prisonCode = WANDSWORTH)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(
+      listOf(LocationKeyValue("VIDEOLINK", UUID.randomUUID())),
+      enabled = false,
+      prisonCode = WANDSWORTH,
+    )
 
     val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?enabledOnly=true")
 
@@ -121,8 +147,17 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
   @Test
   @Sql("classpath:integration-test-data/seed-locations-with-extended-attributes.sql")
   fun `should get video link locations with additional room attributes`() {
-    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(setOf("VIDEOLINK"), prisonCode = WANDSWORTH)
-    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(setOf("NOT_VIDEO_LINK"), prisonCode = WANDSWORTH)
+    val seededVideoUUID = UUID.fromString("e58ed763-928c-4155-bee9-fdbaaadc15f3")
+
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(
+      listOf(LocationKeyValue(key = "VIDEOLINK", id = seededVideoUUID)),
+      prisonCode = WANDSWORTH,
+    )
+
+    locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(
+      listOf(LocationKeyValue("NOT_VIDEO_LINK", UUID.randomUUID())),
+      prisonCode = WANDSWORTH,
+    )
 
     val response = webTestClient.getAppointmentLocations(prisonCode = WANDSWORTH, requestParams = "?extendedAttributes=true")
 
@@ -130,6 +165,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
     with(response[0]) {
       assertThat(key).isEqualTo("VIDEOLINK")
+      assertThat(dpsLocationId).isEqualTo(seededVideoUUID)
       assertThat(description).isEqualTo("WWI VIDEOLINK")
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull

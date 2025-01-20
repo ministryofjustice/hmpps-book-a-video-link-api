@@ -35,14 +35,12 @@ class LocationsService(
       ?.filter { !enabledOnly || it.active }
       ?.toModel() ?: emptyList()
 
-    // TODO: Associate by UUID (locationId) rather than the key (MDI-VIDEO-ROOM-1) - the key can change!
-    // But this is a wider change throughout the API when dealing with locations - to follow.
-    val locationsById = prisonLocations.associateBy { it.key }
+    val locationsById = prisonLocations.associateBy { it.dpsLocationId }
 
     val decoratedLocations = locationAttributeRepository.findByPrisonCode(prisonCode)
-      .filter { locationsById[it.locationKey] != null }
+      .filter { locationsById[it.dpsLocationId] != null }
       .mapNotNull { attributes ->
-        locationsById[attributes.locationKey]?.toDecoratedLocation(attributes.toRoomAttributes())
+        locationsById[attributes.dpsLocationId]?.toDecoratedLocation(attributes.toRoomAttributes())
       }
 
     return decoratedLocations.ifEmpty {

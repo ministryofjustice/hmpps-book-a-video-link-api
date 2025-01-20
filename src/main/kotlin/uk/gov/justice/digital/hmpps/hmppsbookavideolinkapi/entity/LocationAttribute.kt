@@ -15,6 +15,7 @@ import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Entity
 @Table(name = "location_attribute")
@@ -23,7 +24,7 @@ data class LocationAttribute(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val locationAttributeId: Long = 0,
 
-  val locationKey: String,
+  val dpsLocationId: UUID,
 
   @OneToOne
   @JoinColumn(name = "prison_id")
@@ -57,6 +58,11 @@ data class LocationAttribute(
 
   @OneToMany(mappedBy = "locationAttribute", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   var locationSchedule: MutableList<LocationSchedule> = mutableListOf()
+    private set
+
+  fun setLocationSchedule(schedules: MutableList<LocationSchedule>) {
+    this.locationSchedule = schedules
+  }
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -74,7 +80,7 @@ data class LocationAttribute(
   @Override
   override fun toString(): String {
     return this::class.simpleName +
-      "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, key = $locationKey)"
+      "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, id = $dpsLocationId)"
   }
 }
 

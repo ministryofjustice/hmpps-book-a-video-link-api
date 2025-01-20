@@ -8,9 +8,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 data class Location(
-  @Schema(description = "The unique location key for the location", example = "BMI-VIDEOLINK")
+  @Schema(description = "The location key for the location (this can change)", example = "BMI-VIDEOLINK")
   val key: String,
 
   @Schema(description = "The description for the location, can be null", example = "VIDEO LINK")
@@ -19,7 +20,10 @@ data class Location(
   @Schema(description = "Flag indicates if the location is enabled, true is enabled and false is disabled.", example = "true")
   val enabled: Boolean,
 
-  @Schema(description = "Optional additional attributes about the room and its usage.", example = "true")
+  @Schema(description = "The unique UUID for the prison location", example = "ef88-efefef-3efggg-3323ddd")
+  val dpsLocationId: UUID,
+
+  @Schema(description = "Additional location attributes returned if any are requested and available for this location.")
   val extraAttributes: RoomAttributes? = null,
 )
 
@@ -35,7 +39,6 @@ data class RoomAttributes(
   val expectedActiveDate: LocalDate?,
 
   @Schema(description = "The preferred usage for this room (COURT, PROBATION, SHARED, SCHEDULE)", example = "SHARED", required = true)
-  @Enumerated(EnumType.STRING)
   val locationUsage: LocationUsage,
 
   @Schema(description = "Court or probation team codes allowed to use the room (comma-separated list)", example = "YRKMAG,DRBYJS")

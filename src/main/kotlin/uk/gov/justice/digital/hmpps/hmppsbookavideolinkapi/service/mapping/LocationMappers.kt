@@ -13,6 +13,7 @@ fun Location.toModel() = ModelLocation(
   key = key,
   description = localName,
   enabled = active,
+  dpsLocationId = id,
 )
 
 // Undecorated locations
@@ -23,6 +24,7 @@ fun ModelLocation.toDecoratedLocation(attributes: RoomAttributes) = ModelLocatio
   key = key,
   description = description,
   enabled = enabled,
+  dpsLocationId = dpsLocationId,
   extraAttributes = attributes,
 )
 

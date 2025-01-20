@@ -7,7 +7,7 @@
 CREATE TABLE location_attribute
 (
     location_attribute_id  bigserial NOT NULL CONSTRAINT location_attribute_pk PRIMARY KEY,
-    location_key           varchar(100) NOT NULL,  -- from locations API key (e.g. MDI-VIDEO-ROOM-1)
+    dps_location_id        UUID NOT NULL,  -- Unique identifier from the locations API
     prison_id              bigint NOT NULL REFERENCES prison(prison_id),
     location_status        varchar(20) NOT NULL, -- ACTIVE or INACTIVE
     status_message         varchar(100), -- Description for inactive rooms and why
@@ -22,7 +22,7 @@ CREATE TABLE location_attribute
     amended_time           timestamp
 );
 
-CREATE UNIQUE INDEX idx_location_attribute_location_key ON location_attribute(location_key);
+CREATE UNIQUE INDEX idx_location_attribute_dps_location_id ON location_attribute(dps_location_id);
 CREATE INDEX idx_location_attribute_prison_id ON location_attribute(prison_id);
 
 -- -------------------------------------------------------------------------------------

@@ -162,13 +162,13 @@ class LocationsServiceTest {
     val roomAttributesA = videoRoomAttributes(
       prisonCode = WANDSWORTH,
       attributeId = 1,
-      locationKey = locationA.key,
+      dpsLocationId = locationA.id,
     )
 
     val roomAttributesB = videoRoomAttributes(
       prisonCode = WANDSWORTH,
       attributeId = 1,
-      locationKey = locationB.key,
+      dpsLocationId = locationB.id,
     )
 
     whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesA + roomAttributesB
@@ -178,13 +178,15 @@ class LocationsServiceTest {
     assertThat(result).hasSize(2)
     with(result[0]) {
       assertThat(key).isEqualTo(locationA.key)
+      assertThat(dpsLocationId).isEqualTo(locationA.id)
+      assertThat(description).isEqualTo(locationA.localName)
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
         assertThat(schedule).hasSize(1)
-        with(schedule[0]!!) {
+        with(schedule[0]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
@@ -196,13 +198,15 @@ class LocationsServiceTest {
 
     with(result[1]) {
       assertThat(key).isEqualTo(locationB.key)
+      assertThat(dpsLocationId).isEqualTo(locationB.id)
+      assertThat(description).isEqualTo(locationB.localName)
       assertThat(enabled).isFalse()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
         assertThat(schedule).hasSize(1)
-        with(schedule[0]!!) {
+        with(schedule[0]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
@@ -221,7 +225,7 @@ class LocationsServiceTest {
     val roomAttributes = videoRoomAttributes(
       prisonCode = WANDSWORTH,
       attributeId = 1,
-      locationKey = locationA.key,
+      dpsLocationId = locationA.id,
     )
 
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
@@ -233,13 +237,15 @@ class LocationsServiceTest {
     assertThat(result).hasSize(1)
     with(result[0]) {
       assertThat(key).isEqualTo(locationA.key)
+      assertThat(dpsLocationId).isEqualTo(locationA.id)
+      assertThat(description).isEqualTo(locationA.localName)
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
         assertThat(schedule).hasSize(1)
-        with(schedule[0]!!) {
+        with(schedule[0]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
