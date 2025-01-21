@@ -16,7 +16,7 @@ import java.time.LocalTime
 
 @Entity
 @Table(name = "location_schedule")
-data class LocationSchedule(
+class LocationSchedule(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val locationScheduleId: Long = 0,
@@ -44,6 +44,12 @@ data class LocationSchedule(
 
   val createdTime: LocalDateTime = LocalDateTime.now(),
 ) {
+  init {
+    require(locationAttribute.locationUsage == LocationUsage.SCHEDULE) {
+      "The location usage type must be SCHEDULE for a list of schedule rows to be associated with it."
+    }
+  }
+
   var amendedBy: String? = null
     private set
 

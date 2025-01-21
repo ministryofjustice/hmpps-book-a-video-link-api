@@ -37,7 +37,7 @@ fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   allowedParties = this.allowedParties,
   prisonVideoUrl = this.prisonVideoUrl,
   notes = this.notes,
-  schedule = this.locationSchedule.toRoomSchedule(),
+  schedule = this.schedule().toRoomSchedule(),
 )
 
 // Additional location schedule

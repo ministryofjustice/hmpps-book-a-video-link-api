@@ -19,7 +19,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "location_attribute")
-data class LocationAttribute(
+class LocationAttribute(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val locationAttributeId: Long = 0,
@@ -57,12 +57,16 @@ data class LocationAttribute(
     private set
 
   @OneToMany(mappedBy = "locationAttribute", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-  var locationSchedule: MutableList<LocationSchedule> = mutableListOf()
-    private set
+  private val locationSchedule: MutableList<LocationSchedule> = mutableListOf()
 
-  fun setLocationSchedule(schedules: MutableList<LocationSchedule>) {
-    this.locationSchedule = schedules
+  fun setLocationSchedule(schedules: List<LocationSchedule>) {
+    require(locationUsage == LocationUsage.SCHEDULE) {
+      "The location usage type must be SCHEDULE for a list of schedule rows to be associated with it."
+    }
+    this.locationSchedule.addAll(schedules)
   }
+
+  fun schedule() = locationSchedule.toList()
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -80,7 +84,7 @@ data class LocationAttribute(
   @Override
   override fun toString(): String {
     return this::class.simpleName +
-      "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, id = $dpsLocationId)"
+      "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
   }
 }
 

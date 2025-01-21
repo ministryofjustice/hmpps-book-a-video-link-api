@@ -15,7 +15,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributesWithSchedule
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributesWithoutSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
@@ -152,20 +153,20 @@ class LocationsServiceTest {
   }
 
   @Test
-  fun `should return video link locations with extra attributes whether active or not`() {
+  fun `should return active and inactive video link locations with extra attributes and schedules`() {
     val locationA = location(WANDSWORTH, "A", active = true)
     val locationB = location(WANDSWORTH, "B", active = false)
 
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
 
-    val roomAttributesA = videoRoomAttributes(
+    val roomAttributesA = videoRoomAttributesWithSchedule(
       prisonCode = WANDSWORTH,
       attributeId = 1,
       dpsLocationId = locationA.id,
     )
 
-    val roomAttributesB = videoRoomAttributes(
+    val roomAttributesB = videoRoomAttributesWithSchedule(
       prisonCode = WANDSWORTH,
       attributeId = 1,
       dpsLocationId = locationB.id,
@@ -184,7 +185,7 @@ class LocationsServiceTest {
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
-        assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
@@ -204,7 +205,7 @@ class LocationsServiceTest {
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
-        assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
@@ -218,11 +219,50 @@ class LocationsServiceTest {
   }
 
   @Test
-  fun `should return only enabled video link locations with extra attributes`() {
+  fun `should return only active video link locations with extra attributes and schedules`() {
     val locationA = location(WANDSWORTH, "A", active = true)
     val locationB = location(WANDSWORTH, "B", active = false)
 
-    val roomAttributes = videoRoomAttributes(
+    val roomAttributes = videoRoomAttributesWithSchedule(
+      prisonCode = WANDSWORTH,
+      attributeId = 1,
+      dpsLocationId = locationA.id,
+    )
+
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
+    whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributes
+
+    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = true)
+
+    assertThat(result).hasSize(1)
+    with(result[0]) {
+      assertThat(key).isEqualTo(locationA.key)
+      assertThat(dpsLocationId).isEqualTo(locationA.id)
+      assertThat(description).isEqualTo(locationA.localName)
+      assertThat(enabled).isTrue()
+      assertThat(extraAttributes).isNotNull
+      with(extraAttributes!!) {
+        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
+        assertThat(schedule).hasSize(1)
+        with(schedule[0]) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
+          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        }
+      }
+    }
+  }
+
+  @Test
+  fun `should return only active video link locations with extra attributes but no schedule`() {
+    val locationA = location(WANDSWORTH, "A", active = true)
+    val locationB = location(WANDSWORTH, "B", active = false)
+
+    val roomAttributes = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
       attributeId = 1,
       dpsLocationId = locationA.id,
@@ -244,14 +284,7 @@ class LocationsServiceTest {
       with(extraAttributes!!) {
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
-        assertThat(schedule).hasSize(1)
-        with(schedule[0]) {
-          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
-          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
-          assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
-          assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
-        }
+        assertThat(schedule).isNullOrEmpty()
       }
     }
   }

@@ -30,11 +30,7 @@ class LocationsService(
 
   @Transactional(readOnly = true)
   fun getDecoratedVideoLocations(prisonCode: String, enabledOnly: Boolean): List<Location> {
-    val prisonLocations = prisonRepository.findByCode(prisonCode)
-      ?.let { locationsInsidePrisonClient.getVideoLinkLocationsAtPrison(prisonCode) }
-      ?.filter { !enabledOnly || it.active }
-      ?.toModel() ?: emptyList()
-
+    val prisonLocations = getVideoLinkLocationsAtPrison(prisonCode, enabledOnly)
     val locationsById = prisonLocations.associateBy { it.dpsLocationId }
 
     val decoratedLocations = locationAttributeRepository.findByPrisonCode(prisonCode)
