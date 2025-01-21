@@ -79,9 +79,16 @@ class PrisonsController(
     @Parameter(description = "Video link only, true or false. When true only returns video link suitable locations. Defaults to true if not supplied.")
     @RequestParam(name = "videoLinkOnly", required = false)
     videoLinkOnly: Boolean = true,
+    @Parameter(description = "Extended attributes, true or false. When true, and only where videoLinkOnly is also true, returns extended room attributes. Defaults to false if not supplied.")
+    @RequestParam(name = "extendedAttributes", required = false)
+    extendedAttributes: Boolean = false,
   ): List<Location> =
     if (videoLinkOnly) {
-      locationsService.getVideoLinkLocationsAtPrison(prisonCode, enabledOnly)
+      if (extendedAttributes) {
+        locationsService.getDecoratedVideoLocations(prisonCode, enabledOnly)
+      } else {
+        locationsService.getVideoLinkLocationsAtPrison(prisonCode, enabledOnly)
+      }
     } else {
       locationsService.getNonResidentialLocationsAtPrison(prisonCode, enabledOnly)
     }
