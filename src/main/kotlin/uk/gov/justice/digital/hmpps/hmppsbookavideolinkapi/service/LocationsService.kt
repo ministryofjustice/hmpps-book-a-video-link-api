@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -31,16 +32,19 @@ class LocationsService(
   @Transactional(readOnly = true)
   fun getDecoratedVideoLocations(prisonCode: String, enabledOnly: Boolean): List<Location> {
     val prisonLocations = getVideoLinkLocationsAtPrison(prisonCode, enabledOnly)
+
     val locationsById = prisonLocations.associateBy { it.dpsLocationId }
 
+    // Get any decorations that are stored for these locations
     val decoratedLocations = locationAttributeRepository.findByPrisonCode(prisonCode)
       .filter { locationsById[it.dpsLocationId] != null }
       .mapNotNull { attributes ->
         locationsById[attributes.dpsLocationId]?.toDecoratedLocation(attributes.toRoomAttributes())
       }
 
-    return decoratedLocations.ifEmpty {
-      prisonLocations
-    }
+    // Replace the original locations with decorated versions, filter INACTIVE, and retain any undecorated records
+    return (decoratedLocations + prisonLocations)
+      .distinctBy { it.dpsLocationId }
+      .filterNot { it.extraAttributes?.locationStatus == LocationStatus.INACTIVE }
   }
 }
