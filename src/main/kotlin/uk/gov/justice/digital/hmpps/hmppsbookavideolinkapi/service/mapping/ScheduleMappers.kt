@@ -37,6 +37,8 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   appointmentDate = appointmentDate,
   startTime = startTime,
   endTime = endTime,
+  prisonLocDesc = locations.find { it.id == prisonLocationId }?.localName,
+  dpsLocationId = prisonLocationId,
 )
 
 fun List<ScheduleItemEntity>.toModel(locations: List<Location>) = map { it.toModel(locations) }
