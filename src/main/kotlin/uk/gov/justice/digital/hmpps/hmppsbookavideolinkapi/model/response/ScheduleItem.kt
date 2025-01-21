@@ -91,13 +91,13 @@ data class ScheduleItem(
     description = "The location description where the appointment takes place. The localName from the locations-inside-prison service).",
     example = "VCC-crown-conference-room-1",
   )
-  val prisonLocDesc: String?,
+  val prisonLocDesc: String,
 
   @Schema(
     description = "The unique UUID for the location where the appointment takes place. The id field from the locations-inside-prison service.",
     example = "a4fe3fef-34fd-4354fde-a12efe",
   )
-  val dpsLocationId: UUID?,
+  val dpsLocationId: UUID,
 
   @Schema(description = "The date for this appointment ISO format (YYYY-MM-DD)", example = "2024-10-03")
   val appointmentDate: LocalDate,

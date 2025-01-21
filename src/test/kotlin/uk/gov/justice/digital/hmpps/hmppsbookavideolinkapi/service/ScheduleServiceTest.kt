@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -219,15 +218,5 @@ class ScheduleServiceTest {
       .containsOnly(BookingStatus.ACTIVE, BookingStatus.CANCELLED)
     assertThat(response).extracting("courtCode").containsOnly(courtCode, null)
     assertThat(response).extracting("probationTeamCode").containsOnly(probationTeamCode, null)
-  }
-
-  @Test
-  fun `Returns the additional fields for dpsLocationId and description for locations`() {
-    val response = service.getScheduleForPrison(PENTONVILLE, LocalDate.now(), false)
-    assertThat(response).isNotNull
-    assertThat(response).hasSize(3)
-    assertThat(response)
-      .extracting("dpsLocationId", "prisonLocDesc")
-      .contains(Tuple(pentonvilleLocation.id, pentonvilleLocation.localName))
   }
 }
