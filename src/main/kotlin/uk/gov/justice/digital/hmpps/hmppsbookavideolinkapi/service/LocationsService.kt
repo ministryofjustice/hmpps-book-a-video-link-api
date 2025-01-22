@@ -35,16 +35,15 @@ class LocationsService(
 
     val locationsById = prisonLocations.associateBy { it.dpsLocationId }
 
-    // Get any decorations that are stored for these locations
     val decoratedLocations = locationAttributeRepository.findByPrisonCode(prisonCode)
       .filter { locationsById[it.dpsLocationId] != null }
       .mapNotNull { attributes ->
         locationsById[attributes.dpsLocationId]?.toDecoratedLocation(attributes.toRoomAttributes())
       }
 
-    // Replace the original locations with decorated versions, filter INACTIVE, and retain any undecorated records
-    return (decoratedLocations + prisonLocations)
-      .distinctBy { it.dpsLocationId }
+    // Preserves the order of the original prison locations, but replaces where decorated locations exist
+    return (locationsById + decoratedLocations.associateBy { it.dpsLocationId }).values
+      .toList()
       .filterNot { it.extraAttributes?.locationStatus == LocationStatus.INACTIVE }
   }
 }

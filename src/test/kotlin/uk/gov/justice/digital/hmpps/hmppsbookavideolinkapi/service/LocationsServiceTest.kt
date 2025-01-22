@@ -305,7 +305,7 @@ class LocationsServiceTest {
   }
 
   @Test
-  fun `should return a mixture of decorated and undecorated loctions, and filter when decorated with INACTIVE`() {
+  fun `should return a mixture of decorated and undecorated locations, and filter when decorated with INACTIVE`() {
     val locationA = location(WANDSWORTH, "A", active = true)
     val locationB = location(WANDSWORTH, "B", active = true)
     val locationC = location(WANDSWORTH, "C", active = true)
@@ -358,5 +358,53 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNull()
     }
+  }
+
+  @Test
+  fun `should return decorated locations and preserving the ordering of prison locations`() {
+    val locationA = location(WANDSWORTH, "A", active = true)
+    val locationB = location(WANDSWORTH, "B", active = true)
+    val locationC = location(WANDSWORTH, "C", active = true)
+    val locationD = location(WANDSWORTH, "D", active = true)
+    val locationE = location(WANDSWORTH, "E", active = true)
+
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
+
+    whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(
+      locationA,
+      locationB,
+      locationC,
+      locationD,
+      locationE,
+    )
+
+    // Location D decorations
+    val roomAttributesD = videoRoomAttributesWithoutSchedule(
+      prisonCode = WANDSWORTH,
+      attributeId = 1,
+      dpsLocationId = locationD.id,
+      locationStatus = LocationStatus.ACTIVE,
+    )
+
+    // Location E decorations
+    val roomAttributesE = videoRoomAttributesWithoutSchedule(
+      prisonCode = WANDSWORTH,
+      attributeId = 2,
+      dpsLocationId = locationE.id,
+      locationStatus = LocationStatus.ACTIVE,
+    )
+
+    // Reverse the order of room decorations returned
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesE + roomAttributesD
+
+    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = false)
+
+    assertThat(result).hasSize(5)
+
+    assertThat(result[0].key).isEqualTo(locationA.key)
+    assertThat(result[1].key).isEqualTo(locationB.key)
+    assertThat(result[2].key).isEqualTo(locationC.key)
+    assertThat(result[3].key).isEqualTo(locationD.key)
+    assertThat(result[4].key).isEqualTo(locationE.key)
   }
 }
