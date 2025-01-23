@@ -27,18 +27,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByCourtHearingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByProbationMeetingType
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Optional
@@ -47,7 +41,6 @@ import java.util.UUID
 class ManageExternalAppointmentsServiceTest {
 
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
-  private val referenceCodeRepository: ReferenceCodeRepository = mock()
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val prisonApiClient: PrisonApiClient = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
@@ -87,7 +80,6 @@ class ManageExternalAppointmentsServiceTest {
       activitiesAppointmentsClient,
       prisonApiClient,
       prisonerSearchClient,
-      referenceCodeRepository,
       nomisMappingClient,
     )
 
@@ -96,7 +88,6 @@ class ManageExternalAppointmentsServiceTest {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
     whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(referenceCodeRepository.findByCourtHearingType("TRIBUNAL")) doReturn courtHearingType("Tribunal")
 
     service.createAppointment(1)
 
@@ -109,7 +100,7 @@ class ManageExternalAppointmentsServiceTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       internalLocationId = 123456,
-      comments = "Video booking for court hearing type Tribunal at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
+      comments = "Court hearing comments",
     )
   }
 
@@ -205,7 +196,6 @@ class ManageExternalAppointmentsServiceTest {
     whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(probationAppointment)
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(WANDSWORTH)) doReturn true
     whenever(nomisMappingClient.getNomisLocationMappingBy(probationAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = wandsworthLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(referenceCodeRepository.findByProbationMeetingType("PSR")) doReturn probationMeetingType("Pre-sentence report")
 
     service.createAppointment(1)
 
@@ -218,7 +208,7 @@ class ManageExternalAppointmentsServiceTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
       internalLocationId = 123456,
-      comments = "Video booking for probation meeting type Pre-sentence report at probation team description\n\nProbation meeting comments",
+      comments = "Probation meeting comments",
     )
   }
 
@@ -232,7 +222,6 @@ class ManageExternalAppointmentsServiceTest {
       bookingId = 1,
     )
     whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(referenceCodeRepository.findByCourtHearingType("TRIBUNAL")) doReturn courtHearingType("Tribunal")
 
     service.createAppointment(1)
 
@@ -243,7 +232,7 @@ class ManageExternalAppointmentsServiceTest {
       appointmentDate = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "Video booking for court hearing type Tribunal at $DERBY_JUSTICE_CENTRE\n\nCourt hearing comments",
+      comments = "Court hearing comments",
     )
   }
 
@@ -337,7 +326,6 @@ class ManageExternalAppointmentsServiceTest {
       bookingId = 1,
     )
     whenever(nomisMappingClient.getNomisLocationMappingBy(probationAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = wandsworthLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(referenceCodeRepository.findByProbationMeetingType("PSR")) doReturn probationMeetingType("Pre-sentence report")
 
     service.createAppointment(1)
 
@@ -348,7 +336,7 @@ class ManageExternalAppointmentsServiceTest {
       appointmentDate = LocalDate.of(2100, 1, 1),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "Video booking for probation meeting type Pre-sentence report at probation team description\n\nProbation meeting comments",
+      comments = "Probation meeting comments",
     )
   }
 
