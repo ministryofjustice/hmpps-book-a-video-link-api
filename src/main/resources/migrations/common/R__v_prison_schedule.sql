@@ -27,7 +27,9 @@ select
     pa.prison_location_id,
     pa.appointment_date,
     pa.start_time,
-    pa.end_time
+    pa.end_time,
+    vlb.created_time,
+    vlb.amended_time as updated_time
 from video_booking vlb
   left join court c on c.court_id = vlb.court_id
   left join probation_team pt on pt.probation_team_id = vlb.probation_team_id

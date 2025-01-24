@@ -39,6 +39,8 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   endTime = endTime,
   prisonLocDesc = locations.find { it.id == prisonLocationId }?.localName ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
   dpsLocationId = prisonLocationId,
+  createdTime = createdTime,
+  updatedTime = updatedTime,
 )
 
 fun List<ScheduleItemEntity>.toModel(locations: List<Location>) = map { it.toModel(locations) }
