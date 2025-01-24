@@ -4,13 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
-import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import java.util.UUID
@@ -22,14 +17,10 @@ class InboundEventsListenerTest {
 
   private val inboundEventsService: InboundEventsService = mock()
 
-  private val featureSwitches: FeatureSwitches = mock()
-
-  private val eventListener = InboundEventsListener(featureSwitches, mapper, inboundEventsService)
+  private val eventListener = InboundEventsListener(mapper, inboundEventsService)
 
   @Test
-  fun `should delegate booking created domain event to service when SNS feature is enabled`() {
-    whenever(featureSwitches.isEnabled(Feature.SNS_ENABLED)) doReturn true
-
+  fun `should delegate booking created domain event to service`() {
     val event = VideoBookingCreatedEvent(VideoBookingInformation(1))
     val message = message(event)
     val rawMessage = mapper.writeValueAsString(message)
@@ -45,9 +36,7 @@ class InboundEventsListenerTest {
   }
 
   @Test
-  fun `should delegate appointment created domain event to service when SNS feature is enabled`() {
-    whenever(featureSwitches.isEnabled(Feature.SNS_ENABLED)) doReturn true
-
+  fun `should delegate appointment created domain event to service`() {
     val event = AppointmentCreatedEvent(AppointmentInformation(1))
     val message = message(event)
     val rawMessage = mapper.writeValueAsString(message)
@@ -60,19 +49,6 @@ class InboundEventsListenerTest {
         (it as AppointmentCreatedEvent).additionalInformation.appointmentId isEqualTo 1
       },
     )
-  }
-
-  @Test
-  fun `should not delegate booking created domain event to service when SNS feature is not enabled`() {
-    whenever(featureSwitches.isEnabled(Feature.SNS_ENABLED)) doReturn false
-
-    val event = AppointmentCreatedEvent(AppointmentInformation(1))
-    val message = message(event)
-    val rawMessage = mapper.writeValueAsString(message)
-
-    eventListener.onMessage(rawMessage)
-
-    verifyNoInteractions(inboundEventsService)
   }
 
   private fun message(event: DomainEvent<*>) =
