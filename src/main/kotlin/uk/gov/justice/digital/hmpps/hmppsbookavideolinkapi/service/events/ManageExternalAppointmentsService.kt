@@ -46,7 +46,7 @@ class ManageExternalAppointmentsService(
           val internalLocationId = appointment.internalLocationId()
 
           // Attempt to check that an appointment does not already exist before creating.
-          // This is here because have seen network timeouts even though the transaction has completed in the external API.
+          // This is here because we have seen network timeouts even though the transaction has completed in the external API.
           activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
             prisonCode = appointment.prisonCode(),
             prisonerNumber = appointment.prisonerNumber,
@@ -72,7 +72,7 @@ class ManageExternalAppointmentsService(
           val internalLocationId = appointment.internalLocationId()
 
           // Attempt to check if an appointment does not already exist before creating.
-          // This is here because have seen network timeouts even though the transaction has completed in the external API.
+          // This is here because we have seen network timeouts even though the transaction has completed in the external API.
           prisonApiClient.getPrisonersAppointmentsAtLocations(
             prisonCode = appointment.prisonCode(),
             prisonerNumber = appointment.prisonerNumber,
