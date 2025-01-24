@@ -5,6 +5,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.data.annotation.Immutable
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
@@ -72,4 +73,8 @@ data class ScheduleItem(
   val startTime: LocalTime,
 
   val endTime: LocalTime,
+
+  val createdTime: LocalDateTime,
+
+  val updatedTime: LocalDateTime?,
 )
