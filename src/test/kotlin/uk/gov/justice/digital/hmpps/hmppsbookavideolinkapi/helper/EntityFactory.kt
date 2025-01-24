@@ -5,12 +5,17 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationSchedule
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
@@ -190,3 +195,71 @@ fun videoAppointment(
     startTime = prisonAppointment.startTime,
     endTime = prisonAppointment.endTime,
   )
+
+fun videoRoomAttributesWithSchedule(
+  prisonCode: String,
+  attributeId: Long = 1,
+  dpsLocationId: UUID,
+  locationStatus: LocationStatus = LocationStatus.ACTIVE,
+  locationUsage: LocationUsage = LocationUsage.SCHEDULE,
+): MutableList<LocationAttribute> {
+  val roomAttributes = LocationAttribute(
+    locationAttributeId = attributeId,
+    dpsLocationId = dpsLocationId,
+    prison = Prison(
+      prisonId = 1,
+      code = prisonCode,
+      name = "TEST",
+      enabled = true,
+      createdBy = "TEST",
+      notes = null,
+    ),
+    locationStatus = locationStatus,
+    locationUsage = locationUsage,
+    createdBy = "TEST",
+  )
+
+  val roomSchedule = mutableListOf(
+    LocationSchedule(
+      locationScheduleId = 1,
+      startDayOfWeek = DayOfWeek.MONDAY.value,
+      endDayOfWeek = DayOfWeek.SUNDAY.value,
+      startTime = LocalTime.of(1, 0),
+      endTime = LocalTime.of(23, 0),
+      locationUsage = LocationUsage.SHARED,
+      allowedParties = null,
+      createdBy = "TEST",
+      locationAttribute = roomAttributes,
+    ),
+  )
+
+  roomAttributes.setLocationSchedule(roomSchedule)
+
+  return mutableListOf(roomAttributes)
+}
+
+fun videoRoomAttributesWithoutSchedule(
+  prisonCode: String,
+  attributeId: Long = 1,
+  dpsLocationId: UUID,
+  locationStatus: LocationStatus = LocationStatus.ACTIVE,
+  locationUsage: LocationUsage = LocationUsage.SHARED,
+): MutableList<LocationAttribute> {
+  val roomAttributes = LocationAttribute(
+    locationAttributeId = attributeId,
+    dpsLocationId = dpsLocationId,
+    prison = Prison(
+      prisonId = 1,
+      code = prisonCode,
+      name = "TEST",
+      enabled = true,
+      createdBy = "TEST",
+      notes = null,
+    ),
+    locationStatus = locationStatus,
+    locationUsage = locationUsage,
+    createdBy = "TEST",
+  )
+
+  return mutableListOf(roomAttributes)
+}

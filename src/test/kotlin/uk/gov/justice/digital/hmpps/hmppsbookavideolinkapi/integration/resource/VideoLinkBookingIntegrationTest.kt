@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_J
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
@@ -1183,7 +1184,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val videoBookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
-    locationsInsidePrisonApi().stubPostLocationByKeys(setOf(birminghamLocation.key), BIRMINGHAM)
+
+    val locationId = UUID.randomUUID()
+    locationsInsidePrisonApi().stubPostLocationByKeys(listOf(LocationKeyValue(birminghamLocation.key, locationId)), BIRMINGHAM)
 
     val amendBookingRequest = amendCourtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import java.time.LocalDateTime
 import java.util.UUID
@@ -51,27 +52,32 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     )
   }
 
-  fun stubPostLocationByKeys(keys: Set<String>, prisonCode: String = WANDSWORTH) {
+  fun stubPostLocationByKeys(
+    keys: List<LocationKeyValue>,
+    prisonCode: String = WANDSWORTH,
+  ) {
+    val keyValues = keys.map { it.key }.toSet()
     stubFor(
       post("/locations/keys")
-        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(keys)))
+        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(keyValues)))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(
               mapper.writeValueAsString(
-                keys.map { key ->
+                keys.map {
                   Location(
-                    id = UUID.randomUUID(),
+                    id = it.id,
                     prisonId = prisonCode,
                     code = "001",
+                    localName = "$prisonCode ${it.key}",
                     pathHierarchy = "A-1-001",
                     locationType = Location.LocationType.VIDEO_LINK,
                     permanentlyInactive = false,
                     active = true,
                     deactivatedByParent = false,
                     topLevelId = UUID.randomUUID(),
-                    key = key,
+                    key = it.key,
                     isResidential = true,
                     lastModifiedBy = "test user",
                     lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
@@ -100,7 +106,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
   }
 
   fun stubNonResidentialAppointmentLocationsAtPrison(
-    keys: Set<String>,
+    keys: List<LocationKeyValue>,
     enabled: Boolean = true,
     prisonCode: String = WANDSWORTH,
     leafLevel: Boolean = true,
@@ -112,19 +118,19 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
             .withHeader("Content-Type", "application/json")
             .withBody(
               mapper.writeValueAsString(
-                keys.map { key ->
+                keys.map {
                   Location(
-                    id = UUID.randomUUID(),
+                    id = it.id,
                     prisonId = prisonCode,
                     code = "001",
                     pathHierarchy = "A-1-001",
                     locationType = Location.LocationType.APPOINTMENTS,
-                    localName = "$prisonCode $key",
+                    localName = "$prisonCode ${it.key}",
                     permanentlyInactive = false,
                     active = enabled,
                     deactivatedByParent = false,
                     topLevelId = UUID.randomUUID(),
-                    key = key,
+                    key = it.key,
                     isResidential = false,
                     lastModifiedBy = "test user",
                     lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
@@ -141,7 +147,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
   }
 
   fun stubVideoLinkLocationsAtPrison(
-    keys: Set<String>,
+    keys: List<LocationKeyValue>,
     enabled: Boolean = true,
     prisonCode: String = WANDSWORTH,
     leafLevel: Boolean = true,
@@ -153,19 +159,19 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
             .withHeader("Content-Type", "application/json")
             .withBody(
               mapper.writeValueAsString(
-                keys.map { key ->
+                keys.map {
                   Location(
-                    id = UUID.randomUUID(),
+                    id = it.id,
                     prisonId = prisonCode,
                     code = "001",
                     pathHierarchy = "A-1-001",
                     locationType = Location.LocationType.VIDEO_LINK,
-                    localName = "$prisonCode $key",
+                    localName = "$prisonCode ${it.key}",
                     permanentlyInactive = false,
                     active = enabled,
                     deactivatedByParent = false,
                     topLevelId = UUID.randomUUID(),
-                    key = key,
+                    key = it.key,
                     isResidential = false,
                     lastModifiedBy = "test user",
                     lastModifiedDate = LocalDateTime.now().toIsoDateTime(),

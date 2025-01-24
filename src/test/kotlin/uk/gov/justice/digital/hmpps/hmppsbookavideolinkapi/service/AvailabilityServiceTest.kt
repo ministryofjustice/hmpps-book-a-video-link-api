@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
@@ -301,6 +302,65 @@ class AvailabilityServiceTest {
       assertThat(availabilityOk).isFalse()
       assertThat(alternatives).hasSize(3)
     }
+  }
+
+  @Test
+  fun `should be available if request matches existing court bookings pre, main and post booking date, time and location`() {
+    val existingCourtBookingRequest = AvailabilityRequest(
+      bookingType = BookingType.COURT,
+      courtOrProbationCode = "TESTC",
+      prisonCode = WANDSWORTH,
+      date = today(),
+      preAppointment = LocationAndInterval(
+        prisonLocKey = room1.key,
+        interval = Interval(start = LocalTime.of(9, 0), end = LocalTime.of(10, 0)),
+      ),
+      mainAppointment = LocationAndInterval(
+        prisonLocKey = room1.key,
+        interval = Interval(start = LocalTime.of(10, 0), end = LocalTime.of(11, 0)),
+      ),
+      postAppointment = LocationAndInterval(
+        prisonLocKey = room1.key,
+        interval = Interval(start = LocalTime.of(11, 0), end = LocalTime.of(12, 0)),
+      ),
+      vlbIdToExclude = 2L,
+    )
+
+    whenever(videoBookingRepository.findById(2L)) doReturn Optional.of(
+      courtBooking().withMainCourtPrisonAppointment(
+        date = today(),
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        location = room1,
+        startTime = LocalTime.of(10, 0),
+        endTime = LocalTime.of(11, 0),
+      ).addAppointment(
+        prison = prison(prisonCode = WANDSWORTH),
+        prisonerNumber = "123456",
+        appointmentType = "VLB_COURT_PRE",
+        date = today(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(10, 0),
+        locationId = room1.id,
+      ).addAppointment(
+        prison = prison(prisonCode = WANDSWORTH),
+        prisonerNumber = "123456",
+        appointmentType = "VLB_COURT_POST",
+        date = today(),
+        startTime = LocalTime.of(11, 0),
+        endTime = LocalTime.of(12, 0),
+        locationId = room1.id,
+      ),
+    )
+    whenever(locationsInsidePrisonClient.getLocationsByKeys(any())) doReturn listOf(room1)
+
+    with(service.checkAvailability(existingCourtBookingRequest)) {
+      availabilityOk isBool true
+      alternatives hasSize 0
+    }
+
+    verifyNoInteractions(videoAppointmentRepository)
+    verifyNoInteractions(externalAppointmentsService)
   }
 
   @Test

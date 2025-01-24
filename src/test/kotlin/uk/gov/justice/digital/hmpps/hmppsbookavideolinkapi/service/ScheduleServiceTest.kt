@@ -163,6 +163,8 @@ class ScheduleServiceTest {
       assertThat(item.courtDescription).isEqualTo("Derby Justice Centre")
       assertThat(item.hearingType).isEqualTo(CourtHearingType.TRIBUNAL)
       assertThat(item.probationTeamCode).isNull()
+      assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
+      assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
     }
   }
 
@@ -176,6 +178,8 @@ class ScheduleServiceTest {
       assertThat(item.probationTeamDescription).isEqualTo("Probation")
       assertThat(item.probationMeetingType).isEqualTo(ProbationMeetingType.PSR)
       assertThat(item.courtCode).isNull()
+      assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
+      assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
     }
   }
 
@@ -186,6 +190,8 @@ class ScheduleServiceTest {
     assertThat(response).hasSize(3)
     assertThat(response).extracting("courtCode").containsOnly(courtCode, null)
     assertThat(response).extracting("probationTeamCode").containsOnly(probationTeamCode, null)
+    assertThat(response).extracting("dpsLocationId").containsOnly(pentonvilleLocation.id)
+    assertThat(response).extracting("prisonLocDesc").containsOnly(pentonvilleLocation.localName)
   }
 
   @Test
