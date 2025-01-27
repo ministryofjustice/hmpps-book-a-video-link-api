@@ -35,3 +35,5 @@ feature:
   check:
     external-availability:
       enabled: true
+  probation:
+    live: false
