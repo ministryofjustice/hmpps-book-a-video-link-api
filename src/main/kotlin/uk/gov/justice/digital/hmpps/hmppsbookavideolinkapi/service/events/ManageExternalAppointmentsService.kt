@@ -4,15 +4,19 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isAppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTimesAreTheSame
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
-import java.time.LocalTime
 
 /**
  * This service is responsible for create/update/cancel of appointments relating to BVLS bookings in
@@ -29,8 +33,8 @@ class ManageExternalAppointmentsService(
   private val prisonApiClient: PrisonApiClient,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val nomisMappingClient: NomisMappingClient,
+  private val featureSwitches: FeatureSwitches,
 ) {
-
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -62,6 +66,7 @@ class ManageExternalAppointmentsService(
               endTime = appointment.endTime,
               internalLocationId = internalLocationId,
               comments = appointment.comments,
+              appointmentType = typeOf(appointment),
             )?.let { appointmentSeries ->
               log.info("EXTERNAL APPOINTMENTS: created activities and appointments series ${appointmentSeries.id} for prison appointment $prisonAppointmentId")
             }
@@ -87,6 +92,7 @@ class ManageExternalAppointmentsService(
               startTime = appointment.startTime,
               endTime = appointment.endTime,
               comments = appointment.comments,
+              appointmentType = typeOf(appointment),
             )?.let { event ->
               log.info("EXTERNAL APPOINTMENTS: created prison api event ${event.eventId} for prison appointment $prisonAppointmentId")
             }
@@ -169,34 +175,32 @@ class ManageExternalAppointmentsService(
   }
 
   private fun Collection<AppointmentSearchResult>.findMatchingAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> =
-    filter {
-      appointment.startTime == LocalTime.parse(it.startTime) && appointment.endTime == LocalTime.parse(it.endTime)
+    filter { searchResult ->
+      searchResult.isTimesAreTheSame(appointment) && searchResult.isAppointmentType(typeOf(appointment))
     }.ifEmpty {
       emptyList<AppointmentSearchResult>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
     }
 
   private fun Collection<AppointmentSearchResult>.findMatchingAppointments(bha: BookingHistoryAppointment): List<AppointmentSearchResult> =
-    filter {
-      bha.startTime == LocalTime.parse(it.startTime) && bha.endTime == LocalTime.parse(it.endTime)
+    filter { searchResult ->
+      searchResult.isTimesAreTheSame(bha) && searchResult.isAppointmentType(typeOf(bha))
     }.ifEmpty {
       emptyList<AppointmentSearchResult>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for booking history appointment ${bha.bookingHistoryAppointmentId}") }
     }
 
   private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(appointment: PrisonAppointment): List<PrisonerSchedule> =
-    filter {
-      it.startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
-        appointment.appointmentDate.atTime(appointment.endTime) == it.endTime
+    filter { schedule ->
+      schedule.isTimesAreTheSame(appointment) && schedule.isAppointmentType(typeOf(appointment))
     }.ifEmpty {
       emptyList<PrisonerSchedule>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
     }
 
   private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(bha: BookingHistoryAppointment): List<PrisonerSchedule> =
-    filter {
-      it.startTime == bha.appointmentDate.atTime(bha.startTime) &&
-        bha.appointmentDate.atTime(bha.endTime) == it.endTime
+    filter { schedule ->
+      schedule.isTimesAreTheSame(bha) && schedule.isAppointmentType(typeOf(bha))
     }.ifEmpty {
       emptyList<PrisonerSchedule>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
@@ -215,4 +219,16 @@ class ManageExternalAppointmentsService(
   private fun BookingHistoryAppointment.internalLocationId() =
     nomisMappingClient.getNomisLocationMappingBy(prisonLocationId)?.nomisLocationId
       ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocationId not found for prison appointment ${bookingHistoryAppointmentId}Id")
+
+  private fun typeOf(appointment: PrisonAppointment) =
+    when (featureSwitches.isEnabled(Feature.FEATURE_PROBATION_LIVE)) {
+      true -> AppointmentType.COURT.takeIf { appointment.videoBooking.isCourtBooking() } ?: AppointmentType.PROBATION
+      false -> AppointmentType.COURT
+    }
+
+  private fun typeOf(appointment: BookingHistoryAppointment) =
+    when (featureSwitches.isEnabled(Feature.FEATURE_PROBATION_LIVE)) {
+      true -> AppointmentType.COURT.takeIf { appointment.bookingHistory.courtId != null } ?: AppointmentType.PROBATION
+      false -> AppointmentType.COURT
+    }
 }

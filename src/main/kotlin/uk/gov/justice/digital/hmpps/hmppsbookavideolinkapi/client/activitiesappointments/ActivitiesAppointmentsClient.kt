@@ -13,12 +13,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
 import java.time.LocalTime
-
-const val VIDEO_LINK_BOOKING = "VLB"
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
@@ -26,7 +25,6 @@ const val CANCELLED_BY_EXTERNAL_SERVICE = 4L
 
 @Component
 class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClient: WebClient) {
-
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -49,6 +47,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     endTime: LocalTime,
     internalLocationId: Long,
     comments: String?,
+    appointmentType: AppointmentType,
   ): AppointmentSeries? =
     activitiesAppointmentsApiWebClient.post()
       .uri("/appointment-series")
@@ -57,7 +56,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
           appointmentType = AppointmentSeriesCreateRequest.AppointmentType.INDIVIDUAL,
           prisonCode = prisonCode,
           prisonerNumbers = listOf(prisonerNumber),
-          categoryCode = VIDEO_LINK_BOOKING,
+          categoryCode = appointmentType.code,
           tierCode = AppointmentSeriesCreateRequest.TierCode.TIER_1,
           inCell = false,
           startDate = startDate,
@@ -71,25 +70,27 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .bodyToMono(AppointmentSeries::class.java)
       .block()
 
+  /**
+   * Returns all matching appointment (types) for a prisoner, not just video link bookings.
+   */
   fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long) =
     if (locationIds.isNotEmpty()) {
       log.info("A&A CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
       getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
         .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
-        .filter { locationIds.toList().contains(it.internalLocation?.id) && it.category.code == VIDEO_LINK_BOOKING }
+        .filter { locationIds.toList().contains(it.internalLocation?.id) }
         .also { log.info("A&A CLIENT: matches post-location filter: $it") }
     } else {
       emptyList()
     }
 
-  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<AppointmentSearchResult> =
+  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate) =
     activitiesAppointmentsApiWebClient.post()
       .uri("/appointments/{prisonCode}/search", prisonCode)
       .bodyValue(
         AppointmentSearchRequest(
           appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
           startDate = onDate,
-          categoryCode = VIDEO_LINK_BOOKING,
           prisonerNumbers = listOf(prisonerNumber),
         ),
       )

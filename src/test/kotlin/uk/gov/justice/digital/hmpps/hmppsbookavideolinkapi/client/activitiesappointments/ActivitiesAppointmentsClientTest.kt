@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesapp
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
@@ -29,6 +30,7 @@ class ActivitiesAppointmentsClientTest {
       endTime = LocalTime.MIDNIGHT.plusHours(1),
       internalLocationId = 1,
       extraInformation = "extra info",
+      appointmentType = AppointmentType.COURT,
     )
 
     client.createAppointment(
@@ -39,6 +41,7 @@ class ActivitiesAppointmentsClientTest {
       endTime = LocalTime.MIDNIGHT.plusHours(1),
       internalLocationId = 1,
       comments = "extra info",
+      appointmentType = AppointmentType.COURT,
     )
   }
 
@@ -69,21 +72,6 @@ class ActivitiesAppointmentsClientTest {
 
     appointments hasSize 2
     appointments.map { it.internalLocation?.id } containsExactlyInAnyOrder setOf(2000, 3000)
-  }
-
-  @Test
-  fun `should get no prisoner appointments at locations when not video link locations`() {
-    server.stubGetPrisonersAppointments(
-      prisonCode = BIRMINGHAM,
-      prisonerNumber = "123456",
-      date = tomorrow(),
-      locationType = "NOT_VLB",
-      locationIds = setOf(1000, 2000, 3000),
-    )
-
-    val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 1000, 2000, 3000)
-
-    appointments hasSize 0
   }
 
   @Test
