@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -65,6 +66,8 @@ class ScheduleServiceTest {
     appointmentDate = date,
     startTime = start,
     endTime = end,
+    createdTime = yesterday().atStartOfDay(),
+    updatedTime = today().atStartOfDay(),
   )
 
   private fun probationItem(
@@ -102,6 +105,8 @@ class ScheduleServiceTest {
     appointmentDate = date,
     startTime = start,
     endTime = end,
+    createdTime = yesterday().atStartOfDay(),
+    updatedTime = today().atStartOfDay(),
   )
 
   private val nine = LocalTime.of(9, 0)
@@ -165,6 +170,8 @@ class ScheduleServiceTest {
       assertThat(item.probationTeamCode).isNull()
       assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
       assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
+      assertThat(item.createdTime).isEqualTo(yesterday().atStartOfDay())
+      assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
     }
   }
 
@@ -180,6 +187,8 @@ class ScheduleServiceTest {
       assertThat(item.courtCode).isNull()
       assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
       assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
+      assertThat(item.createdTime).isEqualTo(yesterday().atStartOfDay())
+      assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
     }
   }
 

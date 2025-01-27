@@ -40,11 +40,6 @@ hmpps.sqs:
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
 
-feature:
-  events:
-    sns:
-      enabled: true
-
 bvls:
   frontend:
     url: http://localhost:3000

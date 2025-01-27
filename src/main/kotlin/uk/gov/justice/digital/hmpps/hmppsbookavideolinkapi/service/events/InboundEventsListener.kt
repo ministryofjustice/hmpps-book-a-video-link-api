@@ -12,13 +12,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 
 @Profile("!test && !local")
 @Component
 class InboundEventsListener(
-  private val features: FeatureSwitches,
   private val mapper: ObjectMapper,
   private val inboundEventsService: InboundEventsService,
 ) {
@@ -26,29 +23,23 @@ class InboundEventsListener(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  init {
-    log.info("LISTENER: SNS enabled = ${features.isEnabled(Feature.SNS_ENABLED)}")
-  }
-
   @SqsListener("bvls", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "hmpps-book-a-video-link-hmpps_book_a_video_link_queue", kind = SpanKind.SERVER)
   fun onMessage(rawMessage: String) {
-    if (features.isEnabled(Feature.SNS_ENABLED)) {
-      val message: Message = mapper.readValue(rawMessage)
+    val message: Message = mapper.readValue(rawMessage)
 
-      when (message.Type) {
-        "Notification" -> {
-          message.toDomainEventType()?.let { eventType ->
-            runCatching {
-              inboundEventsService.process(eventType.toInboundEvent(mapper, message.Message))
-            }.onFailure {
-              log.error("LISTENER: Error processing message ${message.MessageId}", it)
-              throw it
-            }
-          } ?: log.info("LISTENER: Unrecognised event ${message.MessageAttributes.eventType.Value}")
-        }
-        else -> log.info("LISTENER: Ignoring message, actual message type '${message.Type}' is not a Notification.")
+    when (message.Type) {
+      "Notification" -> {
+        message.toDomainEventType()?.let { eventType ->
+          runCatching {
+            inboundEventsService.process(eventType.toInboundEvent(mapper, message.Message))
+          }.onFailure {
+            log.error("LISTENER: Error processing message ${message.MessageId}", it)
+            throw it
+          }
+        } ?: log.info("LISTENER: Unrecognised event ${message.MessageAttributes.eventType.Value}")
       }
+      else -> log.info("LISTENER: Ignoring message, actual message type '${message.Type}' is not a Notification.")
     }
   }
 }

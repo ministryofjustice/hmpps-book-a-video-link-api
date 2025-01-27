@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
 
@@ -109,4 +110,10 @@ data class ScheduleItem(
   @Schema(description = "The end time for the appointment ISO time format (HH:MI)", example = "13:15")
   @JsonFormat(pattern = "HH:mm")
   val endTime: LocalTime,
+
+  @Schema(description = "The timestamp when the booking was created", example = "2024-10-01 14:45")
+  val createdTime: LocalDateTime,
+
+  @Schema(description = "The timestamp when the booking was last updated", example = "2024-10-02 14:45")
+  val updatedTime: LocalDateTime? = null,
 )
