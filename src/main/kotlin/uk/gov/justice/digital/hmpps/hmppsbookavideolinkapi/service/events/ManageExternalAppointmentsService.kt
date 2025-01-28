@@ -66,7 +66,7 @@ class ManageExternalAppointmentsService(
               endTime = appointment.endTime,
               internalLocationId = internalLocationId,
               comments = appointment.comments,
-              appointmentType = typeOf(appointment),
+              appointmentType = typeOf(appointment).also { log.info("EXTERNAL APPOINTMENTS: creating appointment with appointment type ${it.code} in A&A") },
             )?.let { appointmentSeries ->
               log.info("EXTERNAL APPOINTMENTS: created activities and appointments series ${appointmentSeries.id} for prison appointment $prisonAppointmentId")
             }
@@ -92,7 +92,7 @@ class ManageExternalAppointmentsService(
               startTime = appointment.startTime,
               endTime = appointment.endTime,
               comments = appointment.comments,
-              appointmentType = typeOf(appointment),
+              appointmentType = typeOf(appointment).also { log.info("EXTERNAL APPOINTMENTS: creating appointment with appointment type ${it.code} in prison-api") },
             )?.let { event ->
               log.info("EXTERNAL APPOINTMENTS: created prison api event ${event.eventId} for prison appointment $prisonAppointmentId")
             }

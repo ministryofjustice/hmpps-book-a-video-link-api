@@ -73,3 +73,7 @@ sonar-project.properties
 
 # Environment variables
 .env
+
+# Localstack
+volume/
+
