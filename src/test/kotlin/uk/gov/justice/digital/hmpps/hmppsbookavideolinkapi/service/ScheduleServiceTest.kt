@@ -67,7 +67,9 @@ class ScheduleServiceTest {
     startTime = start,
     endTime = end,
     createdTime = yesterday().atStartOfDay(),
+    createdBy = "CREATOR",
     updatedTime = today().atStartOfDay(),
+    updatedBy = "AMENDER",
   )
 
   private fun probationItem(
@@ -106,7 +108,9 @@ class ScheduleServiceTest {
     startTime = start,
     endTime = end,
     createdTime = yesterday().atStartOfDay(),
+    createdBy = "CREATOR",
     updatedTime = today().atStartOfDay(),
+    updatedBy = "AMENDER",
   )
 
   private val nine = LocalTime.of(9, 0)
@@ -171,7 +175,9 @@ class ScheduleServiceTest {
       assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
       assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
       assertThat(item.createdTime).isEqualTo(yesterday().atStartOfDay())
+      assertThat(item.createdBy).isEqualTo("CREATOR")
       assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
+      assertThat(item.updatedBy).isEqualTo("AMENDER")
     }
   }
 
@@ -188,7 +194,9 @@ class ScheduleServiceTest {
       assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
       assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
       assertThat(item.createdTime).isEqualTo(yesterday().atStartOfDay())
+      assertThat(item.createdBy).isEqualTo("CREATOR")
       assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
+      assertThat(item.updatedBy).isEqualTo("AMENDER")
     }
   }
 

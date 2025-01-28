@@ -76,5 +76,9 @@ data class ScheduleItem(
 
   val createdTime: LocalDateTime,
 
+  val createdBy: String,
+
   val updatedTime: LocalDateTime?,
+
+  val updatedBy: String?,
 )

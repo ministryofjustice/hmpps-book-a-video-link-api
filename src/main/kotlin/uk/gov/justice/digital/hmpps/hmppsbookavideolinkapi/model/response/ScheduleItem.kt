@@ -114,6 +114,12 @@ data class ScheduleItem(
   @Schema(description = "The timestamp when the booking was created", example = "2024-10-01 14:45")
   val createdTime: LocalDateTime,
 
+  @Schema(description = "The username of the person who created the booking", example = "creator@email.com")
+  val createdBy: String,
+
   @Schema(description = "The timestamp when the booking was last updated", example = "2024-10-02 14:45")
   val updatedTime: LocalDateTime? = null,
+
+  @Schema(description = "The username of the person who created the booking", example = "amender@email.com")
+  val updatedBy: String? = null,
 )
