@@ -176,7 +176,7 @@ class ManageExternalAppointmentsService(
 
   private fun Collection<AppointmentSearchResult>.findMatchingAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> =
     filter { searchResult ->
-      searchResult.isTimesAreTheSame(appointment) && searchResult.isAppointmentType(typeOf(appointment))
+      searchResult.isTimesAreTheSame(appointment) && searchResult.isAppointmentType(typeOf(appointment)) && searchResult.isCancelled.not()
     }.ifEmpty {
       emptyList<AppointmentSearchResult>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
@@ -184,7 +184,7 @@ class ManageExternalAppointmentsService(
 
   private fun Collection<AppointmentSearchResult>.findMatchingAppointments(bha: BookingHistoryAppointment): List<AppointmentSearchResult> =
     filter { searchResult ->
-      searchResult.isTimesAreTheSame(bha) && searchResult.isAppointmentType(typeOf(bha))
+      searchResult.isTimesAreTheSame(bha) && searchResult.isAppointmentType(typeOf(bha)) && searchResult.isCancelled.not()
     }.ifEmpty {
       emptyList<AppointmentSearchResult>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for booking history appointment ${bha.bookingHistoryAppointmentId}") }

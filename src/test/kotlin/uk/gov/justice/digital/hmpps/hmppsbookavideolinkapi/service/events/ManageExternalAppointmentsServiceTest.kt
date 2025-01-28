@@ -210,6 +210,61 @@ class ManageExternalAppointmentsServiceTest {
     }
 
     @Test
+    fun `should create court appointment via activities client when a cancelled appointment already exists`() {
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
+      whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+          prisonCode = courtAppointment.prisonCode(),
+          prisonerNumber = courtAppointment.prisonerNumber,
+          onDate = courtAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(
+        AppointmentSearchResult(
+          appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+          startDate = courtAppointment.appointmentDate,
+          startTime = courtAppointment.startTime.toHourMinuteStyle(),
+          endTime = courtAppointment.endTime.toHourMinuteStyle(),
+          isCancelled = true,
+          isExpired = false,
+          isEdited = false,
+          appointmentId = 99,
+          appointmentSeriesId = 1,
+          appointmentName = "appointment name",
+          attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
+          category = AppointmentCategorySummary("VLB", "video link booking"),
+          inCell = false,
+          isRepeat = false,
+          maxSequenceNumber = 1,
+          prisonCode = courtAppointment.prisonCode(),
+          sequenceNumber = 1,
+          internalLocation = AppointmentLocationSummary(
+            birminghamLocation.locationId,
+            courtAppointment.prisonCode(),
+            "VIDEO LINK",
+          ),
+          timeSlot = AppointmentSearchResult.TimeSlot.AM,
+        ),
+      )
+
+      service.createAppointment(1)
+
+      inOrder(nomisMappingClient, activitiesAppointmentsClient) {
+        verify(nomisMappingClient).getNomisLocationMappingBy(courtAppointment.prisonLocationId)
+        verify(activitiesAppointmentsClient).getPrisonersAppointmentsAtLocations(
+          prisonCode = courtAppointment.prisonCode(),
+          prisonerNumber = courtAppointment.prisonerNumber,
+          onDate = courtAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        )
+      }
+
+      verify(activitiesAppointmentsClient).createAppointment(any(), any(), any(), any(), any(), any(), any(), any())
+    }
+
+    @Test
     fun `should create court appointment via prison api client when appointments not rolled out`() {
       whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
@@ -482,249 +537,298 @@ class ManageExternalAppointmentsServiceTest {
     verifyNoInteractions(prisonApiClient)
   }
 
-  @Test
-  fun `should cancel appointment via activities client when appointments rolled out`() {
-    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
-    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(
-      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode(),
-        courtAppointment.prisonerNumber,
-        courtAppointment.appointmentDate,
-        birminghamLocation.locationId,
-      ),
-    ) doReturn listOf(
-      AppointmentSearchResult(
-        appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
-        startDate = courtAppointment.appointmentDate,
-        startTime = courtAppointment.startTime.toHourMinuteStyle(),
-        endTime = courtAppointment.endTime.toHourMinuteStyle(),
-        isCancelled = false,
-        isExpired = false,
-        isEdited = false,
-        appointmentId = 99,
-        appointmentSeriesId = 1,
-        appointmentName = "appointment name",
-        attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
-        category = AppointmentCategorySummary("VLB", "video link booking"),
-        inCell = false,
-        isRepeat = false,
-        maxSequenceNumber = 1,
-        prisonCode = courtAppointment.prisonCode(),
-        sequenceNumber = 1,
-        internalLocation = AppointmentLocationSummary(
-          birminghamLocation.locationId,
+  @Nested
+  @DisplayName("Cancel appointment")
+  inner class CancelAppointment {
+    @Test
+    fun `should cancel appointment via activities client when appointments rolled out`() {
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
+      whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
           courtAppointment.prisonCode(),
-          "VIDEO LINK",
-        ),
-        timeSlot = AppointmentSearchResult.TimeSlot.AM,
-      ),
-    )
-
-    service.cancelCurrentAppointment(1)
-
-    verify(activitiesAppointmentsClient).cancelAppointment(99)
-  }
-
-  @Test
-  fun `should not cancel appointment via activities client when appointments rolled out but matching appointment not found`() {
-    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
-    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(
-      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode(),
-        courtAppointment.prisonerNumber,
-        courtAppointment.appointmentDate,
-        birminghamLocation.locationId,
-      ),
-    ) doReturn listOf(
-      AppointmentSearchResult(
-        appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
-        startDate = courtAppointment.appointmentDate,
-        startTime = courtAppointment.startTime.plusMinutes(1).toHourMinuteStyle(),
-        endTime = courtAppointment.endTime.toHourMinuteStyle(),
-        isCancelled = false,
-        isExpired = false,
-        isEdited = false,
-        appointmentId = 99,
-        appointmentSeriesId = 1,
-        appointmentName = "appointment name",
-        // TIME DOES NOT MATCH
-        attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
-        category = AppointmentCategorySummary("VLB", "video link booking"),
-        inCell = false,
-        isRepeat = false,
-        maxSequenceNumber = 1,
-        prisonCode = courtAppointment.prisonCode(),
-        sequenceNumber = 1,
-        internalLocation = AppointmentLocationSummary(
+          courtAppointment.prisonerNumber,
+          courtAppointment.appointmentDate,
           birminghamLocation.locationId,
-          courtAppointment.prisonCode(),
-          "VIDEO LINK",
         ),
-        timeSlot = AppointmentSearchResult.TimeSlot.AM,
-      ),
-    )
+      ) doReturn listOf(
+        AppointmentSearchResult(
+          appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+          startDate = courtAppointment.appointmentDate,
+          startTime = courtAppointment.startTime.toHourMinuteStyle(),
+          endTime = courtAppointment.endTime.toHourMinuteStyle(),
+          isCancelled = false,
+          isExpired = false,
+          isEdited = false,
+          appointmentId = 99,
+          appointmentSeriesId = 1,
+          appointmentName = "appointment name",
+          attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
+          category = AppointmentCategorySummary("VLB", "video link booking"),
+          inCell = false,
+          isRepeat = false,
+          maxSequenceNumber = 1,
+          prisonCode = courtAppointment.prisonCode(),
+          sequenceNumber = 1,
+          internalLocation = AppointmentLocationSummary(
+            birminghamLocation.locationId,
+            courtAppointment.prisonCode(),
+            "VIDEO LINK",
+          ),
+          timeSlot = AppointmentSearchResult.TimeSlot.AM,
+        ),
+      )
 
-    service.cancelCurrentAppointment(1)
+      service.cancelCurrentAppointment(1)
 
-    verify(activitiesAppointmentsClient, never()).cancelAppointment(anyLong())
-  }
+      verify(activitiesAppointmentsClient).cancelAppointment(99)
+    }
 
-  @Test
-  fun `should cancel appointment via prison api client when appointments not rolled out`() {
-    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
-    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(
-      prisonApiClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode(),
-        courtAppointment.prisonerNumber,
-        courtAppointment.appointmentDate,
-        birminghamLocation.locationId,
-      ),
-    ) doReturn listOf(
-      PrisonerSchedule(
-        offenderNo = courtAppointment.prisonerNumber,
-        locationId = 99,
-        firstName = "Bob",
-        lastName = "Builder",
-        eventId = 99,
-        event = "VLB",
-        startTime = courtAppointment.appointmentDate.atTime(courtAppointment.startTime),
-        endTime = courtAppointment.appointmentDate.atTime(courtAppointment.endTime),
-      ),
-    )
-
-    service.cancelCurrentAppointment(1)
-
-    verify(prisonApiClient).cancelAppointment(99)
-  }
-
-  @Test
-  fun `should not cancel appointment via prison api client when appointments not rolled out but matching appointment not found`() {
-    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
-    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(
-      prisonApiClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode(),
-        courtAppointment.prisonerNumber,
-        courtAppointment.appointmentDate,
-        birminghamLocation.locationId,
-      ),
-    ) doReturn listOf(
-      PrisonerSchedule(
-        offenderNo = courtAppointment.prisonerNumber,
-        locationId = 99,
-        firstName = "Bob",
-        lastName = "Builder",
-        eventId = 99,
-        event = "VLB",
-        // TIME DOES NOT MATCH
-        startTime = courtAppointment.appointmentDate.atTime(courtAppointment.startTime.plusMinutes(1)),
-        endTime = courtAppointment.appointmentDate.atTime(courtAppointment.endTime),
-      ),
-    )
-
-    service.cancelCurrentAppointment(1)
-
-    verify(prisonApiClient, never()).cancelAppointment(anyLong())
-  }
-
-  @Test
-  fun `should not cancel appointment appointment not found`() {
-    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.empty()
-
-    service.cancelCurrentAppointment(1)
-
-    verifyNoInteractions(activitiesAppointmentsClient)
-    verifyNoInteractions(prisonApiClient)
-  }
-
-  @Test
-  fun `Cancel previous - should cancel previous appointment via A&A API when A&A is rolled out`() {
-    val bookingHistory = buildFakeBookingHistory()
-
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
-
-    whenever(
-      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode(),
-        courtAppointment.prisonerNumber,
-        courtAppointment.appointmentDate,
-        birminghamLocation.locationId,
-      ),
-    ) doReturn listOf(
-      AppointmentSearchResult(
-        appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
-        startDate = courtAppointment.appointmentDate,
-        startTime = courtAppointment.startTime.toHourMinuteStyle(),
-        endTime = courtAppointment.endTime.toHourMinuteStyle(),
-        isCancelled = false,
-        isExpired = false,
-        isEdited = false,
-        appointmentId = 99,
-        appointmentSeriesId = 1,
-        appointmentName = "appointment name",
-        attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
-        category = AppointmentCategorySummary("VLB", "video link booking"),
-        inCell = false,
-        isRepeat = false,
-        maxSequenceNumber = 1,
-        prisonCode = courtAppointment.prisonCode(),
-        sequenceNumber = 1,
-        internalLocation = AppointmentLocationSummary(
+    @Test
+    fun `should ignore cancel appointment via activities client when appointment already cancelled`() {
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
+      whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+          courtAppointment.prisonCode(),
+          courtAppointment.prisonerNumber,
+          courtAppointment.appointmentDate,
           birminghamLocation.locationId,
-          courtAppointment.prisonCode(),
-          "VIDEO LINK",
         ),
-        timeSlot = AppointmentSearchResult.TimeSlot.AM,
-      ),
-    )
+      ) doReturn listOf(
+        AppointmentSearchResult(
+          appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+          startDate = courtAppointment.appointmentDate,
+          startTime = courtAppointment.startTime.toHourMinuteStyle(),
+          endTime = courtAppointment.endTime.toHourMinuteStyle(),
+          isCancelled = true,
+          isExpired = false,
+          isEdited = false,
+          appointmentId = 99,
+          appointmentSeriesId = 1,
+          appointmentName = "appointment name",
+          attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
+          category = AppointmentCategorySummary("VLB", "video link booking"),
+          inCell = false,
+          isRepeat = false,
+          maxSequenceNumber = 1,
+          prisonCode = courtAppointment.prisonCode(),
+          sequenceNumber = 1,
+          internalLocation = AppointmentLocationSummary(
+            birminghamLocation.locationId,
+            courtAppointment.prisonCode(),
+            "VIDEO LINK",
+          ),
+          timeSlot = AppointmentSearchResult.TimeSlot.AM,
+        ),
+      )
 
-    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+      service.cancelCurrentAppointment(1)
 
-    service.cancelPreviousAppointment(bookingHistory.appointments().first())
+      verify(activitiesAppointmentsClient, never()).cancelAppointment(any())
+    }
 
-    verify(activitiesAppointmentsClient).cancelAppointment(99)
-    verify(prisonApiClient, times(0)).cancelAppointment(anyLong())
-  }
+    @Test
+    fun `should not cancel appointment via activities client when appointments rolled out but matching appointment not found`() {
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
+      whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+          courtAppointment.prisonCode(),
+          courtAppointment.prisonerNumber,
+          courtAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(
+        AppointmentSearchResult(
+          appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+          startDate = courtAppointment.appointmentDate,
+          startTime = courtAppointment.startTime.plusMinutes(1).toHourMinuteStyle(),
+          endTime = courtAppointment.endTime.toHourMinuteStyle(),
+          isCancelled = false,
+          isExpired = false,
+          isEdited = false,
+          appointmentId = 99,
+          appointmentSeriesId = 1,
+          appointmentName = "appointment name",
+          // TIME DOES NOT MATCH
+          attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
+          category = AppointmentCategorySummary("VLB", "video link booking"),
+          inCell = false,
+          isRepeat = false,
+          maxSequenceNumber = 1,
+          prisonCode = courtAppointment.prisonCode(),
+          sequenceNumber = 1,
+          internalLocation = AppointmentLocationSummary(
+            birminghamLocation.locationId,
+            courtAppointment.prisonCode(),
+            "VIDEO LINK",
+          ),
+          timeSlot = AppointmentSearchResult.TimeSlot.AM,
+        ),
+      )
 
-  @Test
-  fun `Cancel previous - should cancel previous appointment via Prison API when A&A is not rolled out`() {
-    val bookingHistory = buildFakeBookingHistory()
+      service.cancelCurrentAppointment(1)
 
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
+      verify(activitiesAppointmentsClient, never()).cancelAppointment(anyLong())
+    }
 
-    whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
-    whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
-    whenever(
-      prisonApiClient.getPrisonersAppointmentsAtLocations(
-        courtAppointment.prisonCode(),
-        courtAppointment.prisonerNumber,
-        courtAppointment.appointmentDate,
-        birminghamLocation.locationId,
-      ),
-    ) doReturn listOf(
-      PrisonerSchedule(
-        offenderNo = courtAppointment.prisonerNumber,
-        locationId = 99,
-        firstName = "Bob",
-        lastName = "Builder",
-        eventId = 99,
-        event = "VLB",
-        startTime = courtAppointment.appointmentDate.atTime(courtAppointment.startTime),
-        endTime = courtAppointment.appointmentDate.atTime(courtAppointment.endTime),
-      ),
-    )
+    @Test
+    fun `should cancel appointment via prison api client when appointments not rolled out`() {
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
+      whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+      whenever(
+        prisonApiClient.getPrisonersAppointmentsAtLocations(
+          courtAppointment.prisonCode(),
+          courtAppointment.prisonerNumber,
+          courtAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(
+        PrisonerSchedule(
+          offenderNo = courtAppointment.prisonerNumber,
+          locationId = 99,
+          firstName = "Bob",
+          lastName = "Builder",
+          eventId = 99,
+          event = "VLB",
+          startTime = courtAppointment.appointmentDate.atTime(courtAppointment.startTime),
+          endTime = courtAppointment.appointmentDate.atTime(courtAppointment.endTime),
+        ),
+      )
 
-    service.cancelPreviousAppointment(bookingHistory.appointments().first())
+      service.cancelCurrentAppointment(1)
 
-    verify(activitiesAppointmentsClient, times(0)).cancelAppointment(anyLong())
-    verify(prisonApiClient).cancelAppointment(99)
+      verify(prisonApiClient).cancelAppointment(99)
+    }
+
+    @Test
+    fun `should not cancel appointment via prison api client when appointments not rolled out but matching appointment not found`() {
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
+      whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+      whenever(
+        prisonApiClient.getPrisonersAppointmentsAtLocations(
+          courtAppointment.prisonCode(),
+          courtAppointment.prisonerNumber,
+          courtAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(
+        PrisonerSchedule(
+          offenderNo = courtAppointment.prisonerNumber,
+          locationId = 99,
+          firstName = "Bob",
+          lastName = "Builder",
+          eventId = 99,
+          event = "VLB",
+          // TIME DOES NOT MATCH
+          startTime = courtAppointment.appointmentDate.atTime(courtAppointment.startTime.plusMinutes(1)),
+          endTime = courtAppointment.appointmentDate.atTime(courtAppointment.endTime),
+        ),
+      )
+
+      service.cancelCurrentAppointment(1)
+
+      verify(prisonApiClient, never()).cancelAppointment(anyLong())
+    }
+
+    @Test
+    fun `should not cancel appointment appointment not found`() {
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.empty()
+
+      service.cancelCurrentAppointment(1)
+
+      verifyNoInteractions(activitiesAppointmentsClient)
+      verifyNoInteractions(prisonApiClient)
+    }
+
+    @Test
+    fun `should cancel previous appointment via A&A API when A&A is rolled out`() {
+      val bookingHistory = buildFakeBookingHistory()
+
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
+
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+          courtAppointment.prisonCode(),
+          courtAppointment.prisonerNumber,
+          courtAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(
+        AppointmentSearchResult(
+          appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+          startDate = courtAppointment.appointmentDate,
+          startTime = courtAppointment.startTime.toHourMinuteStyle(),
+          endTime = courtAppointment.endTime.toHourMinuteStyle(),
+          isCancelled = false,
+          isExpired = false,
+          isEdited = false,
+          appointmentId = 99,
+          appointmentSeriesId = 1,
+          appointmentName = "appointment name",
+          attendees = listOf(AppointmentAttendeeSearchResult(1, courtAppointment.prisonerNumber, 1)),
+          category = AppointmentCategorySummary("VLB", "video link booking"),
+          inCell = false,
+          isRepeat = false,
+          maxSequenceNumber = 1,
+          prisonCode = courtAppointment.prisonCode(),
+          sequenceNumber = 1,
+          internalLocation = AppointmentLocationSummary(
+            birminghamLocation.locationId,
+            courtAppointment.prisonCode(),
+            "VIDEO LINK",
+          ),
+          timeSlot = AppointmentSearchResult.TimeSlot.AM,
+        ),
+      )
+
+      whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+
+      service.cancelPreviousAppointment(bookingHistory.appointments().first())
+
+      verify(activitiesAppointmentsClient).cancelAppointment(99)
+      verify(prisonApiClient, times(0)).cancelAppointment(anyLong())
+    }
+
+    @Test
+    fun `should cancel previous appointment via Prison API when A&A is not rolled out`() {
+      val bookingHistory = buildFakeBookingHistory()
+
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
+
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
+      whenever(nomisMappingClient.getNomisLocationMappingBy(courtAppointment.prisonLocationId)) doReturn NomisDpsLocationMapping(nomisLocationId = birminghamLocation.locationId, dpsLocationId = courtAppointment.prisonLocationId)
+      whenever(
+        prisonApiClient.getPrisonersAppointmentsAtLocations(
+          courtAppointment.prisonCode(),
+          courtAppointment.prisonerNumber,
+          courtAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(
+        PrisonerSchedule(
+          offenderNo = courtAppointment.prisonerNumber,
+          locationId = 99,
+          firstName = "Bob",
+          lastName = "Builder",
+          eventId = 99,
+          event = "VLB",
+          startTime = courtAppointment.appointmentDate.atTime(courtAppointment.startTime),
+          endTime = courtAppointment.appointmentDate.atTime(courtAppointment.endTime),
+        ),
+      )
+
+      service.cancelPreviousAppointment(bookingHistory.appointments().first())
+
+      verify(activitiesAppointmentsClient, times(0)).cancelAppointment(anyLong())
+      verify(prisonApiClient).cancelAppointment(99)
+    }
   }
 
   private fun buildFakeBookingHistory(): BookingHistory {
