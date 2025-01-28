@@ -42,7 +42,7 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   createdTime = createdTime,
   createdBy = createdBy,
   updatedTime = updatedTime,
-  updatedBy = updatedBy
+  updatedBy = updatedBy,
 )
 
 fun List<ScheduleItemEntity>.toModel(locations: List<Location>) = map { it.toModel(locations) }
