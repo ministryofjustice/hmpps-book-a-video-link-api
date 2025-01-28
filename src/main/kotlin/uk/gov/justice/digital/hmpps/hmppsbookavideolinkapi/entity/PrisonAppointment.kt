@@ -43,7 +43,7 @@ class PrisonAppointment private constructor(
   val startTime: LocalTime,
 
   val endTime: LocalTime,
-) {
+) : BookingType {
 
   fun prisonCode() = prison.code
 
@@ -52,6 +52,7 @@ class PrisonAppointment private constructor(
   fun start(): LocalDateTime = appointmentDate.atTime(startTime)
 
   fun end(): LocalDateTime = appointmentDate.atTime(endTime)
+  override fun isCourtBooking() = videoBooking.isCourtBooking()
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

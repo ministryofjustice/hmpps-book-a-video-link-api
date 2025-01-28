@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesapp
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
@@ -30,7 +30,7 @@ class ActivitiesAppointmentsClientTest {
       endTime = LocalTime.MIDNIGHT.plusHours(1),
       internalLocationId = 1,
       extraInformation = "extra info",
-      appointmentType = AppointmentType.COURT,
+      appointmentType = SupportedAppointmentTypes.Type.COURT,
     )
 
     client.createAppointment(
@@ -41,7 +41,7 @@ class ActivitiesAppointmentsClientTest {
       endTime = LocalTime.MIDNIGHT.plusHours(1),
       internalLocationId = 1,
       comments = "extra info",
-      appointmentType = AppointmentType.COURT,
+      appointmentType = SupportedAppointmentTypes.Type.COURT,
     )
   }
 

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
@@ -19,7 +19,7 @@ class PrisonApiMockServer : MockServer(8094) {
 
   fun stubPostCreateAppointment(
     bookingId: Long,
-    appointmentType: AppointmentType,
+    appointmentType: SupportedAppointmentTypes.Type,
     locationId: Long,
     appointmentDate: LocalDate,
     startTime: LocalTime,
@@ -56,7 +56,7 @@ class PrisonApiMockServer : MockServer(8094) {
     prisonCode: String,
     prisonerNumber: String,
     date: LocalDate,
-    appointmentType: AppointmentType = AppointmentType.COURT,
+    appointmentType: SupportedAppointmentTypes.Type = SupportedAppointmentTypes.Type.COURT,
     locationIds: Set<Long> = setOf(-1),
   ) {
     val locations = locationIds.map { locationId ->

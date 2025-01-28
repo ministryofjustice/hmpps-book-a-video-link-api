@@ -108,7 +108,9 @@ data class BookingHistoryAppointment(
   val startTime: LocalTime,
 
   val endTime: LocalTime,
-) {
+) : BookingType {
+  override fun isCourtBooking() = bookingHistory.courtId != null
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false

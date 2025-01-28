@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
@@ -47,7 +47,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     endTime: LocalTime,
     internalLocationId: Long,
     comments: String?,
-    appointmentType: AppointmentType,
+    appointmentType: SupportedAppointmentTypes.Type,
   ): AppointmentSeries? =
     activitiesAppointmentsApiWebClient.post()
       .uri("/appointment-series")

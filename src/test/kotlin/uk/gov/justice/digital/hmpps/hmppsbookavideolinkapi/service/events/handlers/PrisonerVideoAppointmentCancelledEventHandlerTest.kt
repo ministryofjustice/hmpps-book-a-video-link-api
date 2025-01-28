@@ -10,6 +10,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
@@ -45,6 +47,8 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val bookingHistoryService: BookingHistoryService = mock()
+  private val featureSwitches: FeatureSwitches = mock()
+  private val supportedAppointmentTypes = SupportedAppointmentTypes(featureSwitches)
   private val handler = PrisonerVideoAppointmentCancelledEventHandler(
     activitiesAppointmentsClient,
     videoAppointmentRepository,
@@ -52,6 +56,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
     videoBookingRepository,
     prisonAppointmentRepository,
     bookingHistoryService,
+    supportedAppointmentTypes,
   )
 
   @BeforeEach

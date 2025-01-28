@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.Pris
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
@@ -52,6 +52,7 @@ class ManageExternalAppointmentsServiceTest {
   private val prisonerSearchClient: PrisonerSearchClient = mock()
   private val nomisMappingClient: NomisMappingClient = mock()
   private val featureSwitches: FeatureSwitches = mock()
+  private val supportedAppointmentTypes = SupportedAppointmentTypes(featureSwitches)
   private val birminghamLocation = Location(
     locationId = 123456,
     locationType = "VLB",
@@ -88,7 +89,7 @@ class ManageExternalAppointmentsServiceTest {
       prisonApiClient,
       prisonerSearchClient,
       nomisMappingClient,
-      featureSwitches,
+      supportedAppointmentTypes,
     )
 
   @Nested
@@ -117,7 +118,7 @@ class ManageExternalAppointmentsServiceTest {
         endTime = LocalTime.of(11, 30),
         internalLocationId = 123456,
         comments = "Court hearing comments",
-        appointmentType = AppointmentType.COURT,
+        appointmentType = SupportedAppointmentTypes.Type.COURT,
       )
     }
 
@@ -150,7 +151,7 @@ class ManageExternalAppointmentsServiceTest {
         endTime = LocalTime.of(11, 30),
         internalLocationId = 123456,
         comments = null,
-        appointmentType = AppointmentType.COURT,
+        appointmentType = SupportedAppointmentTypes.Type.COURT,
       )
     }
 
@@ -285,7 +286,7 @@ class ManageExternalAppointmentsServiceTest {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(11, 30),
         comments = "Court hearing comments",
-        appointmentType = AppointmentType.COURT,
+        appointmentType = SupportedAppointmentTypes.Type.COURT,
       )
     }
 
@@ -321,7 +322,7 @@ class ManageExternalAppointmentsServiceTest {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(11, 30),
         comments = null,
-        appointmentType = AppointmentType.COURT,
+        appointmentType = SupportedAppointmentTypes.Type.COURT,
       )
     }
 
@@ -346,7 +347,7 @@ class ManageExternalAppointmentsServiceTest {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(11, 30),
         comments = "Probation meeting comments",
-        appointmentType = AppointmentType.COURT,
+        appointmentType = SupportedAppointmentTypes.Type.COURT,
       )
     }
 
@@ -371,7 +372,7 @@ class ManageExternalAppointmentsServiceTest {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(11, 30),
         comments = "Probation meeting comments",
-        appointmentType = AppointmentType.COURT,
+        appointmentType = SupportedAppointmentTypes.Type.COURT,
       )
     }
   }
@@ -402,7 +403,7 @@ class ManageExternalAppointmentsServiceTest {
         endTime = LocalTime.of(11, 30),
         internalLocationId = 123456,
         comments = "Court hearing comments",
-        appointmentType = AppointmentType.COURT,
+        appointmentType = SupportedAppointmentTypes.Type.COURT,
       )
     }
 
@@ -427,7 +428,7 @@ class ManageExternalAppointmentsServiceTest {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(11, 30),
         comments = "Court hearing comments",
-        appointmentType = AppointmentType.COURT,
+        appointmentType = SupportedAppointmentTypes.Type.COURT,
       )
     }
 
@@ -452,7 +453,7 @@ class ManageExternalAppointmentsServiceTest {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(11, 30),
         comments = "Probation meeting comments",
-        appointmentType = AppointmentType.PROBATION,
+        appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
     }
 
@@ -477,7 +478,7 @@ class ManageExternalAppointmentsServiceTest {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(11, 30),
         comments = "Probation meeting comments",
-        appointmentType = AppointmentType.PROBATION,
+        appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
     }
   }

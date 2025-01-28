@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.util.UriBuilder
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
@@ -34,7 +34,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     startTime: LocalTime,
     endTime: LocalTime,
     comments: String? = null,
-    appointmentType: AppointmentType,
+    appointmentType: SupportedAppointmentTypes.Type,
   ): ScheduledEvent? =
     prisonApiWebClient
       .post()
@@ -123,7 +123,7 @@ data class PrisonerSchedule(
   val startTime: LocalDateTime,
   val endTime: LocalDateTime?,
 ) {
-  fun isAppointmentType(appointmentType: AppointmentType) = event == appointmentType.code
+  fun isAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = event == appointmentType.code
 
   fun isTimesAreTheSame(appointment: PrisonAppointment) =
     startTime == appointment.appointmentDate.atTime(appointment.startTime) &&

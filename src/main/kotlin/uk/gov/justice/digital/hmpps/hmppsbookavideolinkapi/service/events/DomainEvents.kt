@@ -80,7 +80,8 @@ class PrisonerVideoAppointmentCancelledEvent(
   additionalInformation: AppointmentScheduleInformation,
 ) :
   DomainEvent<AppointmentScheduleInformation>(DomainEventType.PRISONER_VIDEO_APPOINTMENT_CANCELLED, additionalInformation) {
-  fun isVideoLinkBooking() = additionalInformation.scheduleEventSubType == "VLB"
+
+  fun appointmentType() = additionalInformation.scheduleEventSubType
 
   fun prisonCode() = additionalInformation.agencyLocationId
 

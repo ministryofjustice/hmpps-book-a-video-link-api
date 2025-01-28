@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
@@ -34,7 +34,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     endTime: LocalTime,
     internalLocationId: Long,
     extraInformation: String,
-    appointmentType: AppointmentType,
+    appointmentType: SupportedAppointmentTypes.Type,
   ) {
     val request = AppointmentSeriesCreateRequest(
       appointmentType = AppointmentSeriesCreateRequest.AppointmentType.INDIVIDUAL,
@@ -106,7 +106,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     prisonCode: String,
     prisonerNumber: String,
     date: LocalDate,
-    appointmentType: AppointmentType = AppointmentType.COURT,
+    appointmentType: SupportedAppointmentTypes.Type = SupportedAppointmentTypes.Type.COURT,
     locationIds: Set<Long> = setOf(-1),
   ) {
     val appointments = locationIds.map { locationId ->
