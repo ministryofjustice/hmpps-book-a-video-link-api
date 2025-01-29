@@ -35,5 +35,6 @@ feature:
   check:
     external-availability:
       enabled: true
-  probation:
-    live: true
+  master:
+    vlpm:
+      types: true

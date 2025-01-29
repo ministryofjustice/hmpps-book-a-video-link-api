@@ -123,13 +123,13 @@ data class PrisonerSchedule(
   val startTime: LocalDateTime,
   val endTime: LocalDateTime?,
 ) {
-  fun isAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = event == appointmentType.code
+  fun isTheSameAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = event == appointmentType.code
 
-  fun isTimesAreTheSame(appointment: PrisonAppointment) =
+  fun isTheSameTime(appointment: PrisonAppointment) =
     startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
       appointment.appointmentDate.atTime(appointment.endTime) == endTime
 
-  fun isTimesAreTheSame(bha: BookingHistoryAppointment) =
+  fun isTheSameTime(bha: BookingHistoryAppointment) =
     startTime == bha.appointmentDate.atTime(bha.startTime) && bha.appointmentDate.atTime(bha.endTime) == endTime
 }
 

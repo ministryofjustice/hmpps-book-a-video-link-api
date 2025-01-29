@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers
 
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
@@ -11,6 +13,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -37,7 +40,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Person
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerVideoAppointmentCancelledEvent
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 
 class PrisonerVideoAppointmentCancelledEventHandlerTest {
 
@@ -64,181 +68,301 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn true
   }
 
-  @Test
-  fun `should attempt to cancel a court booking when main appointment removed in NOMIS`() {
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
-    val courtBooking = courtBooking().withMainCourtPrisonAppointment(prisonerNumber = "ABC345", prisonCode = WANDSWORTH)
-    val courtAppointment = videoAppointment(courtBooking, courtBooking.appointments().single())
+  @Nested
+  @DisplayName("Cancellation of VLB only bookings")
+  inner class VideoLinkBookings {
+    @BeforeEach
+    fun before() {
+      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn false
+    }
 
-    whenever(
-      videoAppointmentRepository.findActiveVideoAppointments(
-        prisonCode = WANDSWORTH,
-        prisonerNumber = "ABC345",
-        appointmentDate = today(),
-        startTime = LocalTime.MIDNIGHT,
-      ),
-    ) doReturn listOf(courtAppointment)
+    @Test
+    fun `should attempt to cancel a court booking when main appointment removed in NOMIS`() {
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+      val courtBooking = courtBooking().withMainCourtPrisonAppointment(prisonerNumber = "ABC345", prisonCode = WANDSWORTH)
+      val courtAppointment = videoAppointment(courtBooking, courtBooking.appointments().single())
 
-    handler.handle(
-      cancellationEvent(
-        prisonCode = WANDSWORTH,
-        prisonerNumber = "ABC345",
-        start = today().atStartOfDay(),
-      ),
-    )
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointments(
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "ABC345",
+          appointmentDate = today(),
+          startTime = LocalTime.MIDNIGHT,
+        ),
+      ) doReturn listOf(courtAppointment)
 
-    inOrder(videoAppointmentRepository, bookingFacade) {
-      verify(videoAppointmentRepository).findActiveVideoAppointments(
-        WANDSWORTH,
-        "ABC345",
-        appointmentDate = today(),
-        startTime = LocalTime.MIDNIGHT,
+      handler.handle(
+        cancellationEvent(
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "ABC345",
+          start = today().atStartOfDay(),
+          eventType = "VLB",
+        ),
       )
-      verify(bookingFacade).cancel(courtBooking.videoBookingId, SERVICE_USER)
+
+      inOrder(videoAppointmentRepository, bookingFacade) {
+        verify(videoAppointmentRepository).findActiveVideoAppointments(
+          WANDSWORTH,
+          "ABC345",
+          appointmentDate = today(),
+          startTime = LocalTime.MIDNIGHT,
+        )
+        verify(bookingFacade).cancel(courtBooking.videoBookingId, SERVICE_USER)
+      }
+    }
+
+    @Test
+    fun `should attempt to remove a court booking appointment when pre-appointment removed in NOMIS`() {
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+      val courtBooking = courtBooking()
+
+      val courtAppointment = videoAppointment(
+        courtBooking,
+        PrisonAppointment.newAppointment(
+          videoBooking = courtBooking,
+          prison = prison(),
+          prisonerNumber = "ABC345",
+          appointmentType = "VLB_COURT_PRE",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+          endTime = LocalTime.MIDNIGHT,
+          locationId = UUID.randomUUID(),
+        ),
+      )
+
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointments(
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "ABC345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        ),
+      ) doReturn listOf(courtAppointment)
+
+      whenever(videoBookingRepository.findById(courtBooking.videoBookingId)) doReturn Optional.of(courtBooking)
+
+      handler.handle(
+        cancellationEvent(
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "ABC345",
+          start = tomorrow().atStartOfDay(),
+          eventType = "VLB",
+        ),
+      )
+
+      inOrder(videoAppointmentRepository, prisonAppointmentRepository, videoBookingRepository, bookingHistoryService) {
+        verify(videoAppointmentRepository).findActiveVideoAppointments(
+          WANDSWORTH,
+          "ABC345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        )
+
+        verify(prisonAppointmentRepository).deleteById(courtAppointment.prisonAppointmentId)
+        verify(prisonAppointmentRepository).flush()
+        verify(videoBookingRepository).findById(courtBooking.videoBookingId)
+        verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
+      }
+
+      verifyNoInteractions(bookingFacade)
+    }
+
+    @Test
+    fun `should attempt to remove a court booking appointment when post-appointment removed in NOMIS`() {
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+      val courtBooking = courtBooking()
+
+      val courtAppointment = videoAppointment(
+        courtBooking,
+        PrisonAppointment.newAppointment(
+          videoBooking = courtBooking,
+          prison = prison(),
+          prisonerNumber = "ABC345",
+          appointmentType = "VLB_COURT_POST",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+          endTime = LocalTime.MIDNIGHT,
+          locationId = UUID.randomUUID(),
+        ),
+      )
+
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointments(
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "ABC345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        ),
+      ) doReturn listOf(courtAppointment)
+
+      whenever(videoBookingRepository.findById(courtBooking.videoBookingId)) doReturn Optional.of(courtBooking)
+
+      handler.handle(
+        cancellationEvent(
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "ABC345",
+          start = tomorrow().atStartOfDay(),
+          eventType = "VLB",
+        ),
+      )
+
+      inOrder(videoAppointmentRepository, prisonAppointmentRepository, videoBookingRepository, bookingHistoryService) {
+        verify(videoAppointmentRepository).findActiveVideoAppointments(
+          WANDSWORTH,
+          "ABC345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        )
+
+        verify(prisonAppointmentRepository).deleteById(courtAppointment.prisonAppointmentId)
+        verify(prisonAppointmentRepository).flush()
+        verify(videoBookingRepository).findById(courtBooking.videoBookingId)
+        verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
+      }
+
+      verifyNoInteractions(bookingFacade)
+    }
+
+    @Test
+    fun `should attempt to cancel a probation booking removed in NOMIS`() {
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+      val probationBooking = probationBooking().withProbationPrisonAppointment(prisonerNumber = "DEF345", prisonCode = PENTONVILLE)
+      val probationAppointment = videoAppointment(probationBooking, probationBooking.appointments().single())
+
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointments(
+          prisonCode = PENTONVILLE,
+          prisonerNumber = "DEF345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        ),
+      ) doReturn listOf(probationAppointment)
+
+      handler.handle(
+        cancellationEvent(
+          prisonCode = PENTONVILLE,
+          prisonerNumber = "DEF345",
+          start = tomorrow().atStartOfDay(),
+          eventType = "VLB",
+        ),
+      )
+
+      inOrder(videoAppointmentRepository, bookingFacade) {
+        verify(videoAppointmentRepository).findActiveVideoAppointments(
+          PENTONVILLE,
+          "DEF345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        )
+        verify(bookingFacade).cancel(probationBooking.videoBookingId, SERVICE_USER)
+      }
+    }
+
+    @Test
+    fun `should not cancel a (VLPM) probation booking removed in NOMIS`() {
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+      val probationBooking = probationBooking().withProbationPrisonAppointment(prisonerNumber = "DEF345", prisonCode = PENTONVILLE)
+      val probationAppointment = videoAppointment(probationBooking, probationBooking.appointments().single())
+
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointments(
+          prisonCode = PENTONVILLE,
+          prisonerNumber = "DEF345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        ),
+      ) doReturn listOf(probationAppointment)
+
+      handler.handle(
+        cancellationEvent(
+          prisonCode = PENTONVILLE,
+          prisonerNumber = "DEF345",
+          start = tomorrow().atStartOfDay(),
+          eventType = "VLPM",
+        ),
+      )
+
+      verifyNoInteractions(videoAppointmentRepository)
+      verifyNoInteractions(bookingFacade)
     }
   }
 
-  @Test
-  fun `should attempt to remove a court booking appointment when pre-appointment removed in NOMIS`() {
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
-    val courtBooking = courtBooking()
-
-    val courtAppointment = videoAppointment(
-      courtBooking,
-      PrisonAppointment.newAppointment(
-        videoBooking = courtBooking,
-        prison = prison(),
-        prisonerNumber = "ABC345",
-        appointmentType = "VLB_COURT_PRE",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.MIDNIGHT,
-        endTime = LocalTime.MIDNIGHT,
-        locationId = UUID.randomUUID(),
-      ),
-    )
-
-    whenever(
-      videoAppointmentRepository.findActiveVideoAppointments(
-        prisonCode = WANDSWORTH,
-        prisonerNumber = "ABC345",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.MIDNIGHT,
-      ),
-    ) doReturn listOf(courtAppointment)
-
-    whenever(videoBookingRepository.findById(courtBooking.videoBookingId)) doReturn Optional.of(courtBooking)
-
-    handler.handle(
-      cancellationEvent(
-        prisonCode = WANDSWORTH,
-        prisonerNumber = "ABC345",
-        start = tomorrow().atStartOfDay(),
-      ),
-    )
-
-    inOrder(videoAppointmentRepository, prisonAppointmentRepository, videoBookingRepository, bookingHistoryService) {
-      verify(videoAppointmentRepository).findActiveVideoAppointments(
-        WANDSWORTH,
-        "ABC345",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.MIDNIGHT,
-      )
-
-      verify(prisonAppointmentRepository).deleteById(courtAppointment.prisonAppointmentId)
-      verify(prisonAppointmentRepository).flush()
-      verify(videoBookingRepository).findById(courtBooking.videoBookingId)
-      verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
+  @Nested
+  @DisplayName("Cancellation of VLB and VLPM bookings")
+  inner class VideoLinkAndVideoLinkProbationBookings {
+    @BeforeEach
+    fun before() {
+      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
     }
 
-    verifyNoInteractions(bookingFacade)
-  }
+    @Test
+    fun `should attempt to cancel a court booking when main appointment removed in NOMIS`() {
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+      val courtBooking = courtBooking().withMainCourtPrisonAppointment(prisonerNumber = "ABC345", prisonCode = WANDSWORTH)
+      val courtAppointment = videoAppointment(courtBooking, courtBooking.appointments().single())
 
-  @Test
-  fun `should attempt to remove a court booking appointment when post-appointment removed in NOMIS`() {
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
-    val courtBooking = courtBooking()
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointments(
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "ABC345",
+          appointmentDate = today(),
+          startTime = LocalTime.MIDNIGHT,
+        ),
+      ) doReturn listOf(courtAppointment)
 
-    val courtAppointment = videoAppointment(
-      courtBooking,
-      PrisonAppointment.newAppointment(
-        videoBooking = courtBooking,
-        prison = prison(),
-        prisonerNumber = "ABC345",
-        appointmentType = "VLB_COURT_POST",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.MIDNIGHT,
-        endTime = LocalTime.MIDNIGHT,
-        locationId = UUID.randomUUID(),
-      ),
-    )
-
-    whenever(
-      videoAppointmentRepository.findActiveVideoAppointments(
-        prisonCode = WANDSWORTH,
-        prisonerNumber = "ABC345",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.MIDNIGHT,
-      ),
-    ) doReturn listOf(courtAppointment)
-
-    whenever(videoBookingRepository.findById(courtBooking.videoBookingId)) doReturn Optional.of(courtBooking)
-
-    handler.handle(
-      cancellationEvent(
-        prisonCode = WANDSWORTH,
-        prisonerNumber = "ABC345",
-        start = tomorrow().atStartOfDay(),
-      ),
-    )
-
-    inOrder(videoAppointmentRepository, prisonAppointmentRepository, videoBookingRepository, bookingHistoryService) {
-      verify(videoAppointmentRepository).findActiveVideoAppointments(
-        WANDSWORTH,
-        "ABC345",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.MIDNIGHT,
+      handler.handle(
+        cancellationEvent(
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "ABC345",
+          start = today().atStartOfDay(),
+          eventType = "VLB",
+        ),
       )
 
-      verify(prisonAppointmentRepository).deleteById(courtAppointment.prisonAppointmentId)
-      verify(prisonAppointmentRepository).flush()
-      verify(videoBookingRepository).findById(courtBooking.videoBookingId)
-      verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
+      inOrder(videoAppointmentRepository, bookingFacade) {
+        verify(videoAppointmentRepository).findActiveVideoAppointments(
+          WANDSWORTH,
+          "ABC345",
+          appointmentDate = today(),
+          startTime = LocalTime.MIDNIGHT,
+        )
+        verify(bookingFacade).cancel(courtBooking.videoBookingId, SERVICE_USER)
+      }
     }
 
-    verifyNoInteractions(bookingFacade)
-  }
+    @Test
+    fun `should attempt to cancel a probation booking removed in NOMIS`() {
+      whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
+      val probationBooking = probationBooking().withProbationPrisonAppointment(prisonerNumber = "DEF345", prisonCode = PENTONVILLE)
+      val probationAppointment = videoAppointment(probationBooking, probationBooking.appointments().single())
 
-  @Test
-  fun `should attempt to cancel a probation booking removed in NOMIS`() {
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(any())) doReturn false
-    val probationBooking = probationBooking().withProbationPrisonAppointment(prisonerNumber = "DEF345", prisonCode = PENTONVILLE)
-    val probationAppointment = videoAppointment(probationBooking, probationBooking.appointments().single())
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointments(
+          prisonCode = PENTONVILLE,
+          prisonerNumber = "DEF345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        ),
+      ) doReturn listOf(probationAppointment)
 
-    whenever(
-      videoAppointmentRepository.findActiveVideoAppointments(
-        prisonCode = PENTONVILLE,
-        prisonerNumber = "DEF345",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.MIDNIGHT,
-      ),
-    ) doReturn listOf(probationAppointment)
-
-    handler.handle(
-      cancellationEvent(
-        prisonCode = PENTONVILLE,
-        prisonerNumber = "DEF345",
-        start = tomorrow().atStartOfDay(),
-      ),
-    )
-
-    inOrder(videoAppointmentRepository, bookingFacade) {
-      verify(videoAppointmentRepository).findActiveVideoAppointments(
-        PENTONVILLE,
-        "DEF345",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.MIDNIGHT,
+      handler.handle(
+        cancellationEvent(
+          prisonCode = PENTONVILLE,
+          prisonerNumber = "DEF345",
+          start = tomorrow().atStartOfDay(),
+          eventType = "VLPM",
+        ),
       )
-      verify(bookingFacade).cancel(probationBooking.videoBookingId, SERVICE_USER)
+
+      inOrder(videoAppointmentRepository, bookingFacade) {
+        verify(videoAppointmentRepository).findActiveVideoAppointments(
+          PENTONVILLE,
+          "DEF345",
+          appointmentDate = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+        )
+        verify(bookingFacade).cancel(probationBooking.videoBookingId, SERVICE_USER)
+      }
     }
   }
 
@@ -251,6 +375,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
         prisonCode = PENTONVILLE,
         prisonerNumber = "DEF345",
         start = tomorrow().atStartOfDay(),
+        eventType = "VLB",
       ),
     )
 
@@ -280,6 +405,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
         prisonCode = WANDSWORTH,
         prisonerNumber = "ABC345",
         start = today().atStartOfDay(),
+        eventType = "VLB",
       ),
     )
 
@@ -329,6 +455,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
         prisonCode = PENTONVILLE,
         prisonerNumber = "DEF345",
         start = yesterday().atStartOfDay(),
+        eventType = "VLB",
       ),
     )
 
@@ -357,6 +484,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
         prisonCode = PENTONVILLE,
         prisonerNumber = "DEF345",
         start = today().atTime(now),
+        eventType = "VLB",
       ),
     )
 
@@ -367,7 +495,7 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
     prisonCode: String,
     prisonerNumber: String,
     start: LocalDateTime,
-    eventType: String = "VLB",
+    eventType: String,
   ) = PrisonerVideoAppointmentCancelledEvent(
     personReference = PersonReference(identifiers = listOf(Identifier("NOMS", prisonerNumber))),
     additionalInformation = AppointmentScheduleInformation(

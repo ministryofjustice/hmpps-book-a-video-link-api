@@ -23,7 +23,7 @@ class FeatureSwitchesTest : IntegrationTestBase() {
   @MockBean
   private lateinit var listener: InboundEventsListener
 
-  @TestPropertySource(properties = ["feature.probation.live=true"])
+  @TestPropertySource(properties = ["feature.master.vlpm.types=true"])
   @Nested
   @DisplayName("Features are enabled when set")
   inner class EnabledFeatures(@Autowired val featureSwitches: FeatureSwitches) {
@@ -51,7 +51,7 @@ class FeatureSwitchesTest : IntegrationTestBase() {
   inner class DefaultedFeatures(@Autowired val featureSwitches: FeatureSwitches) {
     @Test
     fun `different feature types can be defaulted `() {
-      featureSwitches.isEnabled(Feature.FEATURE_PROBATION_LIVE, true) isBool true
+      featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES, true) isBool true
     }
   }
 }

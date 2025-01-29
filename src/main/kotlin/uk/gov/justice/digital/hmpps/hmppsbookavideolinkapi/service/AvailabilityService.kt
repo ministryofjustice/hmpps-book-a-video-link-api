@@ -205,7 +205,7 @@ class ExternalAppointmentsService(
     nomisMappingClient.getNomisLocationMappingBy(location)
       ?.let { prisonApiClient.getScheduledAppointments(prisonCode, date, it.nomisLocationId) }
       ?.filter { it.endTime != null }
-      ?.filterNot { supportedAppointmentTypes.isVideoLinkBooking(it.appointmentTypeCode) }
+      ?.filterNot { supportedAppointmentTypes.isSupported(it.appointmentTypeCode) }
       ?.map { ExternalAppointmentSlot(location, it.offenderNo, it.startTime.toLocalDate(), it.startTime.toLocalTime(), it.endTime!!.toLocalTime()) }
       ?: emptyList()
 

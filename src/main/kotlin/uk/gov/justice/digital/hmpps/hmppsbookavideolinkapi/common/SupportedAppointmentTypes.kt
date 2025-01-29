@@ -14,13 +14,13 @@ class SupportedAppointmentTypes(private val featureSwitches: FeatureSwitches) {
   }
 
   fun typeOf(type: BookingType) =
-    when (featureSwitches.isEnabled(Feature.FEATURE_PROBATION_LIVE)) {
+    when (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
       true -> Type.COURT.takeIf { type.isCourtBooking() } ?: Type.PROBATION
       false -> Type.COURT
     }
 
-  fun isVideoLinkBooking(appointmentType: String) =
-    when (featureSwitches.isEnabled(Feature.FEATURE_PROBATION_LIVE)) {
+  fun isSupported(appointmentType: String) =
+    when (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
       true -> Type.entries.map(Type::code).contains(appointmentType)
       false -> Type.COURT.code == appointmentType
     }

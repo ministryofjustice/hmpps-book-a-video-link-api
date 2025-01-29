@@ -6,10 +6,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import java.time.LocalTime
 
-fun AppointmentSearchResult.isAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = category.code == appointmentType.code
+fun AppointmentSearchResult.isTheSameAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = category.code == appointmentType.code
 
-fun AppointmentSearchResult.isTimesAreTheSame(appointment: PrisonAppointment) =
+fun AppointmentSearchResult.isTheSameTime(appointment: PrisonAppointment) =
   appointment.startTime == LocalTime.parse(startTime) && appointment.endTime == LocalTime.parse(endTime)
 
-fun AppointmentSearchResult.isTimesAreTheSame(bha: BookingHistoryAppointment) =
+fun AppointmentSearchResult.isTheSameTime(bha: BookingHistoryAppointment) =
   bha.startTime == LocalTime.parse(startTime) && bha.endTime == LocalTime.parse(endTime)

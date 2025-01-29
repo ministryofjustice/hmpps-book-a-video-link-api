@@ -30,5 +30,5 @@ class FeatureSwitches(private val environment: Environment) {
 }
 
 enum class Feature(val label: String) {
-  FEATURE_PROBATION_LIVE("feature.probation.live"),
+  FEATURE_MASTER_VLPM_TYPES("feature.master.vlpm.types"),
 }

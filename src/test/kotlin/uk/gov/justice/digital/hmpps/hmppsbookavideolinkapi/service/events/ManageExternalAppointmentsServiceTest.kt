@@ -97,7 +97,7 @@ class ManageExternalAppointmentsServiceTest {
   inner class MapCourtAppointmentType {
     @BeforeEach
     fun before() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_PROBATION_LIVE)) doReturn false
+      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn false
     }
 
     @Test
@@ -382,7 +382,7 @@ class ManageExternalAppointmentsServiceTest {
   inner class MapCourtAndProbationAppointmentType {
     @BeforeEach
     fun before() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_PROBATION_LIVE)) doReturn true
+      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
     }
 
     @Test

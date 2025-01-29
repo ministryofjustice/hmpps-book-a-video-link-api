@@ -35,8 +35,9 @@ feature:
   check:
     external-availability:
       enabled: true
-  probation:
-    live: false
+  master:
+    vlpm:
+      types: true
 
 hmpps.sqs:
   provider: localstack

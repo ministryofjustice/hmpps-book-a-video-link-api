@@ -4,8 +4,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isAppointmentType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTimesAreTheSame
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameAppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
@@ -174,7 +174,7 @@ class ManageExternalAppointmentsService(
 
   private fun Collection<AppointmentSearchResult>.findMatchingAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> =
     filter { searchResult ->
-      searchResult.isTimesAreTheSame(appointment) && searchResult.isAppointmentType(supportedAppointmentTypes.typeOf(appointment)) && searchResult.isCancelled.not()
+      searchResult.isTheSameTime(appointment) && searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment)) && searchResult.isCancelled.not()
     }.ifEmpty {
       emptyList<AppointmentSearchResult>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
@@ -182,7 +182,7 @@ class ManageExternalAppointmentsService(
 
   private fun Collection<AppointmentSearchResult>.findMatchingAppointments(bha: BookingHistoryAppointment): List<AppointmentSearchResult> =
     filter { searchResult ->
-      searchResult.isTimesAreTheSame(bha) && searchResult.isAppointmentType(supportedAppointmentTypes.typeOf(bha)) && searchResult.isCancelled.not()
+      searchResult.isTheSameTime(bha) && searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha)) && searchResult.isCancelled.not()
     }.ifEmpty {
       emptyList<AppointmentSearchResult>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for booking history appointment ${bha.bookingHistoryAppointmentId}") }
@@ -190,7 +190,7 @@ class ManageExternalAppointmentsService(
 
   private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(appointment: PrisonAppointment): List<PrisonerSchedule> =
     filter { schedule ->
-      schedule.isTimesAreTheSame(appointment) && schedule.isAppointmentType(supportedAppointmentTypes.typeOf(appointment))
+      schedule.isTheSameTime(appointment) && schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment))
     }.ifEmpty {
       emptyList<PrisonerSchedule>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
@@ -198,7 +198,7 @@ class ManageExternalAppointmentsService(
 
   private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(bha: BookingHistoryAppointment): List<PrisonerSchedule> =
     filter { schedule ->
-      schedule.isTimesAreTheSame(bha) && schedule.isAppointmentType(supportedAppointmentTypes.typeOf(bha))
+      schedule.isTheSameTime(bha) && schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha))
     }.ifEmpty {
       emptyList<PrisonerSchedule>()
         .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }

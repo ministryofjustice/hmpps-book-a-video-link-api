@@ -46,7 +46,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
 
   @Transactional
   override fun handle(event: PrisonerVideoAppointmentCancelledEvent) {
-    if (supportedAppointmentTypes.isVideoLinkBooking(event.appointmentType()) && appointmentsNotManagedExternallyAt(event.prisonCode())) {
+    if (supportedAppointmentTypes.isSupported(event.appointmentType()) && appointmentsNotManagedExternallyAt(event.prisonCode())) {
       val activeAppointments = videoAppointmentRepository.findActiveVideoAppointments(
         prisonCode = event.prisonCode(),
         prisonerNumber = event.prisonerNumber(),
