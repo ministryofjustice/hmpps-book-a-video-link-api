@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
@@ -51,13 +52,27 @@ class VideoLinkBookingsService(
     val location = locationsInsidePrisonClient.getLocationByKey(searchRequest.locationKey!!)
       ?: throw EntityNotFoundException("Location with key ${searchRequest.locationKey} not found")
 
-    return videoAppointmentRepository.findActiveVideoAppointment(
-      prisonerNumber = searchRequest.prisonerNumber!!,
-      appointmentDate = searchRequest.date!!,
-      prisonLocationId = location.id,
-      startTime = searchRequest.startTime!!,
-      endTime = searchRequest.endTime!!,
-    )
+    val matchingAppointment = when (searchRequest.statusCode) {
+      BookingStatus.ACTIVE ->
+        videoAppointmentRepository.findActiveVideoAppointment(
+          prisonerNumber = searchRequest.prisonerNumber!!,
+          appointmentDate = searchRequest.date!!,
+          prisonLocationId = location.id,
+          startTime = searchRequest.startTime!!,
+          endTime = searchRequest.endTime!!,
+        )
+      BookingStatus.CANCELLED -> videoAppointmentRepository.findLatestCancelledVideoAppointment(
+        prisonerNumber = searchRequest.prisonerNumber!!,
+        appointmentDate = searchRequest.date!!,
+        prisonLocationId = location.id,
+        startTime = searchRequest.startTime!!,
+        endTime = searchRequest.endTime!!,
+      )
+
+      else -> null
+    }
+
+    return matchingAppointment
       ?.let { getVideoLinkBookingById(it.videoBookingId, user) }
       ?: throw EntityNotFoundException("Video booking not found matching search criteria $searchRequest")
   }
