@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appoint
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -270,6 +271,47 @@ class VideoLinkBookingsServiceTest {
           endTime = LocalTime.of(13, 0),
         ),
       ) doReturn videoAppointment(booking, booking.appointments().second())
+
+      whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
+
+      service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
+        locations = setOf(wandsworthLocation),
+        courtHearingTypeDescription = "Tribunal",
+      )
+    }
+
+    @Test
+    fun `should match with the latest lastUpdated CANCELLED court video link booking`() {
+      val searchRequest = VideoBookingSearchRequest(
+        prisonerNumber = "123456",
+        locationKey = wandsworthLocation.key,
+        date = tomorrow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+        statusCode = BookingStatus.CANCELLED,
+      )
+
+      val booking = courtBooking()
+        .addAppointment(
+          prison = prison(prisonCode = WANDSWORTH),
+          prisonerNumber = searchRequest.prisonerNumber!!,
+          appointmentType = AppointmentType.VLB_COURT_MAIN.name,
+          date = searchRequest.date!!,
+          startTime = searchRequest.startTime!!,
+          endTime = searchRequest.endTime!!,
+          locationId = wandsworthLocation.id,
+        )
+        .apply { cancel(COURT_USER) }
+
+      whenever(
+        videoAppointmentRepository.findLatestCancelledVideoAppointment(
+          prisonerNumber = "123456",
+          appointmentDate = tomorrow(),
+          prisonLocationId = wandsworthLocation.id,
+          startTime = LocalTime.of(12, 0),
+          endTime = LocalTime.of(13, 0),
+        ),
+      ) doReturn videoAppointment(booking, booking.appointments().first())
 
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 

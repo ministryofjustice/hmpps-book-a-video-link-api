@@ -60,6 +60,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
@@ -1771,6 +1772,26 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       ),
       COURT_USER,
     ).videoLinkBookingId isEqualTo 3000
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
+  fun `should find matching CANCELLED court video link bookings`() {
+    val location = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
+    locationsInsidePrisonApi().stubGetLocationByKey(location)
+    locationsInsidePrisonApi().stubGetLocationById(location)
+
+    webTestClient.searchForBooking(
+      VideoBookingSearchRequest(
+        prisonerNumber = "78910",
+        locationKey = location.key,
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(10, 0),
+        statusCode = BookingStatus.CANCELLED,
+      ),
+      COURT_USER,
+    ).videoLinkBookingId isEqualTo 4000
   }
 
   private fun WebTestClient.createBookingFails(request: CreateVideoBookingRequest, user: User) =

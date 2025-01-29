@@ -47,6 +47,27 @@ interface VideoAppointmentRepository : ReadOnlyRepository<VideoAppointment, Long
   @Query(
     value = """
       FROM VideoAppointment va 
+      WHERE va.prisonerNumber = :prisonerNumber
+      AND va.appointmentDate = :appointmentDate
+      AND va.prisonLocationId = :prisonLocationId
+      AND va.startTime = :startTime
+      AND va.endTime = :endTime
+      AND va.statusCode = 'CANCELLED'
+      ORDER BY va.lastCreatedOrAmended DESC
+      LIMIT 1
+    """,
+  )
+  fun findLatestCancelledVideoAppointment(
+    prisonerNumber: String,
+    appointmentDate: LocalDate,
+    prisonLocationId: UUID,
+    startTime: LocalTime,
+    endTime: LocalTime,
+  ): VideoAppointment?
+
+  @Query(
+    value = """
+      FROM VideoAppointment va 
       WHERE va.prisonCode = :prisonCode
       AND va.prisonerNumber = :prisonerNumber
       AND va.appointmentDate = :appointmentDate

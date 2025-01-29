@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppoi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
 import java.util.UUID
@@ -80,6 +81,7 @@ class AvailabilityServiceTest {
       appointmentDate = LocalDate.now(),
       startTime = startTime,
       endTime = endTime,
+      lastCreatedOrAmended = LocalDateTime.now(),
     )
 
   private val room1 = location(WANDSWORTH, "VCC-1")

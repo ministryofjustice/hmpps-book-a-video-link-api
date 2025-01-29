@@ -194,6 +194,7 @@ fun videoAppointment(
     appointmentDate = prisonAppointment.appointmentDate,
     startTime = prisonAppointment.startTime,
     endTime = prisonAppointment.endTime,
+    lastCreatedOrAmended = booking.amendedTime ?: booking.createdTime,
   )
 
 fun videoRoomAttributesWithSchedule(

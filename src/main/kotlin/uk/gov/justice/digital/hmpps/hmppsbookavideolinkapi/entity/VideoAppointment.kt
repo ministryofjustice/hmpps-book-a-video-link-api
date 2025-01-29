@@ -43,6 +43,8 @@ data class VideoAppointment(
   override val startTime: LocalTime,
 
   override val endTime: LocalTime,
+
+  val lastCreatedOrAmended: LocalDateTime,
 ) : AppointmentSlot {
   fun start(): LocalDateTime = appointmentDate.atTime(startTime)
 }

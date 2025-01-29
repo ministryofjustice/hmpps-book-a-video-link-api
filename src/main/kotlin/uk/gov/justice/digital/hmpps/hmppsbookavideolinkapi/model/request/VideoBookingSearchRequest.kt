@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -39,4 +40,7 @@ data class VideoBookingSearchRequest(
   @Schema(description = "End time for the appointment on the day", example = "11:45")
   @JsonFormat(pattern = "HH:mm")
   val endTime: LocalTime?,
+
+  @Schema(description = "The status of the booking to match, defaults to ACTIVE", example = "ACTIVE")
+  val statusCode: BookingStatus? = BookingStatus.ACTIVE,
 )
