@@ -118,9 +118,9 @@ class ManageExternalAppointmentsService(
             appointment.internalLocationId(),
           ).findMatchingAppointments(appointment)
             .forEach { matchingAppointment ->
-              log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from activities and appointments")
+              log.info("EXTERNAL APPOINTMENTS: soft deleting video booking appointment $appointment from activities and appointments")
               activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
-              log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
+              log.info("EXTERNAL APPOINTMENTS: soft deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
             }
         } else {
           prisonApiClient.getPrisonersAppointmentsAtLocations(
@@ -154,9 +154,9 @@ class ManageExternalAppointmentsService(
         onDate = bha.appointmentDate,
         bha.internalLocationId(),
       ).findMatchingAppointments(bha).forEach { matchingAppointment ->
-        log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $bha from activities and appointments")
-        activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
-        log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
+        log.info("EXTERNAL APPOINTMENTS: hard deleting video booking appointment $bha from activities and appointments")
+        activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId, deleteOnCancel = true)
+        log.info("EXTERNAL APPOINTMENTS: hard deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
       }
     } else {
       prisonApiClient.getPrisonersAppointmentsAtLocations(

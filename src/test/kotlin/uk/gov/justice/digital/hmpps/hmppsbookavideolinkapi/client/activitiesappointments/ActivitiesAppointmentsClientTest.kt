@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesapp
 
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.mockito.Spy
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
@@ -17,6 +18,7 @@ import java.time.LocalTime
 
 class ActivitiesAppointmentsClientTest {
 
+  @Spy
   private val server = ActivitiesAppointmentsApiMockServer().also { it.start() }
   private val client = ActivitiesAppointmentsClient(WebClient.create("http://localhost:${server.port()}"))
 
@@ -102,6 +104,11 @@ class ActivitiesAppointmentsClientTest {
 
     server.stubGetRolledOutPrison(RISLEY, false)
     client.isAppointmentsRolledOutAt(RISLEY) isBool false
+  }
+
+  @Test
+  fun `should correct cancellation reason on cancel with delete`() {
+    client.cancelAppointment(1, true)
   }
 
   @AfterEach
