@@ -21,6 +21,7 @@ import java.time.LocalTime
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
+// These constants map to values in the A&A DB appointment cancellation reasons.
 const val CANCELLED_BY_EXTERNAL_SERVICE = 4L
 const val CANCELLED_BY_USER = 2L
 

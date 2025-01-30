@@ -628,7 +628,7 @@ class ManageExternalAppointmentsServiceTest {
 
       service.cancelCurrentAppointment(1)
 
-      verify(activitiesAppointmentsClient, never()).cancelAppointment(any())
+      verify(activitiesAppointmentsClient, never()).cancelAppointment(any(), any())
     }
 
     @Test
