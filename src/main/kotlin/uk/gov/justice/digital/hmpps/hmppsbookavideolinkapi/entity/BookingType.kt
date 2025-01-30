@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity
 
-fun interface BookingType {
-  fun isCourtBooking(): Boolean
+enum class BookingType {
+  COURT,
+  PROBATION,
 }

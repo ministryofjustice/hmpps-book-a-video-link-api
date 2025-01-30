@@ -14,8 +14,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 
 class SupportedAppointmentTypesTest {
-  private val courtBookingType = BookingType { true }
-  private val probationBookingType = BookingType { false }
   private val featureSwitches: FeatureSwitches = mock()
   private val supportedAppointmentTypes = SupportedAppointmentTypes(featureSwitches)
 
@@ -45,8 +43,8 @@ class SupportedAppointmentTypesTest {
 
     @Test
     fun `should support court appointment type only`() {
-      supportedAppointmentTypes.typeOf(courtBookingType) isEqualTo SupportedAppointmentTypes.Type.COURT
-      supportedAppointmentTypes.typeOf(probationBookingType) isEqualTo SupportedAppointmentTypes.Type.COURT
+      supportedAppointmentTypes.typeOf(BookingType.COURT) isEqualTo SupportedAppointmentTypes.Type.COURT
+      supportedAppointmentTypes.typeOf(BookingType.PROBATION) isEqualTo SupportedAppointmentTypes.Type.COURT
     }
   }
 
@@ -70,8 +68,8 @@ class SupportedAppointmentTypesTest {
 
     @Test
     fun `should support court and probation appointment type`() {
-      supportedAppointmentTypes.typeOf(courtBookingType) isEqualTo SupportedAppointmentTypes.Type.COURT
-      supportedAppointmentTypes.typeOf(probationBookingType) isEqualTo SupportedAppointmentTypes.Type.PROBATION
+      supportedAppointmentTypes.typeOf(BookingType.COURT) isEqualTo SupportedAppointmentTypes.Type.COURT
+      supportedAppointmentTypes.typeOf(BookingType.PROBATION) isEqualTo SupportedAppointmentTypes.Type.PROBATION
     }
   }
 }

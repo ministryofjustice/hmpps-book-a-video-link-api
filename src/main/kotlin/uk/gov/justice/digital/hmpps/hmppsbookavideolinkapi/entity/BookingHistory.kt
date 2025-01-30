@@ -108,8 +108,8 @@ data class BookingHistoryAppointment(
   val startTime: LocalTime,
 
   val endTime: LocalTime,
-) : BookingType {
-  override fun isCourtBooking() = bookingHistory.courtId != null
+) {
+  fun bookingType() = if (bookingHistory.courtId != null) BookingType.COURT else BookingType.PROBATION
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

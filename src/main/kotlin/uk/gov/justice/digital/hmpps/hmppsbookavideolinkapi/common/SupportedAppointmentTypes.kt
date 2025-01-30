@@ -14,9 +14,13 @@ class SupportedAppointmentTypes(private val featureSwitches: FeatureSwitches) {
   }
 
   fun typeOf(type: BookingType) =
-    when (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
-      true -> Type.COURT.takeIf { type.isCourtBooking() } ?: Type.PROBATION
-      false -> Type.COURT
+    if (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
+      when (type) {
+        BookingType.COURT -> Type.COURT
+        BookingType.PROBATION -> Type.PROBATION
+      }
+    } else {
+      Type.COURT
     }
 
   fun isSupported(appointmentType: String) =
