@@ -23,6 +23,7 @@ const val VIDEO_LINK_BOOKING = "VLB"
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 const val CANCELLED_BY_EXTERNAL_SERVICE = 4L
+const val CANCELLED_BY_USER = 2L
 
 @Component
 class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClient: WebClient) {
@@ -100,13 +101,14 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
 
   /**
    * @param appointmentId refers the appointment identifier held in Activities and Appointments, not BVLS.
+   * @param deleteOnCancel true will hard delete the appointment whereas a soft delete will keep a history of the cancellation.
    */
-  fun cancelAppointment(appointmentId: Long) {
+  fun cancelAppointment(appointmentId: Long, deleteOnCancel: Boolean = false) {
     activitiesAppointmentsApiWebClient.put()
       .uri("/appointments/{appointmentId}/cancel", appointmentId)
       .bodyValue(
         AppointmentCancelRequest(
-          cancellationReasonId = CANCELLED_BY_EXTERNAL_SERVICE,
+          cancellationReasonId = if (deleteOnCancel) CANCELLED_BY_EXTERNAL_SERVICE else CANCELLED_BY_USER,
           applyTo = AppointmentCancelRequest.ApplyTo.THIS_APPOINTMENT,
         ),
       )

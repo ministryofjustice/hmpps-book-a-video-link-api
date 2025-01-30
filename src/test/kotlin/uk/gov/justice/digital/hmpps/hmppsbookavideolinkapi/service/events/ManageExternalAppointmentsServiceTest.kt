@@ -438,7 +438,7 @@ class ManageExternalAppointmentsServiceTest {
 
     service.cancelCurrentAppointment(1)
 
-    verify(activitiesAppointmentsClient, never()).cancelAppointment(anyLong())
+    verify(activitiesAppointmentsClient, never()).cancelAppointment(anyLong(), any())
   }
 
   @Test
@@ -557,7 +557,7 @@ class ManageExternalAppointmentsServiceTest {
 
     service.cancelPreviousAppointment(bookingHistory.appointments().first())
 
-    verify(activitiesAppointmentsClient).cancelAppointment(99)
+    verify(activitiesAppointmentsClient).cancelAppointment(99, true)
     verify(prisonApiClient, times(0)).cancelAppointment(anyLong())
   }
 
@@ -591,7 +591,7 @@ class ManageExternalAppointmentsServiceTest {
 
     service.cancelPreviousAppointment(bookingHistory.appointments().first())
 
-    verify(activitiesAppointmentsClient, times(0)).cancelAppointment(anyLong())
+    verify(activitiesAppointmentsClient, times(0)).cancelAppointment(anyLong(), any())
     verify(prisonApiClient).cancelAppointment(99)
   }
 
