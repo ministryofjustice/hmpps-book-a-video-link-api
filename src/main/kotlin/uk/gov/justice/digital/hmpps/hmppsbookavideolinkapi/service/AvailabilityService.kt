@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AppointmentSlot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
@@ -193,6 +194,7 @@ class AvailabilityService(
 class ExternalAppointmentsService(
   private val prisonApiClient: PrisonApiClient,
   private val nomisMappingClient: NomisMappingClient,
+  private val supportedAppointmentTypes: SupportedAppointmentTypes,
 ) {
   /**
    * Get the prison appointments on a date at a specific internal location ID in the prison
@@ -203,7 +205,7 @@ class ExternalAppointmentsService(
     nomisMappingClient.getNomisLocationMappingBy(location)
       ?.let { prisonApiClient.getScheduledAppointments(prisonCode, date, it.nomisLocationId) }
       ?.filter { it.endTime != null }
-      ?.filter { it.appointmentTypeCode != "VLB" }
+      ?.filterNot { supportedAppointmentTypes.isSupported(it.appointmentTypeCode) }
       ?.map { ExternalAppointmentSlot(location, it.offenderNo, it.startTime.toLocalDate(), it.startTime.toLocalTime(), it.endTime!!.toLocalTime()) }
       ?: emptyList()
 

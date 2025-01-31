@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -22,7 +23,7 @@ class PrisonApiClientTest {
   fun `should post appointment`() {
     server.stubPostCreateAppointment(
       bookingId = 1,
-      appointmentType = "VLB",
+      appointmentType = SupportedAppointmentTypes.Type.COURT,
       locationId = 2,
       appointmentDate = LocalDate.now(),
       startTime = LocalTime.MIDNIGHT,
@@ -35,6 +36,7 @@ class PrisonApiClientTest {
       appointmentDate = LocalDate.now(),
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
+      appointmentType = SupportedAppointmentTypes.Type.COURT,
     )
 
     assertThat(response).isNotNull
@@ -57,15 +59,6 @@ class PrisonApiClientTest {
 
     appointments hasSize 2
     appointments.map { it.locationId } containsExactlyInAnyOrder setOf(2000, 3000)
-  }
-
-  @Test
-  fun `should get no prisoner appointments at locations when not video link locations`() {
-    server.stubGetPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "123456", date = tomorrow(), locationType = "NOT_VLB", locationIds = setOf(1000, 2000, 3000))
-
-    val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 1000, 2000, 3000)
-
-    appointments hasSize 0
   }
 
   @Test

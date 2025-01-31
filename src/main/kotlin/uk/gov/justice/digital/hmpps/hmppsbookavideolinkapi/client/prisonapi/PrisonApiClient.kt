@@ -8,13 +8,14 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.util.UriBuilder
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-
-const val VIDEO_LINK_BOOKING = "VLB"
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
@@ -22,7 +23,6 @@ const val DO_NOT_PROPAGATE = true.toString()
 
 @Component
 class PrisonApiClient(private val prisonApiWebClient: WebClient) {
-
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -34,6 +34,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     startTime: LocalTime,
     endTime: LocalTime,
     comments: String? = null,
+    appointmentType: SupportedAppointmentTypes.Type,
   ): ScheduledEvent? =
     prisonApiWebClient
       .post()
@@ -41,7 +42,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .header("no-event-propagation", DO_NOT_PROPAGATE)
       .bodyValue(
         NewAppointment(
-          appointmentType = VIDEO_LINK_BOOKING,
+          appointmentType = appointmentType.code,
           locationId = locationId,
           startTime = appointmentDate.atTime(startTime).toIsoDateTime(),
           endTime = appointmentDate.atTime(endTime).toIsoDateTime(),
@@ -52,12 +53,15 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .bodyToMono(ScheduledEvent::class.java)
       .block()
 
+  /**
+   * Returns all matching appointment (types) for a prisoner, not just video link bookings.
+   */
   fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long): List<PrisonerSchedule> =
     if (locationIds.isNotEmpty()) {
       log.info("PRISON-API CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
       getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
         .also { log.info("PRISON-API CLIENT: matches pre-location filter: $it") }
-        .filter { locationIds.contains(it.locationId) && it.event == VIDEO_LINK_BOOKING }
+        .filter { locationIds.contains(it.locationId) }
         .also { log.info("PRISON-API CLIENT matches post-location filter: $it") }
     } else {
       emptyList()
@@ -118,7 +122,16 @@ data class PrisonerSchedule(
   val event: String,
   val startTime: LocalDateTime,
   val endTime: LocalDateTime?,
-)
+) {
+  fun isTheSameAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = event == appointmentType.code
+
+  fun isTheSameTime(appointment: PrisonAppointment) =
+    startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
+      appointment.appointmentDate.atTime(appointment.endTime) == endTime
+
+  fun isTheSameTime(bha: BookingHistoryAppointment) =
+    startTime == bha.appointmentDate.atTime(bha.startTime) && bha.appointmentDate.atTime(bha.endTime) == endTime
+}
 
 data class ScheduledAppointment(
   val id: Long,

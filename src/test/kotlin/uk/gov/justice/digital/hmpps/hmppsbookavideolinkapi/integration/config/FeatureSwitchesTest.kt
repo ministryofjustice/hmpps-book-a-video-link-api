@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.InboundEventsListener
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -22,7 +23,7 @@ class FeatureSwitchesTest : IntegrationTestBase() {
   @MockBean
   private lateinit var listener: InboundEventsListener
 
-  @TestPropertySource(properties = ["feature.enabled=true"])
+  @TestPropertySource(properties = ["feature.master.vlpm.types=true"])
   @Nested
   @DisplayName("Features are enabled when set")
   inner class EnabledFeatures(@Autowired val featureSwitches: FeatureSwitches) {
@@ -42,6 +43,15 @@ class FeatureSwitchesTest : IntegrationTestBase() {
       Feature.entries.forEach {
         assertThat(featureSwitches.isEnabled(it)).withFailMessage("${it.label} enabled").isFalse
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("Features can be defaulted when not present")
+  inner class DefaultedFeatures(@Autowired val featureSwitches: FeatureSwitches) {
+    @Test
+    fun `different feature types can be defaulted `() {
+      featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES, true) isBool true
     }
   }
 }

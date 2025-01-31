@@ -53,6 +53,8 @@ class PrisonAppointment private constructor(
 
   fun end(): LocalDateTime = appointmentDate.atTime(endTime)
 
+  fun bookingType() = if (videoBooking.isCourtBooking()) BookingType.COURT else BookingType.PROBATION
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false

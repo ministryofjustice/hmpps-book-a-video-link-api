@@ -7,7 +7,6 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.VIDEO_LINK_BOOKING
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendee
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendeeSearchResult
@@ -18,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
@@ -34,12 +34,13 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     endTime: LocalTime,
     internalLocationId: Long,
     extraInformation: String,
+    appointmentType: SupportedAppointmentTypes.Type,
   ) {
     val request = AppointmentSeriesCreateRequest(
       appointmentType = AppointmentSeriesCreateRequest.AppointmentType.INDIVIDUAL,
       prisonCode = prisonCode,
       prisonerNumbers = listOf(prisonerNumber),
-      categoryCode = VIDEO_LINK_BOOKING,
+      categoryCode = appointmentType.code,
       tierCode = AppointmentSeriesCreateRequest.TierCode.TIER_1,
       inCell = false,
       startDate = startDate,
@@ -105,7 +106,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     prisonCode: String,
     prisonerNumber: String,
     date: LocalDate,
-    locationType: String = VIDEO_LINK_BOOKING,
+    appointmentType: SupportedAppointmentTypes.Type = SupportedAppointmentTypes.Type.COURT,
     locationIds: Set<Long> = setOf(-1),
   ) {
     val appointments = locationIds.map { locationId ->
@@ -121,7 +122,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         appointmentSeriesId = 1,
         appointmentName = "appointment name",
         attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
-        category = AppointmentCategorySummary(locationType, "video link booking"),
+        category = AppointmentCategorySummary(appointmentType.code, appointmentType.name),
         inCell = false,
         isRepeat = false,
         maxSequenceNumber = 1,
@@ -140,7 +141,6 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
               AppointmentSearchRequest(
                 appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
                 startDate = date,
-                categoryCode = VIDEO_LINK_BOOKING,
                 prisonerNumbers = listOf(prisonerNumber),
               ),
             ),

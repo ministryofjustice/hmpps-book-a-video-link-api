@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
@@ -25,7 +26,7 @@ import java.time.LocalDateTime
  * If zero or more than one matching appointment is found then we log and ignore this event entirely.
  *
  * For A&A rolled out prisons we can safely ignore this event. Appointments cannot be changed in NOMIS for rolled out
- * prisons, the screens are disabled. However the event still gets raised on the back of syncing from A&A when we delete
+ * prisons, the screens are disabled. However, the event still gets raised on the back of syncing from A&A when we delete
  * appointments in BVLS and then in A&A.
  */
 @Component
@@ -36,6 +37,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val bookingHistoryService: BookingHistoryService,
+  private val supportedAppointmentTypes: SupportedAppointmentTypes,
 ) : DomainEventHandler<PrisonerVideoAppointmentCancelledEvent> {
 
   companion object {
@@ -44,7 +46,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
 
   @Transactional
   override fun handle(event: PrisonerVideoAppointmentCancelledEvent) {
-    if (event.isVideoLinkBooking() && appointmentsNotManagedExternallyAt(event.prisonCode())) {
+    if (supportedAppointmentTypes.isSupported(event.appointmentType()) && appointmentsNotManagedExternallyAt(event.prisonCode())) {
       val activeAppointments = videoAppointmentRepository.findActiveVideoAppointments(
         prisonCode = event.prisonCode(),
         prisonerNumber = event.prisonerNumber(),

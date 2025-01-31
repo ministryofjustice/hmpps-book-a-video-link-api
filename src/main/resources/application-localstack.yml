@@ -38,3 +38,29 @@ feature:
   master:
     vlpm:
       types: true
+
+hmpps.sqs:
+  provider: localstack
+  queues:
+    bvls:
+      queueName: bvls-queue
+      subscribeFilter: '{"eventType":[ "book-a-video-link.video-booking.created", "book-a-video-link.video-booking.amended", "book-a-video-link.video-booking.cancelled", "book-a-video-link.appointment.created", "prisoner-offender-search.prisoner.released", "prison-offender-events.prisoner.merged", "prison-offender-events.prisoner.video-appointment.cancelled"]}'
+      dlqName: bvls-dead-letter-queue
+      subscribeTopicId: domainevents
+      dlqMaxReceiveCount: 1
+      visibilityTimeout: 1
+    domaineventsqueue:
+      queueName: domainevents-queue
+      subscribeTopicId: domainevents
+    outboundtestqueue:
+      dlqName: ${random.uuid}
+      queueName: ${random.uuid}
+      subscribeTopicId: outboundtopic
+      subscribeFilter: '{"eventType":[ "test.type"] }'
+    audit:
+      queueName: ${random.uuid}
+  topics:
+    domainevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:domainevents-topic
+    outboundtopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
