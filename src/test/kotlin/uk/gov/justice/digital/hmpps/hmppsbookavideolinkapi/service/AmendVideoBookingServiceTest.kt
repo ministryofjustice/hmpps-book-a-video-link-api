@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -129,7 +130,7 @@ class AmendVideoBookingServiceTest {
     verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
 
     with(amendedBookingCaptor.firstValue) {
-      bookingType isEqualTo "COURT"
+      bookingType isEqualTo BookingType.COURT
       hearingType isEqualTo amendCourtBookingRequest.courtHearingType?.name
       comments isEqualTo "court booking comments"
       videoUrl isEqualTo amendCourtBookingRequest.videoLinkUrl
@@ -519,7 +520,7 @@ class AmendVideoBookingServiceTest {
     verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
 
     with(amendedBookingCaptor.firstValue) {
-      bookingType isEqualTo "PROBATION"
+      bookingType isEqualTo BookingType.PROBATION
       probationTeam isEqualTo probationBooking.probationTeam!!
       probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
       comments isEqualTo "probation booking comments"

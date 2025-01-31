@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode.CANCELLED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
@@ -13,11 +14,11 @@ class ProbationBookingCancelledTelemetryEvent private constructor(
 ) : MetricTelemetryEvent("BVLS-probation-booking-cancelled") {
 
   init {
-    require(booking.isProbationBooking()) {
+    require(booking.isBookingType(PROBATION)) {
       "Cannot create probation cancelled metric, video booking with ID '${booking.videoBookingId}' is not a probation booking."
     }
 
-    require(booking.isStatus(StatusCode.CANCELLED)) {
+    require(booking.isStatus(CANCELLED)) {
       "Cannot create probation cancelled metric, video booking with ID '${booking.videoBookingId}' has not been cancelled."
     }
   }

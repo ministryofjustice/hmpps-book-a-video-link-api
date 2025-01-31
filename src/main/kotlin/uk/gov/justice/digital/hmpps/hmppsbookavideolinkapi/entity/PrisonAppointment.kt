@@ -53,7 +53,7 @@ class PrisonAppointment private constructor(
 
   fun end(): LocalDateTime = appointmentDate.atTime(endTime)
 
-  fun bookingType() = if (videoBooking.isCourtBooking()) BookingType.COURT else BookingType.PROBATION
+  fun bookingType() = videoBooking.bookingType
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

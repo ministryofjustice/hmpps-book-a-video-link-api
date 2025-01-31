@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
@@ -8,7 +9,7 @@ class CourtBookingAmendedTelemetryEvent(private val booking: VideoBooking, priva
   MetricTelemetryEvent("BVLS-court-booking-amended") {
 
   init {
-    require(booking.isCourtBooking()) {
+    require(booking.isBookingType(COURT)) {
       "Cannot create court amended metric, video booking with ID '${booking.videoBookingId}' is not a court booking."
     }
 

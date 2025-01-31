@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.temporal.ChronoUnit
 
@@ -28,7 +29,7 @@ sealed class TelemetryEvent(val eventType: String) {
   protected fun VideoBooking.meeting() = appointments().single { it.isType("VLB_PROBATION") }
 
   protected fun VideoBooking.commonProperties(): Map<String, String> =
-    if (isCourtBooking()) {
+    if (isBookingType(COURT)) {
       mapOf(
         "video_booking_id" to "$videoBookingId",
         "court_code" to court!!.code,
@@ -63,7 +64,7 @@ abstract class MetricTelemetryEvent(eventType: String) : TelemetryEvent(eventTyp
   abstract fun metrics(): Map<String, Double>
 
   protected fun VideoBooking.hoursBeforeStartTimeMetric(): Pair<String, Double> {
-    return if (isCourtBooking()) {
+    return if (isBookingType(COURT)) {
       "hoursBeforeStartTime" to ChronoUnit.HOURS.between(amendedTime ?: createdTime, main().start()).toDouble()
     } else {
       "hoursBeforeStartTime" to ChronoUnit.HOURS.between(amendedTime ?: createdTime, meeting().start()).toDouble()

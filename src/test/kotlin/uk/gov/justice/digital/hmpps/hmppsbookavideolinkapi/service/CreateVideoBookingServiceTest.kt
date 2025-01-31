@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
@@ -128,7 +129,7 @@ class CreateVideoBookingServiceTest {
     verify(videoBookingRepository).saveAndFlush(newBookingCaptor.capture())
 
     with(newBookingCaptor.firstValue) {
-      bookingType isEqualTo "COURT"
+      bookingType isEqualTo BookingType.COURT
       court isEqualTo requestedCourt
       createdTime isCloseTo LocalDateTime.now()
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
@@ -641,7 +642,7 @@ class CreateVideoBookingServiceTest {
     verify(videoBookingRepository).saveAndFlush(newBookingCaptor.capture())
 
     with(newBookingCaptor.firstValue) {
-      bookingType isEqualTo "PROBATION"
+      bookingType isEqualTo BookingType.PROBATION
       probationTeam isEqualTo requestedProbationTeam
       createdTime isCloseTo LocalDateTime.now()
       probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name

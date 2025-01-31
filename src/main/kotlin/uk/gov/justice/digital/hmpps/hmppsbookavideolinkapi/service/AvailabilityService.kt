@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.N
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AppointmentSlot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -159,7 +160,7 @@ class AvailabilityService(
     val mayBeExistingBooking = videoBookingRepository.findById(vlbIdToExclude!!).getOrNull()
 
     if (mayBeExistingBooking != null) {
-      if (mayBeExistingBooking.isProbationBooking()) {
+      if (mayBeExistingBooking.isBookingType(PROBATION)) {
         return mayBeExistingBooking.probationMeeting()!!.dateTimeAndLocationIsTheSame(
           date!!,
           mainAppointment!!.interval,

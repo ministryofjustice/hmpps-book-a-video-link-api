@@ -183,7 +183,7 @@ fun videoAppointment(
   VideoAppointment(
     videoBookingId = booking.videoBookingId,
     prisonAppointmentId = prisonAppointment.prisonAppointmentId,
-    bookingType = booking.bookingType,
+    bookingType = booking.bookingType.name,
     statusCode = booking.statusCode.name,
     courtCode = booking.court?.code,
     probationTeamCode = null,

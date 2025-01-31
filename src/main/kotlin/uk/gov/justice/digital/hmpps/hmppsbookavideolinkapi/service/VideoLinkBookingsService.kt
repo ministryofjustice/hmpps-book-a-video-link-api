@@ -4,7 +4,8 @@ import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
@@ -32,11 +33,11 @@ class VideoLinkBookingsService(
       .also { checkCaseLoadAccess(user, it.prisonCode()) }
 
     val hearingType = booking
-      .takeIf(VideoBooking::isCourtBooking)
+      .takeIf { it.isBookingType(COURT) }
       ?.let { referenceCodeRepository.findByCourtHearingType(booking.hearingType!!) }
 
     val meetingType = booking
-      .takeIf(VideoBooking::isProbationBooking)
+      .takeIf { it.isBookingType(PROBATION) }
       ?.let { referenceCodeRepository.findByProbationMeetingType(booking.probationMeetingType!!) }
 
     val locations = booking.appointments().mapNotNull { locationsInsidePrisonClient.getLocationById(it.prisonLocationId) }.toSet()

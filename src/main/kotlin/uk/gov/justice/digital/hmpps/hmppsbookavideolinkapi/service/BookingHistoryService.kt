@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -32,10 +34,10 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
     BookingHistory(
       videoBookingId = booking.videoBookingId,
       historyType = historyType,
-      courtId = booking.court?.courtId.takeIf { booking.isCourtBooking() },
-      hearingType = booking.hearingType.takeIf { booking.isCourtBooking() },
-      probationTeamId = booking.probationTeam?.probationTeamId.takeUnless { booking.isCourtBooking() },
-      probationMeetingType = booking.probationMeetingType.takeUnless { booking.isCourtBooking() },
+      courtId = booking.court?.courtId.takeIf { booking.isBookingType(COURT) },
+      hearingType = booking.hearingType.takeIf { booking.isBookingType(COURT) },
+      probationTeamId = booking.probationTeam?.probationTeamId.takeIf { booking.isBookingType(PROBATION) },
+      probationMeetingType = booking.probationMeetingType.takeIf { booking.isBookingType(PROBATION) },
       videoUrl = booking.videoUrl,
       comments = booking.comments,
       createdBy = booking.amendedBy ?: booking.createdBy,
