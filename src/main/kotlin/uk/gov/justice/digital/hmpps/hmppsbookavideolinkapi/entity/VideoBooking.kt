@@ -27,7 +27,8 @@ class VideoBooking private constructor(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val videoBookingId: Long = 0,
 
-  val bookingType: String,
+  @Enumerated(EnumType.STRING)
+  val bookingType: BookingType,
 
   @OneToOne
   @JoinColumn(name = "court_id")
@@ -67,9 +68,7 @@ class VideoBooking private constructor(
 
   var amendedTime: LocalDateTime? = null
 
-  fun isCourtBooking() = bookingType == "COURT"
-
-  fun isProbationBooking() = isCourtBooking().not()
+  fun isBookingType(bookingType: BookingType) = this.bookingType == bookingType
 
   fun appointments() = prisonAppointments.toList()
 
@@ -160,7 +159,7 @@ class VideoBooking private constructor(
       createdByPrison: Boolean,
     ): VideoBooking =
       VideoBooking(
-        bookingType = "COURT",
+        bookingType = BookingType.COURT,
         court = court,
         hearingType = hearingType,
         probationTeam = null,
@@ -180,7 +179,7 @@ class VideoBooking private constructor(
       createdByPrison: Boolean,
     ): VideoBooking =
       VideoBooking(
-        bookingType = "PROBATION",
+        bookingType = BookingType.PROBATION,
         court = null,
         hearingType = null,
         probationTeam = probationTeam,
@@ -190,77 +189,6 @@ class VideoBooking private constructor(
         createdBy = createdBy,
         createdByPrison = createdByPrison,
       )
-
-    fun migratedCourtBooking(
-      court: Court,
-      comments: String?,
-      createdBy: String,
-      createdTime: LocalDateTime,
-      createdByPrison: Boolean,
-      migratedVideoBookingId: Long,
-      cancelledBy: String?,
-      cancelledAt: LocalDateTime?,
-      updatedBy: String?,
-      updatedAt: LocalDateTime?,
-      migratedDescription: String?,
-    ): VideoBooking = VideoBooking(
-      bookingType = "COURT",
-      court = court,
-      hearingType = "UNKNOWN",
-      probationTeam = null,
-      probationMeetingType = null,
-      comments = comments?.take(1000),
-      createdBy = createdBy,
-      createdTime = createdTime,
-      createdByPrison = createdByPrison,
-      migratedVideoBookingId = migratedVideoBookingId,
-      migratedDescription = migratedDescription.takeIf { court.isUnknown() },
-    ).apply {
-      if (cancelledBy != null && cancelledAt != null) {
-        statusCode = StatusCode.CANCELLED
-        amendedBy = cancelledBy
-        amendedTime = cancelledAt
-      } else {
-        amendedBy = updatedBy
-        amendedTime = updatedAt
-      }
-    }
-
-    fun migratedProbationBooking(
-      probationTeam: ProbationTeam,
-      comments: String?,
-      createdBy: String,
-      createdTime: LocalDateTime,
-      createdByPrison: Boolean,
-      migratedVideoBookingId: Long,
-      cancelledBy: String?,
-      cancelledAt: LocalDateTime?,
-      updatedBy: String?,
-      updatedAt: LocalDateTime?,
-      migratedDescription: String?,
-    ): VideoBooking =
-      VideoBooking(
-        bookingType = "PROBATION",
-        court = null,
-        hearingType = null,
-        probationTeam = probationTeam,
-        probationMeetingType = "UNKNOWN",
-        comments = comments?.take(1000),
-        createdBy = createdBy,
-        createdTime = createdTime,
-        createdByPrison = createdByPrison,
-        migratedVideoBookingId = migratedVideoBookingId,
-        migratedDescription = migratedDescription.takeIf { probationTeam.isUnknown() },
-      ).apply {
-        if (cancelledBy != null && cancelledAt != null) {
-          statusCode = StatusCode.CANCELLED
-          amendedBy = cancelledBy
-          amendedTime = cancelledAt
-        } else {
-          amendedBy = updatedBy
-          amendedTime = updatedAt
-        }
-      }
   }
 }
 

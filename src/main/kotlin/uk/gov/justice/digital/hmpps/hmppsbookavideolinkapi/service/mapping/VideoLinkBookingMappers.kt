@@ -14,7 +14,7 @@ fun VideoBookingEntity.toModel(
   probationMeetingTypeDescription: String? = null,
 ) = VideoLinkBooking(
   videoLinkBookingId = videoBookingId,
-  bookingType = BookingType.valueOf(bookingType),
+  bookingType = BookingType.valueOf(bookingType.name),
   statusCode = BookingStatus.valueOf(statusCode.name),
   prisonAppointments = appointments().toModel(locations),
   courtCode = court?.code,

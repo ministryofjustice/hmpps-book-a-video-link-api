@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
@@ -8,7 +9,7 @@ class ProbationBookingAmendedTelemetryEvent(private val booking: VideoBooking, p
   MetricTelemetryEvent("BVLS-probation-booking-amended") {
 
   init {
-    require(booking.isProbationBooking()) {
+    require(booking.isBookingType(PROBATION)) {
       "Cannot create probation amended metric, video booking with ID '${booking.videoBookingId}' is not a probation booking."
     }
 

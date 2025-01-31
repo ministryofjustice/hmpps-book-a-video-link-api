@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
@@ -32,7 +33,7 @@ class CourtHearingLinkReminderJob(
         .distinct()
         // Migrated bookings will not have the court hearing link field populated, and most probably will have the hearing link provided in the comments
         // Disabling this email for migrated bookings. This can be removed a few days after go-live once the majority of future bookings have taken place.
-        .filter { it.isCourtBooking() && !it.isMigrated() && it.videoUrl == null && it.court!!.enabled && it.prisonIsEnabledForSelfService() }
+        .filter { it.isBookingType(COURT) && !it.isMigrated() && it.videoUrl == null && it.court!!.enabled && it.prisonIsEnabledForSelfService() }
         .forEach { bookingFacade.courtHearingLinkReminder(it, getServiceAsUser()) }
     }
   },

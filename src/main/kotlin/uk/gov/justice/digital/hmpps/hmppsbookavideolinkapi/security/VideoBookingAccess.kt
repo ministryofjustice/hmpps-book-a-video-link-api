@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
@@ -15,8 +17,8 @@ fun checkVideoBookingAccess(externalUser: User, booking: VideoBooking) {
       throw VideoBookingAccessException("Prison with code ${booking.prisonCode()} for booking with id ${booking.videoBookingId} is not self service")
     }
 
-    if (externalUser.isCourtUser && booking.isCourtBooking() && booking.isAccessibleBy(externalUser)) return
-    if (externalUser.isProbationUser && booking.isProbationBooking() && booking.isAccessibleBy(externalUser)) return
+    if (externalUser.isCourtUser && booking.isBookingType(COURT) && booking.isAccessibleBy(externalUser)) return
+    if (externalUser.isProbationUser && booking.isBookingType(PROBATION) && booking.isAccessibleBy(externalUser)) return
 
     throw VideoBookingAccessException("Video booking ${booking.videoBookingId} is not accessible by user")
   }

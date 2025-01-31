@@ -37,11 +37,11 @@ class AmendVideoBookingService(
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
       .also { checkVideoBookingAccess(amendedBy, it) }
       .also { checkCaseLoadAccess(amendedBy, it.prisonCode()) }
-      .also { require(BookingType.valueOf(it.bookingType) == request.bookingType) { "The booking type ${it.bookingType} does not match the requested type ${request.bookingType}." } }
+      .also { require(BookingType.valueOf(it.bookingType.name) == request.bookingType) { "The booking type ${it.bookingType} does not match the requested type ${request.bookingType}." } }
       .also { require(it.statusCode != StatusCode.CANCELLED) { "Video booking $videoBookingId is already cancelled, and so cannot be amended" } }
       .also { require(it.appointments().all { a -> a.start().isAfter(now()) }) { "Video booking $videoBookingId has already started, and so cannot be amended" } }
 
-    return when (BookingType.valueOf(booking.bookingType)) {
+    return when (BookingType.valueOf(booking.bookingType.name)) {
       BookingType.COURT -> amendCourt(booking, request, amendedBy)
       BookingType.PROBATION -> amendProbation(booking, request, amendedBy)
     }

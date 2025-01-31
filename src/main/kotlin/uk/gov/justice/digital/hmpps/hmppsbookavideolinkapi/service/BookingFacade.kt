@@ -7,13 +7,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -29,6 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.Pro
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType as RequestBookingType
 
 /**
  * This facade exists to ensure all booking related transactions are fully committed prior to sending any events or emails.
@@ -54,7 +56,7 @@ class BookingFacade(
 
   fun create(bookingRequest: CreateVideoBookingRequest, createdBy: User): Long {
     require(createdBy is PrisonUser || availabilityService.isAvailable(bookingRequest)) {
-      if (bookingRequest.bookingType == BookingType.COURT) {
+      if (bookingRequest.bookingType == RequestBookingType.COURT) {
         "Unable to create court booking, booking overlaps with an existing appointment."
       } else {
         "Unable to create probation booking, booking overlaps with an existing appointment."
@@ -70,7 +72,7 @@ class BookingFacade(
 
   fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, amendedBy: User): Long {
     require(amendedBy is PrisonUser || availabilityService.isAvailable(videoBookingId, bookingRequest)) {
-      if (bookingRequest.bookingType == BookingType.COURT) {
+      if (bookingRequest.bookingType == RequestBookingType.COURT) {
         "Unable to amend court booking, booking overlaps with an existing appointment."
       } else {
         "Unable to amend probation booking, booking overlaps with an existing appointment."
@@ -109,7 +111,7 @@ class BookingFacade(
   }
 
   fun courtHearingLinkReminder(videoBooking: VideoBooking, user: ServiceUser) {
-    require(videoBooking.isCourtBooking()) { "Video booking with id ${videoBooking.videoBookingId} is not a court booking" }
+    require(videoBooking.isBookingType(COURT)) { "Video booking with id ${videoBooking.videoBookingId} is not a court booking" }
     require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} has already taken place" }
     require(videoBooking.videoUrl == null) { "Video booking with id ${videoBooking.videoBookingId} already has a court hearing link" }
@@ -134,16 +136,16 @@ class BookingFacade(
 
   private fun sendTelemetry(action: BookingAction, booking: VideoBooking, user: User) {
     when {
-      action == BookingAction.CREATE && booking.isCourtBooking() -> CourtBookingCreatedTelemetryEvent(booking)
-      action == BookingAction.CREATE && booking.isProbationBooking() -> ProbationBookingCreatedTelemetryEvent(booking)
-      action == BookingAction.AMEND && booking.isCourtBooking() -> CourtBookingAmendedTelemetryEvent(booking, user)
-      action == BookingAction.AMEND && booking.isProbationBooking() -> ProbationBookingAmendedTelemetryEvent(booking, user)
-      action == BookingAction.CANCEL && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.user(booking, user)
-      action == BookingAction.CANCEL && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.user(booking, user)
-      action == BookingAction.TRANSFERRED && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.transferred(booking)
-      action == BookingAction.TRANSFERRED && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.transferred(booking)
-      action == BookingAction.RELEASED && booking.isCourtBooking() -> CourtBookingCancelledTelemetryEvent.released(booking)
-      action == BookingAction.RELEASED && booking.isProbationBooking() -> ProbationBookingCancelledTelemetryEvent.released(booking)
+      action == BookingAction.CREATE && booking.isBookingType(COURT) -> CourtBookingCreatedTelemetryEvent(booking)
+      action == BookingAction.CREATE && booking.isBookingType(PROBATION) -> ProbationBookingCreatedTelemetryEvent(booking)
+      action == BookingAction.AMEND && booking.isBookingType(COURT) -> CourtBookingAmendedTelemetryEvent(booking, user)
+      action == BookingAction.AMEND && booking.isBookingType(PROBATION) -> ProbationBookingAmendedTelemetryEvent(booking, user)
+      action == BookingAction.CANCEL && booking.isBookingType(COURT) -> CourtBookingCancelledTelemetryEvent.user(booking, user)
+      action == BookingAction.CANCEL && booking.isBookingType(PROBATION) -> ProbationBookingCancelledTelemetryEvent.user(booking, user)
+      action == BookingAction.TRANSFERRED && booking.isBookingType(COURT) -> CourtBookingCancelledTelemetryEvent.transferred(booking)
+      action == BookingAction.TRANSFERRED && booking.isBookingType(PROBATION) -> ProbationBookingCancelledTelemetryEvent.transferred(booking)
+      action == BookingAction.RELEASED && booking.isBookingType(COURT) -> CourtBookingCancelledTelemetryEvent.released(booking)
+      action == BookingAction.RELEASED && booking.isBookingType(PROBATION) -> ProbationBookingCancelledTelemetryEvent.released(booking)
       else -> null
     }?.let(telemetryService::track)
   }
@@ -154,12 +156,10 @@ class BookingFacade(
   private fun getReleasedOrTransferredPrisoner(prisonerNumber: String) =
     prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.lastPrisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
 
-  private fun VideoBooking.bookingType() = if (isCourtBooking()) BookingType.COURT else BookingType.PROBATION
-
   private fun sendBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User) {
-    when (booking.bookingType()) {
-      BookingType.COURT -> sendCourtBookingEmails(action, booking, prisoner, user)
-      BookingType.PROBATION -> sendProbationBookingEmails(action, booking, prisoner, user)
+    when (booking.bookingType) {
+      COURT -> sendCourtBookingEmails(action, booking, prisoner, user)
+      PROBATION -> sendProbationBookingEmails(action, booking, prisoner, user)
     }
   }
 

@@ -15,6 +15,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
@@ -140,7 +141,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedBooking) {
       videoBookingId isEqualTo bookingId
-      bookingType isEqualTo "COURT"
+      bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
@@ -221,7 +222,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedBooking) {
       videoBookingId isEqualTo bookingId
-      bookingType isEqualTo "COURT"
+      bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
@@ -361,7 +362,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedBooking) {
       videoBookingId isEqualTo bookingId
-      bookingType isEqualTo "COURT"
+      bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "integration test court booking comments"
@@ -553,7 +554,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedBooking) {
       videoBookingId isEqualTo bookingId
-      bookingType isEqualTo "PROBATION"
+      bookingType isEqualTo BookingType.PROBATION
       probationTeam?.probationTeamId isEqualTo 1
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
       comments isEqualTo "integration test probation booking comments"
@@ -1016,7 +1017,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedBooking) {
       videoBookingId isEqualTo bookingId
-      bookingType isEqualTo "COURT"
+      bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "amended court booking comments"
@@ -1082,7 +1083,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedBooking) {
       videoBookingId isEqualTo bookingId
-      bookingType isEqualTo "COURT"
+      bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "amended court booking comments"
@@ -1324,7 +1325,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(persistedBooking) {
       videoBookingId isEqualTo bookingId
-      bookingType isEqualTo "PROBATION"
+      bookingType isEqualTo BookingType.PROBATION
       probationTeam?.probationTeamId isEqualTo 1
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
       comments isEqualTo "amended probation booking comments"

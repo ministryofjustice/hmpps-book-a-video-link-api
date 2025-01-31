@@ -4,10 +4,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode.CANCELLED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
@@ -422,10 +423,10 @@ object CourtEmailFactory {
   private fun Collection<BookingContact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
 
   private fun VideoBooking.requireIsCourtBooking() {
-    require(isCourtBooking()) { "Booking ID $videoBookingId is not a court booking" }
+    require(isBookingType(COURT)) { "Booking ID $videoBookingId is not a court booking" }
   }
 
   private fun VideoBooking.requireIsCancelled() {
-    require(isStatus(StatusCode.CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
+    require(isStatus(CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
 }
