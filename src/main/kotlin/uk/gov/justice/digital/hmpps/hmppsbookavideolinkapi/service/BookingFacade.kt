@@ -150,11 +150,9 @@ class BookingFacade(
     }?.let(telemetryService::track)
   }
 
-  private fun getPrisoner(prisonerNumber: String) =
-    prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
+  private fun getPrisoner(prisonerNumber: String) = prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
 
-  private fun getReleasedOrTransferredPrisoner(prisonerNumber: String) =
-    prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.lastPrisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
+  private fun getReleasedOrTransferredPrisoner(prisonerNumber: String) = prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.lastPrisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
 
   private fun sendBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User) {
     when (booking.bookingType) {
@@ -215,8 +213,7 @@ class BookingFacade(
     }
   }
 
-  private fun VideoBooking.courtAppointments(): Triple<PrisonAppointment?, PrisonAppointment, PrisonAppointment?> =
-    appointments().prisonAppointmentsForCourtHearing()
+  private fun VideoBooking.courtAppointments(): Triple<PrisonAppointment?, PrisonAppointment, PrisonAppointment?> = appointments().prisonAppointmentsForCourtHearing()
 
   private fun Collection<BookingContact>.withAnEmailAddress() = filter { it.email != null }
 

@@ -105,37 +105,34 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     userProbationRepository.deleteAll()
   }
 
-  private fun WebTestClient.getProbationTeams(enabledOnly: Boolean, user: User = PROBATION_USER) =
-    get()
-      .uri("/probation-teams?enabledOnly=$enabledOnly")
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBodyList(ProbationTeam::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.getProbationTeams(enabledOnly: Boolean, user: User = PROBATION_USER) = get()
+    .uri("/probation-teams?enabledOnly=$enabledOnly")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBodyList(ProbationTeam::class.java)
+    .returnResult().responseBody!!
 
-  private fun WebTestClient.getUserPreferenceTeams(user: User) =
-    get()
-      .uri("/probation-teams/user-preferences")
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBodyList(ProbationTeam::class.java)
-      .returnResult().responseBody
+  private fun WebTestClient.getUserPreferenceTeams(user: User) = get()
+    .uri("/probation-teams/user-preferences")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBodyList(ProbationTeam::class.java)
+    .returnResult().responseBody
 
-  private fun WebTestClient.setUserPreferenceTeams(request: SetProbationTeamPreferencesRequest, user: User) =
-    post()
-      .uri("/probation-teams/user-preferences/set")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(SetProbationTeamPreferencesResponse::class.java)
-      .returnResult().responseBody
+  private fun WebTestClient.setUserPreferenceTeams(request: SetProbationTeamPreferencesRequest, user: User) = post()
+    .uri("/probation-teams/user-preferences/set")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(SetProbationTeamPreferencesResponse::class.java)
+    .returnResult().responseBody
 }

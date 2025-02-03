@@ -42,23 +42,19 @@ private data class EndpointInfo(val method: String, val hasEndpointLevelProtecti
   constructor(method: Method) : this(method.toString(), method.isProtected())
 }
 
-private fun AnnotatedElement.isProtected() =
-  getAnnotation(PreAuthorize::class.java)?.let { it.value.contains("hasAnyRole") || it.value.contains("hasRole") } == true ||
-    getAnnotation(ProtectedByIngress::class.java) != null
+private fun AnnotatedElement.isProtected() = getAnnotation(PreAuthorize::class.java)?.let { it.value.contains("hasAnyRole") || it.value.contains("hasRole") } == true ||
+  getAnnotation(ProtectedByIngress::class.java) != null
 
 private data class ControllerInfo(val clazz: Class<*>, val controller: String, val unprotectedEndpoints: List<EndpointInfo>) {
 
   constructor(clazz: Class<*>) : this(clazz, clazz.toString(), clazz.getUnprotectedEndpoints())
 
-  override fun toString() =
-    "\n$controller:".plus(unprotectedEndpoints.joinToString(separator = "\n * ", prefix = "\n * ") { it.method })
+  override fun toString() = "\n$controller:".plus(unprotectedEndpoints.joinToString(separator = "\n * ", prefix = "\n * ") { it.method })
 }
 
-private fun Class<*>.getUnprotectedEndpoints() =
-  methods.filter { it.isEndpoint() }.map(::EndpointInfo).filterNot(EndpointInfo::hasEndpointLevelProtection)
+private fun Class<*>.getUnprotectedEndpoints() = methods.filter { it.isEndpoint() }.map(::EndpointInfo).filterNot(EndpointInfo::hasEndpointLevelProtection)
 
-private fun Method.isEndpoint() =
-  this.annotations.any { it.annotationClass.qualifiedName!!.startsWith("org.springframework.web.bind.annotation") }
+private fun Method.isEndpoint() = this.annotations.any { it.annotationClass.qualifiedName!!.startsWith("org.springframework.web.bind.annotation") }
 
 @RestController
 @RequestMapping("/unprotected", produces = [MediaType.APPLICATION_JSON_VALUE])

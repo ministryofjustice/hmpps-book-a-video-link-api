@@ -51,12 +51,8 @@ class Court(
 
   fun isReadable() = !readOnly
 
-  override fun hashCode(): Int {
-    return courtId.hashCode()
-  }
+  override fun hashCode(): Int = courtId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(courtId = $courtId, code = $code)"
-  }
+  override fun toString(): String = this::class.simpleName + "(courtId = $courtId, code = $code)"
 }

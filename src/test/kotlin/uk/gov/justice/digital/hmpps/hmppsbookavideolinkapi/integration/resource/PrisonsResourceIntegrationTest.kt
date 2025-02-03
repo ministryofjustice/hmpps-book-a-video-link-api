@@ -61,20 +61,19 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfAllPrisons).extracting("code").containsAll(listOf("LEI", "BMI", "WWI"))
   }
 
-  private fun WebTestClient.getPrisons(enabledOnly: Boolean = false) =
-    get()
-      .uri {
-        it.path("/prisons/list")
-          .queryParam("enabledOnly", enabledOnly)
-          .build()
-      }
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBodyList(Prison::class.java)
-      .returnResult().responseBody
+  private fun WebTestClient.getPrisons(enabledOnly: Boolean = false) = get()
+    .uri {
+      it.path("/prisons/list")
+        .queryParam("enabledOnly", enabledOnly)
+        .build()
+    }
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBodyList(Prison::class.java)
+    .returnResult().responseBody
 
   @Test
   fun `should get video link locations only`() {
@@ -201,16 +200,15 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
     }
   }
 
-  private fun WebTestClient.getAppointmentLocations(prisonCode: String, requestParams: String = "") =
-    get()
-      .uri("/prisons/$prisonCode/locations$requestParams")
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBodyList(Location::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.getAppointmentLocations(prisonCode: String, requestParams: String = "") = get()
+    .uri("/prisons/$prisonCode/locations$requestParams")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBodyList(Location::class.java)
+    .returnResult().responseBody!!
 
   private fun CacheManager.clearAllCaches() {
     cacheNames.forEach { cacheManager.getCache(it)?.clear() }

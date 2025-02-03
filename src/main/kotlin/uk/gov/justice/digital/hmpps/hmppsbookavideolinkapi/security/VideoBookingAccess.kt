@@ -25,8 +25,7 @@ fun checkVideoBookingAccess(externalUser: User, booking: VideoBooking) {
 }
 
 // Unknown courts or probation teams cannot be accessed by external users, they will only ever be set up by prison users
-private fun VideoBooking.isAccessibleBy(user: ExternalUser) =
-  (user.isCourtUser && court?.isUnknown() == false && user.hasAccessTo(court)) ||
-    (user.isProbationUser && probationTeam?.isUnknown() == false && user.hasAccessTo(probationTeam))
+private fun VideoBooking.isAccessibleBy(user: ExternalUser) = (user.isCourtUser && court?.isUnknown() == false && user.hasAccessTo(court)) ||
+  (user.isProbationUser && probationTeam?.isUnknown() == false && user.hasAccessTo(probationTeam))
 
 class VideoBookingAccessException(message: String) : RuntimeException(message)

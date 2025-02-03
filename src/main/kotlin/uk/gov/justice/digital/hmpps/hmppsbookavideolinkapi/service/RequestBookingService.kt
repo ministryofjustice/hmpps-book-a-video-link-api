@@ -107,31 +107,24 @@ class RequestBookingService(
     }
   }
 
-  private fun fetchPrison(prisonCode: String): Prison =
-    prisonRepository.findByCode(prisonCode)
-      ?.also { require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
+  private fun fetchPrison(prisonCode: String): Prison = prisonRepository.findByCode(prisonCode)
+    ?.also { require(it.enabled) { "Prison with code ${it.code} is not enabled" } }
+    ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
 
-  private fun fetchCourt(courtCode: String): Court =
-    courtRepository.findByCode(courtCode)
-      ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Court with code $courtCode not found")
+  private fun fetchCourt(courtCode: String): Court = courtRepository.findByCode(courtCode)
+    ?.also { require(it.enabled) { "Court with code ${it.code} is not enabled" } }
+    ?: throw EntityNotFoundException("Court with code $courtCode not found")
 
-  private fun fetchProbationTeam(probationTeamCode: String): ProbationTeam =
-    probationTeamRepository.findByCode(probationTeamCode)
-      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Probation team with code $probationTeamCode not found")
+  private fun fetchProbationTeam(probationTeamCode: String): ProbationTeam = probationTeamRepository.findByCode(probationTeamCode)
+    ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
+    ?: throw EntityNotFoundException("Probation team with code $probationTeamCode not found")
 
-  private fun fetchReferenceCode(groupCode: String, code: String): ReferenceCode =
-    referenceCodeRepository.findByGroupCodeAndCode(groupCode, code)
-      ?: throw EntityNotFoundException("$groupCode with code $code not found")
+  private fun fetchReferenceCode(groupCode: String, code: String): ReferenceCode = referenceCodeRepository.findByGroupCodeAndCode(groupCode, code)
+    ?: throw EntityNotFoundException("$groupCode with code $code not found")
 
-  private fun fetchLocations(keys: Set<String>): Map<String, Location> =
-    locationsInsidePrisonClient.getLocationsByKeys(keys).associateBy { it.key }
+  private fun fetchLocations(keys: Set<String>): Map<String, Location> = locationsInsidePrisonClient.getLocationsByKeys(keys).associateBy { it.key }
 
-  private fun getCourtAppointments(prisoner: UnknownPrisonerDetails): Triple<Appointment?, Appointment, Appointment?> {
-    return prisoner.appointments.appointmentsForCourtHearing()
-  }
+  private fun getCourtAppointments(prisoner: UnknownPrisonerDetails): Triple<Appointment?, Appointment, Appointment?> = prisoner.appointments.appointmentsForCourtHearing()
 
   private fun sendEmails(contacts: List<Contact>, emailGenerator: (Contact) -> Email?) {
     contacts.mapNotNull(emailGenerator).forEach { email ->
@@ -301,8 +294,7 @@ class RequestBookingService(
 
   private fun Collection<Appointment>.post() = singleOrNull { it.type == AppointmentType.VLB_COURT_POST }
 
-  private fun Appointment.appointmentInformation(locations: Map<String, Location>) =
-    "${locations[locationKey]?.localName ?: ""} - ${startTime!!.toHourMinuteStyle()} to ${endTime!!.toHourMinuteStyle()}"
+  private fun Appointment.appointmentInformation(locations: Map<String, Location>) = "${locations[locationKey]?.localName ?: ""} - ${startTime!!.toHourMinuteStyle()} to ${endTime!!.toHourMinuteStyle()}"
 
   // We will only be requesting appointments for one single prisoner as part of the initial rollout.
   private fun RequestVideoBookingRequest.prisoner() = prisoners.first()

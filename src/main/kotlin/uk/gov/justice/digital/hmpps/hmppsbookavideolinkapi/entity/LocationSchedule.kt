@@ -65,14 +65,10 @@ class LocationSchedule(
     return locationScheduleId == other.locationScheduleId
   }
 
-  override fun hashCode(): Int {
-    return locationScheduleId.hashCode()
-  }
+  override fun hashCode(): Int = locationScheduleId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName +
-      "(locationScheduleId = $locationScheduleId, startDay = $startDayOfWeek, endDay = $endDayOfWeek " +
-      "startTime = $startTime, endTime = $endTime)"
-  }
+  override fun toString(): String = this::class.simpleName +
+    "(locationScheduleId = $locationScheduleId, startDay = $startDayOfWeek, endDay = $endDayOfWeek " +
+    "startTime = $startTime, endTime = $endTime)"
 }

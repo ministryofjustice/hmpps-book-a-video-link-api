@@ -17,17 +17,15 @@ class LocationsService(
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val locationAttributeRepository: LocationAttributeRepository,
 ) {
-  fun getNonResidentialLocationsAtPrison(prisonCode: String, enabledOnly: Boolean) =
-    prisonRepository.findByCode(prisonCode)
-      ?.let { locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(prisonCode) }
-      ?.filter { !enabledOnly || it.active }
-      ?.toModel() ?: emptyList()
+  fun getNonResidentialLocationsAtPrison(prisonCode: String, enabledOnly: Boolean) = prisonRepository.findByCode(prisonCode)
+    ?.let { locationsInsidePrisonClient.getNonResidentialAppointmentLocationsAtPrison(prisonCode) }
+    ?.filter { !enabledOnly || it.active }
+    ?.toModel() ?: emptyList()
 
-  fun getVideoLinkLocationsAtPrison(prisonCode: String, enabledOnly: Boolean) =
-    prisonRepository.findByCode(prisonCode)
-      ?.let { locationsInsidePrisonClient.getVideoLinkLocationsAtPrison(prisonCode) }
-      ?.filter { !enabledOnly || it.active }
-      ?.toModel() ?: emptyList()
+  fun getVideoLinkLocationsAtPrison(prisonCode: String, enabledOnly: Boolean) = prisonRepository.findByCode(prisonCode)
+    ?.let { locationsInsidePrisonClient.getVideoLinkLocationsAtPrison(prisonCode) }
+    ?.filter { !enabledOnly || it.active }
+    ?.toModel() ?: emptyList()
 
   @Transactional(readOnly = true)
   fun getDecoratedVideoLocations(prisonCode: String, enabledOnly: Boolean): List<Location> {

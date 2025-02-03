@@ -15,8 +15,7 @@ class PrisonsServiceTest {
   private val prisonRepository: PrisonRepository = mock()
   private val service = PrisonsService(prisonRepository)
 
-  private fun prisonEntity(id: Long, code: String, name: String, enabled: Boolean = true, notes: String? = "notes") =
-    PrisonEntity(id, code, name, enabled, notes, "name")
+  private fun prisonEntity(id: Long, code: String, name: String, enabled: Boolean = true, notes: String? = "notes") = PrisonEntity(id, code, name, enabled, notes, "name")
 
   @BeforeEach
   fun setUp() {

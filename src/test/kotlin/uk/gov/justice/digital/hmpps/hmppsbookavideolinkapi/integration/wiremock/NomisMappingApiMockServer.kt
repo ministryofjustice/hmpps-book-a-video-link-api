@@ -7,7 +7,10 @@ import org.junit.jupiter.api.extension.ExtensionContext
 
 class NomisMappingApiMockServer : MockServer(8096)
 
-class NomisMappingApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class NomisMappingApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val server = NomisMappingApiMockServer()

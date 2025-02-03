@@ -42,12 +42,8 @@ class ReferenceCode(
     return referenceCodeId == other.referenceCodeId
   }
 
-  override fun hashCode(): Int {
-    return referenceCodeId.hashCode()
-  }
+  override fun hashCode(): Int = referenceCodeId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(referenceCodeId = $referenceCodeId)"
-  }
+  override fun toString(): String = this::class.simpleName + "(referenceCodeId = $referenceCodeId)"
 }

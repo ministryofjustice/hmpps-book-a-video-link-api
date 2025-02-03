@@ -182,7 +182,15 @@ data class CourtBookingEvent(
     vbh.timestamp,
     vbh.videoBookingId,
     // Old BVLS has DELETE instead of CANCEL and UPDATE instead of AMEND
-    vbh.eventType.let { if (it == "CANCEL") "DELETE" else if (it == "AMEND") "UPDATE" else it },
+    vbh.eventType.let {
+      if (it == "CANCEL") {
+        "DELETE"
+      } else if (it == "AMEND") {
+        "UPDATE"
+      } else {
+        it
+      }
+    },
     vbh.prisonCode,
     vbh.courtDescription!!,
     vbh.courtCode!!,
@@ -248,7 +256,15 @@ data class ProbationBookingEvent(
     vbh.timestamp,
     vbh.videoBookingId,
     // Old BVLS has DELETE instead of CANCEL and UPDATE instead of AMEND
-    vbh.eventType.let { if (it == "CANCEL") "DELETE" else if (it == "AMEND") "UPDATE" else it },
+    vbh.eventType.let {
+      if (it == "CANCEL") {
+        "DELETE"
+      } else if (it == "AMEND") {
+        "UPDATE"
+      } else {
+        it
+      }
+    },
     vbh.prisonCode,
     vbh.probationTeamDescription!!,
     vbh.probationTeamCode!!,

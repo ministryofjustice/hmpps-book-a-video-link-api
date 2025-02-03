@@ -15,15 +15,13 @@ class ProbationTeamsService(
   private val probationTeamRepository: ProbationTeamRepository,
   private val userProbationRepository: UserProbationRepository,
 ) {
-  fun getProbationTeams(enabledOnly: Boolean) =
-    if (enabledOnly) {
-      probationTeamRepository.findAllByEnabledIsTrue().toModel()
-    } else {
-      probationTeamRepository.findAll().filter(ProbationTeam::isReadable).toModel()
-    }
+  fun getProbationTeams(enabledOnly: Boolean) = if (enabledOnly) {
+    probationTeamRepository.findAllByEnabledIsTrue().toModel()
+  } else {
+    probationTeamRepository.findAll().filter(ProbationTeam::isReadable).toModel()
+  }
 
-  fun getUserProbationTeamPreferences(user: User) =
-    probationTeamRepository.findProbationTeamsByUsername(user.username).toModel()
+  fun getUserProbationTeamPreferences(user: User) = probationTeamRepository.findProbationTeamsByUsername(user.username).toModel()
 
   @Transactional
   fun setUserProbationTeamPreferences(request: SetProbationTeamPreferencesRequest, user: User): SetProbationTeamPreferencesResponse {

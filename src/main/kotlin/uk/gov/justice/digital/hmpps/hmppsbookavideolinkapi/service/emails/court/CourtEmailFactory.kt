@@ -415,8 +415,7 @@ object CourtEmailFactory {
     }
   }
 
-  private fun PrisonAppointment.appointmentInformation(locations: Map<UUID, Location>) =
-    "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
+  private fun PrisonAppointment.appointmentInformation(locations: Map<UUID, Location>) = "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Map<UUID, Location>.room(id: UUID) = this[id]?.localName ?: ""
 

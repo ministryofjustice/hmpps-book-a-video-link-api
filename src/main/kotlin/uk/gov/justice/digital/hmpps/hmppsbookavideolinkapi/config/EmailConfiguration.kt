@@ -110,12 +110,11 @@ class EmailConfiguration(
   }
 
   @Bean
-  fun emailService(@Value("\${bvls.frontend.url}") frontendDomain: String) =
-    if (apiKey.isBlank()) {
-      EmailService { email -> Result.success(UUID.randomUUID() to "fake template id").also { log.info("Email ${email.javaClass.simpleName} not sent.") } }.also { log.info("Gov Notify emails are disabled") }
-    } else {
-      GovNotifyEmailService(NotificationClient(apiKey), emailTemplates(), frontendDomain).also { log.info("Gov Notify emails are enabled") }
-    }
+  fun emailService(@Value("\${bvls.frontend.url}") frontendDomain: String) = if (apiKey.isBlank()) {
+    EmailService { email -> Result.success(UUID.randomUUID() to "fake template id").also { log.info("Email ${email.javaClass.simpleName} not sent.") } }.also { log.info("Gov Notify emails are disabled") }
+  } else {
+    GovNotifyEmailService(NotificationClient(apiKey), emailTemplates(), frontendDomain).also { log.info("Gov Notify emails are enabled") }
+  }
 
   private fun emailTemplates() = EmailTemplates(
     newCourtBookingUser = newCourtBookingUser,

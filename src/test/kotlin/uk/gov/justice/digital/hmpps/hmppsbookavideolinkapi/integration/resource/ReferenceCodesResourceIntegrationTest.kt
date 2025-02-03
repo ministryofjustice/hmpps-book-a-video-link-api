@@ -75,14 +75,13 @@ class ReferenceCodesResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfCodes).hasSize(0)
   }
 
-  private fun WebTestClient.getReferenceCodes(groupCode: String, enabledOnly: Boolean = true) =
-    get()
-      .uri("/reference-codes/group/{groupCode}?enabledOnly=$enabledOnly", groupCode)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBodyList(ReferenceCode::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.getReferenceCodes(groupCode: String, enabledOnly: Boolean = true) = get()
+    .uri("/reference-codes/group/{groupCode}?enabledOnly=$enabledOnly", groupCode)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBodyList(ReferenceCode::class.java)
+    .returnResult().responseBody!!
 }

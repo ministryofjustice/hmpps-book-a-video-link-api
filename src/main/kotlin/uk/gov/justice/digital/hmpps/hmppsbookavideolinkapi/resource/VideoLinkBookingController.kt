@@ -141,8 +141,7 @@ class VideoLinkBookingController(
   fun getVideoLinkBookingById(
     @PathVariable("videoBookingId") videoBookingId: Long,
     httpRequest: HttpServletRequest,
-  ) =
-    videoLinkBookingsService.getVideoLinkBookingById(videoBookingId, httpRequest.getBvlsRequestContext().user)
+  ) = videoLinkBookingsService.getVideoLinkBookingById(videoBookingId, httpRequest.getBvlsRequestContext().user)
 
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = ["/id/{videoBookingId}"])

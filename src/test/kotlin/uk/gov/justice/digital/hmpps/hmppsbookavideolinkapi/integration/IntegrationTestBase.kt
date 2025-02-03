@@ -123,18 +123,17 @@ abstract class IntegrationTestBase {
     }?.let { email -> manageUsersApi().stubGetUserEmail(user.username, email) }
   }
 
-  protected fun WebTestClient.createBooking(request: CreateVideoBookingRequest, user: User) =
-    this
-      .post()
-      .uri("/video-link-booking")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isCreated
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(Long::class.java)
-      .returnResult().responseBody!!
+  protected fun WebTestClient.createBooking(request: CreateVideoBookingRequest, user: User) = this
+    .post()
+    .uri("/video-link-booking")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isCreated
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(Long::class.java)
+    .returnResult().responseBody!!
 
   companion object {
     private val pgContainer = PostgresContainer.instance

@@ -1795,83 +1795,76 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     ).videoLinkBookingId isEqualTo 4000
   }
 
-  private fun WebTestClient.createBookingFails(request: CreateVideoBookingRequest, user: User) =
-    this
-      .post()
-      .uri("/video-link-booking")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
+  private fun WebTestClient.createBookingFails(request: CreateVideoBookingRequest, user: User) = this
+    .post()
+    .uri("/video-link-booking")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
 
-  private fun WebTestClient.searchForBooking(request: VideoBookingSearchRequest, user: User) =
-    this
-      .post()
-      .uri("/video-link-booking/search")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(VideoLinkBooking::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.searchForBooking(request: VideoBookingSearchRequest, user: User) = this
+    .post()
+    .uri("/video-link-booking/search")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(VideoLinkBooking::class.java)
+    .returnResult().responseBody!!
 
-  private fun WebTestClient.amendBooking(videoBookingId: Long, request: AmendVideoBookingRequest, user: User) =
-    this
-      .put()
-      .uri("/video-link-booking/id/$videoBookingId")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(Long::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.amendBooking(videoBookingId: Long, request: AmendVideoBookingRequest, user: User) = this
+    .put()
+    .uri("/video-link-booking/id/$videoBookingId")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(Long::class.java)
+    .returnResult().responseBody!!
 
-  private fun WebTestClient.cancelBooking(videoBookingId: Long, user: User) =
-    this
-      .delete()
-      .uri("/video-link-booking/id/$videoBookingId")
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isNoContent
+  private fun WebTestClient.cancelBooking(videoBookingId: Long, user: User) = this
+    .delete()
+    .uri("/video-link-booking/id/$videoBookingId")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isNoContent
 
-  private fun WebTestClient.requestVideoLink(request: RequestVideoBookingRequest, externalUser: ExternalUser) =
-    this
-      .post()
-      .uri("/video-link-booking/request")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = externalUser.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
+  private fun WebTestClient.requestVideoLink(request: RequestVideoBookingRequest, externalUser: ExternalUser) = this
+    .post()
+    .uri("/video-link-booking/request")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = externalUser.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
 
-  private fun WebTestClient.getBookingByIdRequest(videoBookingId: Long, user: User) =
-    this
-      .get()
-      .uri("/video-link-booking/id/{videoBookingId}", videoBookingId)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(VideoLinkBooking::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.getBookingByIdRequest(videoBookingId: Long, user: User) = this
+    .get()
+    .uri("/video-link-booking/id/{videoBookingId}", videoBookingId)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(VideoLinkBooking::class.java)
+    .returnResult().responseBody!!
 
-  private fun WebTestClient.getBookingByIdNotFound(videoBookingId: Long, user: User) =
-    this
-      .get()
-      .uri("/video-link-booking/id/{videoBookingId}", videoBookingId)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isNotFound
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(ErrorResponse::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.getBookingByIdNotFound(videoBookingId: Long, user: User) = this
+    .get()
+    .uri("/video-link-booking/id/{videoBookingId}", videoBookingId)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isNotFound
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(ErrorResponse::class.java)
+    .returnResult().responseBody!!
 
   private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
     single { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }

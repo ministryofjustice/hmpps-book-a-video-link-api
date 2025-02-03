@@ -34,11 +34,10 @@ class CreateVideoBookingService(
   }
 
   @Transactional
-  fun create(booking: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> =
-    when (booking.bookingType!!) {
-      BookingType.COURT -> createCourt(booking, createdBy)
-      BookingType.PROBATION -> createProbation(booking, createdBy)
-    }
+  fun create(booking: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> = when (booking.bookingType!!) {
+    BookingType.COURT -> createCourt(booking, createdBy)
+    BookingType.PROBATION -> createProbation(booking, createdBy)
+  }
 
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
     checkCaseLoadAccess(createdBy, request.prisoner().prisonCode!!)

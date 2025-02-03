@@ -5,8 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 
-class ProbationBookingAmendedTelemetryEvent(private val booking: VideoBooking, private val amendedBy: User) :
-  MetricTelemetryEvent("BVLS-probation-booking-amended") {
+class ProbationBookingAmendedTelemetryEvent(private val booking: VideoBooking, private val amendedBy: User) : MetricTelemetryEvent("BVLS-probation-booking-amended") {
 
   init {
     require(booking.isBookingType(PROBATION)) {
@@ -22,8 +21,7 @@ class ProbationBookingAmendedTelemetryEvent(private val booking: VideoBooking, p
     }
   }
 
-  override fun properties() =
-    booking.commonProperties().plus("amended_by" to if (amendedBy is PrisonUser) "prison" else "probation")
+  override fun properties() = booking.commonProperties().plus("amended_by" to if (amendedBy is PrisonUser) "prison" else "probation")
 
   override fun metrics() = mapOf(booking.hoursBeforeStartTimeMetric())
 }

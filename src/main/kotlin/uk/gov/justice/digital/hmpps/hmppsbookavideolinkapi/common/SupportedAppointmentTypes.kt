@@ -13,19 +13,17 @@ class SupportedAppointmentTypes(private val featureSwitches: FeatureSwitches) {
     PROBATION("VLPM"),
   }
 
-  fun typeOf(type: BookingType) =
-    if (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
-      when (type) {
-        BookingType.COURT -> Type.COURT
-        BookingType.PROBATION -> Type.PROBATION
-      }
-    } else {
-      Type.COURT
+  fun typeOf(type: BookingType) = if (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
+    when (type) {
+      BookingType.COURT -> Type.COURT
+      BookingType.PROBATION -> Type.PROBATION
     }
+  } else {
+    Type.COURT
+  }
 
-  fun isSupported(appointmentType: String) =
-    when (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
-      true -> Type.entries.map(Type::code).contains(appointmentType)
-      false -> Type.COURT.code == appointmentType
-    }
+  fun isSupported(appointmentType: String) = when (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
+    true -> Type.entries.map(Type::code).contains(appointmentType)
+    false -> Type.COURT.code == appointmentType
+  }
 }

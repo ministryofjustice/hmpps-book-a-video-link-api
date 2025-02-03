@@ -14,22 +14,20 @@ class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getPrisoner(prisonerNumber: String): Prisoner? =
-    prisonerSearchApiWebClient
-      .get()
-      .uri("/prisoner/{prisonerNumber}", prisonerNumber)
-      .retrieve()
-      .bodyToMono(Prisoner::class.java)
-      .doOnError { error -> log.info("Error looking up prisoner by prisoner number $prisonerNumber in prisoner search client", error) }
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()
+  fun getPrisoner(prisonerNumber: String): Prisoner? = prisonerSearchApiWebClient
+    .get()
+    .uri("/prisoner/{prisonerNumber}", prisonerNumber)
+    .retrieve()
+    .bodyToMono(Prisoner::class.java)
+    .doOnError { error -> log.info("Error looking up prisoner by prisoner number $prisonerNumber in prisoner search client", error) }
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block()
 }
 
 @Component
 class PrisonerValidator(val prisonerSearchClient: PrisonerSearchClient) {
-  fun validatePrisonerAtPrison(prisonerNumber: String, prisonCode: String): Prisoner =
-    prisonerSearchClient.getPrisoner(prisonerNumber)?.takeUnless { prisoner -> prisoner.prisonId != prisonCode }
-      ?: throw ValidationException("Prisoner $prisonerNumber not found at prison $prisonCode")
+  fun validatePrisonerAtPrison(prisonerNumber: String, prisonCode: String): Prisoner = prisonerSearchClient.getPrisoner(prisonerNumber)?.takeUnless { prisoner -> prisoner.prisonId != prisonCode }
+    ?: throw ValidationException("Prisoner $prisonerNumber not found at prison $prisonCode")
 }
 
 // Ideally this model would be generated and not hard coded, however at time of writing the Open API generator did not

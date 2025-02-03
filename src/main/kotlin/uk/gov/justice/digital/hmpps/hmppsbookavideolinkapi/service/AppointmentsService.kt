@@ -79,8 +79,7 @@ class AppointmentsService(
     }
   }
 
-  private fun Appointment.isBefore(other: Appointment): Boolean =
-    this.date!! <= other.date && this.endTime!! <= other.startTime
+  private fun Appointment.isBefore(other: Appointment): Boolean = this.date!! <= other.date && this.endTime!! <= other.startTime
 
   fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
     checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!, user)

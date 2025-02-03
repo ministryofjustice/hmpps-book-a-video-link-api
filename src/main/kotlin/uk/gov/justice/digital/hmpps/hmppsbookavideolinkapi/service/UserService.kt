@@ -37,39 +37,38 @@ class UserService(
     fun getClientAsUser(clientId: String) = ServiceUser(username = clientId, name = clientId)
   }
 
-  fun getUser(username: String): User? =
-    manageUsersClient.getUsersDetails(username)?.let { userDetails ->
-      when (userDetails.authSource) {
-        AuthSource.nomis -> {
-          PrisonUser(
-            username = username,
-            name = userDetails.name,
-            email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
-            activeCaseLoadId = userDetails.activeCaseLoadId,
-          )
-        }
-
-        AuthSource.auth -> {
-          val userGroups = manageUsersClient.getUsersGroups(userDetails.userId)
-          val isCourtUser = userGroups.any { it.groupCode == COURT_USER_GROUP_CODE }
-          val isProbationUser = userGroups.any { it.groupCode == PROBATION_USER_GROUP_CODE }
-          val courts = if (isCourtUser) courtRepository.findCourtsByUsername(username).map { it.code }.toSet() else emptySet()
-          val probationTeams = if (isProbationUser) probationTeamRepository.findProbationTeamsByUsername(username).map { it.code }.toSet() else emptySet()
-
-          ExternalUser(
-            username = username,
-            name = userDetails.name,
-            email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
-            isCourtUser = isCourtUser,
-            isProbationUser = isProbationUser,
-            courts = courts,
-            probationTeams = probationTeams,
-          )
-        }
-
-        else -> throw AccessDeniedException("Users with auth source ${userDetails.authSource} are not supported by this service")
+  fun getUser(username: String): User? = manageUsersClient.getUsersDetails(username)?.let { userDetails ->
+    when (userDetails.authSource) {
+      AuthSource.nomis -> {
+        PrisonUser(
+          username = username,
+          name = userDetails.name,
+          email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
+          activeCaseLoadId = userDetails.activeCaseLoadId,
+        )
       }
+
+      AuthSource.auth -> {
+        val userGroups = manageUsersClient.getUsersGroups(userDetails.userId)
+        val isCourtUser = userGroups.any { it.groupCode == COURT_USER_GROUP_CODE }
+        val isProbationUser = userGroups.any { it.groupCode == PROBATION_USER_GROUP_CODE }
+        val courts = if (isCourtUser) courtRepository.findCourtsByUsername(username).map { it.code }.toSet() else emptySet()
+        val probationTeams = if (isProbationUser) probationTeamRepository.findProbationTeamsByUsername(username).map { it.code }.toSet() else emptySet()
+
+        ExternalUser(
+          username = username,
+          name = userDetails.name,
+          email = if (username.isEmail()) username.lowercase() else manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
+          isCourtUser = isCourtUser,
+          isProbationUser = isProbationUser,
+          courts = courts,
+          probationTeams = probationTeams,
+        )
+      }
+
+      else -> throw AccessDeniedException("Users with auth source ${userDetails.authSource} are not supported by this service")
     }
+  }
 }
 
 abstract class User(

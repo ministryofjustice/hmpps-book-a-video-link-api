@@ -32,14 +32,13 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
   }
 
   @Cacheable(CacheConfiguration.ROLLED_OUT_PRISONS_CACHE_NAME)
-  fun isAppointmentsRolledOutAt(prisonCode: String) =
-    activitiesAppointmentsApiWebClient
-      .get()
-      .uri("/rollout/{prisonCode}", prisonCode)
-      .retrieve()
-      .bodyToMono(RolloutPrisonPlan::class.java)
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()?.prisonLive == true
+  fun isAppointmentsRolledOutAt(prisonCode: String) = activitiesAppointmentsApiWebClient
+    .get()
+    .uri("/rollout/{prisonCode}", prisonCode)
+    .retrieve()
+    .bodyToMono(RolloutPrisonPlan::class.java)
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block()?.prisonLive == true
 
   fun createAppointment(
     prisonCode: String,
@@ -50,56 +49,53 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     internalLocationId: Long,
     comments: String?,
     appointmentType: SupportedAppointmentTypes.Type,
-  ): AppointmentSeries? =
-    activitiesAppointmentsApiWebClient.post()
-      .uri("/appointment-series")
-      .bodyValue(
-        AppointmentSeriesCreateRequest(
-          appointmentType = AppointmentSeriesCreateRequest.AppointmentType.INDIVIDUAL,
-          prisonCode = prisonCode,
-          prisonerNumbers = listOf(prisonerNumber),
-          categoryCode = appointmentType.code,
-          tierCode = AppointmentSeriesCreateRequest.TierCode.TIER_1,
-          inCell = false,
-          startDate = startDate,
-          startTime = startTime.toHourMinuteStyle(),
-          endTime = endTime.toHourMinuteStyle(),
-          internalLocationId = internalLocationId,
-          extraInformation = comments,
-        ),
-      )
-      .retrieve()
-      .bodyToMono(AppointmentSeries::class.java)
-      .block()
+  ): AppointmentSeries? = activitiesAppointmentsApiWebClient.post()
+    .uri("/appointment-series")
+    .bodyValue(
+      AppointmentSeriesCreateRequest(
+        appointmentType = AppointmentSeriesCreateRequest.AppointmentType.INDIVIDUAL,
+        prisonCode = prisonCode,
+        prisonerNumbers = listOf(prisonerNumber),
+        categoryCode = appointmentType.code,
+        tierCode = AppointmentSeriesCreateRequest.TierCode.TIER_1,
+        inCell = false,
+        startDate = startDate,
+        startTime = startTime.toHourMinuteStyle(),
+        endTime = endTime.toHourMinuteStyle(),
+        internalLocationId = internalLocationId,
+        extraInformation = comments,
+      ),
+    )
+    .retrieve()
+    .bodyToMono(AppointmentSeries::class.java)
+    .block()
 
   /**
    * Returns all matching appointment (types) for a prisoner, not just video link bookings.
    */
-  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long) =
-    if (locationIds.isNotEmpty()) {
-      log.info("A&A CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
-      getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
-        .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
-        .filter { locationIds.toList().contains(it.internalLocation?.id) }
-        .also { log.info("A&A CLIENT: matches post-location filter: $it") }
-    } else {
-      emptyList()
-    }
+  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long) = if (locationIds.isNotEmpty()) {
+    log.info("A&A CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
+    getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
+      .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
+      .filter { locationIds.toList().contains(it.internalLocation?.id) }
+      .also { log.info("A&A CLIENT: matches post-location filter: $it") }
+  } else {
+    emptyList()
+  }
 
-  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate) =
-    activitiesAppointmentsApiWebClient.post()
-      .uri("/appointments/{prisonCode}/search", prisonCode)
-      .bodyValue(
-        AppointmentSearchRequest(
-          appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
-          startDate = onDate,
-          prisonerNumbers = listOf(prisonerNumber),
-        ),
-      )
-      .retrieve()
-      .bodyToMono(typeReference<List<AppointmentSearchResult>>())
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block() ?: emptyList()
+  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate) = activitiesAppointmentsApiWebClient.post()
+    .uri("/appointments/{prisonCode}/search", prisonCode)
+    .bodyValue(
+      AppointmentSearchRequest(
+        appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
+        startDate = onDate,
+        prisonerNumbers = listOf(prisonerNumber),
+      ),
+    )
+    .retrieve()
+    .bodyToMono(typeReference<List<AppointmentSearchResult>>())
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block() ?: emptyList()
 
   /**
    * @param appointmentId refers the appointment identifier held in Activities and Appointments, not BVLS.

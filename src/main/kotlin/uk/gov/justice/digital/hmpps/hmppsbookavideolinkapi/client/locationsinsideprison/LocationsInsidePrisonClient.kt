@@ -125,7 +125,5 @@ class LocationValidator(private val locationsInsidePrisonClient: LocationsInside
     }
   }
 
-  private fun validationError(message: String) {
-    throw ValidationException(message)
-  }
+  private fun validationError(message: String): Unit = throw ValidationException(message)
 }

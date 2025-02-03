@@ -25,8 +25,7 @@ class WebClientConfiguration(
   fun activitiesAppointmentsApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(activitiesAppointmentsApiBaseUri, healthTimeout)
 
   @Bean
-  fun activitiesAppointmentsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
-    builder.authorisedWebClient(authorizedClientManager, "activities-appointments", activitiesAppointmentsApiBaseUri, timeout)
+  fun activitiesAppointmentsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder.authorisedWebClient(authorizedClientManager, "activities-appointments", activitiesAppointmentsApiBaseUri, timeout)
 
   @Bean
   fun hmppsAuthHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(hmppsAuthBaseUri, healthTimeout)
@@ -35,27 +34,22 @@ class WebClientConfiguration(
   fun locationsInsidePrisonApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(locationsInsidePrisonApiBaseUri, healthTimeout)
 
   @Bean
-  fun locationsInsidePrisonApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
-    builder.authorisedWebClient(authorizedClientManager, "locations-inside-prison", locationsInsidePrisonApiBaseUri, timeout)
+  fun locationsInsidePrisonApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder.authorisedWebClient(authorizedClientManager, "locations-inside-prison", locationsInsidePrisonApiBaseUri, timeout)
 
   @Bean
-  fun manageUsersApiHealthWebClient(builder: WebClient.Builder): WebClient =
-    builder.healthWebClient(manageUsersBaseUri, healthTimeout)
+  fun manageUsersApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(manageUsersBaseUri, healthTimeout)
 
   @Bean
-  fun manageUsersApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
-    builder.authorisedWebClient(authorizedClientManager, "manage-users", manageUsersBaseUri, timeout)
+  fun manageUsersApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder.authorisedWebClient(authorizedClientManager, "manage-users", manageUsersBaseUri, timeout)
 
   @Bean
-  fun nomisMappingApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
-    builder.authorisedWebClient(authorizedClientManager, "nomis-mapping-api", nomisMappingBaseUri, timeout)
+  fun nomisMappingApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder.authorisedWebClient(authorizedClientManager, "nomis-mapping-api", nomisMappingBaseUri, timeout)
 
   @Bean
   fun nomisMappingApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(nomisMappingBaseUri, healthTimeout)
 
   @Bean
-  fun prisonApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
-    builder.authorisedWebClient(authorizedClientManager, "prisoner-api", prisonApiBaseUri, timeout)
+  fun prisonApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder.authorisedWebClient(authorizedClientManager, "prisoner-api", prisonApiBaseUri, timeout)
 
   @Bean
   fun prisonApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(prisonApiBaseUri, healthTimeout)
@@ -64,6 +58,5 @@ class WebClientConfiguration(
   fun prisonerSearchApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(prisonerSearchBaseUri, healthTimeout)
 
   @Bean
-  fun prisonerSearchApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) =
-    builder.authorisedWebClient(authorizedClientManager, "prisoner-search", prisonerSearchBaseUri, timeout)
+  fun prisonerSearchApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder.authorisedWebClient(authorizedClientManager, "prisoner-search", prisonerSearchBaseUri, timeout)
 }

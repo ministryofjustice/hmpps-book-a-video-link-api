@@ -47,10 +47,8 @@ class CourtBookingCancelledTelemetryEvent private constructor(
       return CourtBookingCancelledTelemetryEvent(booking, cancelledBy)
     }
 
-    fun released(videoBooking: VideoBooking): CourtBookingCancelledTelemetryEvent =
-      CourtBookingCancelledTelemetryEvent(videoBooking, "release")
+    fun released(videoBooking: VideoBooking): CourtBookingCancelledTelemetryEvent = CourtBookingCancelledTelemetryEvent(videoBooking, "release")
 
-    fun transferred(videoBooking: VideoBooking): CourtBookingCancelledTelemetryEvent =
-      CourtBookingCancelledTelemetryEvent(videoBooking, "transfer")
+    fun transferred(videoBooking: VideoBooking): CourtBookingCancelledTelemetryEvent = CourtBookingCancelledTelemetryEvent(videoBooking, "transfer")
   }
 }

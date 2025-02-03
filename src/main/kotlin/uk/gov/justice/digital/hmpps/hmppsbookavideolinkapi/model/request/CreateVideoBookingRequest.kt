@@ -71,13 +71,11 @@ data class CreateVideoBookingRequest(
 ) {
   @JsonIgnore
   @AssertTrue(message = "The court code and court hearing type are mandatory for court bookings")
-  private fun isInvalidCourtBooking() =
-    (BookingType.COURT != bookingType) || (courtCode != null && courtHearingType != null)
+  private fun isInvalidCourtBooking() = (BookingType.COURT != bookingType) || (courtCode != null && courtHearingType != null)
 
   @JsonIgnore
   @AssertTrue(message = "The probation team code and probation meeting type are mandatory for probation bookings")
-  private fun isInvalidProbationBooking() =
-    (BookingType.PROBATION != bookingType) || (probationTeamCode != null && probationMeetingType != null)
+  private fun isInvalidProbationBooking() = (BookingType.PROBATION != bookingType) || (probationTeamCode != null && probationMeetingType != null)
 
   @JsonIgnore
   @AssertTrue(message = "The supplied video link is blank")
@@ -192,8 +190,7 @@ data class Appointment(
     message = "The combination of date and start time for the appointment must be in the future",
     groups = [DateValidationExtension::class],
   )
-  private fun isInvalidStart() =
-    (date == null || startTime == null) || date.atTime(startTime).isAfter(LocalDateTime.now())
+  private fun isInvalidStart() = (date == null || startTime == null) || date.atTime(startTime).isAfter(LocalDateTime.now())
 }
 
 private interface DateValidationExtension

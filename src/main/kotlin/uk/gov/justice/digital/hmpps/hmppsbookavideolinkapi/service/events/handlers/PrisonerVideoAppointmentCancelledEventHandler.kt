@@ -88,8 +88,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
 
   private fun appointmentsNotManagedExternallyAt(prisonCode: String) = !activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)
 
-  private fun VideoAppointment.isForCourtBooking() =
-    listOf("VLB_COURT_PRE", "VLB_COURT_MAIN", "VLB_COURT_POST").contains(appointmentType)
+  private fun VideoAppointment.isForCourtBooking() = listOf("VLB_COURT_PRE", "VLB_COURT_MAIN", "VLB_COURT_POST").contains(appointmentType)
 
   private fun VideoAppointment.isForProbationBooking() = appointmentType == "VLB_PROBATION"
 

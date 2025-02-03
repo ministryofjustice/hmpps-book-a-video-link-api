@@ -211,15 +211,14 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     single { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
   }
 
-  private fun WebTestClient.triggerJob(jobType: JobType) =
-    this
-      .post()
-      .uri("/job-admin/run/${jobType.name}")
-      .bodyValue({})
-      .accept(MediaType.TEXT_PLAIN)
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType(MediaType.TEXT_PLAIN, StandardCharsets.UTF_8))
-      .expectBody(String::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.triggerJob(jobType: JobType) = this
+    .post()
+    .uri("/job-admin/run/${jobType.name}")
+    .bodyValue({})
+    .accept(MediaType.TEXT_PLAIN)
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType(MediaType.TEXT_PLAIN, StandardCharsets.UTF_8))
+    .expectBody(String::class.java)
+    .returnResult().responseBody!!
 }

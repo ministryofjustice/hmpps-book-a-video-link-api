@@ -40,23 +40,21 @@ class AvailabilityService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun isAvailable(request: CreateVideoBookingRequest) =
-    checkAvailability(
-      AvailabilityRequest(
-        bookingType = request.bookingType,
-        courtOrProbationCode = request.courtCode ?: request.probationTeamCode,
-        prisonCode = request.prisoners.first().prisonCode,
-        date = request.prisoners.first().appointments.first().date,
-        preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
-        mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
-          ?: request.appointment(AppointmentType.VLB_PROBATION),
-        postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
-      ),
-    ).availabilityOk
+  fun isAvailable(request: CreateVideoBookingRequest) = checkAvailability(
+    AvailabilityRequest(
+      bookingType = request.bookingType,
+      courtOrProbationCode = request.courtCode ?: request.probationTeamCode,
+      prisonCode = request.prisoners.first().prisonCode,
+      date = request.prisoners.first().appointments.first().date,
+      preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
+      mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
+        ?: request.appointment(AppointmentType.VLB_PROBATION),
+      postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
+    ),
+  ).availabilityOk
 
-  private fun CreateVideoBookingRequest.appointment(type: AppointmentType) =
-    prisoners.single().appointments.singleOrNull { it.type == type }
-      ?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
+  private fun CreateVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }
+    ?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
 
   fun isAvailable(videoBookingId: Long, request: AmendVideoBookingRequest): Boolean {
     val existingBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
@@ -76,25 +74,22 @@ class AvailabilityService(
     ).availabilityOk
   }
 
-  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) =
-    prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
+  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
 
-  fun isAvailable(request: RequestVideoBookingRequest) =
-    checkAvailability(
-      AvailabilityRequest(
-        bookingType = request.bookingType,
-        courtOrProbationCode = request.courtCode ?: request.probationTeamCode,
-        prisonCode = request.prisoners.first().prisonCode,
-        date = request.prisoners.first().appointments.first().date,
-        preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
-        mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
-          ?: request.appointment(AppointmentType.VLB_PROBATION),
-        postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
-      ),
-    ).availabilityOk
+  fun isAvailable(request: RequestVideoBookingRequest) = checkAvailability(
+    AvailabilityRequest(
+      bookingType = request.bookingType,
+      courtOrProbationCode = request.courtCode ?: request.probationTeamCode,
+      prisonCode = request.prisoners.first().prisonCode,
+      date = request.prisoners.first().appointments.first().date,
+      preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
+      mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
+        ?: request.appointment(AppointmentType.VLB_PROBATION),
+      postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
+    ),
+  ).availabilityOk
 
-  private fun RequestVideoBookingRequest.appointment(type: AppointmentType) =
-    prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
+  private fun RequestVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
 
   /**
    * Assumptions:
@@ -172,13 +167,15 @@ class AvailabilityService(
         val postLocation = postAppointment?.prisonLocKey?.let { requestedLocations[it] }
 
         val preHearingIsTheSame = (mayBeExistingBooking.preHearing() == null && preLocation == null) ||
-          mayBeExistingBooking.preHearing() != null && mayBeExistingBooking.preHearing()!!.dateTimeAndLocationIsTheSame(date, preAppointment?.interval, preLocation)
+          mayBeExistingBooking.preHearing() != null &&
+          mayBeExistingBooking.preHearing()!!.dateTimeAndLocationIsTheSame(date, preAppointment?.interval, preLocation)
 
         val mainHearingIsTheSame =
           mayBeExistingBooking.mainHearing()!!.dateTimeAndLocationIsTheSame(date!!, mainAppointment.interval, mainLocation)
 
         val postHearingIsTheSame = (mayBeExistingBooking.postHearing() == null && postLocation == null) ||
-          mayBeExistingBooking.postHearing() != null && mayBeExistingBooking.postHearing()!!.dateTimeAndLocationIsTheSame(date, postAppointment?.interval, postLocation)
+          mayBeExistingBooking.postHearing() != null &&
+          mayBeExistingBooking.postHearing()!!.dateTimeAndLocationIsTheSame(date, postAppointment?.interval, postLocation)
 
         return preHearingIsTheSame && mainHearingIsTheSame && postHearingIsTheSame
       }
@@ -187,8 +184,7 @@ class AvailabilityService(
     return false
   }
 
-  private fun PrisonAppointment.dateTimeAndLocationIsTheSame(date: LocalDate?, interval: Interval?, location: Location?) =
-    this.appointmentDate == date && this.startTime == interval?.start && this.endTime == interval.end && this.prisonLocationId == location?.id
+  private fun PrisonAppointment.dateTimeAndLocationIsTheSame(date: LocalDate?, interval: Interval?, location: Location?) = this.appointmentDate == date && this.startTime == interval?.start && this.endTime == interval.end && this.prisonLocationId == location?.id
 }
 
 @Service
@@ -202,13 +198,12 @@ class ExternalAppointmentsService(
    * - filter any appointments where the end-time is null (we cannot infer the duration)
    * - filter any VLB appointment types as these will be retrieved from BVLS itself for checking.
    */
-  fun getAppointmentSlots(prisonCode: String, date: LocalDate, location: UUID) =
-    nomisMappingClient.getNomisLocationMappingBy(location)
-      ?.let { prisonApiClient.getScheduledAppointments(prisonCode, date, it.nomisLocationId) }
-      ?.filter { it.endTime != null }
-      ?.filterNot { supportedAppointmentTypes.isSupported(it.appointmentTypeCode) }
-      ?.map { ExternalAppointmentSlot(location, it.offenderNo, it.startTime.toLocalDate(), it.startTime.toLocalTime(), it.endTime!!.toLocalTime()) }
-      ?: emptyList()
+  fun getAppointmentSlots(prisonCode: String, date: LocalDate, location: UUID) = nomisMappingClient.getNomisLocationMappingBy(location)
+    ?.let { prisonApiClient.getScheduledAppointments(prisonCode, date, it.nomisLocationId) }
+    ?.filter { it.endTime != null }
+    ?.filterNot { supportedAppointmentTypes.isSupported(it.appointmentTypeCode) }
+    ?.map { ExternalAppointmentSlot(location, it.offenderNo, it.startTime.toLocalDate(), it.startTime.toLocalTime(), it.endTime!!.toLocalTime()) }
+    ?: emptyList()
 
   class ExternalAppointmentSlot(
     override val prisonLocationId: UUID,

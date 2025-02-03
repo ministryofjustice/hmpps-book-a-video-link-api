@@ -64,14 +64,10 @@ class PrisonAppointment private constructor(
     return prisonAppointmentId == other.prisonAppointmentId
   }
 
-  override fun hashCode(): Int {
-    return prisonAppointmentId.hashCode()
-  }
+  override fun hashCode(): Int = prisonAppointmentId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(prisonAppointmentId = $prisonAppointmentId)"
-  }
+  override fun toString(): String = this::class.simpleName + "(prisonAppointmentId = $prisonAppointmentId)"
 
   companion object {
     fun newAppointment(

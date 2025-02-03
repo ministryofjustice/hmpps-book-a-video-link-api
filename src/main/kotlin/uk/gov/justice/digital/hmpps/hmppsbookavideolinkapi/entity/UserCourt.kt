@@ -37,12 +37,8 @@ class UserCourt(
     return userCourtId == other.userCourtId
   }
 
-  override fun hashCode(): Int {
-    return userCourtId.hashCode()
-  }
+  override fun hashCode(): Int = userCourtId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(userCourtId = $userCourtId)"
-  }
+  override fun toString(): String = this::class.simpleName + "(userCourtId = $userCourtId)"
 }

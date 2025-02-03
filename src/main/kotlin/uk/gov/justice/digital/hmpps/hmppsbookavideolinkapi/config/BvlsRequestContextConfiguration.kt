@@ -51,9 +51,8 @@ class BvlsRequestContextInterceptor(private val userService: UserService) : Hand
     return true
   }
 
-  private fun authentication(): AuthAwareAuthenticationToken =
-    SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken?
-      ?: throw AccessDeniedException("User is not authenticated")
+  private fun authentication(): AuthAwareAuthenticationToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken?
+    ?: throw AccessDeniedException("User is not authenticated")
 }
 
 data class BvlsRequestContext(val user: User, val requestAt: LocalDateTime = LocalDateTime.now())

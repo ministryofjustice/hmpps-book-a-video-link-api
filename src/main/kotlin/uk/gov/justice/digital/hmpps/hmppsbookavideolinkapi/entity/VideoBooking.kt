@@ -92,36 +92,34 @@ class VideoBooking private constructor(
     startTime: LocalTime,
     endTime: LocalTime,
     locationId: UUID,
-  ) =
-    apply {
-      prisonAppointments.add(
-        PrisonAppointment.newAppointment(
-          videoBooking = this,
-          prison = prison,
-          prisonerNumber = prisonerNumber,
-          appointmentType = appointmentType,
-          appointmentDate = date,
-          startTime = startTime,
-          endTime = endTime,
-          locationId = locationId,
-        ),
-      )
-    }
+  ) = apply {
+    prisonAppointments.add(
+      PrisonAppointment.newAppointment(
+        videoBooking = this,
+        prison = prison,
+        prisonerNumber = prisonerNumber,
+        appointmentType = appointmentType,
+        appointmentDate = date,
+        startTime = startTime,
+        endTime = endTime,
+        locationId = locationId,
+      ),
+    )
+  }
 
   fun removeAllAppointments() = prisonAppointments.clear()
 
-  fun cancel(cancelledBy: User) =
-    apply {
-      require(statusCode != StatusCode.CANCELLED) {
-        "Video booking $videoBookingId is already cancelled"
-      }
-
-      require(prisonAppointments.all { it.start().isAfter(now()) }) { "Video booking $videoBookingId cannot be cancelled" }
-
-      statusCode = StatusCode.CANCELLED
-      amendedBy = cancelledBy.username
-      amendedTime = now()
+  fun cancel(cancelledBy: User) = apply {
+    require(statusCode != StatusCode.CANCELLED) {
+      "Video booking $videoBookingId is already cancelled"
     }
+
+    require(prisonAppointments.all { it.start().isAfter(now()) }) { "Video booking $videoBookingId cannot be cancelled" }
+
+    statusCode = StatusCode.CANCELLED
+    amendedBy = cancelledBy.username
+    amendedTime = now()
+  }
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -132,14 +130,10 @@ class VideoBooking private constructor(
     return videoBookingId == other.videoBookingId
   }
 
-  override fun hashCode(): Int {
-    return videoBookingId.hashCode()
-  }
+  override fun hashCode(): Int = videoBookingId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(videoBookingId = $videoBookingId)"
-  }
+  override fun toString(): String = this::class.simpleName + "(videoBookingId = $videoBookingId)"
 
   fun preHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_COURT_PRE" }
 
@@ -157,18 +151,17 @@ class VideoBooking private constructor(
       videoUrl: String?,
       createdBy: String,
       createdByPrison: Boolean,
-    ): VideoBooking =
-      VideoBooking(
-        bookingType = BookingType.COURT,
-        court = court,
-        hearingType = hearingType,
-        probationTeam = null,
-        probationMeetingType = null,
-        comments = comments,
-        videoUrl = videoUrl,
-        createdBy = createdBy,
-        createdByPrison = createdByPrison,
-      )
+    ): VideoBooking = VideoBooking(
+      bookingType = BookingType.COURT,
+      court = court,
+      hearingType = hearingType,
+      probationTeam = null,
+      probationMeetingType = null,
+      comments = comments,
+      videoUrl = videoUrl,
+      createdBy = createdBy,
+      createdByPrison = createdByPrison,
+    )
 
     fun newProbationBooking(
       probationTeam: ProbationTeam,
@@ -177,18 +170,17 @@ class VideoBooking private constructor(
       videoUrl: String?,
       createdBy: String,
       createdByPrison: Boolean,
-    ): VideoBooking =
-      VideoBooking(
-        bookingType = BookingType.PROBATION,
-        court = null,
-        hearingType = null,
-        probationTeam = probationTeam,
-        probationMeetingType = probationMeetingType,
-        comments = comments,
-        videoUrl = videoUrl,
-        createdBy = createdBy,
-        createdByPrison = createdByPrison,
-      )
+    ): VideoBooking = VideoBooking(
+      bookingType = BookingType.PROBATION,
+      court = null,
+      hearingType = null,
+      probationTeam = probationTeam,
+      probationMeetingType = probationMeetingType,
+      comments = comments,
+      videoUrl = videoUrl,
+      createdBy = createdBy,
+      createdByPrison = createdByPrison,
+    )
   }
 }
 

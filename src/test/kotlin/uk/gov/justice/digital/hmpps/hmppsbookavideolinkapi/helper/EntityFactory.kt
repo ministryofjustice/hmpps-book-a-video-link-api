@@ -78,16 +78,15 @@ fun VideoBooking.withMainCourtPrisonAppointment(
   prisonerNumber: String = "123456",
   startTime: LocalTime = LocalTime.of(9, 30),
   endTime: LocalTime = LocalTime.of(10, 0),
-) =
-  addAppointment(
-    prison = prison(prisonCode = prisonCode),
-    prisonerNumber = prisonerNumber,
-    appointmentType = "VLB_COURT_MAIN",
-    locationId = location.id,
-    date = date,
-    startTime = startTime,
-    endTime = endTime,
-  )
+) = addAppointment(
+  prison = prison(prisonCode = prisonCode),
+  prisonerNumber = prisonerNumber,
+  appointmentType = "VLB_COURT_MAIN",
+  locationId = location.id,
+  date = date,
+  startTime = startTime,
+  endTime = endTime,
+)
 
 fun probationBooking(probationTeam: ProbationTeam = probationTeam()) = VideoBooking.newProbationBooking(
   probationTeam = probationTeam,
@@ -179,23 +178,22 @@ fun probationMeetingType(description: String) = ReferenceCode(
 fun videoAppointment(
   booking: VideoBooking,
   prisonAppointment: PrisonAppointment,
-) =
-  VideoAppointment(
-    videoBookingId = booking.videoBookingId,
-    prisonAppointmentId = prisonAppointment.prisonAppointmentId,
-    bookingType = booking.bookingType.name,
-    statusCode = booking.statusCode.name,
-    courtCode = booking.court?.code,
-    probationTeamCode = null,
-    prisonCode = WANDSWORTH,
-    prisonerNumber = "A1234AA",
-    appointmentType = prisonAppointment.appointmentType,
-    prisonLocationId = prisonAppointment.prisonLocationId,
-    appointmentDate = prisonAppointment.appointmentDate,
-    startTime = prisonAppointment.startTime,
-    endTime = prisonAppointment.endTime,
-    lastCreatedOrAmended = booking.amendedTime ?: booking.createdTime,
-  )
+) = VideoAppointment(
+  videoBookingId = booking.videoBookingId,
+  prisonAppointmentId = prisonAppointment.prisonAppointmentId,
+  bookingType = booking.bookingType.name,
+  statusCode = booking.statusCode.name,
+  courtCode = booking.court?.code,
+  probationTeamCode = null,
+  prisonCode = WANDSWORTH,
+  prisonerNumber = "A1234AA",
+  appointmentType = prisonAppointment.appointmentType,
+  prisonLocationId = prisonAppointment.prisonLocationId,
+  appointmentDate = prisonAppointment.appointmentDate,
+  startTime = prisonAppointment.startTime,
+  endTime = prisonAppointment.endTime,
+  lastCreatedOrAmended = booking.amendedTime ?: booking.createdTime,
+)
 
 fun videoRoomAttributesWithSchedule(
   prisonCode: String,

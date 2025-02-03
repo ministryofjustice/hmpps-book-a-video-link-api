@@ -10,8 +10,6 @@ interface ReferenceCodeRepository : JpaRepository<ReferenceCode, Long> {
   fun findByGroupCodeAndCode(groupCode: String, code: String): ReferenceCode?
 }
 
-fun ReferenceCodeRepository.findByCourtHearingType(hearingType: String) =
-  findByGroupCodeAndCode("COURT_HEARING_TYPE", hearingType)
+fun ReferenceCodeRepository.findByCourtHearingType(hearingType: String) = findByGroupCodeAndCode("COURT_HEARING_TYPE", hearingType)
 
-fun ReferenceCodeRepository.findByProbationMeetingType(meetingType: String) =
-  findByGroupCodeAndCode("PROBATION_MEETING_TYPE", meetingType)
+fun ReferenceCodeRepository.findByProbationMeetingType(meetingType: String) = findByGroupCodeAndCode("PROBATION_MEETING_TYPE", meetingType)

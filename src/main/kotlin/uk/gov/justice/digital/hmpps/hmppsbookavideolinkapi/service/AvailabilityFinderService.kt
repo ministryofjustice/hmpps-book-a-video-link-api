@@ -44,19 +44,16 @@ class AvailabilityFinderService(
 
   companion object {
 
-    fun optionIsBookable(option: BookingOption, timelinesByLocationId: Map<String, Timeline>) =
-      option
-        .toLocationsAndIntervals()
-        .all { timelinesByLocationId[it.prisonLocKey]?.isFreeForInterval(it.interval) ?: true }
+    fun optionIsBookable(option: BookingOption, timelinesByLocationId: Map<String, Timeline>) = option
+      .toLocationsAndIntervals()
+      .all { timelinesByLocationId[it.prisonLocKey]?.isFreeForInterval(it.interval) ?: true }
 
-    fun timelinesByLocationKey(slots: List<AppointmentSlot>, locations: List<Location>): Map<String, Timeline> =
-      slots
-        .groupBy { a -> locations.single { it.id == a.prisonLocationId }.key }
-        .mapValues { (_, appointments) -> appointments.flatMap(::toEvents) }
-        .mapValues { Timeline(it.value) }
+    fun timelinesByLocationKey(slots: List<AppointmentSlot>, locations: List<Location>): Map<String, Timeline> = slots
+      .groupBy { a -> locations.single { it.id == a.prisonLocationId }.key }
+      .mapValues { (_, appointments) -> appointments.flatMap(::toEvents) }
+      .mapValues { Timeline(it.value) }
 
-    private fun toEvents(slot: AppointmentSlot) =
-      listOf(StartEvent(slot.startTime), EndEvent(slot.endTime))
+    private fun toEvents(slot: AppointmentSlot) = listOf(StartEvent(slot.startTime), EndEvent(slot.endTime))
   }
 }
 
