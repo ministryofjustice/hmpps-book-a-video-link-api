@@ -51,11 +51,10 @@ class InboundEventsListenerTest {
     )
   }
 
-  private fun message(event: DomainEvent<*>) =
-    Message(
-      "Notification",
-      mapper.writeValueAsString(event),
-      UUID.randomUUID().toString(),
-      MessageAttributes(EventType(Type = "String", Value = event.eventType)),
-    )
+  private fun message(event: DomainEvent<*>) = Message(
+    "Notification",
+    mapper.writeValueAsString(event),
+    UUID.randomUUID().toString(),
+    MessageAttributes(EventType(Type = "String", Value = event.eventType)),
+  )
 }

@@ -25,12 +25,11 @@ class CacheConfiguration {
   }
 
   @Bean
-  fun cacheManager(): CacheManager =
-    ConcurrentMapCacheManager(
-      VIDEO_LINK_LOCATIONS_CACHE_NAME,
-      NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
-      ROLLED_OUT_PRISONS_CACHE_NAME,
-    )
+  fun cacheManager(): CacheManager = ConcurrentMapCacheManager(
+    VIDEO_LINK_LOCATIONS_CACHE_NAME,
+    NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
+    ROLLED_OUT_PRISONS_CACHE_NAME,
+  )
 
   @CacheEvict(value = [VIDEO_LINK_LOCATIONS_CACHE_NAME], allEntries = true)
   @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)

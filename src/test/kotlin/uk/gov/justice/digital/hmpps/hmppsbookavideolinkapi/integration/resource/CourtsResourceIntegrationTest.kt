@@ -107,37 +107,34 @@ class CourtsResourceIntegrationTest : IntegrationTestBase() {
     userCourtRepository.deleteAll()
   }
 
-  private fun WebTestClient.getCourts(enabledOnly: Boolean) =
-    get()
-      .uri("/courts?enabledOnly=$enabledOnly")
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBodyList(Court::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.getCourts(enabledOnly: Boolean) = get()
+    .uri("/courts?enabledOnly=$enabledOnly")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBodyList(Court::class.java)
+    .returnResult().responseBody!!
 
-  private fun WebTestClient.getUserPreferenceCourts(user: User = COURT_USER) =
-    get()
-      .uri("/courts/user-preferences")
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBodyList(Court::class.java)
-      .returnResult().responseBody
+  private fun WebTestClient.getUserPreferenceCourts(user: User = COURT_USER) = get()
+    .uri("/courts/user-preferences")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBodyList(Court::class.java)
+    .returnResult().responseBody
 
-  private fun WebTestClient.setUserPreferenceCourts(request: SetCourtPreferencesRequest, user: User = COURT_USER) =
-    post()
-      .uri("/courts/user-preferences/set")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(SetCourtPreferencesResponse::class.java)
-      .returnResult().responseBody
+  private fun WebTestClient.setUserPreferenceCourts(request: SetCourtPreferencesRequest, user: User = COURT_USER) = post()
+    .uri("/courts/user-preferences/set")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(SetCourtPreferencesResponse::class.java)
+    .returnResult().responseBody
 }

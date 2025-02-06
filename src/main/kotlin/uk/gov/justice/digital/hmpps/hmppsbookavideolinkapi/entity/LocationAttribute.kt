@@ -77,15 +77,11 @@ class LocationAttribute(
     return locationAttributeId == other.locationAttributeId
   }
 
-  override fun hashCode(): Int {
-    return locationAttributeId.hashCode()
-  }
+  override fun hashCode(): Int = locationAttributeId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName +
-      "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
-  }
+  override fun toString(): String = this::class.simpleName +
+    "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
 }
 
 enum class LocationStatus {

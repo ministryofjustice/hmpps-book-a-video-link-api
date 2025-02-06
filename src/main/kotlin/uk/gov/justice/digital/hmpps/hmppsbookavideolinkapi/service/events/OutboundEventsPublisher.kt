@@ -35,6 +35,5 @@ class OutboundEventsPublisher(
     }.onFailure { log.error("PUBLISHER: error publishing event $event", it) }
   }
 
-  private fun DomainEvent<*>.attributes() =
-    mapOf("eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build())
+  private fun DomainEvent<*>.attributes() = mapOf("eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build())
 }

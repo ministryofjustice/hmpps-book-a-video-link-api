@@ -14,8 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHis
 @Service
 class BookingHistoryService(private val bookingHistoryRepository: BookingHistoryRepository) {
 
-  fun getByVideoBookingId(videoBookingId: Long): List<BookingHistory> =
-    bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(videoBookingId)
+  fun getByVideoBookingId(videoBookingId: Long): List<BookingHistory> = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(videoBookingId)
 
   @Transactional
   fun createBookingHistory(historyType: HistoryType, booking: VideoBooking) {
@@ -47,17 +46,16 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
     }.also(bookingHistoryRepository::saveAndFlush)
   }
 
-  private fun getAppointmentsForHistory(history: BookingHistory, booking: VideoBooking) =
-    booking.appointments().map { appointment ->
-      BookingHistoryAppointment(
-        bookingHistory = history,
-        prisonCode = appointment.prisonCode(),
-        prisonerNumber = appointment.prisonerNumber,
-        appointmentDate = appointment.appointmentDate,
-        appointmentType = appointment.appointmentType,
-        prisonLocationId = appointment.prisonLocationId,
-        startTime = appointment.startTime,
-        endTime = appointment.endTime,
-      )
-    }
+  private fun getAppointmentsForHistory(history: BookingHistory, booking: VideoBooking) = booking.appointments().map { appointment ->
+    BookingHistoryAppointment(
+      bookingHistory = history,
+      prisonCode = appointment.prisonCode(),
+      prisonerNumber = appointment.prisonerNumber,
+      appointmentDate = appointment.appointmentDate,
+      appointmentType = appointment.appointmentType,
+      prisonLocationId = appointment.prisonLocationId,
+      startTime = appointment.startTime,
+      endTime = appointment.endTime,
+    )
+  }
 }

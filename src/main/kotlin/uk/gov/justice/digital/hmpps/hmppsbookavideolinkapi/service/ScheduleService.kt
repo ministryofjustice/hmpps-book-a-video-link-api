@@ -13,28 +13,22 @@ class ScheduleService(
   private val scheduleRepository: ScheduleRepository,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
 ) {
-  fun getScheduleForPrison(prisonCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> {
-    return if (includeCancelled) {
-      scheduleRepository.getScheduleForPrisonIncludingCancelled(prisonCode, date).mapScheduleToModel()
-    } else {
-      scheduleRepository.getScheduleForPrison(prisonCode, date).mapScheduleToModel()
-    }
+  fun getScheduleForPrison(prisonCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> = if (includeCancelled) {
+    scheduleRepository.getScheduleForPrisonIncludingCancelled(prisonCode, date).mapScheduleToModel()
+  } else {
+    scheduleRepository.getScheduleForPrison(prisonCode, date).mapScheduleToModel()
   }
 
-  fun getScheduleForCourt(courtCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> {
-    return if (includeCancelled) {
-      scheduleRepository.getScheduleForCourtIncludingCancelled(courtCode, date).mapScheduleToModel()
-    } else {
-      scheduleRepository.getScheduleForCourt(courtCode, date).mapScheduleToModel()
-    }
+  fun getScheduleForCourt(courtCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> = if (includeCancelled) {
+    scheduleRepository.getScheduleForCourtIncludingCancelled(courtCode, date).mapScheduleToModel()
+  } else {
+    scheduleRepository.getScheduleForCourt(courtCode, date).mapScheduleToModel()
   }
 
-  fun getScheduleForProbationTeam(probationTeamCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> {
-    return if (includeCancelled) {
-      scheduleRepository.getScheduleForProbationTeamIncludingCancelled(probationTeamCode, date).mapScheduleToModel()
-    } else {
-      scheduleRepository.getScheduleForProbationTeam(probationTeamCode, date).mapScheduleToModel()
-    }
+  fun getScheduleForProbationTeam(probationTeamCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> = if (includeCancelled) {
+    scheduleRepository.getScheduleForProbationTeamIncludingCancelled(probationTeamCode, date).mapScheduleToModel()
+  } else {
+    scheduleRepository.getScheduleForProbationTeam(probationTeamCode, date).mapScheduleToModel()
   }
 
   private fun List<ScheduleItemEntity>.mapScheduleToModel(): List<ScheduleItem> {

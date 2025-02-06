@@ -59,43 +59,41 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
 
   @Bean
-  fun authorizationCustomizer(): OperationCustomizer {
-    return OperationCustomizer { operation: Operation, handlerMethod: HandlerMethod ->
-      val preAuthorizeValue = handlerMethod.getMethodAnnotation(PreAuthorize::class.java)?.value
-        ?: handlerMethod.beanType.getAnnotation(PreAuthorize::class.java)?.value
+  fun authorizationCustomizer(): OperationCustomizer = OperationCustomizer { operation: Operation, handlerMethod: HandlerMethod ->
+    val preAuthorizeValue = handlerMethod.getMethodAnnotation(PreAuthorize::class.java)?.value
+      ?: handlerMethod.beanType.getAnnotation(PreAuthorize::class.java)?.value
 
-      val protectedByIngress = handlerMethod.getMethodAnnotation(ProtectedByIngress::class.java)
-        ?: handlerMethod.beanType.getAnnotation(ProtectedByIngress::class.java)
+    val protectedByIngress = handlerMethod.getMethodAnnotation(ProtectedByIngress::class.java)
+      ?: handlerMethod.beanType.getAnnotation(ProtectedByIngress::class.java)
 
-      preAuthorizeValue?.let { expression ->
-        val spelParser = SpelExpressionParser()
-        val parsedExpression = spelParser.parseExpression(expression)
-        val spelContext = StandardEvaluationContext().apply {
-          beanResolver = BeanFactoryResolver(context)
-          setRootObject(object {
-            fun hasRole(role: String) = listOf(role)
-            fun hasAnyRole(vararg roles: String) = roles.toList()
-          })
-        }
-
-        val roles = try {
-          (parsedExpression.getValue(spelContext) as List<*>).asListOfType<String>()
-        } catch (e: SpelEvaluationException) {
-          emptyList()
-        }
-
-        if (roles.isNotEmpty()) {
-          val rolesDescription = roles.joinToString(prefix = "* ", separator = "\n* ")
-          operation.description = "${operation.description ?: ""}\n\nRequires one of the following roles:\n$rolesDescription"
-        }
+    preAuthorizeValue?.let { expression ->
+      val spelParser = SpelExpressionParser()
+      val parsedExpression = spelParser.parseExpression(expression)
+      val spelContext = StandardEvaluationContext().apply {
+        beanResolver = BeanFactoryResolver(context)
+        setRootObject(object {
+          fun hasRole(role: String) = listOf(role)
+          fun hasAnyRole(vararg roles: String) = roles.toList()
+        })
       }
 
-      protectedByIngress?.let {
-        operation.description = "${operation.description ?: ""}\n\nThis endpoint can only be accessed from within the ingress. Requests from elsewhere will result in a 401 response code."
+      val roles = try {
+        (parsedExpression.getValue(spelContext) as List<*>).asListOfType<String>()
+      } catch (e: SpelEvaluationException) {
+        emptyList()
       }
 
-      operation
+      if (roles.isNotEmpty()) {
+        val rolesDescription = roles.joinToString(prefix = "* ", separator = "\n* ")
+        operation.description = "${operation.description ?: ""}\n\nRequires one of the following roles:\n$rolesDescription"
+      }
     }
+
+    protectedByIngress?.let {
+      operation.description = "${operation.description ?: ""}\n\nThis endpoint can only be accessed from within the ingress. Requests from elsewhere will result in a 401 response code."
+    }
+
+    operation
   }
 
   @PostConstruct

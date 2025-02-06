@@ -92,8 +92,7 @@ data class LocationAndInterval(
   @field:ValidInterval
   val interval: Interval,
 ) {
-  fun shift(duration: Duration): LocationAndInterval =
-    copy(interval = Interval(interval.start?.plus(duration), interval.end?.plus(duration)))
+  fun shift(duration: Duration): LocationAndInterval = copy(interval = Interval(interval.start?.plus(duration), interval.end?.plus(duration)))
 }
 
 @Schema(description = "A time interval between a start and end time")
@@ -127,9 +126,8 @@ annotation class ValidInterval(
 )
 
 class IntervalValidator : ConstraintValidator<ValidInterval, Interval> {
-  override fun isValid(interval: Interval?, context: ConstraintValidatorContext?) =
-    when (interval) {
-      null -> true
-      else -> interval.start?.isBefore(interval.end) ?: false
-    }
+  override fun isValid(interval: Interval?, context: ConstraintValidatorContext?) = when (interval) {
+    null -> true
+    else -> interval.start?.isBefore(interval.end) ?: false
+  }
 }

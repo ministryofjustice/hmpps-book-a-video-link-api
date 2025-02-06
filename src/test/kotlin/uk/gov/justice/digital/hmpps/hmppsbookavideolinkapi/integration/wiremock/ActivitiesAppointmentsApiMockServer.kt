@@ -178,7 +178,10 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
   }
 }
 
-class ActivitiesAppointmentsApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class ActivitiesAppointmentsApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val server = ActivitiesAppointmentsApiMockServer()

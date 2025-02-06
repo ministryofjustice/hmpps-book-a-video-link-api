@@ -36,26 +36,25 @@ val pentonvilleLocation = location(prisonCode = PENTONVILLE, locationKeySuffix =
 val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
 val risleyLocation = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG", localName = "Risley room")
 
-fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null, id: UUID = UUID.randomUUID()) =
-  Location(
-    id = id,
-    prisonId = prisonCode,
-    code = "VIDEOLINK",
-    pathHierarchy = "VIDEOLINK",
-    locationType = Location.LocationType.VIDEO_LINK,
-    permanentlyInactive = false,
-    active = active,
-    deactivatedByParent = false,
-    topLevelId = UUID.randomUUID(),
-    key = "$prisonCode-$locationKeySuffix",
-    isResidential = false,
-    localName = localName,
-    lastModifiedBy = "test user",
-    lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
-    level = 2,
-    leafLevel = true,
-    status = Location.Status.ACTIVE,
-  )
+fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null, id: UUID = UUID.randomUUID()) = Location(
+  id = id,
+  prisonId = prisonCode,
+  code = "VIDEOLINK",
+  pathHierarchy = "VIDEOLINK",
+  locationType = Location.LocationType.VIDEO_LINK,
+  permanentlyInactive = false,
+  active = active,
+  deactivatedByParent = false,
+  topLevelId = UUID.randomUUID(),
+  key = "$prisonCode-$locationKeySuffix",
+  isResidential = false,
+  localName = localName,
+  lastModifiedBy = "test user",
+  lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+  level = 2,
+  leafLevel = true,
+  status = Location.Status.ACTIVE,
+)
 
 fun prisonerSearchPrisoner(
   prisonerNumber: String,
@@ -74,8 +73,7 @@ fun prisonerSearchPrisoner(
   lastPrisonId = lastPrisonCode,
 )
 
-fun userEmailAddress(username: String, email: String, verified: Boolean = true) =
-  EmailAddressDto(username, verified, email)
+fun userEmailAddress(username: String, email: String, verified: Boolean = true) = EmailAddressDto(username, verified, email)
 
 fun userDetails(
   username: String,
@@ -83,15 +81,14 @@ fun userDetails(
   authSource: AuthSource = AuthSource.auth,
   activeCaseLoadId: String? = null,
   userId: String = "TEST",
-) =
-  UserDetailsDto(
-    userId = userId,
-    username = username,
-    active = true,
-    name = name,
-    authSource = authSource,
-    activeCaseLoadId = activeCaseLoadId,
-  )
+) = UserDetailsDto(
+  userId = userId,
+  username = username,
+  active = true,
+  name = name,
+  authSource = authSource,
+  activeCaseLoadId = activeCaseLoadId,
+)
 
 fun serviceUser() = UserService.getServiceAsUser()
 
@@ -100,33 +97,30 @@ fun prisonUser(
   name: String = "Prison User",
   email: String? = "prison.user@prison.com",
   activeCaseLoadId: String = BIRMINGHAM,
-) =
-  PrisonUser(
-    username = username,
-    name = name,
-    email = email,
-    activeCaseLoadId = activeCaseLoadId,
-  )
+) = PrisonUser(
+  username = username,
+  name = name,
+  email = email,
+  activeCaseLoadId = activeCaseLoadId,
+)
 
-fun courtUser(username: String = "user", name: String = "Test User", email: String? = null) =
-  ExternalUser(
-    username = username,
-    name = name,
-    email = email,
-    isCourtUser = true,
-    isProbationUser = false,
-    courts = courts,
-  )
+fun courtUser(username: String = "user", name: String = "Test User", email: String? = null) = ExternalUser(
+  username = username,
+  name = name,
+  email = email,
+  isCourtUser = true,
+  isProbationUser = false,
+  courts = courts,
+)
 
-fun probationUser(username: String = "user", name: String = "Test User", email: String? = null) =
-  ExternalUser(
-    username = username,
-    name = name,
-    email = email,
-    isProbationUser = true,
-    isCourtUser = false,
-    probationTeams = probationTeams,
-  )
+fun probationUser(username: String = "user", name: String = "Test User", email: String? = null) = ExternalUser(
+  username = username,
+  name = name,
+  email = email,
+  isProbationUser = true,
+  isCourtUser = false,
+  probationTeams = probationTeams,
+)
 
 fun prisoner(
   prisonerNumber: String,

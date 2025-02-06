@@ -20,12 +20,11 @@ class AvailabilityOptionsGenerator(
   @Value("\${video-link-booking.options.step}")
   val step: Duration,
 ) {
-  fun getOptionsInPreferredOrder(preferredOption: BookingOption): Sequence<BookingOption> =
-    durations(step)
-      .map { dayStart.plus(it) }
-      .map { preferredOption.copyStartingAt(it) }
-      .takeWhile { it.endsOnOrBefore(dayEnd) }
-      .sortedBy { Duration.between(preferredOption.main.interval.start, it.main.interval.start).abs() }
+  fun getOptionsInPreferredOrder(preferredOption: BookingOption): Sequence<BookingOption> = durations(step)
+    .map { dayStart.plus(it) }
+    .map { preferredOption.copyStartingAt(it) }
+    .takeWhile { it.endsOnOrBefore(dayEnd) }
+    .sortedBy { Duration.between(preferredOption.main.interval.start, it.main.interval.start).abs() }
 
   companion object {
     fun durations(delta: Duration) = generateSequence(Duration.ZERO) { it.plus(delta) }

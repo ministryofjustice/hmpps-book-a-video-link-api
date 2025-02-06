@@ -51,12 +51,8 @@ class ProbationTeam(
     return probationTeamId == other.probationTeamId && code == other.code
   }
 
-  override fun hashCode(): Int {
-    return probationTeamId.hashCode()
-  }
+  override fun hashCode(): Int = probationTeamId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(probationTeamId = $probationTeamId)"
-  }
+  override fun toString(): String = this::class.simpleName + "(probationTeamId = $probationTeamId)"
 }

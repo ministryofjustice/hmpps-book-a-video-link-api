@@ -203,7 +203,10 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
   }
 }
 
-class LocationsInsidePrisonApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class LocationsInsidePrisonApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val server = LocationsInsidePrisonApiMockServer()

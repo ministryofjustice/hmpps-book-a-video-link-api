@@ -22,15 +22,14 @@ abstract class SqsIntegrationTestBase : IntegrationTestBase() {
   @Autowired
   protected lateinit var mapper: ObjectMapper
 
-  protected fun raw(event: DomainEvent<*>): String =
-    mapper.writeValueAsString(
-      Message(
-        "Notification",
-        mapper.writeValueAsString(event),
-        UUID.randomUUID().toString(),
-        MessageAttributes(EventType(Type = "String", Value = event.eventType)),
-      ),
-    )
+  protected fun raw(event: DomainEvent<*>): String = mapper.writeValueAsString(
+    Message(
+      "Notification",
+      mapper.writeValueAsString(event),
+      UUID.randomUUID().toString(),
+      MessageAttributes(EventType(Type = "String", Value = event.eventType)),
+    ),
+  )
 
   protected fun waitUntil(fn: () -> Unit) {
     // Default wait is 10 seconds, so dropping down to 5.

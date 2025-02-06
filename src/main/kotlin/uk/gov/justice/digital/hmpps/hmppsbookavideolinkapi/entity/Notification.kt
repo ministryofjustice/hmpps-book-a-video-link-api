@@ -42,12 +42,8 @@ class Notification(
     return notificationId == other.notificationId
   }
 
-  override fun hashCode(): Int {
-    return notificationId.hashCode()
-  }
+  override fun hashCode(): Int = notificationId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(notificationId = $notificationId)"
-  }
+  override fun toString(): String = this::class.simpleName + "(notificationId = $notificationId)"
 }

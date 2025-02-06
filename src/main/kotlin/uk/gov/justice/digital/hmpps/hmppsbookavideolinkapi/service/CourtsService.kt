@@ -16,15 +16,13 @@ class CourtsService(
   private val userCourtRepository: UserCourtRepository,
 ) {
 
-  fun getCourts(enabledOnly: Boolean) =
-    if (enabledOnly) {
-      courtRepository.findAllByEnabledIsTrue().toModel()
-    } else {
-      courtRepository.findAll().filter(Court::isReadable).toModel()
-    }
+  fun getCourts(enabledOnly: Boolean) = if (enabledOnly) {
+    courtRepository.findAllByEnabledIsTrue().toModel()
+  } else {
+    courtRepository.findAll().filter(Court::isReadable).toModel()
+  }
 
-  fun getUserCourtPreferences(user: User) =
-    courtRepository.findCourtsByUsername(user.username).toModel()
+  fun getUserCourtPreferences(user: User) = courtRepository.findCourtsByUsername(user.username).toModel()
 
   @Transactional
   fun setUserCourtPreferences(request: SetCourtPreferencesRequest, user: User): SetCourtPreferencesResponse {

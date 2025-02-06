@@ -32,12 +32,11 @@ class JobFailureStandardTelemetryEvent(
   private val message: String? = null,
   private val timeElapsed: Long,
 ) : StandardTelemetryEvent("BVLS-job-failure") {
-  override fun properties(): Map<String, String> =
-    mapOf(
-      "jobType" to jobType.name,
-      "message" to "".plus(message),
-      "timeElapsed" to timeElapsed.toString().plus("ms"),
-    )
+  override fun properties(): Map<String, String> = mapOf(
+    "jobType" to jobType.name,
+    "message" to "".plus(message),
+    "timeElapsed" to timeElapsed.toString().plus("ms"),
+  )
 }
 
 class JobSuccessStandardTelemetryEvent(

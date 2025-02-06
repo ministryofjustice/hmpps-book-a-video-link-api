@@ -66,59 +66,54 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
       .jsonPath("developerMessage").isEqualTo("CSV extracts are limited to a years worth of data.")
   }
 
-  private fun WebTestClient.badRequestWhenRequestTooManyDaysOfData() =
-    this
-      .get()
-      .uri("/download-csv/court-data-by-hearing-date?start-date=2024-07-30&days=366")
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
+  private fun WebTestClient.badRequestWhenRequestTooManyDaysOfData() = this
+    .get()
+    .uri("/download-csv/court-data-by-hearing-date?start-date=2024-07-30&days=366")
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
 
-  private fun WebTestClient.downloadCourtDataByHearingDate(startDate: LocalDate, days: Long) =
-    this
-      .get()
-      .uri("/download-csv/court-data-by-hearing-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
-      .expectBody()
-      .returnResult()
-      .toString()
+  private fun WebTestClient.downloadCourtDataByHearingDate(startDate: LocalDate, days: Long) = this
+    .get()
+    .uri("/download-csv/court-data-by-hearing-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
+    .expectBody()
+    .returnResult()
+    .toString()
 
-  private fun WebTestClient.downloadCourtDataByBookingDate(startDate: LocalDate, days: Long) =
-    this
-      .get()
-      .uri("/download-csv/court-data-by-booking-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
-      .expectBody()
-      .returnResult()
-      .toString()
+  private fun WebTestClient.downloadCourtDataByBookingDate(startDate: LocalDate, days: Long) = this
+    .get()
+    .uri("/download-csv/court-data-by-booking-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
+    .expectBody()
+    .returnResult()
+    .toString()
 
-  private fun WebTestClient.downloadProbationDataByBookingDate(startDate: LocalDate, days: Long) =
-    this
-      .get()
-      .uri("/download-csv/probation-data-by-booking-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
-      .expectBody()
-      .returnResult()
-      .toString()
+  private fun WebTestClient.downloadProbationDataByBookingDate(startDate: LocalDate, days: Long) = this
+    .get()
+    .uri("/download-csv/probation-data-by-booking-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
+    .expectBody()
+    .returnResult()
+    .toString()
 
-  private fun WebTestClient.downloadProbationDataByMeetingDate(startDate: LocalDate, days: Long) =
-    this
-      .get()
-      .uri("/download-csv/probation-data-by-meeting-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
-      .accept(MediaType.parseMediaType("text/csv"), MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
-      .expectBody()
-      .returnResult()
-      .toString()
+  private fun WebTestClient.downloadProbationDataByMeetingDate(startDate: LocalDate, days: Long) = this
+    .get()
+    .uri("/download-csv/probation-data-by-meeting-date?start-date={startDate}&days={days}", startDate.toIsoDate(), days)
+    .accept(MediaType.parseMediaType("text/csv"), MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
+    .expectBody()
+    .returnResult()
+    .toString()
 }

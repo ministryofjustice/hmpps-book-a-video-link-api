@@ -18,33 +18,30 @@ class ManageUsersClient(private val manageUsersApiWebClient: WebClient) {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getUsersDetails(username: String): UserDetailsDto? =
-    manageUsersApiWebClient
-      .get()
-      .uri("/users/{username}", username)
-      .retrieve()
-      .bodyToMono(UserDetailsDto::class.java)
-      .doOnError { error -> log.info("Error looking up user details by username $username in manage users client", error) }
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()
+  fun getUsersDetails(username: String): UserDetailsDto? = manageUsersApiWebClient
+    .get()
+    .uri("/users/{username}", username)
+    .retrieve()
+    .bodyToMono(UserDetailsDto::class.java)
+    .doOnError { error -> log.info("Error looking up user details by username $username in manage users client", error) }
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block()
 
-  fun getUsersEmail(username: String): EmailAddressDto? =
-    manageUsersApiWebClient
-      .get()
-      .uri("/users/{username}/email?unverified=false", username)
-      .retrieve()
-      .bodyToMono(EmailAddressDto::class.java)
-      .doOnError { error -> log.info("Error looking up users email by username $username in manage users client", error) }
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block()?.takeIf(EmailAddressDto::verified)
+  fun getUsersEmail(username: String): EmailAddressDto? = manageUsersApiWebClient
+    .get()
+    .uri("/users/{username}/email?unverified=false", username)
+    .retrieve()
+    .bodyToMono(EmailAddressDto::class.java)
+    .doOnError { error -> log.info("Error looking up users email by username $username in manage users client", error) }
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block()?.takeIf(EmailAddressDto::verified)
 
-  fun getUsersGroups(userId: String): List<UserGroup> =
-    manageUsersApiWebClient
-      .get()
-      .uri("/externalusers/{userId}/groups", userId)
-      .retrieve()
-      .bodyToMono(typeReference<List<UserGroup>>())
-      .doOnError { error -> log.info("Error looking up users groups by user id $userId in manage users client", error) }
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block() ?: emptyList()
+  fun getUsersGroups(userId: String): List<UserGroup> = manageUsersApiWebClient
+    .get()
+    .uri("/externalusers/{userId}/groups", userId)
+    .retrieve()
+    .bodyToMono(typeReference<List<UserGroup>>())
+    .doOnError { error -> log.info("Error looking up users groups by user id $userId in manage users client", error) }
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block() ?: emptyList()
 }

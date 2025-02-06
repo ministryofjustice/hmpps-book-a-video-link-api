@@ -345,9 +345,7 @@ object ProbationEmailFactory {
     require(isStatus(CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
 
-  private fun PrisonAppointment.appointmentInformation(location: Location) =
-    "${location.localName} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
+  private fun PrisonAppointment.appointmentInformation(location: Location) = "${location.localName} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
-  private fun Collection<BookingContact>.primaryProbationContact() =
-    singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
+  private fun Collection<BookingContact>.primaryProbationContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
 }

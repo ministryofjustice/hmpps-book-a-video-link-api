@@ -7,11 +7,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 
 @Service
 class PrisonsService(private val prisonRepository: PrisonRepository) {
-  fun getListOfPrisons(enabledOnly: Boolean): List<Prison> {
-    return if (!enabledOnly) {
-      prisonRepository.findAll().toModel()
-    } else {
-      prisonRepository.findAllByEnabledIsTrue().toModel()
-    }
+  fun getListOfPrisons(enabledOnly: Boolean): List<Prison> = if (!enabledOnly) {
+    prisonRepository.findAll().toModel()
+  } else {
+    prisonRepository.findAllByEnabledIsTrue().toModel()
   }
 }

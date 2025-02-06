@@ -172,49 +172,42 @@ class ManageExternalAppointmentsService(
     }
   }
 
-  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> =
-    filter { searchResult ->
-      searchResult.isTheSameTime(appointment) && searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment.bookingType())) && searchResult.isCancelled.not()
-    }.ifEmpty {
-      emptyList<AppointmentSearchResult>()
-        .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
-    }
+  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> = filter { searchResult ->
+    searchResult.isTheSameTime(appointment) && searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment.bookingType())) && searchResult.isCancelled.not()
+  }.ifEmpty {
+    emptyList<AppointmentSearchResult>()
+      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
+  }
 
-  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(bha: BookingHistoryAppointment): List<AppointmentSearchResult> =
-    filter { searchResult ->
-      searchResult.isTheSameTime(bha) && searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha.bookingType())) && searchResult.isCancelled.not()
-    }.ifEmpty {
-      emptyList<AppointmentSearchResult>()
-        .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for booking history appointment ${bha.bookingHistoryAppointmentId}") }
-    }
+  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(bha: BookingHistoryAppointment): List<AppointmentSearchResult> = filter { searchResult ->
+    searchResult.isTheSameTime(bha) && searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha.bookingType())) && searchResult.isCancelled.not()
+  }.ifEmpty {
+    emptyList<AppointmentSearchResult>()
+      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for booking history appointment ${bha.bookingHistoryAppointmentId}") }
+  }
 
-  private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(appointment: PrisonAppointment): List<PrisonerSchedule> =
-    filter { schedule ->
-      schedule.isTheSameTime(appointment) && schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment.bookingType()))
-    }.ifEmpty {
-      emptyList<PrisonerSchedule>()
-        .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
-    }
+  private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(appointment: PrisonAppointment): List<PrisonerSchedule> = filter { schedule ->
+    schedule.isTheSameTime(appointment) && schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment.bookingType()))
+  }.ifEmpty {
+    emptyList<PrisonerSchedule>()
+      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
+  }
 
-  private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(bha: BookingHistoryAppointment): List<PrisonerSchedule> =
-    filter { schedule ->
-      schedule.isTheSameTime(bha) && schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha.bookingType()))
-    }.ifEmpty {
-      emptyList<PrisonerSchedule>()
-        .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
-    }
+  private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(bha: BookingHistoryAppointment): List<PrisonerSchedule> = filter { schedule ->
+    schedule.isTheSameTime(bha) && schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha.bookingType()))
+  }.ifEmpty {
+    emptyList<PrisonerSchedule>()
+      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
+  }
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
-  private fun PrisonAppointment.internalLocationId() =
-    nomisMappingClient.getNomisLocationMappingBy(prisonLocationId)?.nomisLocationId
-      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocationId not found for prison appointment $prisonAppointmentId")
+  private fun PrisonAppointment.internalLocationId() = nomisMappingClient.getNomisLocationMappingBy(prisonLocationId)?.nomisLocationId
+    ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocationId not found for prison appointment $prisonAppointmentId")
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
-  private fun PrisonAppointment.bookingId() =
-    prisonerSearchClient.getPrisoner(prisonerNumber)?.bookingId?.toLong()
-      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Booking id not found for prisoner $prisonerNumber for prison appointment $prisonAppointmentId")
+  private fun PrisonAppointment.bookingId() = prisonerSearchClient.getPrisoner(prisonerNumber)?.bookingId?.toLong()
+    ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Booking id not found for prisoner $prisonerNumber for prison appointment $prisonAppointmentId")
 
-  private fun BookingHistoryAppointment.internalLocationId() =
-    nomisMappingClient.getNomisLocationMappingBy(prisonLocationId)?.nomisLocationId
-      ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocationId not found for prison appointment ${bookingHistoryAppointmentId}Id")
+  private fun BookingHistoryAppointment.internalLocationId() = nomisMappingClient.getNomisLocationMappingBy(prisonLocationId)?.nomisLocationId
+    ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocationId not found for prison appointment ${bookingHistoryAppointmentId}Id")
 }

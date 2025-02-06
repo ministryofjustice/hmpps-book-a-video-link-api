@@ -25,11 +25,9 @@ class CourtsServiceTest {
   private val courtRepository: CourtRepository = mock()
   private val userCourtRepository: UserCourtRepository = mock()
   private val service = CourtsService(courtRepository, userCourtRepository)
-  private fun courtEntity(id: Long, code: String, desc: String, enabled: Boolean = true, notes: String? = "notes") =
-    CourtEntity(id, code, desc, enabled, false, notes, "name")
+  private fun courtEntity(id: Long, code: String, desc: String, enabled: Boolean = true, notes: String? = "notes") = CourtEntity(id, code, desc, enabled, false, notes, "name")
 
-  private fun userCourtEntity(id: Long, court: CourtEntity, username: String) =
-    UserCourtEntity(id, court, username, username)
+  private fun userCourtEntity(id: Long, court: CourtEntity, username: String) = UserCourtEntity(id, court, username, username)
 
   @BeforeEach
   fun setUp() {

@@ -35,48 +35,45 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     endTime: LocalTime,
     comments: String? = null,
     appointmentType: SupportedAppointmentTypes.Type,
-  ): ScheduledEvent? =
-    prisonApiWebClient
-      .post()
-      .uri("/api/bookings/{bookingId}/appointments", bookingId)
-      .header("no-event-propagation", DO_NOT_PROPAGATE)
-      .bodyValue(
-        NewAppointment(
-          appointmentType = appointmentType.code,
-          locationId = locationId,
-          startTime = appointmentDate.atTime(startTime).toIsoDateTime(),
-          endTime = appointmentDate.atTime(endTime).toIsoDateTime(),
-          comment = comments,
-        ),
-      )
-      .retrieve()
-      .bodyToMono(ScheduledEvent::class.java)
-      .block()
+  ): ScheduledEvent? = prisonApiWebClient
+    .post()
+    .uri("/api/bookings/{bookingId}/appointments", bookingId)
+    .header("no-event-propagation", DO_NOT_PROPAGATE)
+    .bodyValue(
+      NewAppointment(
+        appointmentType = appointmentType.code,
+        locationId = locationId,
+        startTime = appointmentDate.atTime(startTime).toIsoDateTime(),
+        endTime = appointmentDate.atTime(endTime).toIsoDateTime(),
+        comment = comments,
+      ),
+    )
+    .retrieve()
+    .bodyToMono(ScheduledEvent::class.java)
+    .block()
 
   /**
    * Returns all matching appointment (types) for a prisoner, not just video link bookings.
    */
-  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long): List<PrisonerSchedule> =
-    if (locationIds.isNotEmpty()) {
-      log.info("PRISON-API CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
-      getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
-        .also { log.info("PRISON-API CLIENT: matches pre-location filter: $it") }
-        .filter { locationIds.contains(it.locationId) }
-        .also { log.info("PRISON-API CLIENT matches post-location filter: $it") }
-    } else {
-      emptyList()
-    }
+  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long): List<PrisonerSchedule> = if (locationIds.isNotEmpty()) {
+    log.info("PRISON-API CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
+    getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
+      .also { log.info("PRISON-API CLIENT: matches pre-location filter: $it") }
+      .filter { locationIds.contains(it.locationId) }
+      .also { log.info("PRISON-API CLIENT matches post-location filter: $it") }
+  } else {
+    emptyList()
+  }
 
-  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<PrisonerSchedule> =
-    prisonApiWebClient
-      .post()
-      .uri("/api/schedules/{prisonCode}/appointments?date={date}", prisonCode, onDate.toIsoDate())
-      .bodyValue(listOf(prisonerNumber))
-      .retrieve()
-      .bodyToMono(typeReference<List<PrisonerSchedule>>())
-      .doOnError { error -> log.info("Error looking up prisoners appointments by prison code $prisonCode, prisoner number $prisonerNumber, on date $onDate in prison api client", error) }
-      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-      .block() ?: emptyList()
+  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<PrisonerSchedule> = prisonApiWebClient
+    .post()
+    .uri("/api/schedules/{prisonCode}/appointments?date={date}", prisonCode, onDate.toIsoDate())
+    .bodyValue(listOf(prisonerNumber))
+    .retrieve()
+    .bodyToMono(typeReference<List<PrisonerSchedule>>())
+    .doOnError { error -> log.info("Error looking up prisoners appointments by prison code $prisonCode, prisoner number $prisonerNumber, on date $onDate in prison api client", error) }
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block() ?: emptyList()
 
   /**
    * @param appointmentId refers the appointment identifier held in NOMIS, not BVLS.
@@ -95,18 +92,17 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
   /**
    * Gets appointments in this prison, on this date, at a specific internal location ID.
    */
-  fun getScheduledAppointments(prisonCode: String, date: LocalDate, locationId: Long) =
-    prisonApiWebClient.get()
-      .uri { uriBuilder: UriBuilder ->
-        uriBuilder
-          .path("/api/schedules/{prisonCode}/appointments")
-          .queryParam("date", date)
-          .queryParam("locationId", locationId)
-          .build(prisonCode)
-      }
-      .retrieve()
-      .bodyToMono(typeReference<List<ScheduledAppointment>>())
-      .block() ?: emptyList()
+  fun getScheduledAppointments(prisonCode: String, date: LocalDate, locationId: Long) = prisonApiWebClient.get()
+    .uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/api/schedules/{prisonCode}/appointments")
+        .queryParam("date", date)
+        .queryParam("locationId", locationId)
+        .build(prisonCode)
+    }
+    .retrieve()
+    .bodyToMono(typeReference<List<ScheduledAppointment>>())
+    .block() ?: emptyList()
 }
 
 // Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
@@ -125,12 +121,10 @@ data class PrisonerSchedule(
 ) {
   fun isTheSameAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = event == appointmentType.code
 
-  fun isTheSameTime(appointment: PrisonAppointment) =
-    startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
-      appointment.appointmentDate.atTime(appointment.endTime) == endTime
+  fun isTheSameTime(appointment: PrisonAppointment) = startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
+    appointment.appointmentDate.atTime(appointment.endTime) == endTime
 
-  fun isTheSameTime(bha: BookingHistoryAppointment) =
-    startTime == bha.appointmentDate.atTime(bha.startTime) && bha.appointmentDate.atTime(bha.endTime) == endTime
+  fun isTheSameTime(bha: BookingHistoryAppointment) = startTime == bha.appointmentDate.atTime(bha.startTime) && bha.appointmentDate.atTime(bha.endTime) == endTime
 }
 
 data class ScheduledAppointment(

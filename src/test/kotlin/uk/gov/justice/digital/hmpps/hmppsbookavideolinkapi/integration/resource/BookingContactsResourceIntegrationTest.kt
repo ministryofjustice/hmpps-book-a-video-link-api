@@ -197,25 +197,23 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     // If the createdBy and amendedBy usernames are both email addresses, and different, they are returned as joint OWNERS
   }
 
-  private fun WebTestClient.getBookingContactsNotFound(videoBookingId: Long) =
-    get()
-      .uri("/booking-contacts/id/{videoBookingId}", videoBookingId)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isNotFound
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(ErrorResponse::class.java)
-      .returnResult().responseBody
+  private fun WebTestClient.getBookingContactsNotFound(videoBookingId: Long) = get()
+    .uri("/booking-contacts/id/{videoBookingId}", videoBookingId)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isNotFound
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(ErrorResponse::class.java)
+    .returnResult().responseBody
 
-  private fun WebTestClient.getBookingContacts(videoBookingId: Long) =
-    get()
-      .uri("/booking-contacts/id/{videoBookingId}", videoBookingId)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBodyList(BookingContact::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.getBookingContacts(videoBookingId: Long) = get()
+    .uri("/booking-contacts/id/{videoBookingId}", videoBookingId)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBodyList(BookingContact::class.java)
+    .returnResult().responseBody!!
 }

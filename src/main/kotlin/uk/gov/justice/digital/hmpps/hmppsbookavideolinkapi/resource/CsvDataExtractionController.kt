@@ -47,12 +47,11 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     @RequestParam(name = "days")
     @Parameter(description = "Return details of events occurring within this number of days of start-date. A maximum of 365 days.")
     days: Long = 7,
-  ): ResponseEntity<StreamingResponseBody> =
-    streamedCsvResponse(
-      startDate,
-      days,
-      "video-links-by-court-hearing-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-    ) { os -> service.courtBookingsByHearingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
+  ): ResponseEntity<StreamingResponseBody> = streamedCsvResponse(
+    startDate,
+    days,
+    "video-links-by-court-hearing-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
+  ) { os -> service.courtBookingsByHearingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
   @GetMapping(path = ["/probation-data-by-meeting-date"])
   @Operation(description = "Return details of probation video link bookings by meeting date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
@@ -65,12 +64,11 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     @RequestParam(name = "days")
     @Parameter(description = "Return details of events occurring within this number of days of start-date. A maximum of 365 days.")
     days: Long = 7,
-  ): ResponseEntity<StreamingResponseBody> =
-    streamedCsvResponse(
-      startDate,
-      days,
-      "video-links-by-probation-meeting-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-    ) { os -> service.probationBookingsByMeetingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
+  ): ResponseEntity<StreamingResponseBody> = streamedCsvResponse(
+    startDate,
+    days,
+    "video-links-by-probation-meeting-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
+  ) { os -> service.probationBookingsByMeetingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
   @GetMapping(path = ["/court-data-by-booking-date"])
   @Operation(description = "Return details of court video link bookings by booking date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
@@ -83,12 +81,11 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     @RequestParam(name = "days")
     @Parameter(description = "Return details of bookings occurring within this number of days of start-date. A maximum of 365 days.")
     days: Long = 7,
-  ): ResponseEntity<StreamingResponseBody> =
-    streamedCsvResponse(
-      startDate,
-      days,
-      "video-links-by-court-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-    ) { os -> service.courtBookingsByBookingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
+  ): ResponseEntity<StreamingResponseBody> = streamedCsvResponse(
+    startDate,
+    days,
+    "video-links-by-court-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
+  ) { os -> service.courtBookingsByBookingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
   @GetMapping(path = ["/probation-data-by-booking-date"])
   @Operation(description = "Return details of probation video link bookings by booking date in CSV format. Restrict the response to events occurring within 'days' of start-date.")
@@ -101,12 +98,11 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     @RequestParam(name = "days")
     @Parameter(description = "Return details of bookings occurring within this number of days of start-date. A maximum of 365 days.")
     days: Long = 7,
-  ): ResponseEntity<StreamingResponseBody> =
-    streamedCsvResponse(
-      startDate,
-      days,
-      "video-links-by-probation-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
-    ) { os -> service.probationBookingsByBookingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
+  ): ResponseEntity<StreamingResponseBody> = streamedCsvResponse(
+    startDate,
+    days,
+    "video-links-by-probation-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
+  ) { os -> service.probationBookingsByBookingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
   private fun streamedCsvResponse(startDate: LocalDate, days: Long, filename: String, block: (outputStream: OutputStream) -> Unit): ResponseEntity<StreamingResponseBody> {
     require(ChronoUnit.DAYS.between(startDate, startDate.plusDays(days)) <= 365) {

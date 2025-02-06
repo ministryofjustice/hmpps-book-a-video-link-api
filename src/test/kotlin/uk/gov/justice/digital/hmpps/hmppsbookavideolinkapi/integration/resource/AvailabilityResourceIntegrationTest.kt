@@ -216,16 +216,15 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     }
   }
 
-  private fun WebTestClient.availabilityCheck(request: AvailabilityRequest) =
-    this
-      .post()
-      .uri("/availability")
-      .bodyValue(request)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().isOk
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(AvailabilityResponse::class.java)
-      .returnResult().responseBody!!
+  private fun WebTestClient.availabilityCheck(request: AvailabilityRequest) = this
+    .post()
+    .uri("/availability")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(AvailabilityResponse::class.java)
+    .returnResult().responseBody!!
 }

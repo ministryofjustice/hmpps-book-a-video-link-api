@@ -55,8 +55,7 @@ class BookingHistory(
   @OneToMany(mappedBy = "bookingHistory", fetch = FetchType.EAGER, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val appointments: MutableList<BookingHistoryAppointment> = mutableListOf()
 
-  fun addBookingHistoryAppointments(bookingHistoryAppointments: List<BookingHistoryAppointment>) =
-    this.appointments.addAll(bookingHistoryAppointments)
+  fun addBookingHistoryAppointments(bookingHistoryAppointments: List<BookingHistoryAppointment>) = this.appointments.addAll(bookingHistoryAppointments)
 
   fun appointments() = appointments.toList()
 
@@ -69,14 +68,10 @@ class BookingHistory(
     return bookingHistoryId == other.bookingHistoryId
   }
 
-  override fun hashCode(): Int {
-    return bookingHistoryId.hashCode()
-  }
+  override fun hashCode(): Int = bookingHistoryId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(bookingHistoryId = $bookingHistoryId)"
-  }
+  override fun toString(): String = this::class.simpleName + "(bookingHistoryId = $bookingHistoryId)"
 }
 
 /**
@@ -120,14 +115,10 @@ data class BookingHistoryAppointment(
     return bookingHistoryAppointmentId == other.bookingHistoryAppointmentId
   }
 
-  override fun hashCode(): Int {
-    return bookingHistoryAppointmentId.hashCode()
-  }
+  override fun hashCode(): Int = bookingHistoryAppointmentId.hashCode()
 
   @Override
-  override fun toString(): String {
-    return this::class.simpleName + "(bookingHistoryAppointmentId = $bookingHistoryAppointmentId)"
-  }
+  override fun toString(): String = this::class.simpleName + "(bookingHistoryAppointmentId = $bookingHistoryAppointmentId)"
 }
 
 enum class HistoryType {

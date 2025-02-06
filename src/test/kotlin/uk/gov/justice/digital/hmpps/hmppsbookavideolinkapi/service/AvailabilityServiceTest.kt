@@ -66,23 +66,22 @@ class AvailabilityServiceTest {
     appType: String,
     startTime: LocalTime,
     endTime: LocalTime,
-  ) =
-    VideoAppointment(
-      videoBookingId = videoBookId,
-      prisonAppointmentId = appId,
-      bookingType = BookingType.COURT.name,
-      statusCode = BookingStatus.ACTIVE.name,
-      courtCode = "TESTC",
-      probationTeamCode = null,
-      prisonCode = WANDSWORTH,
-      prisonerNumber = "A1234AA",
-      appointmentType = appType,
-      prisonLocationId = locationId,
-      appointmentDate = LocalDate.now(),
-      startTime = startTime,
-      endTime = endTime,
-      lastCreatedOrAmended = LocalDateTime.now(),
-    )
+  ) = VideoAppointment(
+    videoBookingId = videoBookId,
+    prisonAppointmentId = appId,
+    bookingType = BookingType.COURT.name,
+    statusCode = BookingStatus.ACTIVE.name,
+    courtCode = "TESTC",
+    probationTeamCode = null,
+    prisonCode = WANDSWORTH,
+    prisonerNumber = "A1234AA",
+    appointmentType = appType,
+    prisonLocationId = locationId,
+    appointmentDate = LocalDate.now(),
+    startTime = startTime,
+    endTime = endTime,
+    lastCreatedOrAmended = LocalDateTime.now(),
+  )
 
   private val room1 = location(WANDSWORTH, "VCC-1")
   private val room2 = location(WANDSWORTH, "VCC-2")

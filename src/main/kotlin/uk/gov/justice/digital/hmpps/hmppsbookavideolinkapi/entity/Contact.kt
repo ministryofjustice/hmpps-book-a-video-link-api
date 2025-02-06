@@ -43,9 +43,7 @@ data class UniquePropertyId(val contactType: ContactType?, val email: String?) :
     return email == other.email
   }
 
-  override fun hashCode(): Int {
-    return contactType.hashCode() * 31 + email.hashCode()
-  }
+  override fun hashCode(): Int = contactType.hashCode() * 31 + email.hashCode()
 }
 
 enum class ContactType {

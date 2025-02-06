@@ -43,8 +43,7 @@ class ReferenceCodeServiceTest {
     verify(referenceCodeRepository).findAllByGroupCodeEquals("GROUP_CODE")
   }
 
-  private fun referenceCodeEntity(id: Long, groupCode: String, code: String, description: String, enabled: Boolean = true) =
-    ReferenceCodeEntity(id, groupCode, code, description, "name", enabled = enabled)
+  private fun referenceCodeEntity(id: Long, groupCode: String, code: String, description: String, enabled: Boolean = true) = ReferenceCodeEntity(id, groupCode, code, description, "name", enabled = enabled)
 
   @Test
   fun `Should return an empty list when no reference codes are matched`() {

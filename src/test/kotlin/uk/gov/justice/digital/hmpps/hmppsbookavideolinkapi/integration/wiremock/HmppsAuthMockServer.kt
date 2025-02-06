@@ -31,7 +31,10 @@ class HmppsAuthMockServer : MockServer(8090, "/auth") {
   }
 }
 
-class HmppsAuthApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class HmppsAuthApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val server = HmppsAuthMockServer()

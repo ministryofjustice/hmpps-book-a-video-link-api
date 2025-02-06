@@ -47,10 +47,8 @@ class ProbationBookingCancelledTelemetryEvent private constructor(
       return ProbationBookingCancelledTelemetryEvent(booking, cancelledBy)
     }
 
-    fun released(videoBooking: VideoBooking): ProbationBookingCancelledTelemetryEvent =
-      ProbationBookingCancelledTelemetryEvent(videoBooking, "release")
+    fun released(videoBooking: VideoBooking): ProbationBookingCancelledTelemetryEvent = ProbationBookingCancelledTelemetryEvent(videoBooking, "release")
 
-    fun transferred(videoBooking: VideoBooking): ProbationBookingCancelledTelemetryEvent =
-      ProbationBookingCancelledTelemetryEvent(videoBooking, "transfer")
+    fun transferred(videoBooking: VideoBooking): ProbationBookingCancelledTelemetryEvent = ProbationBookingCancelledTelemetryEvent(videoBooking, "transfer")
   }
 }

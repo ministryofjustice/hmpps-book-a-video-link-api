@@ -3,8 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 
-class CourtBookingCreatedTelemetryEvent(private val booking: VideoBooking) :
-  MetricTelemetryEvent("BVLS-court-booking-created") {
+class CourtBookingCreatedTelemetryEvent(private val booking: VideoBooking) : MetricTelemetryEvent("BVLS-court-booking-created") {
 
   init {
     require(booking.isBookingType(COURT)) {
@@ -16,8 +15,7 @@ class CourtBookingCreatedTelemetryEvent(private val booking: VideoBooking) :
     }
   }
 
-  override fun properties() =
-    booking.commonProperties().plus("created_by" to if (booking.createdByPrison) "prison" else "court")
+  override fun properties() = booking.commonProperties().plus("created_by" to if (booking.createdByPrison) "prison" else "court")
 
   override fun metrics() = mapOf(booking.hoursBeforeStartTimeMetric())
 }
