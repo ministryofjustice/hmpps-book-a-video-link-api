@@ -28,26 +28,26 @@ fun ModelLocation.toDecoratedLocation(attributes: RoomAttributes) = ModelLocatio
   extraAttributes = attributes,
 )
 
-// Additional location attributes
 fun LocationAttribute.toRoomAttributes() = RoomAttributes(
+  attributeId = this.locationAttributeId,
   locationStatus = this.locationStatus,
   statusMessage = this.statusMessage,
   expectedActiveDate = this.expectedActiveDate,
   locationUsage = this.locationUsage,
-  allowedParties = this.allowedParties,
+  allowedParties = this.allowedParties.let { this.allowedParties?.split(",") } ?: emptyList(),
   prisonVideoUrl = this.prisonVideoUrl,
   notes = this.notes,
   schedule = this.schedule().toRoomSchedule(),
 )
 
-// Additional location schedule
 fun List<LocationSchedule>.toRoomSchedule() = map {
   RoomSchedule(
+    scheduleId = it.locationScheduleId,
     startDayOfWeek = DayOfWeek.of(it.startDayOfWeek),
     endDayOfWeek = DayOfWeek.of(it.endDayOfWeek),
     startTime = it.startTime,
     endTime = it.endTime,
     locationUsage = it.locationUsage,
-    allowedParties = it.allowedParties,
+    allowedParties = it.allowedParties.let { parties -> parties?.split(",") } ?: emptyList(),
   )
 }
