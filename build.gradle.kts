@@ -46,6 +46,8 @@ dependencies {
 
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.12.0")
 
+  implementation("com.googlecode.libphonenumber:libphonenumber:8.13.54")
+
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")

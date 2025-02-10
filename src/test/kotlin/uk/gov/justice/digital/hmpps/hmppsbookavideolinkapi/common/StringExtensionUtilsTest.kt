@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 
 class StringExtensionUtilsTest {
   @Test
@@ -37,6 +38,17 @@ class StringExtensionUtilsTest {
 
     listOfEmailAddresses.forEach { address ->
       assertThat(address.isEmail()).isEqualTo(true)
+    }
+  }
+
+  @Test
+  fun `should recognise various UK phone numbers`() {
+    listOf(
+      "+44 123 456 7890",
+      "07928 660553",
+      "0344 561 6789",
+    ).forEach { phoneNumber ->
+      phoneNumber.isUkPhoneNumber() isBool true
     }
   }
 }
