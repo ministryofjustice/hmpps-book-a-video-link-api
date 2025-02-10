@@ -184,10 +184,12 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
+        assertThat(attributeId).isEqualTo(1)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
+          assertThat(scheduleId).isEqualTo(1)
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
@@ -204,10 +206,12 @@ class LocationsServiceTest {
       assertThat(enabled).isFalse()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
+        assertThat(attributeId).isEqualTo(2)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
+          assertThat(scheduleId).isEqualTo(1)
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
@@ -243,15 +247,18 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
+        assertThat(attributeId).isEqualTo(1)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
+          assertThat(scheduleId).isEqualTo(1)
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
           assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+          assertThat(allowedParties).isEmpty()
         }
       }
     }
@@ -282,8 +289,10 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
+        assertThat(attributeId).isEqualTo(1)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        assertThat(allowedParties).isEmpty()
         assertThat(schedule).isNullOrEmpty()
       }
     }
@@ -305,7 +314,7 @@ class LocationsServiceTest {
   }
 
   @Test
-  fun `should return a mixture of decorated and undecorated locations, and filter when decorated with INACTIVE`() {
+  fun `should return a mixture of decorated and undecorated locations even when decorated with INACTIVE`() {
     val locationA = location(WANDSWORTH, "A", active = true)
     val locationB = location(WANDSWORTH, "B", active = true)
     val locationC = location(WANDSWORTH, "C", active = true)
@@ -313,7 +322,7 @@ class LocationsServiceTest {
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB, locationC)
 
-    // Location A is ACTIVE - in decorations
+    // Location A is ACTIVE - in decoration data
     val roomAttributesA = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
       attributeId = 1,
@@ -321,7 +330,7 @@ class LocationsServiceTest {
       locationStatus = LocationStatus.ACTIVE,
     )
 
-    // Location B is INACTIVE - in decoration
+    // Location B is INACTIVE - in decoration data
     val roomAttributesB = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
       attributeId = 2,
@@ -335,26 +344,29 @@ class LocationsServiceTest {
 
     val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = false)
 
-    assertThat(result).hasSize(2)
+    assertThat(result).hasSize(3)
 
     with(result[0]) {
       assertThat(key).isEqualTo(locationA.key)
-      assertThat(dpsLocationId).isEqualTo(locationA.id)
-      assertThat(description).isEqualTo(locationA.localName)
       assertThat(enabled).isTrue()
-
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
+        assertThat(attributeId).isEqualTo(1)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
-        assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
-        assertThat(schedule).isNullOrEmpty()
       }
     }
 
     with(result[1]) {
+      assertThat(key).isEqualTo(locationB.key)
+      assertThat(enabled).isTrue()
+      with(extraAttributes!!) {
+        assertThat(attributeId).isEqualTo(2)
+        assertThat(locationStatus).isEqualTo(LocationStatus.INACTIVE)
+      }
+    }
+
+    with(result[2]) {
       assertThat(key).isEqualTo(locationC.key)
-      assertThat(dpsLocationId).isEqualTo(locationC.id)
-      assertThat(description).isEqualTo(locationC.localName)
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNull()
     }
