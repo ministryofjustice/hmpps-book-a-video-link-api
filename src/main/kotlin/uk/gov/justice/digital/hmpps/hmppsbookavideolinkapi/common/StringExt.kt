@@ -14,5 +14,9 @@ fun String.isEmail() = this.matches(
 fun String.toOffsetDateTime(): OffsetDateTime = OffsetDateTime.parse(this)
 
 fun String.isUkPhoneNumber(): Boolean = runCatching {
-  phoneNumberUtil.parse(this, ukCountryCode).let { phoneNumberUtil.isValidNumber(it) }
+  phoneNumberUtil.parse(this, ukCountryCode).let {
+    // We don't want to allow alpha numbers e.g. 0800 800 ACME
+    !phoneNumberUtil.isAlphaNumber(this) &&
+      phoneNumberUtil.isValidNumber(it)
+  }
 }.getOrElse { false }

@@ -42,6 +42,17 @@ class StringExtensionUtilsTest {
   }
 
   @Test
+  fun `should recognise invalid UK phone numbers`() {
+    listOf(
+      "+44 I11 456 7890",
+      "0800 800 ACME",
+    ).forEach { phoneNumber ->
+      println(phoneNumber)
+      phoneNumber.isUkPhoneNumber() isBool false
+    }
+  }
+
+  @Test
   fun `should recognise various UK phone numbers`() {
     listOf(
       "+44 123 456 7890",
