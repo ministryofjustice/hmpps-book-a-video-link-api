@@ -21,6 +21,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
@@ -34,6 +36,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppoi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentScheduleInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Identifier
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PersonReference
@@ -141,6 +144,10 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
 
       whenever(videoBookingRepository.findById(courtBooking.videoBookingId)) doReturn Optional.of(courtBooking)
 
+      // amended values should not be set prior to event firing
+      courtBooking.amendedBy isEqualTo null
+      courtBooking.amendedTime isEqualTo null
+
       handler.handle(
         cancellationEvent(
           prisonCode = WANDSWORTH,
@@ -158,10 +165,17 @@ class PrisonerVideoAppointmentCancelledEventHandlerTest {
           startTime = LocalTime.MIDNIGHT,
         )
 
-        verify(prisonAppointmentRepository).deleteById(courtAppointment.prisonAppointmentId)
-        verify(prisonAppointmentRepository).flush()
-        verify(videoBookingRepository).findById(courtBooking.videoBookingId)
-        verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
+        inOrder(prisonAppointmentRepository, videoBookingRepository, bookingHistoryService) {
+          verify(prisonAppointmentRepository).deleteById(courtAppointment.prisonAppointmentId)
+          verify(prisonAppointmentRepository).flush()
+          verify(videoBookingRepository).findById(courtBooking.videoBookingId)
+          verify(videoBookingRepository).saveAndFlush(courtBooking)
+          verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
+        }
+
+        // amended values should be set after event firing
+        courtBooking.amendedBy isEqualTo UserService.getServiceAsUser().username
+        courtBooking.amendedTime isCloseTo LocalDateTime.now()
       }
 
       verifyNoInteractions(bookingFacade)
