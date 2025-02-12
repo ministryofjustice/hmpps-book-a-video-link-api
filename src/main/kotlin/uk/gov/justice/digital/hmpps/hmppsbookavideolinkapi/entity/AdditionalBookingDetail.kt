@@ -51,7 +51,7 @@ class AdditionalBookingDetail private constructor(
       field = value
     }
 
-  var contactPhoneNumber: String? = null
+  var contactNumber: String? = null
     set(value) {
       require(value == null || value.isUkPhoneNumber()) {
         "Contact number is not a valid UK phone number"
@@ -72,7 +72,7 @@ class AdditionalBookingDetail private constructor(
   init {
     contactName = name
     contactEmail = email
-    contactPhoneNumber = phoneNumber
+    contactNumber = phoneNumber
     extraInformation = information
 
     requireNot(email == null && phoneNumber == null) {

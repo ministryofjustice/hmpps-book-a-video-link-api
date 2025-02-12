@@ -89,7 +89,9 @@ abstract class IntegrationTestBase {
     nomisMappingApi().stubHealthPing(status)
   }
 
+  protected fun activitiesAppointmentsApi() = ActivitiesAppointmentsApiExtension.server
   protected fun prisonerApi() = PrisonApiExtension.server
+
   protected fun prisonSearchApi() = PrisonerSearchApiExtension.server
 
   protected fun locationsInsidePrisonApi() = LocationsInsidePrisonApiExtension.server

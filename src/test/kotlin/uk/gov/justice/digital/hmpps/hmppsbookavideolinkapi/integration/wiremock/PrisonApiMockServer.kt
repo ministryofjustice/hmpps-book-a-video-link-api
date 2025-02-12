@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
@@ -85,6 +86,22 @@ class PrisonApiMockServer : MockServer(8094) {
             .withBody(
               mapper.writeValueAsString(locations),
             )
+            .withStatus(200),
+        ),
+    )
+  }
+
+  fun stubGetScheduledAppointments(
+    prisonCode: String,
+    date: LocalDate,
+    locationId: Long,
+  ) {
+    stubFor(
+      WireMock.get("/api/schedules/$prisonCode/appointments?date=${date.toIsoDate()}&locationId=$locationId")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(emptyList<ScheduledAppointment>()))
             .withStatus(200),
         ),
     )

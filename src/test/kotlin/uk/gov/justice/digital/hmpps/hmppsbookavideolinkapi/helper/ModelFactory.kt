@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.mo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -228,6 +229,7 @@ fun probationBookingRequest(
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "probation booking comments",
+  additionalBookingDetails: AdditionalBookingDetails? = null,
 ): CreateVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
@@ -250,6 +252,7 @@ fun probationBookingRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = videoLinkUrl,
+    additionalBookingDetails = additionalBookingDetails,
   )
 }
 
