@@ -109,7 +109,17 @@ class PrisonerVideoAppointmentCancelledEventHandler(
   private fun createBookingHistoryForTheRemoved(appointment: VideoAppointment) {
     videoBookingRepository.findById(appointment.videoBookingId)
       .ifPresentOrElse(
-        { bookingHistoryService.createBookingHistory(HistoryType.AMEND, it) },
+        { booking ->
+          // We need to manually apply the amended details to the booking for the history to be recorded correctly.
+          videoBookingRepository.saveAndFlush(
+            booking.apply {
+              amendedBy = UserService.getServiceAsUser().username
+              amendedTime = LocalDateTime.now()
+            },
+          )
+
+          bookingHistoryService.createBookingHistory(HistoryType.AMEND, booking)
+        },
         { throw NullPointerException("Video booking with ID ${appointment.videoBookingId} not found.") },
       )
   }

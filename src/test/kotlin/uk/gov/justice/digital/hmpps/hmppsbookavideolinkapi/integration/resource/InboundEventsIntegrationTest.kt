@@ -20,16 +20,19 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryAppointmentRepository
@@ -56,6 +59,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReleaseInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.PrisonerMergedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
+import java.time.LocalDateTime
 import java.time.LocalTime
 import kotlin.reflect.KClass
 
@@ -313,6 +317,80 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent("j@j.com", CancelledCourtBookingCourtEmail::class, persistedBooking)
     notifications.isPresent("g@g.com", CancelledCourtBookingPrisonCourtEmail::class, persistedBooking)
     notifications.isPresent("p@p.com", CancelledCourtBookingPrisonCourtEmail::class, persistedBooking)
+  }
+
+  @Test
+  fun `should remove the pre-appointment for a video court booking on receipt of a prisoner appointment cancelled event`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
+      date = tomorrow(),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      comments = "integration test court booking comments",
+      appointments = listOf(
+        Appointment(
+          type = AppointmentType.VLB_COURT_PRE,
+          locationKey = pentonvilleLocation.key,
+          date = tomorrow(),
+          startTime = LocalTime.of(10, 45),
+          endTime = LocalTime.of(11, 0),
+        ),
+        Appointment(
+          type = AppointmentType.VLB_COURT_MAIN,
+          locationKey = pentonvilleLocation.key,
+          date = tomorrow(),
+          startTime = LocalTime.of(11, 0),
+          endTime = LocalTime.of(11, 30),
+        ),
+      ),
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+    val createdBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.ACTIVE }
+
+    prisonAppointmentRepository.findByVideoBooking(createdBooking) hasSize 2
+
+    inboundEventsListener.onMessage(
+      raw(
+        PrisonerVideoAppointmentCancelledEvent(
+          personReference = PersonReference(listOf(Identifier("NOMS", "123456"))),
+          additionalInformation = AppointmentScheduleInformation(
+            scheduleEventId = 1,
+            scheduledStartTime = tomorrow().atTime(10, 45),
+            scheduledEndTime = null,
+            scheduleEventSubType = "VLB",
+            scheduleEventStatus = "",
+            recordDeleted = true,
+            agencyLocationId = PENTONVILLE,
+          ),
+        ),
+      ),
+    )
+
+    val updatedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(updatedBooking) {
+      statusCode isEqualTo StatusCode.ACTIVE
+      amendedBy isEqualTo SERVICE_USER.username
+      amendedTime isCloseTo LocalDateTime.now()
+    }
+
+    prisonAppointmentRepository.findByVideoBooking(updatedBooking).single().appointmentType isEqualTo "VLB_COURT_MAIN"
+
+    // There will be only be 3 notifications for the initial creation, there is no actual cancellation in this case.
+    val notifications = notificationRepository.findAll().also { it hasSize 3 }
+
+    notifications.isPresent("court_user", NewCourtBookingUserEmail::class, updatedBooking)
+    notifications.isPresent("g@g.com", NewCourtBookingPrisonCourtEmail::class, updatedBooking)
+    notifications.isPresent("p@p.com", NewCourtBookingPrisonCourtEmail::class, updatedBooking)
   }
 
   @Test
