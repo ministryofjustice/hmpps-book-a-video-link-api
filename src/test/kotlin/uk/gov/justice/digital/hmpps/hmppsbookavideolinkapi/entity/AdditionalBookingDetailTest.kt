@@ -57,6 +57,13 @@ class AdditionalBookingDetailTest {
   }
 
   @Test
+  fun `should reject when details blank`() {
+    assertThrows<IllegalArgumentException> {
+      AdditionalBookingDetail.newDetails(booking, contactName = "contact", contactEmail = "valid@email.address", contactPhoneNumber = null, extraInformation = " ")
+    }.message isEqualTo "Extra information cannot be blank"
+  }
+
+  @Test
   fun `should be valid additional information`() {
     AdditionalBookingDetail.newDetails(booking, contactName = "contact", contactEmail = "valid@email.address", contactPhoneNumber = null, extraInformation = "extra information")
     AdditionalBookingDetail.newDetails(booking, contactName = "contact", contactEmail = null, contactPhoneNumber = "01234 567890", extraInformation = "extra information")
@@ -65,7 +72,7 @@ class AdditionalBookingDetailTest {
       videoBooking isEqualTo booking
       contactName isEqualTo "contact"
       contactEmail isEqualTo "valid@email.address"
-      contactPhoneNumber isEqualTo "01234 567890"
+      contactNumber isEqualTo "01234 567890"
       extraInformation isEqualTo "extra information"
     }
   }

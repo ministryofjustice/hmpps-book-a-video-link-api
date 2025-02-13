@@ -37,9 +37,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
  */
 @Component
 class BookingFacade(
-  private val createVideoBookingService: CreateVideoBookingService,
-  private val amendVideoBookingService: AmendVideoBookingService,
-  private val cancelVideoBookingService: CancelVideoBookingService,
+  private val videoBookingServiceDelegate: VideoBookingServiceDelegate,
   private val contactsService: ContactsService,
   private val prisonRepository: PrisonRepository,
   private val emailService: EmailService,
@@ -63,7 +61,7 @@ class BookingFacade(
       }
     }
 
-    val (booking, prisoner) = createVideoBookingService.create(bookingRequest, createdBy)
+    val (booking, prisoner) = videoBookingServiceDelegate.create(bookingRequest, createdBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
     sendBookingEmails(BookingAction.CREATE, booking, prisoner, createdBy)
     sendTelemetry(BookingAction.CREATE, booking, createdBy)
@@ -79,7 +77,7 @@ class BookingFacade(
       }
     }
 
-    val (booking, prisoner) = amendVideoBookingService.amend(videoBookingId, bookingRequest, amendedBy)
+    val (booking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
     sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
     sendTelemetry(BookingAction.AMEND, booking, amendedBy)
@@ -95,7 +93,7 @@ class BookingFacade(
   }
 
   private fun cancelBooking(videoBookingId: Long, cancelledBy: User) {
-    val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
+    val booking = videoBookingServiceDelegate.cancel(videoBookingId, cancelledBy)
     log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
@@ -104,7 +102,7 @@ class BookingFacade(
 
   fun cancel(videoBookingId: Long, cancelledBy: ServiceUser) {
     // No events should be raised on the back of calling this function, this is by design.
-    val booking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
+    val booking = videoBookingServiceDelegate.cancel(videoBookingId, cancelledBy)
     log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
     sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
     sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
@@ -119,7 +117,7 @@ class BookingFacade(
   }
 
   fun prisonerTransferred(videoBookingId: Long, user: ServiceUser) {
-    val booking = cancelVideoBookingService.cancel(videoBookingId, user)
+    val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
@@ -127,7 +125,7 @@ class BookingFacade(
   }
 
   fun prisonerReleased(videoBookingId: Long, user: ServiceUser) {
-    val booking = cancelVideoBookingService.cancel(videoBookingId, user)
+    val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     sendBookingEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)

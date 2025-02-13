@@ -57,7 +57,8 @@ class StringExtensionUtilsTest {
     listOf(
       "+44 123 456 7890",
       "07928 660553",
-      "0344 561 6789",
+      "0115 6336363 ext 3",
+      "0115 6336363 ext. 3",
     ).forEach { phoneNumber ->
       phoneNumber.isUkPhoneNumber() isBool true
     }

@@ -68,6 +68,15 @@ data class CreateVideoBookingRequest(
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
   @Schema(description = "The video link for the appointment.", example = "https://video.here.com")
   val videoLinkUrl: String?,
+
+  @Schema(
+    description = """
+      The additional booking details for the booking. Additional details are only applicable to probation bookings. Will
+      be ignored if not a probation booking.
+      """,
+  )
+  @field:Valid
+  val additionalBookingDetails: AdditionalBookingDetails? = null,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The court code and court hearing type are mandatory for court bookings")
@@ -117,6 +126,7 @@ enum class CourtHearingType {
 }
 
 enum class ProbationMeetingType {
+  OTHER,
   PSR,
   RR,
   UNKNOWN,
