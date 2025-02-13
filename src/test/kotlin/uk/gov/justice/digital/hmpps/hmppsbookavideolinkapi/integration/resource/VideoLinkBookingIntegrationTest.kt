@@ -1039,7 +1039,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments isEqualTo "amended court booking comments"
     }
 
-    // There should be 4 notifications, 1 user email and 2 prison emails
+    // There should be 3 notifications, 1 user email and 2 prison emails
     val notifications = notificationRepository.findAll().also { it hasSize 3 }
 
     notifications.isPresent("p@p.com", AmendedCourtBookingPrisonCourtEmail::class, persistedBooking)

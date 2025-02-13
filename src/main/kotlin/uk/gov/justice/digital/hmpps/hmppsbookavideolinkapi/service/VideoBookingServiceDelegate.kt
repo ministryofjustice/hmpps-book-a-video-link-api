@@ -18,6 +18,7 @@ class VideoBookingServiceDelegate(
   private val createVideoBookingService: CreateVideoBookingService,
   private val createProbationBookingService: CreateProbationBookingService,
   private val amendVideoBookingService: AmendVideoBookingService,
+  private val amendProbationBookingService: AmendProbationBookingService,
   private val cancelVideoBookingService: CancelVideoBookingService,
   private val featureSwitches: FeatureSwitches,
 ) {
@@ -41,9 +42,21 @@ class VideoBookingServiceDelegate(
     }
   }
 
-  // TODO - this will need to check feature toggle to determine correct path for amendments.
   @Transactional
-  fun amend(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: User) = amendVideoBookingService.amend(videoBookingId, request, amendedBy)
+  fun amend(videoBookingId: Long, booking: AmendVideoBookingRequest, amendedBy: User) = when (featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) {
+    false -> {
+      log.info("AMEND BOOKING DELEGATE: VLPM feature toggle is off.")
+      amendVideoBookingService.amend(videoBookingId, booking, amendedBy)
+    }
+
+    true -> {
+      log.info("AMEND BOOKING DELEGATE: VLPM feature toggle is on.")
+      when (booking.bookingType!!) {
+        BookingType.COURT -> amendVideoBookingService.amend(videoBookingId, booking, amendedBy)
+        BookingType.PROBATION -> amendProbationBookingService.amend(videoBookingId, booking, amendedBy)
+      }
+    }
+  }
 
   @Transactional
   fun cancel(videoBookingId: Long, cancelledBy: User): VideoBooking = cancelVideoBookingService.cancel(videoBookingId, cancelledBy)

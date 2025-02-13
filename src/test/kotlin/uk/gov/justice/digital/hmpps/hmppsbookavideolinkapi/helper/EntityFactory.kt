@@ -1,10 +1,14 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AdditionalBookingDetail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
@@ -15,8 +19,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
@@ -88,9 +95,9 @@ fun VideoBooking.withMainCourtPrisonAppointment(
   endTime = endTime,
 )
 
-fun probationBooking(probationTeam: ProbationTeam = probationTeam()) = VideoBooking.newProbationBooking(
+fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType: ProbationMeetingType = ProbationMeetingType.PSR) = VideoBooking.newProbationBooking(
   probationTeam = probationTeam,
-  probationMeetingType = "PSR",
+  probationMeetingType = meetingType.name,
   comments = "Probation meeting comments",
   videoUrl = "https://probation.meeting.link",
   createdBy = "Probation team user",
@@ -262,3 +269,32 @@ fun videoRoomAttributesWithoutSchedule(
 
   return mutableListOf(roomAttributes)
 }
+
+fun VideoBooking.hasBookingType(that: BookingType): VideoBooking = also { it.bookingType isEqualTo that }
+fun VideoBooking.hasProbationTeam(that: ProbationTeam): VideoBooking = also { it.probationTeam isEqualTo that }
+fun VideoBooking.hasMeetingType(that: ProbationMeetingType): VideoBooking = also { it.probationMeetingType isEqualTo that.name }
+fun VideoBooking.hasComments(that: String): VideoBooking = also { it.comments isEqualTo that }
+fun VideoBooking.hasVideoUrl(that: String): VideoBooking = also { it.videoUrl isEqualTo that }
+fun VideoBooking.hasCreatedBy(that: User): VideoBooking = also { it.createdBy isEqualTo that.username }
+fun VideoBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdTime isCloseTo that }
+fun VideoBooking.hasCreatedByPrison(that: Boolean): VideoBooking = also { it.createdByPrison isBool that }
+fun VideoBooking.hasAmendedBy(that: User): VideoBooking = also { it.amendedBy isEqualTo that.username }
+fun VideoBooking.hasAmendedTimeCloseTo(that: LocalDateTime) = also { it.amendedTime isCloseTo that }
+
+fun PrisonAppointment.hasPrisonCode(that: String): PrisonAppointment = also { it.prisonCode() isEqualTo that }
+fun PrisonAppointment.hasPrisonerNumber(that: String): PrisonAppointment = also { it.prisonerNumber isEqualTo that }
+fun PrisonAppointment.hasAppointmentTypeProbation(): PrisonAppointment = also { it.appointmentType isEqualTo "VLB_PROBATION" }
+fun PrisonAppointment.hasAppointmentDate(that: LocalDate): PrisonAppointment = also { it.appointmentDate isEqualTo that }
+fun PrisonAppointment.hasStartTime(that: LocalTime): PrisonAppointment = also { it.startTime isEqualTo that }
+fun PrisonAppointment.hasEndTime(that: LocalTime): PrisonAppointment = also { it.endTime isEqualTo that }
+fun PrisonAppointment.hasLocation(that: Location): PrisonAppointment = also { it.prisonLocationId isEqualTo that.id }
+fun PrisonAppointment.hasComments(that: String): PrisonAppointment = also { it.comments isEqualTo that }
+
+fun AdditionalBookingDetail.hasContactName(that: String): AdditionalBookingDetail = also { it.contactName isEqualTo that }
+fun AdditionalBookingDetail.hasEmailAddress(that: String): AdditionalBookingDetail = also { it.contactEmail isEqualTo that }
+fun AdditionalBookingDetail.hasPhoneNumber(that: String): AdditionalBookingDetail = also { it.contactNumber isEqualTo that }
+fun AdditionalBookingDetail.hasExtraInfo(that: String): AdditionalBookingDetail = also { it.extraInformation isEqualTo that }
+
+fun BookingHistory.hasHistoryType(that: HistoryType): BookingHistory = also { it.historyType isEqualTo that }
+fun BookingHistory.hasProbationMeetingType(that: ProbationMeetingType): BookingHistory = also { it.probationMeetingType isEqualTo that.name }
+fun BookingHistory.hasProbationTeam(that: ProbationTeam): BookingHistory = also { it.probationTeamId isEqualTo that.probationTeamId }

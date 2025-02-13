@@ -20,10 +20,11 @@ class VideoBookingServiceDelegateTest {
   private val createVideoBookingService: CreateVideoBookingService = mock()
   private val createProbationBookingService: CreateProbationBookingService = mock()
   private val amendVideoBookingService: AmendVideoBookingService = mock()
+  private val amendProbationBookingService: AmendProbationBookingService = mock()
   private val cancelVideoBookingService: CancelVideoBookingService = mock()
   private val featureSwitches: FeatureSwitches = mock()
   private val delegate =
-    VideoBookingServiceDelegate(createVideoBookingService, createProbationBookingService, amendVideoBookingService, cancelVideoBookingService, featureSwitches)
+    VideoBookingServiceDelegate(createVideoBookingService, createProbationBookingService, amendVideoBookingService, amendProbationBookingService, cancelVideoBookingService, featureSwitches)
 
   private val courtBookingRequest = courtBookingRequest()
   private val probationBookingRequest = probationBookingRequest()
@@ -57,15 +58,29 @@ class VideoBookingServiceDelegateTest {
   }
 
   @Test
-  fun `should delegate to amend booking service`() {
+  fun `should delegate to correct amend booking service when FEATURE_MASTER_VLPM_TYPES toggle off`() {
+    whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn false
+
     delegate.amend(1, amendCourtBookingRequest, COURT_USER)
     verify(amendVideoBookingService).amend(1, amendCourtBookingRequest, COURT_USER)
 
     delegate.amend(2, amendProbationBookingRequest, PROBATION_USER)
     verify(amendVideoBookingService).amend(2, amendProbationBookingRequest, PROBATION_USER)
 
-    verifyNoInteractions(createVideoBookingService)
-    verifyNoInteractions(createProbationBookingService)
+    verifyNoInteractions(createVideoBookingService, createProbationBookingService, amendProbationBookingService)
+  }
+
+  @Test
+  fun `should delegate to correct amend booking service when FEATURE_MASTER_VLPM_TYPES toggle on`() {
+    whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
+
+    delegate.amend(1, amendCourtBookingRequest, COURT_USER)
+    verify(amendVideoBookingService).amend(1, amendCourtBookingRequest, COURT_USER)
+
+    delegate.amend(2, amendProbationBookingRequest, PROBATION_USER)
+    verify(amendProbationBookingService).amend(2, amendProbationBookingRequest, PROBATION_USER)
+
+    verifyNoInteractions(createVideoBookingService, createProbationBookingService)
   }
 
   @Test
@@ -73,8 +88,6 @@ class VideoBookingServiceDelegateTest {
     delegate.cancel(1, COURT_USER)
     verify(cancelVideoBookingService).cancel(1, COURT_USER)
 
-    verifyNoInteractions(createVideoBookingService)
-    verifyNoInteractions(createProbationBookingService)
-    verifyNoInteractions(amendVideoBookingService)
+    verifyNoInteractions(createVideoBookingService, createProbationBookingService, amendVideoBookingService)
   }
 }
