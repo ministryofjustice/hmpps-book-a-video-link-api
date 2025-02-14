@@ -9,7 +9,6 @@ import jakarta.persistence.OneToOne
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isUkPhoneNumber
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 
 @Entity
 class AdditionalBookingDetail private constructor(
@@ -23,11 +22,9 @@ class AdditionalBookingDetail private constructor(
 
   name: String,
 
-  email: String?,
+  email: String,
 
   phoneNumber: String?,
-
-  information: String?,
 ) {
   var contactName: String = ""
     set(value) {
@@ -38,13 +35,9 @@ class AdditionalBookingDetail private constructor(
       field = value
     }
 
-  var contactEmail: String? = ""
+  var contactEmail: String = ""
     set(value) {
-      require(value == null || value.isNotBlank()) {
-        "Contact email cannot be blank"
-      }
-
-      require(value == null || value.isEmail()) {
+      require(value.isEmail()) {
         "Contact email is not a valid email address"
       }
 
@@ -60,24 +53,10 @@ class AdditionalBookingDetail private constructor(
       field = value
     }
 
-  var extraInformation: String? = information
-    set(value) {
-      require(value == null || value.isNotBlank()) {
-        "Extra information cannot be blank"
-      }
-
-      field = value
-    }
-
   init {
     contactName = name
     contactEmail = email
     contactNumber = phoneNumber
-    extraInformation = information
-
-    requireNot(email == null && phoneNumber == null) {
-      "Must provide at least one, contact email or contact phone number"
-    }
   }
 
   override fun equals(other: Any?): Boolean {
@@ -95,15 +74,13 @@ class AdditionalBookingDetail private constructor(
     fun newDetails(
       videoBooking: VideoBooking,
       contactName: String,
-      contactEmail: String?,
+      contactEmail: String,
       contactPhoneNumber: String?,
-      extraInformation: String?,
     ) = AdditionalBookingDetail(
       videoBooking = videoBooking,
       name = contactName,
       email = contactEmail,
       phoneNumber = contactPhoneNumber,
-      information = extraInformation,
     )
   }
 }

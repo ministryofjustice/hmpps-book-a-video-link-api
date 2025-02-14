@@ -78,32 +78,29 @@ class AmendProbationBookingService(
   }
 
   private fun AmendVideoBookingRequest.saveAdditionalDetailsFor(booking: VideoBooking) {
-    additionalBookingDetails!!.let { details ->
-      if (booking.probationMeetingType!! == MEETING_TYPE_OTHER) {
-        requireNotNull(details.extraInformation) {
-          "Probation meeting extra information is required for meeting type Other"
-        }
+    val mayBeExistingDetails = additionalBookingDetailRepository.findByVideoBooking(booking)
+
+    if (additionalBookingDetails == null) {
+      if (mayBeExistingDetails != null) {
+        additionalBookingDetailRepository.delete(mayBeExistingDetails)
+        additionalBookingDetailRepository.flush()
       }
-
-      val mayBeExistingDetails = additionalBookingDetailRepository.findByVideoBooking(booking)
-
+    } else {
       if (mayBeExistingDetails != null) {
         additionalBookingDetailRepository.saveAndFlush(
           mayBeExistingDetails.apply {
-            contactName = details.contactName!!
-            contactEmail = details.contactEmail
-            contactNumber = details.contactNumber
-            extraInformation = details.extraInformation
+            contactName = additionalBookingDetails.contactName!!
+            contactEmail = additionalBookingDetails.contactEmail!!
+            contactNumber = additionalBookingDetails.contactNumber
           },
         )
       } else {
         additionalBookingDetailRepository.saveAndFlush(
           AdditionalBookingDetail.newDetails(
             videoBooking = booking,
-            contactName = details.contactName!!,
-            contactEmail = details.contactEmail,
-            contactPhoneNumber = details.contactNumber,
-            extraInformation = details.extraInformation,
+            contactName = additionalBookingDetails.contactName!!,
+            contactEmail = additionalBookingDetails.contactEmail!!,
+            contactPhoneNumber = additionalBookingDetails.contactNumber,
           ),
         )
       }

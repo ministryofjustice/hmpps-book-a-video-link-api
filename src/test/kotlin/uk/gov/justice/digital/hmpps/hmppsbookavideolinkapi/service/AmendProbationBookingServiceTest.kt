@@ -33,7 +33,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasComments
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasContactName
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEmailAddress
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEndTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasExtraInfo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPhoneNumber
@@ -85,6 +84,7 @@ class AmendProbationBookingServiceTest {
     additionalBookingDetailRepository,
   )
 
+  private val additionalBookingDetail: AdditionalBookingDetail = mock()
   private var amendedBookingCaptor = argumentCaptor<VideoBooking>()
   private var additionalBookingDetailCaptor = argumentCaptor<AdditionalBookingDetail>()
 
@@ -103,7 +103,6 @@ class AmendProbationBookingServiceTest {
         contactName = "contact name",
         contactEmail = "contact@email.com",
         contactNumber = "07928 660553",
-        extraInformation = "some extra information",
       ),
     )
 
@@ -164,7 +163,75 @@ class AmendProbationBookingServiceTest {
       .hasContactName("contact name")
       .hasEmailAddress("contact@email.com")
       .hasPhoneNumber("07928 660553")
-      .hasExtraInfo("some extra information")
+  }
+
+  @Test
+  fun `should remove additional details from probation video booking for probation user`() {
+    val probationBooking = probationBooking(meetingType = ProbationMeetingType.PSR).withProbationPrisonAppointment()
+    val prisonerNumber = "123456"
+    val probationBookingRequest = amendProbationBookingRequest(
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = prisonerNumber,
+      location = birminghamLocation,
+      appointmentDate = tomorrow(),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(13, 0),
+    )
+
+    withBookingFixture(2, probationBooking)
+    withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
+
+    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(additionalBookingDetailRepository.findByVideoBooking(probationBooking)) doReturn additionalBookingDetail
+
+    val (booking, prisoner) = service.amend(2, probationBookingRequest, PROBATION_USER)
+
+    booking isEqualTo probationBooking
+    prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
+
+    verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking)
+    verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
+
+    amendedBookingCaptor
+      .firstValue
+      .hasBookingType(BookingType.PROBATION)
+      .hasProbationTeam(probationBooking.probationTeam!!)
+      .hasMeetingType(ProbationMeetingType.PSR)
+      .hasComments("probation booking comments")
+      .hasVideoUrl(probationBookingRequest.videoLinkUrl!!)
+      .hasAmendedBy(PROBATION_USER)
+      .hasAmendedTimeCloseTo(LocalDateTime.now())
+      .appointments()
+      .single()
+      .hasPrisonCode(BIRMINGHAM)
+      .hasPrisonerNumber("123456")
+      .hasAppointmentTypeProbation()
+      .hasAppointmentDate(tomorrow())
+      .hasStartTime(LocalTime.of(12, 0))
+      .hasEndTime(LocalTime.of(13, 0))
+      .hasLocation(birminghamLocation)
+
+    inOrder(
+      videoBookingRepository,
+      prisonerValidator,
+      locationValidator,
+      appointmentsService,
+      videoBookingRepository,
+      additionalBookingDetailRepository,
+      additionalBookingDetailRepository,
+      additionalBookingDetailRepository,
+      bookingHistoryService,
+    ) {
+      verify(videoBookingRepository).findById(2)
+      verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
+      verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
+      verify(videoBookingRepository).saveAndFlush(probationBooking)
+      verify(additionalBookingDetailRepository).findByVideoBooking(probationBooking)
+      verify(additionalBookingDetailRepository).delete(additionalBookingDetail)
+      verify(additionalBookingDetailRepository).flush()
+      verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking)
+    }
   }
 
   @Test
@@ -210,7 +277,6 @@ class AmendProbationBookingServiceTest {
         contactName = "contact name",
         contactEmail = "contact@email.com",
         contactNumber = null,
-        extraInformation = null,
       ),
     )
 
@@ -292,35 +358,6 @@ class AmendProbationBookingServiceTest {
     withBookingFixture(2, probationBooking())
 
     assertThrows<VideoBookingAccessException> { service.amend(2, amendProbationBookingRequest(), COURT_USER) }
-  }
-
-  @Test
-  fun `should fail to amend a probation video booking with missing extra details for meeting type OTHER`() {
-    val probationBooking = probationBooking(meetingType = ProbationMeetingType.OTHER).withProbationPrisonAppointment()
-    val prisonerNumber = "123456"
-    val probationBookingRequest = amendProbationBookingRequest(
-      prisonCode = BIRMINGHAM,
-      prisonerNumber = prisonerNumber,
-      startTime = LocalTime.of(8, 30),
-      endTime = LocalTime.of(9, 30),
-      location = birminghamLocation,
-      probationMeetingType = ProbationMeetingType.OTHER,
-      additionalBookingDetails = AdditionalBookingDetails(
-        contactName = "contact name",
-        contactEmail = "contact@email.com",
-        contactNumber = null,
-        extraInformation = null,
-      ),
-    )
-
-    withBookingFixture(2, probationBooking)
-    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn emptyList()
-    withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
-
-    val error = assertThrows<IllegalArgumentException> { service.amend(2, probationBookingRequest, PROBATION_USER) }
-    error.message isEqualTo "Probation meeting extra information is required for meeting type Other"
   }
 
   private fun withBookingFixture(bookingId: Long, booking: VideoBooking) {
