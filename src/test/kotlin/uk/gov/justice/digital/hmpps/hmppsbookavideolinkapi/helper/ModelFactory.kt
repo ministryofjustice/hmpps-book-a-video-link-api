@@ -347,6 +347,7 @@ fun amendProbationBookingRequest(
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "probation booking comments",
+  additionalBookingDetails: AdditionalBookingDetails? = null,
 ): AmendVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
@@ -368,5 +369,6 @@ fun amendProbationBookingRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = videoLinkUrl,
+    additionalBookingDetails = additionalBookingDetails,
   )
 }

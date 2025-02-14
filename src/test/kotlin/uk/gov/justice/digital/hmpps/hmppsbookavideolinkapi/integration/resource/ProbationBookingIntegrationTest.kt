@@ -5,37 +5,59 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.context.jdbc.Sql
+import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentDate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentTypeProbation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasBookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasComments
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedBy
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedByPrison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedTimeCloseTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEndTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasHistoryType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 @TestPropertySource(properties = ["feature.master.vlpm.types=true"])
+@Sql("classpath:integration-test-data/seed-probation-team-user-access.sql")
 class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @MockitoBean
@@ -50,6 +72,9 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var bookingHistoryRepository: BookingHistoryRepository
 
+  @Autowired
+  private lateinit var additionalBookingDetailRepository: AdditionalBookingDetailRepository
+
   private val psrProbationBookingRequest = probationBookingRequest(
     probationTeamCode = BLACKPOOL_MC_PPOC,
     probationMeetingType = ProbationMeetingType.PSR,
@@ -60,10 +85,29 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     endTime = LocalTime.of(9, 30),
     appointmentType = AppointmentType.VLB_PROBATION,
     location = birminghamLocation,
-    comments = "integration test probation booking comments",
+    comments = "psr integration test probation booking comments",
     additionalBookingDetails = AdditionalBookingDetails(
-      contactName = "probation contact",
-      contactEmail = "probation_contact@email.com",
+      contactName = "psr probation contact",
+      contactEmail = "psr_probation_contact@email.com",
+      contactNumber = null,
+      extraInformation = null,
+    ),
+  )
+
+  private val rrProbationBookingRequest = probationBookingRequest(
+    probationTeamCode = BLACKPOOL_MC_PPOC,
+    probationMeetingType = ProbationMeetingType.RR,
+    videoLinkUrl = "https://probation.videolink.com",
+    prisonCode = BIRMINGHAM,
+    prisonerNumber = "123456",
+    startTime = LocalTime.of(11, 0),
+    endTime = LocalTime.of(12, 30),
+    appointmentType = AppointmentType.VLB_PROBATION,
+    location = birminghamLocation,
+    comments = "rr integration test probation booking comments",
+    additionalBookingDetails = AdditionalBookingDetails(
+      contactName = "rr probation contact",
+      contactEmail = "rr_probation_contact@email.com",
       contactNumber = null,
       extraInformation = null,
     ),
@@ -71,8 +115,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   fun `should create a pre-sentence report probation booking using the VLPM appointment type`() {
-    videoBookingRepository.findAll().isEmpty() isBool true
-
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
@@ -80,38 +122,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
     val bookingId = webTestClient.createBooking(psrProbationBookingRequest, PROBATION_USER)
-    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
-
-    with(persistedBooking) {
-      videoBookingId isEqualTo bookingId
-      bookingType isEqualTo BookingType.PROBATION
-      probationTeam?.probationTeamId isEqualTo 1
-      probationMeetingType isEqualTo ProbationMeetingType.PSR.name
-      comments isEqualTo "integration test probation booking comments"
-      videoUrl isEqualTo "https://probation.videolink.com"
-      createdBy isEqualTo PROBATION_USER.username
-      createdByPrison isEqualTo false
-    }
-
-    getAppointmentAndCheckFor(persistedBooking) {
-      videoBooking isEqualTo persistedBooking
-      prisonCode() isEqualTo BIRMINGHAM
-      prisonerNumber isEqualTo "123456"
-      appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
-      appointmentDate isEqualTo tomorrow()
-      prisonLocationId isEqualTo birminghamLocation.id
-      startTime isEqualTo LocalTime.of(9, 0)
-      endTime isEqualTo LocalTime.of(9, 30)
-      comments isEqualTo "integration test probation booking comments"
-    }
-
-    getHistoryAndCheckFor(persistedBooking) {
-      historyType isEqualTo HistoryType.CREATE
-      videoBookingId isEqualTo persistedBooking.videoBookingId
-      probationMeetingType isEqualTo persistedBooking.probationMeetingType
-      probationTeamId isEqualTo persistedBooking.probationTeam?.probationTeamId
-      appointments() hasSize 1
-    }
 
     waitUntil {
       verify(activitiesAppointmentsClient).createAppointment(
@@ -121,17 +131,186 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
         internalLocationId = 1,
-        comments = "integration test probation booking comments",
+        comments = "psr integration test probation booking comments",
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
     }
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    videoBookingRepository
+      .findById(bookingId)
+      .orElseThrow()
+      .hasBookingType(BookingType.PROBATION)
+      .hasMeetingType(ProbationMeetingType.PSR)
+      .hasComments("psr integration test probation booking comments")
+      .hasVideoUrl("https://probation.videolink.com")
+      .hasCreatedBy(PROBATION_USER)
+      .hasCreatedTimeCloseTo(LocalDateTime.now())
+      .hasCreatedByPrison(false)
+      .also { it.probationTeam?.probationTeamId isEqualTo 1 }
+
+    prisonAppointmentRepository
+      .findByVideoBooking(persistedBooking)
+      .single()
+      .hasPrisonCode(BIRMINGHAM)
+      .hasPrisonerNumber("123456")
+      .hasAppointmentTypeProbation()
+      .hasAppointmentDate(tomorrow())
+      .hasStartTime(LocalTime.of(9, 0))
+      .hasEndTime(LocalTime.of(9, 30))
+      .hasLocation(birminghamLocation)
+      .hasComments("psr integration test probation booking comments")
+
+    bookingHistoryRepository
+      .findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
+      .first()
+      .hasHistoryType(HistoryType.CREATE)
+      .hasProbationMeetingType(ProbationMeetingType.PSR)
+      .hasProbationTeam(persistedBooking.probationTeam!!)
+      .also { it.appointments() hasSize 1 }
+
+    additionalBookingDetailRepository
+      .findByVideoBooking(persistedBooking)!!
+      .also { it.contactName isEqualTo "psr probation contact" }
+      .also { it.contactEmail isEqualTo "psr_probation_contact@email.com" }
+      .also { it.contactNumber isEqualTo null }
+      .also { it.extraInformation isEqualTo null }
   }
 
-  private fun getAppointmentAndCheckFor(booking: VideoBooking, init: PrisonAppointment.() -> Unit) {
-    prisonAppointmentRepository.findByVideoBooking(booking).single().init()
+  @Test
+  fun `should amend a pre-sentence report probation booking using the VLPM appointment type`() {
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+    nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
+    locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
+    prisonerApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
+    activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
+
+    val bookingId = webTestClient.createBooking(rrProbationBookingRequest, PROBATION_USER)
+
+    waitUntil {
+      verify(activitiesAppointmentsClient).createAppointment(
+        prisonCode = BIRMINGHAM,
+        prisonerNumber = "123456",
+        startDate = tomorrow(),
+        startTime = LocalTime.of(11, 0),
+        endTime = LocalTime.of(12, 30),
+        internalLocationId = 1,
+        comments = "rr integration test probation booking comments",
+        appointmentType = SupportedAppointmentTypes.Type.PROBATION,
+      )
+    }
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    videoBookingRepository
+      .findById(bookingId)
+      .orElseThrow()
+      .hasBookingType(BookingType.PROBATION)
+      .hasMeetingType(ProbationMeetingType.RR)
+      .hasComments("rr integration test probation booking comments")
+      .hasVideoUrl("https://probation.videolink.com")
+      .hasCreatedBy(PROBATION_USER)
+      .hasCreatedTimeCloseTo(LocalDateTime.now())
+      .hasCreatedByPrison(false)
+      .also { it.probationTeam?.probationTeamId isEqualTo 1 }
+
+    prisonAppointmentRepository
+      .findByVideoBooking(persistedBooking)
+      .single()
+      .hasPrisonCode(BIRMINGHAM)
+      .hasPrisonerNumber("123456")
+      .hasAppointmentTypeProbation()
+      .hasAppointmentDate(tomorrow())
+      .hasStartTime(LocalTime.of(11, 0))
+      .hasEndTime(LocalTime.of(12, 30))
+      .hasLocation(birminghamLocation)
+      .hasComments("rr integration test probation booking comments")
+
+    bookingHistoryRepository
+      .findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
+      .first()
+      .hasHistoryType(HistoryType.CREATE)
+      .hasProbationMeetingType(ProbationMeetingType.RR)
+      .hasProbationTeam(persistedBooking.probationTeam!!)
+      .also { it.appointments() hasSize 1 }
+
+    webTestClient.amendBooking(
+      persistedBooking.videoBookingId,
+      amendProbationBookingRequest(
+        prisonCode = BIRMINGHAM,
+        prisonerNumber = "123456",
+        probationMeetingType = ProbationMeetingType.RR,
+        location = birminghamLocation,
+        appointmentDate = tomorrow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+        comments = "rr integration test probation booking comments",
+        videoLinkUrl = "https://probation.videolink.com",
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "rr probation contact",
+          contactEmail = "rr_probation_contact@email.com",
+          contactNumber = null,
+          extraInformation = "amendment to extra information",
+        ),
+      ),
+      PROBATION_USER,
+    )
+
+    waitUntil {
+      verify(activitiesAppointmentsClient).createAppointment(
+        prisonCode = BIRMINGHAM,
+        prisonerNumber = "123456",
+        startDate = tomorrow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+        internalLocationId = 1,
+        comments = "rr integration test probation booking comments",
+        appointmentType = SupportedAppointmentTypes.Type.PROBATION,
+      )
+    }
+
+    videoBookingRepository
+      .findById(bookingId)
+      .orElseThrow()
+      .hasBookingType(BookingType.PROBATION)
+      .hasMeetingType(ProbationMeetingType.RR)
+      .hasComments("rr integration test probation booking comments")
+      .hasVideoUrl("https://probation.videolink.com")
+      .hasCreatedBy(PROBATION_USER)
+      .hasCreatedTimeCloseTo(LocalDateTime.now())
+      .hasCreatedByPrison(false)
+      .also { it.probationTeam?.probationTeamId isEqualTo 1 }
+
+    prisonAppointmentRepository
+      .findByVideoBooking(persistedBooking)
+      .single()
+      .hasPrisonCode(BIRMINGHAM)
+      .hasPrisonerNumber("123456")
+      .hasAppointmentTypeProbation()
+      .hasAppointmentDate(tomorrow())
+      .hasStartTime(LocalTime.of(12, 0))
+      .hasEndTime(LocalTime.of(13, 0))
+      .hasLocation(birminghamLocation)
+      .hasComments("rr integration test probation booking comments")
+
+    additionalBookingDetailRepository
+      .findByVideoBooking(persistedBooking)!!
+      .also { it.contactName isEqualTo "rr probation contact" }
+      .also { it.contactEmail isEqualTo "rr_probation_contact@email.com" }
+      .also { it.contactNumber isEqualTo null }
+      .also { it.extraInformation isEqualTo "amendment to extra information" }
   }
 
-  private fun getHistoryAndCheckFor(booking: VideoBooking, init: BookingHistory.() -> Unit) {
-    bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(booking.videoBookingId).first().init()
-  }
+  private fun WebTestClient.amendBooking(videoBookingId: Long, request: AmendVideoBookingRequest, user: User) = this
+    .put()
+    .uri("/video-link-booking/id/$videoBookingId")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(Long::class.java)
+    .returnResult().responseBody!!
 }

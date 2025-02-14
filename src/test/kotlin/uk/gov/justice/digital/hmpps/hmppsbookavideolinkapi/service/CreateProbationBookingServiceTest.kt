@@ -14,7 +14,6 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AdditionalBookingDetail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -25,8 +24,24 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BI
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentDate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentTypeProbation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasBookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasComments
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasContactName
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedBy
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedTimeCloseTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEmailAddress
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEndTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasExtraInfo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPhoneNumber
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
@@ -83,7 +98,11 @@ class CreateProbationBookingServiceTest {
       prisonCode = prisonCode,
       prisonerNumber = prisonerNumber,
       location = birminghamLocation,
-    ).copy(additionalBookingDetails = AdditionalBookingDetails("Fred", "fred@email.com", "0173 361 6789", "some extra information for Fred"))
+      appointmentDate = tomorrow(),
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(10, 0),
+      additionalBookingDetails = AdditionalBookingDetails("Fred", "fred@email.com", "0173 361 6789", "some extra information for Fred"),
+    )
 
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
@@ -102,37 +121,31 @@ class CreateProbationBookingServiceTest {
     verify(videoBookingRepository).saveAndFlush(newBookingCaptor.capture())
     verify(additionalBookingDetailRepository).saveAndFlush(additionalBookingDetailCaptor.capture())
 
-    with(newBookingCaptor.firstValue) {
-      bookingType isEqualTo BookingType.PROBATION
-      probationTeam isEqualTo requestedProbationTeam
-      createdTime isCloseTo LocalDateTime.now()
-      probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
-      comments isEqualTo "probation booking comments"
-      videoUrl isEqualTo probationBookingRequest.videoLinkUrl
-      createdBy isEqualTo PROBATION_USER.username
-      createdTime isCloseTo LocalDateTime.now()
+    newBookingCaptor
+      .firstValue
+      .hasBookingType(BookingType.PROBATION)
+      .hasProbationTeam(requestedProbationTeam)
+      .hasMeetingType(ProbationMeetingType.PSR)
+      .hasComments("probation booking comments")
+      .hasVideoUrl("https://video.link.com")
+      .hasCreatedBy(PROBATION_USER)
+      .hasCreatedTimeCloseTo(LocalDateTime.now())
+      .appointments()
+      .single()
+      .hasPrisonCode(BIRMINGHAM)
+      .hasPrisonerNumber("123456")
+      .hasAppointmentTypeProbation()
+      .hasAppointmentDate(tomorrow())
+      .hasStartTime(LocalTime.of(9, 0))
+      .hasEndTime(LocalTime.of(10, 0))
+      .hasLocation(birminghamLocation)
 
-      appointments() hasSize 1
-
-      with(appointments().single()) {
-        val onePrisoner = probationBookingRequest.prisoners.single()
-
-        prisonCode isEqualTo onePrisoner.prisonCode
-        prisonerNumber isEqualTo onePrisoner.prisonerNumber
-        appointmentType isEqualTo onePrisoner.appointments.single().type?.name
-        appointmentDate isEqualTo onePrisoner.appointments.single().date!!
-        startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
-        endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
-        prisonLocationId isEqualTo birminghamLocation.id
-      }
-    }
-
-    with(additionalBookingDetailCaptor.firstValue) {
-      contactName isEqualTo "Fred"
-      contactEmail isEqualTo "fred@email.com"
-      contactNumber isEqualTo "0173 361 6789"
-      extraInformation isEqualTo "some extra information for Fred"
-    }
+    additionalBookingDetailCaptor
+      .firstValue
+      .hasContactName("Fred")
+      .hasEmailAddress("fred@email.com")
+      .hasPhoneNumber("0173 361 6789")
+      .hasExtraInfo("some extra information for Fred")
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
@@ -147,7 +160,11 @@ class CreateProbationBookingServiceTest {
       prisonCode = prisonCode,
       prisonerNumber = prisonerNumber,
       location = birminghamLocation,
-    ).copy(additionalBookingDetails = AdditionalBookingDetails("Jane", "jane@email.com", "0114 561 6789", "some extra information for Jane"))
+      appointmentDate = tomorrow(),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(12, 0),
+      additionalBookingDetails = AdditionalBookingDetails("Jane", "jane@email.com", "0114 561 6789", "some extra information for Jane"),
+    )
 
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
@@ -166,37 +183,31 @@ class CreateProbationBookingServiceTest {
     verify(videoBookingRepository).saveAndFlush(newBookingCaptor.capture())
     verify(additionalBookingDetailRepository).saveAndFlush(additionalBookingDetailCaptor.capture())
 
-    with(newBookingCaptor.firstValue) {
-      bookingType isEqualTo BookingType.PROBATION
-      probationTeam isEqualTo requestedProbationTeam
-      createdTime isCloseTo LocalDateTime.now()
-      probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
-      comments isEqualTo "probation booking comments"
-      videoUrl isEqualTo probationBookingRequest.videoLinkUrl
-      createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
-      createdTime isCloseTo LocalDateTime.now()
+    newBookingCaptor
+      .firstValue
+      .hasBookingType(BookingType.PROBATION)
+      .hasProbationTeam(requestedProbationTeam)
+      .hasMeetingType(ProbationMeetingType.PSR)
+      .hasComments("probation booking comments")
+      .hasVideoUrl("https://video.link.com")
+      .hasCreatedBy(PRISON_USER_BIRMINGHAM)
+      .hasCreatedTimeCloseTo(LocalDateTime.now())
+      .appointments()
+      .single()
+      .hasPrisonCode(BIRMINGHAM)
+      .hasPrisonerNumber("123456")
+      .hasAppointmentTypeProbation()
+      .hasAppointmentDate(tomorrow())
+      .hasStartTime(LocalTime.of(11, 0))
+      .hasEndTime(LocalTime.of(12, 0))
+      .hasLocation(birminghamLocation)
 
-      appointments() hasSize 1
-
-      with(appointments().single()) {
-        val onePrisoner = probationBookingRequest.prisoners.single()
-
-        prisonCode isEqualTo onePrisoner.prisonCode
-        prisonerNumber isEqualTo onePrisoner.prisonerNumber
-        appointmentType isEqualTo onePrisoner.appointments.single().type?.name
-        appointmentDate isEqualTo onePrisoner.appointments.single().date!!
-        startTime isEqualTo onePrisoner.appointments.single().startTime!!.toMinutePrecision()
-        endTime isEqualTo onePrisoner.appointments.single().endTime!!.toMinutePrecision()
-        prisonLocationId isEqualTo birminghamLocation.id
-      }
-    }
-
-    with(additionalBookingDetailCaptor.firstValue) {
-      contactName isEqualTo "Jane"
-      contactEmail isEqualTo "jane@email.com"
-      contactNumber isEqualTo "0114 561 6789"
-      extraInformation isEqualTo "some extra information for Jane"
-    }
+    additionalBookingDetailCaptor
+      .firstValue
+      .hasContactName("Jane")
+      .hasEmailAddress("jane@email.com")
+      .hasPhoneNumber("0114 561 6789")
+      .hasExtraInfo("some extra information for Jane")
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
