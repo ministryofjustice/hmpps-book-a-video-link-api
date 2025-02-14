@@ -33,7 +33,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedBy
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedTimeCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEmailAddress
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEndTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasExtraInfo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPhoneNumber
@@ -101,7 +100,7 @@ class CreateProbationBookingServiceTest {
       appointmentDate = tomorrow(),
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(10, 0),
-      additionalBookingDetails = AdditionalBookingDetails("Fred", "fred@email.com", "0173 361 6789", "some extra information for Fred"),
+      additionalBookingDetails = AdditionalBookingDetails("Fred", "fred@email.com", "0173 361 6789"),
     )
 
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
@@ -145,7 +144,6 @@ class CreateProbationBookingServiceTest {
       .hasContactName("Fred")
       .hasEmailAddress("fred@email.com")
       .hasPhoneNumber("0173 361 6789")
-      .hasExtraInfo("some extra information for Fred")
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
@@ -163,7 +161,7 @@ class CreateProbationBookingServiceTest {
       appointmentDate = tomorrow(),
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(12, 0),
-      additionalBookingDetails = AdditionalBookingDetails("Jane", "jane@email.com", "0114 561 6789", "some extra information for Jane"),
+      additionalBookingDetails = AdditionalBookingDetails("Jane", "jane@email.com", "0114 561 6789"),
     )
 
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
@@ -207,36 +205,10 @@ class CreateProbationBookingServiceTest {
       .hasContactName("Jane")
       .hasEmailAddress("jane@email.com")
       .hasPhoneNumber("0114 561 6789")
-      .hasExtraInfo("some extra information for Jane")
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
     verify(bookingHistoryService).createBookingHistory(any(), any())
-  }
-
-  @Test
-  fun `should fail to create a probation video booking for with missing extra details for meeting type OTHER`() {
-    val prisonCode = BIRMINGHAM
-    val prisonerNumber = "123456"
-    val probationBookingRequest = probationBookingRequest(
-      prisonCode = prisonCode,
-      prisonerNumber = prisonerNumber,
-      location = birminghamLocation,
-      probationMeetingType = ProbationMeetingType.OTHER,
-    ).copy(additionalBookingDetails = AdditionalBookingDetails("Fred", "fred@email.com", "0173 361 6789", extraInformation = null))
-
-    val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
-
-    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
-    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
-    whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
-    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
-    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
-    whenever(additionalBookingDetailRepository.saveAndFlush(any())) doReturn persistedAdditionalBookingDetail
-
-    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, PROBATION_USER) }
-    error.message isEqualTo "Probation meeting extra information is required for meeting type Other"
   }
 
   @Test

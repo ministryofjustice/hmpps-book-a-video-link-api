@@ -66,21 +66,13 @@ class CreateProbationBookingService(
   }
 
   private fun CreateVideoBookingRequest.saveAdditionalDetailsFor(booking: VideoBooking) {
-    additionalBookingDetails!!.let { details ->
-
-      if (booking.probationMeetingType!! == MEETING_TYPE_OTHER) {
-        requireNotNull(details.extraInformation) {
-          "Probation meeting extra information is required for meeting type Other"
-        }
-      }
-
+    additionalBookingDetails?.let { details ->
       additionalBookingDetailRepository.saveAndFlush(
         AdditionalBookingDetail.newDetails(
           videoBooking = booking,
           contactName = details.contactName!!,
-          contactEmail = details.contactEmail,
+          contactEmail = details.contactEmail!!,
           contactPhoneNumber = details.contactNumber,
-          extraInformation = details.extraInformation,
         ),
       )
     }
