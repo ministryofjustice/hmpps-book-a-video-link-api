@@ -5,9 +5,9 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.context.jdbc.Sql
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
@@ -66,10 +66,10 @@ import kotlin.reflect.KClass
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
-  @SpyBean
+  @MockitoSpyBean
   private lateinit var inboundEventsListener: InboundEventsListener
 
-  @MockBean
+  @MockitoBean
   private lateinit var outboundEventsService: OutboundEventsService
 
   @Autowired
@@ -84,7 +84,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var notificationRepository: NotificationRepository
 
-  @MockBean
+  @MockitoBean
   private lateinit var telemetryService: TelemetryService
 
   private val telemetryCaptor = argumentCaptor<PrisonerMergedTelemetryEvent>()
