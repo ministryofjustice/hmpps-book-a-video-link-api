@@ -1,0 +1,1 @@
+ALTER TABLE additional_booking_detail ALTER COLUMN contact_email SET NOT NULL;

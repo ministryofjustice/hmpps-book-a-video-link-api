@@ -293,8 +293,6 @@ fun PrisonAppointment.hasComments(that: String): PrisonAppointment = also { it.c
 fun AdditionalBookingDetail.hasContactName(that: String): AdditionalBookingDetail = also { it.contactName isEqualTo that }
 fun AdditionalBookingDetail.hasEmailAddress(that: String): AdditionalBookingDetail = also { it.contactEmail isEqualTo that }
 fun AdditionalBookingDetail.hasPhoneNumber(that: String): AdditionalBookingDetail = also { it.contactNumber isEqualTo that }
-fun AdditionalBookingDetail.hasExtraInfo(that: String): AdditionalBookingDetail = also { it.extraInformation isEqualTo that }
-
 fun BookingHistory.hasHistoryType(that: HistoryType): BookingHistory = also { it.historyType isEqualTo that }
 fun BookingHistory.hasProbationMeetingType(that: ProbationMeetingType): BookingHistory = also { it.probationMeetingType isEqualTo that.name }
 fun BookingHistory.hasProbationTeam(that: ProbationTeam): BookingHistory = also { it.probationTeamId isEqualTo that.probationTeamId }
