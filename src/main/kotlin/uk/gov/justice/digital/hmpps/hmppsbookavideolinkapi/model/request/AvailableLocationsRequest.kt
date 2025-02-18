@@ -46,7 +46,7 @@ data class AvailableLocationsRequest(
   val bookingDuration: Int?,
 
   @field:NotEmpty(message = "At least one time slot must be supplied")
-  @Schema(description = "The time slots to look up available locations", example = "AM", required = true)
+  @Schema(description = "The time slots to look up available locations", example = "[\"AM\"]", required = true)
   val timeSlots: List<TimeSlot>?,
 ) {
   @JsonIgnore

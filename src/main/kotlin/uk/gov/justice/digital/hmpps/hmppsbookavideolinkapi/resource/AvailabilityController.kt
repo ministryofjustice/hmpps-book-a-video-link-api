@@ -19,12 +19,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Availab
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AvailabilityService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AvailableLocationsService
 
 @Tag(name = "Availability Controller")
 @RestController
 @RequestMapping(value = ["availability"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @AuthApiResponses
-class AvailabilityController(private val availabilityService: AvailabilityService) {
+class AvailabilityController(
+  private val availabilityService: AvailabilityService,
+  private val availableLocationsService: AvailableLocationsService,
+) {
 
   @Operation(summary = "Endpoint to assess booking availability and to suggest alternatives")
   @ApiResponses(
@@ -75,5 +79,5 @@ class AvailabilityController(private val availabilityService: AvailabilityServic
       required = true,
     )
     request: AvailableLocationsRequest,
-  ): AvailableLocationsResponse = AvailableLocationsResponse(emptyList())
+  ): AvailableLocationsResponse = availableLocationsService.findAvailableLocationsAndTimes(request)
 }

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi
 
+import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
@@ -103,6 +104,20 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     .retrieve()
     .bodyToMono(typeReference<List<ScheduledAppointment>>())
     .block() ?: emptyList()
+
+  /**
+   * Gets appointments in this prison, on this date, at a specific internal locations.
+   */
+  suspend fun getScheduledAppointments(prisonCode: String, date: LocalDate, locationId: Set<Long>) = prisonApiWebClient.get()
+    .uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/api/schedules/{prisonCode}/appointments")
+        .queryParam("date", date)
+        .build(prisonCode)
+    }
+    .retrieve()
+    .bodyToMono(typeReference<List<ScheduledAppointment>>())
+    .awaitSingle()
 }
 
 // Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
