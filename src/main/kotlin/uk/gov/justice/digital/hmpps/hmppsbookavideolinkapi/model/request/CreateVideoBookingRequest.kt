@@ -91,11 +91,6 @@ data class CreateVideoBookingRequest(
   private fun isInvalidUrl() = videoLinkUrl == null || videoLinkUrl.isNotBlank()
 }
 
-enum class BookingType {
-  COURT,
-  PROBATION,
-}
-
 enum class CourtHearingType {
   APPEAL,
   APPLICATION,
