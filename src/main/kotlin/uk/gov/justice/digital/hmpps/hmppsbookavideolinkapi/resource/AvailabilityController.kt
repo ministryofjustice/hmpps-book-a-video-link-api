@@ -79,5 +79,5 @@ class AvailabilityController(
       required = true,
     )
     request: AvailableLocationsRequest,
-  ): AvailableLocationsResponse = availableLocationsService.findAvailableLocationsAndTimes(request)
+  ): AvailableLocationsResponse = availableLocationsService.findAvailableLocations(request)
 }

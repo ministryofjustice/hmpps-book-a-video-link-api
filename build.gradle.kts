@@ -24,10 +24,6 @@ configurations {
 }
 
 dependencies {
-  // Kotlin dependencies
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0")
-
   // Spring boot dependencies
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-security")

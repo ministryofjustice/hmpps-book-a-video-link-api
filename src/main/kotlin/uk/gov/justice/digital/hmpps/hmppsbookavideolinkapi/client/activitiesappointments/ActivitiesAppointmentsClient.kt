@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments
 
-import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.core.ParameterizedTypeReference
@@ -118,9 +117,10 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
   }
 
   /**
-   * Returns all matching appointment (types) for a prisoner, not just video link bookings.
+   * Returns all matching appointment types for a prison, not just video link bookings. It will however filter down to
+   * the supplied location IDs where there is match.
    */
-  suspend fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Set<Long>) = if (locationIds.isNotEmpty()) {
+  fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<Long>) = if (locationIds.isNotEmpty()) {
     log.info("A&A CLIENT: query params - prisonCode=$prisonCode, onDate=$onDate, locationIds=${locationIds.toList()}")
     getPrisonAppointments(prisonCode, onDate)
       .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
@@ -130,10 +130,11 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     emptyList()
   }
 
-  private suspend fun getPrisonAppointments(prisonCode: String, onDate: LocalDate) = activitiesAppointmentsApiWebClient.post()
+  private fun getPrisonAppointments(prisonCode: String, onDate: LocalDate) = activitiesAppointmentsApiWebClient.post()
     .uri("/appointments/{prisonCode}/search", prisonCode)
     .bodyValue(AppointmentSearchRequest(appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL, startDate = onDate))
     .retrieve()
     .bodyToMono(typeReference<List<AppointmentSearchResult>>())
-    .awaitSingle()
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block() ?: emptyList()
 }
