@@ -15,6 +15,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Availa
 import java.time.LocalDate
 import java.time.LocalTime
 
+private const val FIFTEEN_MINUTES = 15L
+
 @Service
 @Transactional(readOnly = true)
 class AvailableLocationsService(
@@ -35,24 +37,23 @@ class AvailableLocationsService(
     val endOfDay = prisonRegime.endOfDay(request.prisonCode)
     val prisonVideoLinkLocations = getDecoratedLocationsAt(request.prisonCode)
     val bookedLocations = bookedLocationsService.findBooked(request.prisonCode, request.date!!, prisonVideoLinkLocations)
-    val duration = request.bookingDuration!!.toLong()
+    val meetingDuration = request.bookingDuration!!.toLong()
 
     val availableLocations = buildList {
       prisonVideoLinkLocations.forEach { location ->
         // These time adjustments do not allow for PRE and POST meeting times.
-        var startTime = startOfDay
-        var endTime = startOfDay.plusMinutes(duration)
+        var meetingStartTime = startOfDay
+        var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
-        while (startTime.isBefore(endOfDay)) {
-          if (bookedLocations.isBooked(location, startTime, endTime).not()) {
-            // TODO check start and end time falls with the supplied slot times as well e.g. AM/PM/ED
+        while (meetingStartTime.isBefore(endOfDay)) {
+          if (bookedLocations.isBooked(location, meetingStartTime, meetingEndTime).not() && request.timeSlots!!.any { slot -> slot.isTimeInSlot(meetingStartTime) }) {
             // TODO need to check against the room decoration/schedules
             add(
               AvailableLocation(
                 // TODO is it possible for the description to be null?
                 name = location.description ?: "UNKNOWN",
-                startTime = startTime,
-                endTime = endTime,
+                startTime = meetingStartTime,
+                endTime = meetingEndTime,
                 dpsLocationId = location.dpsLocationId,
                 dpsLocationKey = location.key,
                 // TODO populate usage
@@ -61,13 +62,13 @@ class AvailableLocationsService(
             )
           }
 
-          startTime = startTime.plusMinutes(15)
-          endTime = endTime.plusMinutes(15)
+          meetingStartTime = meetingStartTime.plusMinutes(FIFTEEN_MINUTES)
+          meetingEndTime = meetingEndTime.plusMinutes(FIFTEEN_MINUTES)
         }
       }
     }
 
-    return AvailableLocationsResponse(availableLocations.toList())
+    return AvailableLocationsResponse(availableLocations).also { log.info("AVAILABLE LOCATIONS: found ${it.locations.size} available locations matching request $request") }
   }
 
   private fun getDecoratedLocationsAt(prisonCode: String) = locationsService.getDecoratedVideoLocations(prisonCode = prisonCode, enabledOnly = true)
@@ -80,10 +81,6 @@ class BookedLocationsService(
   private val prisonApiClient: PrisonApiClient,
   private val nomisMappingClient: NomisMappingClient,
 ) {
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
   fun findBooked(prisonCode: String, date: LocalDate, locations: Collection<Location>): BookedLocations {
     val nomisToDpsLocations = nomisMappingClient.getNomisLocationMappingsBy(locations.map(Location::dpsLocationId))
       .associate { it.nomisLocationId to it.dpsLocationId }
