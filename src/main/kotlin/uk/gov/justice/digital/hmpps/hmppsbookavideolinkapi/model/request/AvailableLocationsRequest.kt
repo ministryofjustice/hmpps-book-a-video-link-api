@@ -40,7 +40,6 @@ data class AvailableLocationsRequest(
   @Schema(
     description = "Rooms can be booked in 30 minutes slots upto a maximum of 120 minutes (two hours)",
     example = "60",
-    allowableValues = ["30, 60, 90, 120"],
     required = true,
   )
   val bookingDuration: Int?,
