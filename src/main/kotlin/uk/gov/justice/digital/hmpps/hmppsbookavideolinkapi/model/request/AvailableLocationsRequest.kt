@@ -48,6 +48,11 @@ data class AvailableLocationsRequest(
   @field:NotEmpty(message = "At least one time slot must be supplied")
   @Schema(description = "The time slots to look up available locations", example = "[\"AM\"]", required = true)
   val timeSlots: List<TimeSlot>?,
+
+  @Schema(
+    description = "Exclude the video link booking with this ID from the availability check. Useful when checking availability during the amending of a booking.",
+  )
+  val vlbIdToExclude: Long? = null,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The court code is mandatory for court bookings")
