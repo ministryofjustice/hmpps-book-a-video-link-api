@@ -115,4 +115,26 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
   }
+
+  /**
+   * Returns all matching appointment types for a prison, not just video link bookings. It will however filter down to
+   * the supplied location IDs where there is match.
+   */
+  fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<Long>) = if (locationIds.isNotEmpty()) {
+    log.info("A&A CLIENT: query params - prisonCode=$prisonCode, onDate=$onDate, locationIds=${locationIds.toList()}")
+    getPrisonAppointments(prisonCode, onDate)
+      .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
+      .filter { locationIds.toList().contains(it.internalLocation?.id) }
+      .also { log.info("A&A CLIENT: matches post-location filter: $it") }
+  } else {
+    emptyList()
+  }
+
+  private fun getPrisonAppointments(prisonCode: String, onDate: LocalDate) = activitiesAppointmentsApiWebClient.post()
+    .uri("/appointments/{prisonCode}/search", prisonCode)
+    .bodyValue(AppointmentSearchRequest(appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL, startDate = onDate))
+    .retrieve()
+    .bodyToMono(typeReference<List<AppointmentSearchResult>>())
+    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+    .block() ?: emptyList()
 }

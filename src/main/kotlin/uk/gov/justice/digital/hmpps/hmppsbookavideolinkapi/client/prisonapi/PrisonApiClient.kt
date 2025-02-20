@@ -103,6 +103,21 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     .retrieve()
     .bodyToMono(typeReference<List<ScheduledAppointment>>())
     .block() ?: emptyList()
+
+  /**
+   * Returns all matching appointment types for a prison, not just video link bookings. It will however filter down to
+   * the supplied location IDs where there is match.
+   */
+  fun getScheduledAppointments(prisonCode: String, date: LocalDate, locationId: Collection<Long>) = prisonApiWebClient.get()
+    .uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/api/schedules/{prisonCode}/appointments")
+        .queryParam("date", date)
+        .build(prisonCode)
+    }
+    .retrieve()
+    .bodyToMono(typeReference<List<ScheduledAppointment>>())
+    .block() ?: emptyList()
 }
 
 // Overriding due to deserialisation issues from generated type. Only including fields we are interested in.

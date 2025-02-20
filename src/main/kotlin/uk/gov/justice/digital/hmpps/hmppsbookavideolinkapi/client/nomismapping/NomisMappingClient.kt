@@ -13,6 +13,8 @@ class NomisMappingClient(private val nomisMappingApiWebClient: WebClient) {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  fun getNomisLocationMappingsBy(dpsLocationIds: Collection<UUID>): Collection<NomisDpsLocationMapping> = dpsLocationIds.mapNotNull { getNomisLocationMappingBy(it) }
+
   fun getNomisLocationMappingBy(dpsLocationId: UUID): NomisDpsLocationMapping? = nomisMappingApiWebClient
     .get()
     .uri("/api/locations/dps/{id}", dpsLocationId)
