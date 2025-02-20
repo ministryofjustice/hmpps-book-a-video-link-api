@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlot
 import java.time.LocalTime
 import java.util.UUID
 
@@ -28,6 +29,8 @@ data class AvailableLocation(
 
   @Schema(description = "The usage for this location, will be null if no attributes set up for location", example = "PROBATION")
   val usage: LocationUsage?,
+
+  val timeSlot: TimeSlot,
 )
 
 enum class LocationUsage {
