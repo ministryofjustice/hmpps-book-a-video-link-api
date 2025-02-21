@@ -35,9 +35,9 @@ class BookedLocationsService(
     lookup.videoBookingIdToExclude?.let {
       videoBookingRepository.findById(it).orElseThrow {
         EntityNotFoundException("Video booking with ID $it not found.")
-      }?.also { exitingBooking ->
-        require(exitingBooking.isStatus(StatusCode.ACTIVE)) {
-          "Video booking ${exitingBooking.videoBookingId} is not active"
+      }?.also { existingBooking ->
+        require(existingBooking.isStatus(StatusCode.ACTIVE)) {
+          "Video booking ${existingBooking.videoBookingId} is not active"
         }
       }?.appointments()
     } ?: emptyList(),

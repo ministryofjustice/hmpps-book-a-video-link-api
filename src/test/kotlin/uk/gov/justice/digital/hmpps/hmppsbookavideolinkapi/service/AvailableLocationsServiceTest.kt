@@ -9,11 +9,16 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
@@ -24,26 +29,150 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 class AvailableLocationsServiceTest {
   private val locationsService: LocationsService = mock()
   private val bookedLocationsService: BookedLocationsService = mock()
   private val prisonRegime: PrisonRegime = mock()
-  private val service = AvailableLocationsService(locationsService, bookedLocationsService, prisonRegime)
 
   @Test
   fun `should fail if capped number of available locations is not positive`() {
-    assertThrows<IllegalArgumentException> { service.findAvailableLocations(mock(), 0) }
+    assertThrows<IllegalArgumentException> { service().findAvailableLocations(mock(), 0) }
       .message isEqualTo "The cap for the maximum number of available slots must be a positive number"
 
-    assertThrows<IllegalArgumentException> { service.findAvailableLocations(mock(), -1) }
+    assertThrows<IllegalArgumentException> { service().findAvailableLocations(mock(), -1) }
       .message isEqualTo "The cap for the maximum number of available slots must be a positive number"
   }
 
-  @DisplayName("Testing undecorated locations only")
+  @DisplayName("Testing for available locations today")
   @Nested
-  inner class UndecoratedLocations {
+  inner class RequestsForToday {
+
+    private val location1 = risleyLocation.toModel()
+    private val location2 = risleyLocation2.toModel()
+
+    @BeforeEach
+    fun before() {
+      whenever(prisonRegime.startOfDay(RISLEY)) doReturn LocalTime.of(9, 0)
+      whenever(prisonRegime.endOfDay(RISLEY)) doReturn LocalTime.of(17, 0)
+    }
+
+    @Test
+    fun `should return 7 available morning times for location 1 with time of request 10am`() {
+      whenever(locationsService.getDecoratedVideoLocations(RISLEY, true)) doReturn listOf(location1)
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
+
+      val response = service { LocalDateTime.of(today(), LocalTime.of(10, 0)) }.findAvailableLocations(
+        AvailableLocationsRequest(
+          prisonCode = RISLEY,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = today(),
+          bookingDuration = 60,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 7
+
+      response.locations containsExactlyInAnyOrder listOf(
+        availableLocation(location1, time(10, 15), time(11, 15)),
+        availableLocation(location1, time(10, 30), time(11, 30)),
+        availableLocation(location1, time(10, 45), time(11, 45)),
+        availableLocation(location1, time(11, 0), time(12, 0)),
+        availableLocation(location1, time(11, 15), time(12, 15)),
+        availableLocation(location1, time(11, 30), time(12, 30)),
+        availableLocation(location1, time(11, 45), time(12, 45)),
+      )
+    }
+
+    @Test
+    fun `should return 6 available morning times for location 1 with time of request 1015am`() {
+      whenever(locationsService.getDecoratedVideoLocations(RISLEY, true)) doReturn listOf(location1)
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
+
+      val response = service { LocalDateTime.of(today(), LocalTime.of(10, 15)) }.findAvailableLocations(
+        AvailableLocationsRequest(
+          prisonCode = RISLEY,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = today(),
+          bookingDuration = 60,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 6
+
+      response.locations containsExactlyInAnyOrder listOf(
+        availableLocation(location1, time(10, 30), time(11, 30)),
+        availableLocation(location1, time(10, 45), time(11, 45)),
+        availableLocation(location1, time(11, 0), time(12, 0)),
+        availableLocation(location1, time(11, 15), time(12, 15)),
+        availableLocation(location1, time(11, 30), time(12, 30)),
+        availableLocation(location1, time(11, 45), time(12, 45)),
+      )
+    }
+
+    @Test
+    fun `should return 5 available morning times for location 1 with time of request 1030am`() {
+      whenever(locationsService.getDecoratedVideoLocations(RISLEY, true)) doReturn listOf(location1)
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
+
+      val response = service { LocalDateTime.of(today(), LocalTime.of(10, 30)) }.findAvailableLocations(
+        AvailableLocationsRequest(
+          prisonCode = RISLEY,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = today(),
+          bookingDuration = 60,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 5
+
+      response.locations containsExactlyInAnyOrder listOf(
+        availableLocation(location1, time(10, 45), time(11, 45)),
+        availableLocation(location1, time(11, 0), time(12, 0)),
+        availableLocation(location1, time(11, 15), time(12, 15)),
+        availableLocation(location1, time(11, 30), time(12, 30)),
+        availableLocation(location1, time(11, 45), time(12, 45)),
+      )
+    }
+
+    @Test
+    fun `should return 4 available morning times for location 1 with time of request 1045am`() {
+      whenever(locationsService.getDecoratedVideoLocations(RISLEY, true)) doReturn listOf(location1)
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
+
+      val response = service { LocalDateTime.of(today(), LocalTime.of(10, 45)) }.findAvailableLocations(
+        AvailableLocationsRequest(
+          prisonCode = RISLEY,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = today(),
+          bookingDuration = 60,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 4
+
+      response.locations containsExactlyInAnyOrder listOf(
+        availableLocation(location1, time(11, 0), time(12, 0)),
+        availableLocation(location1, time(11, 15), time(12, 15)),
+        availableLocation(location1, time(11, 30), time(12, 30)),
+        availableLocation(location1, time(11, 45), time(12, 45)),
+      )
+    }
+  }
+
+  @DisplayName("Testing for available locations tomorrow")
+  @Nested
+  inner class RequestsForTomorrow {
 
     private val location1 = wandsworthLocation.toModel()
     private val location2 = wandsworthLocation2.toModel()
@@ -61,7 +190,7 @@ class AvailableLocationsServiceTest {
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
 
-      val response = service.findAvailableLocations(
+      val response = service().findAvailableLocations(
         AvailableLocationsRequest(
           prisonCode = WANDSWORTH,
           bookingType = BookingType.PROBATION,
@@ -101,7 +230,7 @@ class AvailableLocationsServiceTest {
         ),
       )
 
-      val response = service.findAvailableLocations(
+      val response = service().findAvailableLocations(
         AvailableLocationsRequest(
           prisonCode = WANDSWORTH,
           bookingType = BookingType.PROBATION,
@@ -140,7 +269,7 @@ class AvailableLocationsServiceTest {
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
 
-      val response = service.findAvailableLocations(
+      val response = service().findAvailableLocations(
         AvailableLocationsRequest(
           prisonCode = WANDSWORTH,
           bookingType = BookingType.PROBATION,
@@ -185,7 +314,7 @@ class AvailableLocationsServiceTest {
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
 
-      val response = service.findAvailableLocations(
+      val response = service().findAvailableLocations(
         AvailableLocationsRequest(
           prisonCode = WANDSWORTH,
           bookingType = BookingType.PROBATION,
@@ -223,7 +352,7 @@ class AvailableLocationsServiceTest {
         ),
       )
 
-      val response = service.findAvailableLocations(
+      val response = service().findAvailableLocations(
         AvailableLocationsRequest(
           prisonCode = WANDSWORTH,
           bookingType = BookingType.PROBATION,
@@ -259,6 +388,13 @@ class AvailableLocationsServiceTest {
       )
     }
   }
+
+  private fun service(timeSource: TimeSource = TimeSource { LocalDateTime.now() }) = AvailableLocationsService(
+    locationsService,
+    bookedLocationsService,
+    prisonRegime,
+    timeSource,
+  )
 
   private fun time(hour: Int, minute: Int) = LocalTime.of(hour, minute)
 

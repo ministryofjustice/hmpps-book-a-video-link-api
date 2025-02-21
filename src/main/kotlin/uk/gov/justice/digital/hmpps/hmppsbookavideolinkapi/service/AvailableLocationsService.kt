@@ -4,10 +4,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailableLocationsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
+import java.time.LocalTime
 
 private const val FIFTEEN_MINUTES = 15L
 
@@ -17,6 +19,7 @@ class AvailableLocationsService(
   private val locationsService: LocationsService,
   private val bookedLocationsService: BookedLocationsService,
   private val prisonRegime: PrisonRegime,
+  private val timeSource: TimeSource,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -32,9 +35,8 @@ class AvailableLocationsService(
       "The cap for the maximum number of available slots must be a positive number"
     }
 
-    val startOfDay = prisonRegime.startOfDay(request.prisonCode!!)
-    val endOfDay = prisonRegime.endOfDay(request.prisonCode)
-    val prisonVideoLinkLocations = getDecoratedLocationsAt(request.prisonCode)
+    val (startOfDay, endOfDay) = getStartAndEndOfDay(request)
+    val prisonVideoLinkLocations = getDecoratedLocationsAt(request.prisonCode!!)
     val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date!!, prisonVideoLinkLocations, request.vlbIdToExclude))
     val meetingDuration = request.bookingDuration!!.toLong()
 
@@ -70,6 +72,26 @@ class AvailableLocationsService(
 
     return AvailableLocationsResponse(availableLocations).also { log.info("AVAILABLE LOCATIONS: found ${it.locations.size} available locations matching request $request") }
   }
+
+  private fun getStartAndEndOfDay(request: AvailableLocationsRequest): Pair<LocalTime, LocalTime> {
+    val regimeStartOfDay = prisonRegime.startOfDay(request.prisonCode!!)
+    val regimeEndOfDay = prisonRegime.endOfDay(request.prisonCode)
+    val now = timeSource.now()
+
+    // Start looking for meeting 15 mins from now if looking for slots today but the time has passed the regime start time.
+    if (request.isForToday() && regimeStartOfDay.isBefore(now.toLocalTime())) {
+      return when (now.minute) {
+        0 -> LocalTime.of(now.hour, 15)
+        in 1..15 -> LocalTime.of(now.hour, 30)
+        in 16..30 -> LocalTime.of(now.hour, 45)
+        else -> LocalTime.of(now.hour + 1, 0)
+      } to regimeEndOfDay
+    }
+
+    return regimeStartOfDay to regimeEndOfDay
+  }
+
+  private fun AvailableLocationsRequest.isForToday() = this.date!! == timeSource.today()
 
   private fun getDecoratedLocationsAt(prisonCode: String) = locationsService.getDecoratedVideoLocations(prisonCode = prisonCode, enabledOnly = true)
 }
