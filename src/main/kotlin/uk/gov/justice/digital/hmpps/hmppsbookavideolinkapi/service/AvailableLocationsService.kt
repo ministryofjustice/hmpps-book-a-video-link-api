@@ -35,7 +35,7 @@ class AvailableLocationsService(
     val startOfDay = prisonRegime.startOfDay(request.prisonCode!!)
     val endOfDay = prisonRegime.endOfDay(request.prisonCode)
     val prisonVideoLinkLocations = getDecoratedLocationsAt(request.prisonCode)
-    val bookedLocations = bookedLocationsService.findBooked(request.prisonCode, request.date!!, prisonVideoLinkLocations)
+    val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date!!, prisonVideoLinkLocations, request.vlbIdToExclude))
     val meetingDuration = request.bookingDuration!!.toLong()
 
     val availableLocations = buildList {

@@ -57,7 +57,7 @@ class AvailableLocationsServiceTest {
     @Test
     fun `should return 5 available morning times for location 1 with one blocked out booking`() {
       whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(WANDSWORTH, tomorrow(), listOf(location1))) doReturn BookedLocations(
+      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
 
@@ -88,9 +88,11 @@ class AvailableLocationsServiceTest {
       whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1, location2)
       whenever(
         bookedLocationsService.findBooked(
-          WANDSWORTH,
-          tomorrow(),
-          listOf(location1, location2),
+          BookedLookup(
+            WANDSWORTH,
+            tomorrow(),
+            listOf(location1, location2),
+          ),
         ),
       ) doReturn BookedLocations(
         listOf(
@@ -134,7 +136,7 @@ class AvailableLocationsServiceTest {
     @Test
     fun `should return 20 available afternoon times for location 1 when on blocked out booking`() {
       whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(WANDSWORTH, tomorrow(), listOf(location1))) doReturn BookedLocations(
+      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
 
@@ -179,7 +181,7 @@ class AvailableLocationsServiceTest {
     @Test
     fun `should cap to 10 available afternoon times for location 1 when on blocked out booking`() {
       whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(WANDSWORTH, tomorrow(), listOf(location1))) doReturn BookedLocations(
+      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
 
@@ -214,7 +216,7 @@ class AvailableLocationsServiceTest {
     @Test
     fun `should return 18 available morning and afternoon times for location 1 when two block out bookings`() {
       whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(WANDSWORTH, tomorrow(), listOf(location1))) doReturn BookedLocations(
+      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(
           BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0)),
           BookedLocation(location1, LocalTime.of(13, 0), LocalTime.of(14, 0)),

@@ -36,6 +36,7 @@ val wandsworthLocation3 =
 val pentonvilleLocation = location(prisonCode = PENTONVILLE, locationKeySuffix = "ABCDEFG", localName = "Pentonville room 3")
 val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
 val risleyLocation = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG", localName = "Risley room")
+val risleyLocation2 = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG", localName = "Risley room 2")
 
 fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null, id: UUID = UUID.randomUUID()) = Location(
   id = id,

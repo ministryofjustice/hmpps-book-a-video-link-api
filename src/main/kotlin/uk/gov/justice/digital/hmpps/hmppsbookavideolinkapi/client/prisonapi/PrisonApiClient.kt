@@ -155,4 +155,9 @@ data class ScheduledAppointment(
   val firstName: String,
   val lastName: String,
   val createUserId: String,
-)
+) {
+  fun isTheSameAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = appointmentTypeCode == appointmentType.code
+
+  fun isTheSameTime(appointment: PrisonAppointment) = startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
+    appointment.appointmentDate.atTime(appointment.endTime) == endTime
+}
