@@ -48,6 +48,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -90,11 +91,15 @@ class VideoLinkBookingControllerTest {
     fun locationsInsidePrisonClient() = mock<LocationsInsidePrisonClient>()
 
     @Bean
+    fun additionalBookingDetailRepository() = mock<AdditionalBookingDetailRepository>()
+
+    @Bean
     fun videoLinkBookingsService() = VideoLinkBookingsService(
       videoBookingRepository(),
       referenceCodeRepository(),
       videoAppointmentRepository(),
       locationsInsidePrisonClient(),
+      additionalBookingDetailRepository(),
     )
   }
 

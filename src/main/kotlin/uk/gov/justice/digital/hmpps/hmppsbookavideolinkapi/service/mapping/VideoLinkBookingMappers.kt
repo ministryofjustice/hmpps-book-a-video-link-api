@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking as VideoBookingEntity
@@ -12,6 +13,7 @@ fun VideoBookingEntity.toModel(
   locations: Set<Location>,
   courtHearingTypeDescription: String? = null,
   probationMeetingTypeDescription: String? = null,
+  additionalBookingDetails: AdditionalBookingDetails? = null,
 ) = VideoLinkBooking(
   videoLinkBookingId = videoBookingId,
   bookingType = BookingType.valueOf(bookingType.name),
@@ -32,4 +34,5 @@ fun VideoBookingEntity.toModel(
   createdAt = createdTime,
   amendedBy = amendedBy,
   amendedAt = amendedTime,
+  additionalBookingDetails = additionalBookingDetails,
 )

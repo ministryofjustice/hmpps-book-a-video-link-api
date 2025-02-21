@@ -270,6 +270,18 @@ fun videoRoomAttributesWithoutSchedule(
   return mutableListOf(roomAttributes)
 }
 
+fun additionalDetails(
+  booking: VideoBooking,
+  contactName: String = "contact name",
+  contactEmail: String = "contact@email.com",
+  contactNumber: String = "0114 2345678",
+) = AdditionalBookingDetail.newDetails(
+  videoBooking = booking,
+  contactName = contactName,
+  contactEmail = contactEmail,
+  contactPhoneNumber = contactNumber,
+)
+
 fun VideoBooking.hasBookingType(that: BookingType): VideoBooking = also { it.bookingType isEqualTo that }
 fun VideoBooking.hasProbationTeam(that: ProbationTeam): VideoBooking = also { it.probationTeam isEqualTo that }
 fun VideoBooking.hasMeetingType(that: ProbationMeetingType): VideoBooking = also { it.probationMeetingType isEqualTo that.name }
