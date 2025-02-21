@@ -7,8 +7,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -25,6 +27,7 @@ class VideoLinkBookingsService(
   private val referenceCodeRepository: ReferenceCodeRepository,
   private val videoAppointmentRepository: VideoAppointmentRepository,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
+  private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,
 ) {
   fun getVideoLinkBookingById(videoBookingId: Long, user: User): VideoLinkBooking {
     val booking = videoBookingRepository.findById(videoBookingId)
@@ -46,6 +49,13 @@ class VideoLinkBookingsService(
       locations = locations,
       courtHearingTypeDescription = hearingType?.description,
       probationMeetingTypeDescription = meetingType?.description,
+      additionalBookingDetails = additionalBookingDetailRepository.findByVideoBooking(booking)?.let {
+        AdditionalBookingDetails(
+          contactName = it.contactName,
+          contactEmail = it.contactEmail,
+          contactNumber = it.contactNumber,
+        )
+      },
     )
   }
 

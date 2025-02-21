@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BI
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.additionalDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -32,7 +33,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appoint
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -48,12 +51,14 @@ class VideoLinkBookingsServiceTest {
   private val referenceCodeRepository: ReferenceCodeRepository = mock()
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val additionalBookingDetailRepository: AdditionalBookingDetailRepository = mock()
 
   private val service = VideoLinkBookingsService(
     videoBookingRepository,
     referenceCodeRepository,
     videoAppointmentRepository,
     locationsInsidePrisonClient,
+    additionalBookingDetailRepository = additionalBookingDetailRepository,
   )
 
   @BeforeEach
@@ -117,6 +122,7 @@ class VideoLinkBookingsServiceTest {
         )
 
       whenever(videoBookingRepository.findById(1L)) doReturn Optional.of(courtBooking)
+      whenever(additionalBookingDetailRepository.findByVideoBooking(courtBooking())) doReturn additionalDetails(courtBooking(), "court contact", "court@email.com", "0114 2345678")
 
       with(service.getVideoLinkBookingById(1L, COURT_USER)) {
         prisonAppointments hasSize 3
@@ -131,6 +137,7 @@ class VideoLinkBookingsServiceTest {
         courtHearingTypeDescription isEqualTo "Tribunal"
         comments isEqualTo "Court hearing comments"
         videoLinkUrl isEqualTo "https://court.hearing.link"
+        additionalBookingDetails isEqualTo AdditionalBookingDetails("court contact", "court@email.com", "0114 2345678")
 
         // Should be null for a court booking
         assertThat(probationTeamCode).isNull()

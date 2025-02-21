@@ -64,6 +64,9 @@ data class VideoLinkBooking(
 
   @Schema(description = "Date and time of the last amendment to this booking.", example = "2024-03-14 14:45")
   val amendedAt: LocalDateTime?,
+
+  @Schema(description = "Additional details for the booking if there are any.")
+  val additionalBookingDetails: AdditionalBookingDetails? = null,
 )
 
 enum class BookingStatus {
