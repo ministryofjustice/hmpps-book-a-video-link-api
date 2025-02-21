@@ -15,7 +15,14 @@ class PrisonRegimeConfiguration {
 }
 
 interface PrisonRegime {
+
+  /**
+   * Will be on the hour or at 15 minute intervals within the hour
+   */
   fun startOfDay(prisonCode: String): LocalTime
 
+  /**
+   * Will be on the hour or at 15 minute intervals within the hour
+   */
   fun endOfDay(prisonCode: String): LocalTime
 }

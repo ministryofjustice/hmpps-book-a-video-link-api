@@ -30,6 +30,7 @@ data class AvailableLocation(
   @Schema(description = "The usage for this location, will be null if no attributes set up for location", example = "PROBATION")
   val usage: LocationUsage?,
 
+  @Schema(description = "The time slot the available location falls into", example = "PM")
   val timeSlot: TimeSlot,
 )
 
