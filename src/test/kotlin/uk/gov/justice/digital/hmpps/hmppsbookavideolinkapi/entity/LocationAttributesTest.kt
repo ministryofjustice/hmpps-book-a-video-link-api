@@ -1,12 +1,17 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import java.time.DayOfWeek
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
@@ -66,7 +71,7 @@ class LocationAttributesTest {
       createdBy = "TEST",
     )
 
-    val roomSchedule = mutableListOf(
+    val roomSchedule = listOf(
       LocationSchedule(
         locationScheduleId = 1,
         startDayOfWeek = DayOfWeek.MONDAY.value,
@@ -83,5 +88,225 @@ class LocationAttributesTest {
     roomAttributes.setLocationSchedule(roomSchedule)
 
     assertThat(roomAttributes.schedule().hasSize(1))
+  }
+
+  @Nested
+  inner class Probation {
+    @Test
+    fun `should be available for active probation room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isBool true
+    }
+
+    @Test
+    fun `should be available for specific active probation room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        createdBy = "TEST",
+        allowedParties = "TEAM_CODE",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(code = "TEAM_CODE"), LocalDateTime.now()) isBool true
+    }
+
+    @Test
+    fun `should not be available for specific active probation room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        createdBy = "TEST",
+        allowedParties = "TEAM_CODE",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(code = "DIFFERENT_TEAM_CODE"), LocalDateTime.now()) isBool false
+    }
+
+    @Test
+    fun `should not be available for active court room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.COURT,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isBool false
+    }
+
+    @Test
+    fun `should be available for active shared room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SHARED,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isBool true
+    }
+  }
+
+  @Nested
+  inner class Court {
+    @Test
+    fun `should be available for active court room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.COURT,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool true
+    }
+
+    @Test
+    fun `should not be available for active probation room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool false
+    }
+
+    @Test
+    fun `should be available for specific active court room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        createdBy = "TEST",
+        allowedParties = "COURT",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(code = "COURT"), LocalDateTime.now()) isBool true
+    }
+
+    @Test
+    fun `should not be available for specific active court room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        createdBy = "TEST",
+        allowedParties = "COURT",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(code = "DIFFERENT_COURT"), LocalDateTime.now()) isBool false
+    }
+
+    @Test
+    fun `should be available for active shared room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SHARED,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool true
+    }
   }
 }
