@@ -9,6 +9,10 @@ internal inline infix fun <reified T> Collection<T>.containsExactlyInAnyOrder(va
   assertThat(this).containsExactlyInAnyOrder(*value.toTypedArray())
 }
 
+internal inline infix fun <reified T> Collection<T>.containsExactly(value: Collection<T>) {
+  assertThat(this).containsExactly(*value.toTypedArray())
+}
+
 internal inline infix fun <reified K, V> Map<K, V>.containsEntriesExactlyInAnyOrder(value: Map<K, V>) {
   assertThat(this).containsExactlyInAnyOrderEntriesOf(value)
 }

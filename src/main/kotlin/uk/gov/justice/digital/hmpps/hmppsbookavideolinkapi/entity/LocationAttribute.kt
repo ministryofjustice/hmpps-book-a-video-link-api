@@ -82,6 +82,14 @@ class LocationAttribute(
   @Override
   override fun toString(): String = this::class.simpleName +
     "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
+
+  // TODO not finished
+  fun isAvailableFor(probationTeam: ProbationTeam, onDateTime: LocalDateTime) = (locationUsage == LocationUsage.PROBATION && partyIsAllowed(probationTeam.code)) || locationUsage == LocationUsage.SHARED
+
+  // TODO not finished
+  fun isAvailableFor(court: Court, onDateTime: LocalDateTime) = (locationUsage == LocationUsage.COURT && partyIsAllowed(court.code)) || locationUsage == LocationUsage.SHARED
+
+  private fun partyIsAllowed(party: String) = allowedParties.isNullOrBlank() || allowedParties.replace(" ", "").split(",").contains(party)
 }
 
 enum class LocationStatus {

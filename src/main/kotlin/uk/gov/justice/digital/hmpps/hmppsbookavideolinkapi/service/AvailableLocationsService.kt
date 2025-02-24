@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailableLocationsRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
@@ -47,7 +49,10 @@ class AvailableLocationsService(
         var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
         while (meetingStartTime.isBefore(endOfDay) && this.size < maxSlots) {
-          if (bookedLocations.isBooked(location, meetingStartTime, meetingEndTime).not() && request.timeSlots!!.any { slot -> slot.isTimeInSlot(meetingStartTime) }) {
+          if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime) &&
+            request.fallsWithinSlotTime(meetingStartTime) &&
+            location.allowsByAnyRuleOrSchedule(request)
+          ) {
             // TODO need to check against the room decoration/schedules
             add(
               AvailableLocation(
@@ -70,8 +75,15 @@ class AvailableLocationsService(
       }
     }
 
-    return AvailableLocationsResponse(availableLocations).also { log.info("AVAILABLE LOCATIONS: found ${it.locations.size} available locations matching request $request") }
+    return AvailableLocationsResponse(
+      availableLocations
+        .sortedWith(compareBy({ it.startTime }, { it.name }))
+        .distinctBy { it.startTime }
+        .also { log.info("AVAILABLE LOCATIONS: found ${it.size} available locations matching request $request") },
+    )
   }
+
+  private fun AvailableLocationsRequest.fallsWithinSlotTime(time: LocalTime) = timeSlots!!.any { slot -> slot.isTimeInSlot(time) }
 
   private fun getStartAndEndOfDay(request: AvailableLocationsRequest): Pair<LocalTime, LocalTime> {
     val regimeStartOfDay = prisonRegime.startOfDay(request.prisonCode!!)
@@ -94,4 +106,16 @@ class AvailableLocationsService(
   private fun AvailableLocationsRequest.isForToday() = this.date!! == timeSource.today()
 
   private fun getDecoratedLocationsAt(prisonCode: String) = locationsService.getDecoratedVideoLocations(prisonCode = prisonCode, enabledOnly = true)
+
+  private fun Location.allowsByAnyRuleOrSchedule(request: AvailableLocationsRequest): Boolean {
+    if (extraAttributes != null) {
+      return when (request.bookingType!!) {
+        // TODO lookup attribute and court/probation team then see if applicable
+        BookingType.COURT -> true
+        BookingType.PROBATION -> true
+      }
+    }
+
+    return true
+  }
 }

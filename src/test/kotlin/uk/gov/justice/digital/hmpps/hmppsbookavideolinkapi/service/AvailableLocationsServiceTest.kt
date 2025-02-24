@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
@@ -77,7 +77,7 @@ class AvailableLocationsServiceTest {
 
       response.locations hasSize 7
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(10, 15), time(11, 15)),
         availableLocation(location1, time(10, 30), time(11, 30)),
         availableLocation(location1, time(10, 45), time(11, 45)),
@@ -106,7 +106,7 @@ class AvailableLocationsServiceTest {
 
       response.locations hasSize 6
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(10, 30), time(11, 30)),
         availableLocation(location1, time(10, 45), time(11, 45)),
         availableLocation(location1, time(11, 0), time(12, 0)),
@@ -134,7 +134,7 @@ class AvailableLocationsServiceTest {
 
       response.locations hasSize 5
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(10, 45), time(11, 45)),
         availableLocation(location1, time(11, 0), time(12, 0)),
         availableLocation(location1, time(11, 15), time(12, 15)),
@@ -161,7 +161,7 @@ class AvailableLocationsServiceTest {
 
       response.locations hasSize 4
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(11, 0), time(12, 0)),
         availableLocation(location1, time(11, 15), time(12, 15)),
         availableLocation(location1, time(11, 30), time(12, 30)),
@@ -203,7 +203,7 @@ class AvailableLocationsServiceTest {
 
       response.locations hasSize 5
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(9, 0), time(10, 0)),
         availableLocation(location1, time(11, 0), time(12, 0)),
         availableLocation(location1, time(11, 15), time(12, 15)),
@@ -213,7 +213,7 @@ class AvailableLocationsServiceTest {
     }
 
     @Test
-    fun `should return 13 available morning times for location 1 and 2 with two blocked out bookings`() {
+    fun `should return 9 available morning times for location 1 and 2 with two blocked out bookings`() {
       whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1, location2)
       whenever(
         bookedLocationsService.findBooked(
@@ -243,22 +243,18 @@ class AvailableLocationsServiceTest {
 
       )
 
-      response.locations hasSize 13
+      response.locations hasSize 9
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(9, 0), time(10, 0)),
-        availableLocation(location1, time(11, 0), time(12, 0)),
-        availableLocation(location1, time(11, 15), time(12, 15)),
-        availableLocation(location1, time(11, 30), time(12, 30)),
-        availableLocation(location1, time(11, 45), time(12, 45)),
         availableLocation(location2, time(10, 0), time(11, 0)),
         availableLocation(location2, time(10, 15), time(11, 15)),
         availableLocation(location2, time(10, 30), time(11, 30)),
         availableLocation(location2, time(10, 45), time(11, 45)),
-        availableLocation(location2, time(11, 0), time(12, 0)),
-        availableLocation(location2, time(11, 15), time(12, 15)),
-        availableLocation(location2, time(11, 30), time(12, 30)),
-        availableLocation(location2, time(11, 45), time(12, 45)),
+        availableLocation(location1, time(11, 0), time(12, 0)),
+        availableLocation(location1, time(11, 15), time(12, 15)),
+        availableLocation(location1, time(11, 30), time(12, 30)),
+        availableLocation(location1, time(11, 45), time(12, 45)),
       )
     }
 
@@ -283,7 +279,7 @@ class AvailableLocationsServiceTest {
 
       response.locations hasSize 20
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(12, 0), time(13, 0)),
         availableLocation(location1, time(12, 15), time(13, 15)),
         availableLocation(location1, time(12, 30), time(13, 30)),
@@ -328,7 +324,7 @@ class AvailableLocationsServiceTest {
 
       response.locations hasSize 10
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(12, 0), time(13, 0)),
         availableLocation(location1, time(12, 15), time(13, 15)),
         availableLocation(location1, time(12, 30), time(13, 30)),
@@ -366,7 +362,7 @@ class AvailableLocationsServiceTest {
 
       response.locations hasSize 18
 
-      response.locations containsExactlyInAnyOrder listOf(
+      response.locations containsExactly listOf(
         availableLocation(location1, time(9, 0), time(10, 0)),
         availableLocation(location1, time(11, 0), time(12, 0)),
         availableLocation(location1, time(11, 15), time(12, 15)),
