@@ -10,6 +10,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
@@ -17,12 +19,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailableLocationsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlot
@@ -36,6 +39,7 @@ class AvailableLocationsServiceTest {
   private val locationsService: LocationsService = mock()
   private val bookedLocationsService: BookedLocationsService = mock()
   private val prisonRegime: PrisonRegime = mock()
+  private val locationAttributesService: LocationAttributesAvailableService = mock()
 
   @Test
   fun `should fail if capped number of available locations is not positive`() {
@@ -46,12 +50,11 @@ class AvailableLocationsServiceTest {
       .message isEqualTo "The cap for the maximum number of available slots must be a positive number"
   }
 
-  @DisplayName("Testing for available locations today")
+  @DisplayName("Testing for available undecorated locations today")
   @Nested
-  inner class RequestsForToday {
+  inner class RequestsForUndecoratedToday {
 
     private val location1 = risleyLocation.toModel()
-    private val location2 = risleyLocation2.toModel()
 
     @BeforeEach
     fun before() {
@@ -170,9 +173,9 @@ class AvailableLocationsServiceTest {
     }
   }
 
-  @DisplayName("Testing for available locations tomorrow")
+  @DisplayName("Testing for available undecorated locations tomorrow")
   @Nested
-  inner class RequestsForTomorrow {
+  inner class RequestsForUndecoratedRoomsTomorrow {
 
     private val location1 = wandsworthLocation.toModel()
     private val location2 = wandsworthLocation2.toModel()
@@ -385,22 +388,82 @@ class AvailableLocationsServiceTest {
     }
   }
 
+  @Nested
+  inner class UndecoratedAndDecoratedRooms {
+    private val decoratedLocation = wandsworthLocation.toModel().copy(
+      extraAttributes = RoomAttributes(
+        attributeId = 1,
+        locationStatus = LocationStatus.ACTIVE,
+        statusMessage = null,
+        yesterday(),
+        LocationUsage.PROBATION,
+        allowedParties = emptyList(),
+        prisonVideoUrl = null,
+        notes = null,
+      ),
+    )
+    private val undecoratedLocation = wandsworthLocation2.toModel()
+
+    @BeforeEach
+    fun before() {
+      whenever(prisonRegime.startOfDay(WANDSWORTH)) doReturn LocalTime.of(9, 0)
+      whenever(prisonRegime.endOfDay(WANDSWORTH)) doReturn LocalTime.of(9, 30)
+    }
+
+    @Test
+    fun `should exclude decorated room at 9am but include decorated room at 915am`() {
+      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedLocation, undecoratedLocation)
+      whenever(
+        bookedLocationsService.findBooked(
+          BookedLookup(
+            WANDSWORTH,
+            tomorrow(),
+            listOf(decoratedLocation, undecoratedLocation),
+          ),
+        ),
+      ) doReturn BookedLocations(emptyList())
+
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn false
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn true
+
+      val response = service().findAvailableLocations(
+        AvailableLocationsRequest(
+          prisonCode = WANDSWORTH,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = tomorrow(),
+          bookingDuration = 30,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 2
+
+      response.locations containsExactly listOf(
+        // decorated room is not available at 9:00am but undecorated is
+        availableLocation(undecoratedLocation, time(9, 0), time(9, 30)),
+        availableLocation(decoratedLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
+      )
+    }
+  }
+
   private fun service(timeSource: TimeSource = TimeSource { LocalDateTime.now() }) = AvailableLocationsService(
     locationsService,
     bookedLocationsService,
     prisonRegime,
     timeSource,
+    locationAttributesService,
   )
 
   private fun time(hour: Int, minute: Int) = LocalTime.of(hour, minute)
 
-  private fun availableLocation(location: Location, startTime: LocalTime, endTime: LocalTime) = AvailableLocation(
+  private fun availableLocation(location: Location, startTime: LocalTime, endTime: LocalTime, usage: LocationUsage? = null) = AvailableLocation(
     name = location.description!!,
     startTime = startTime,
     endTime = endTime,
     dpsLocationKey = location.key,
     dpsLocationId = location.dpsLocationId,
-    usage = null,
+    usage = usage?.let { uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.LocationUsage.valueOf(usage.name) },
     timeSlot = slot(startTime),
   )
 }

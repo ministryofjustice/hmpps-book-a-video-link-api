@@ -38,4 +38,5 @@ enum class LocationUsage {
   COURT,
   PROBATION,
   SHARED,
+  SCHEDULE,
 }

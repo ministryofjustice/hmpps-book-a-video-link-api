@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -11,6 +12,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 private const val FIFTEEN_MINUTES = 15L
@@ -22,6 +28,7 @@ class AvailableLocationsService(
   private val bookedLocationsService: BookedLocationsService,
   private val prisonRegime: PrisonRegime,
   private val timeSource: TimeSource,
+  private val locationAttributesService: LocationAttributesAvailableService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -51,19 +58,16 @@ class AvailableLocationsService(
         while (meetingStartTime.isBefore(endOfDay) && this.size < maxSlots) {
           if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime) &&
             request.fallsWithinSlotTime(meetingStartTime) &&
-            location.allowsByAnyRuleOrSchedule(request)
+            location.allowsByAnyRuleOrSchedule(request, meetingStartTime)
           ) {
-            // TODO need to check against the room decoration/schedules
             add(
               AvailableLocation(
-                // TODO is it possible for the description to be null?
-                name = location.description ?: "UNKNOWN",
+                name = location.description ?: location.key,
                 startTime = meetingStartTime,
                 endTime = meetingEndTime,
                 dpsLocationId = location.dpsLocationId,
                 dpsLocationKey = location.key,
-                // TODO populate usage
-                usage = null,
+                usage = location.extraAttributes?.locationUsage?.let { LocationUsage.valueOf(it.name) },
                 timeSlot = slot(meetingStartTime),
               ),
             )
@@ -90,7 +94,7 @@ class AvailableLocationsService(
     val regimeEndOfDay = prisonRegime.endOfDay(request.prisonCode)
     val now = timeSource.now()
 
-    // Start looking for meeting 15 mins from now if looking for slots today but the time has passed the regime start time.
+    // Start looking for meeting 15 mins from now if looking for slots today when the time has passed the regime start time.
     if (request.isForToday() && regimeStartOfDay.isBefore(now.toLocalTime())) {
       return when (now.minute) {
         0 -> LocalTime.of(now.hour, 15)
@@ -107,15 +111,88 @@ class AvailableLocationsService(
 
   private fun getDecoratedLocationsAt(prisonCode: String) = locationsService.getDecoratedVideoLocations(prisonCode = prisonCode, enabledOnly = true)
 
-  private fun Location.allowsByAnyRuleOrSchedule(request: AvailableLocationsRequest): Boolean {
+  private fun Location.allowsByAnyRuleOrSchedule(request: AvailableLocationsRequest, time: LocalTime): Boolean {
     if (extraAttributes != null) {
       return when (request.bookingType!!) {
-        // TODO lookup attribute and court/probation team then see if applicable
-        BookingType.COURT -> true
-        BookingType.PROBATION -> true
+        BookingType.COURT -> locationAttributesService.isLocationAvailableFor(
+          LocationAvailableRequest.court(
+            extraAttributes.attributeId,
+            request.courtCode!!,
+            request.date!!.atTime(time),
+          ),
+        )
+        BookingType.PROBATION -> locationAttributesService.isLocationAvailableFor(
+          LocationAvailableRequest.probation(
+            extraAttributes.attributeId,
+            request.probationTeamCode!!,
+            request.date!!.atTime(time),
+          ),
+        )
       }
     }
 
     return true
   }
+}
+
+@Service
+@Transactional(readOnly = true)
+class LocationAttributesAvailableService(
+  private val locationAttributeRepository: LocationAttributeRepository,
+  private val courtRepository: CourtRepository,
+  private val probationTeamRepository: ProbationTeamRepository,
+) {
+  fun isLocationAvailableFor(request: LocationAvailableRequest): Boolean {
+    val attribute = locationAttributeRepository.findById(request.attributeId)
+      .orElseThrow { EntityNotFoundException("Location attribute ${request.attributeId} not found") }
+
+    return when (request.type) {
+      LocationAvailableRequest.Type.COURT -> {
+        attribute.isAvailableFor(
+          courtRepository.findByCode(request.code) ?: throw EntityNotFoundException("Court code ${request.code} not found"),
+          request.onDateTime,
+        )
+      }
+      LocationAvailableRequest.Type.PROBATION -> {
+        attribute.isAvailableFor(
+          probationTeamRepository.findByCode(request.code) ?: throw EntityNotFoundException("Probation team ${request.code} not found"),
+          request.onDateTime,
+        )
+      }
+    }
+  }
+}
+
+class LocationAvailableRequest private constructor(
+  val attributeId: Long,
+  val type: Type,
+  val code: String,
+  val onDateTime: LocalDateTime,
+) {
+  enum class Type {
+    COURT,
+    PROBATION,
+  }
+
+  companion object {
+    fun court(attributeId: Long, courtCode: String, onDateTime: LocalDateTime) = LocationAvailableRequest(attributeId, Type.COURT, courtCode, onDateTime)
+
+    fun probation(attributeId: Long, probationTeamCode: String, onDateTime: LocalDateTime) = LocationAvailableRequest(attributeId, Type.PROBATION, probationTeamCode, onDateTime)
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as LocationAvailableRequest
+
+    if (attributeId != other.attributeId) return false
+    if (type != other.type) return false
+    if (code != other.code) return false
+    if (onDateTime != other.onDateTime) return false
+
+    return true
+  }
+
+  override fun hashCode() = attributeId.hashCode()
 }
