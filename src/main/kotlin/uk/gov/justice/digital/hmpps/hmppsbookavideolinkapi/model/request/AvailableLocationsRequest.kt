@@ -44,7 +44,7 @@ data class AvailableLocationsRequest(
   val bookingDuration: Int?,
 
   @Schema(description = "The time slots to look up available locations. If null, then all time slots are considered.", example = "[\"AM\"]", required = false)
-  val timeSlots: List<TimeSlot>?,
+  val timeSlots: List<TimeSlot>? = null,
 
   @Schema(
     description = "Exclude the video link booking with this ID from the availability check. Useful when checking availability during the amending of a booking.",
