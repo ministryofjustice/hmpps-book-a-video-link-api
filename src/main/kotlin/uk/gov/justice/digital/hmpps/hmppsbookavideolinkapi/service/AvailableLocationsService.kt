@@ -39,11 +39,7 @@ class AvailableLocationsService(
    * room can be booked, by the time the user attempts to save the booking the room could already have been taken by
    * another user of the service.
    */
-  fun findAvailableLocations(request: AvailableLocationsRequest, maxSlots: Int = 10): AvailableLocationsResponse {
-    require(maxSlots > 0) {
-      "The cap for the maximum number of available slots must be a positive number"
-    }
-
+  fun findAvailableLocations(request: AvailableLocationsRequest): AvailableLocationsResponse {
     val (startOfDay, endOfDay) = getStartAndEndOfDay(request)
     val prisonVideoLinkLocations = getDecoratedLocationsAt(request.prisonCode!!)
     val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date!!, prisonVideoLinkLocations, request.vlbIdToExclude))
@@ -55,7 +51,7 @@ class AvailableLocationsService(
         var meetingStartTime = startOfDay
         var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
-        while (meetingStartTime.isBefore(endOfDay) && this.size < maxSlots) {
+        while (meetingStartTime.isBefore(endOfDay)) {
           if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime) &&
             request.fallsWithinSlotTime(meetingStartTime) &&
             location.allowsByAnyRuleOrSchedule(request, meetingStartTime)
@@ -87,7 +83,7 @@ class AvailableLocationsService(
     )
   }
 
-  private fun AvailableLocationsRequest.fallsWithinSlotTime(time: LocalTime) = timeSlots!!.any { slot -> slot.isTimeInSlot(time) }
+  private fun AvailableLocationsRequest.fallsWithinSlotTime(time: LocalTime) = timeSlots == null || timeSlots.any { slot -> slot.isTimeInSlot(time) }
 
   private fun getStartAndEndOfDay(request: AvailableLocationsRequest): Pair<LocalTime, LocalTime> {
     val regimeStartOfDay = prisonRegime.startOfDay(request.prisonCode!!)

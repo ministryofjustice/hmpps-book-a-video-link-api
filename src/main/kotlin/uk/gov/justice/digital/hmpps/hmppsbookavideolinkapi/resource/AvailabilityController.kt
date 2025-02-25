@@ -73,9 +73,6 @@ class AvailabilityController(
   @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], path = ["/locations"])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun availableLocations(
-    @RequestParam(name = "maxSlots", required = false)
-    @Parameter(description = "Caps the maximum number of available slots returned, defaults to 10. Must be positive if overridden.", required = false)
-    maxSlots: Int = 10,
     @Valid
     @RequestBody
     @Parameter(
@@ -83,5 +80,5 @@ class AvailabilityController(
       required = true,
     )
     request: AvailableLocationsRequest,
-  ): AvailableLocationsResponse = availableLocationsService.findAvailableLocations(request, maxSlots)
+  ): AvailableLocationsResponse = availableLocationsService.findAvailableLocations(request)
 }
