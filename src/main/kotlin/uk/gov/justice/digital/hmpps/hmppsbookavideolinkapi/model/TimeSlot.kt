@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model
 
 import java.time.LocalTime
 

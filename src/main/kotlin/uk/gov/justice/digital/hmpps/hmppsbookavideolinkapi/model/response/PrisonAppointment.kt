@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.TimeSlot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -36,4 +38,7 @@ data class PrisonAppointment(
   @Schema(description = "The end time for this appointment", example = "12:30")
   @JsonFormat(pattern = "HH:mm")
   val endTime: LocalTime,
-)
+) {
+  @Schema(description = "The time slot the appointment falls into", example = "PM")
+  val timeSlot: TimeSlot = slot(startTime)
+}

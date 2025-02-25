@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.TimeSlot
 import java.time.LocalTime
 import java.util.UUID
 
