@@ -71,4 +71,10 @@ class LocationSchedule(
   override fun toString(): String = this::class.simpleName +
     "(locationScheduleId = $locationScheduleId, startDay = $startDayOfWeek, endDay = $endDayOfWeek " +
     "startTime = $startTime, endTime = $endTime)"
+
+  // TODO
+  fun isAvailableFor(probationTeam: ProbationTeam, onDateTime: LocalDateTime) = true
+
+  // TODO
+  fun isAvailableFor(court: Court, onDateTime: LocalDateTime) = true
 }
