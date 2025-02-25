@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
@@ -17,7 +16,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
@@ -40,15 +38,6 @@ class AvailableLocationsServiceTest {
   private val bookedLocationsService: BookedLocationsService = mock()
   private val prisonRegime: PrisonRegime = mock()
   private val locationAttributesService: LocationAttributesAvailableService = mock()
-
-  @Test
-  fun `should fail if capped number of available locations is not positive`() {
-    assertThrows<IllegalArgumentException> { service().findAvailableLocations(mock(), 0) }
-      .message isEqualTo "The cap for the maximum number of available slots must be a positive number"
-
-    assertThrows<IllegalArgumentException> { service().findAvailableLocations(mock(), -1) }
-      .message isEqualTo "The cap for the maximum number of available slots must be a positive number"
-  }
 
   @DisplayName("Testing for available undecorated locations today")
   @Nested
@@ -242,8 +231,6 @@ class AvailableLocationsServiceTest {
           bookingDuration = 60,
           timeSlots = listOf(TimeSlot.AM),
         ),
-        20,
-
       )
 
       response.locations hasSize 9
@@ -277,7 +264,6 @@ class AvailableLocationsServiceTest {
           bookingDuration = 60,
           timeSlots = listOf(TimeSlot.PM),
         ),
-        20,
       )
 
       response.locations hasSize 20
@@ -307,42 +293,7 @@ class AvailableLocationsServiceTest {
     }
 
     @Test
-    fun `should cap to 10 available afternoon times for location 1 when on blocked out booking`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
-        listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
-      )
-
-      val response = service().findAvailableLocations(
-        AvailableLocationsRequest(
-          prisonCode = WANDSWORTH,
-          bookingType = BookingType.PROBATION,
-          probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = tomorrow(),
-          bookingDuration = 60,
-          timeSlots = listOf(TimeSlot.PM),
-        ),
-        10,
-      )
-
-      response.locations hasSize 10
-
-      response.locations containsExactly listOf(
-        availableLocation(location1, time(12, 0), time(13, 0)),
-        availableLocation(location1, time(12, 15), time(13, 15)),
-        availableLocation(location1, time(12, 30), time(13, 30)),
-        availableLocation(location1, time(12, 45), time(13, 45)),
-        availableLocation(location1, time(13, 0), time(14, 0)),
-        availableLocation(location1, time(13, 15), time(14, 15)),
-        availableLocation(location1, time(13, 30), time(14, 30)),
-        availableLocation(location1, time(13, 45), time(14, 45)),
-        availableLocation(location1, time(14, 0), time(15, 0)),
-        availableLocation(location1, time(14, 15), time(15, 15)),
-      )
-    }
-
-    @Test
-    fun `should return 18 available morning and afternoon times for location 1 when two block out bookings`() {
+    fun `should return 18 available for location 1 and for any time of day when two block out bookings`() {
       whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(
@@ -358,9 +309,7 @@ class AvailableLocationsServiceTest {
           probationTeamCode = BLACKPOOL_MC_PPOC,
           date = tomorrow(),
           bookingDuration = 60,
-          timeSlots = listOf(TimeSlot.AM, TimeSlot.PM),
         ),
-        18,
       )
 
       response.locations hasSize 18
