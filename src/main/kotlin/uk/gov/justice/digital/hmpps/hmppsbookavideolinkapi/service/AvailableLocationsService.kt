@@ -4,20 +4,22 @@ import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.addIf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailableLocationsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import java.time.LocalDateTime
 import java.time.LocalTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.LocationUsage as ModelLocationUsage
 
 private const val FIFTEEN_MINUTES = 15L
 
@@ -45,7 +47,7 @@ class AvailableLocationsService(
     val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date!!, prisonVideoLinkLocations, request.vlbIdToExclude))
     val meetingDuration = request.bookingDuration!!.toLong()
 
-    val availableLocations = availableLocations {
+    val availableLocationsBuilder = availableLocations {
       prisonVideoLinkLocations.forEach { location ->
         // These time adjustments do not allow for PRE and POST meeting times.
         var meetingStartTime = startOfDay
@@ -56,17 +58,7 @@ class AvailableLocationsService(
             request.fallsWithinSlotTime(meetingStartTime) &&
             location.allowsByAnyRuleOrSchedule(request, meetingStartTime)
           ) {
-            add(
-              AvailableLocation(
-                name = location.description ?: location.key,
-                startTime = meetingStartTime,
-                endTime = meetingEndTime,
-                dpsLocationId = location.dpsLocationId,
-                dpsLocationKey = location.key,
-                usage = location.extraAttributes?.locationUsage?.let { LocationUsage.valueOf(it.name) },
-                timeSlot = slot(meetingStartTime),
-              ),
-            )
+            add(location, meetingStartTime, meetingEndTime)
           }
 
           meetingStartTime = meetingStartTime.plusMinutes(FIFTEEN_MINUTES)
@@ -76,46 +68,78 @@ class AvailableLocationsService(
     }
 
     return AvailableLocationsResponse(
-      availableLocations.build().also { log.info("AVAILABLE LOCATIONS: found ${it.size} available locations matching request $request") },
+      availableLocationsBuilder.build().also { log.info("AVAILABLE LOCATIONS: found ${it.size} available locations matching request $request") },
     )
   }
 
-  private fun availableLocations(init: AvailableLocationsBuilder.() -> Unit): AvailableLocationsBuilder {
-    val availableLocations = AvailableLocationsBuilder()
-    availableLocations.init()
-    return availableLocations
-  }
+  private fun availableLocations(init: AvailableLocationsBuilder.() -> Unit) = AvailableLocationsBuilder().also { it.init() }
 
   private class AvailableLocationsBuilder {
-    private val probation = mutableSetOf<AvailableLocation>()
-    private val court = mutableSetOf<AvailableLocation>()
-    private val shared = mutableSetOf<AvailableLocation>()
+    private val dedicatedProbationTeamLocations = mutableSetOf<AvailableLocation>()
+    private val anyProbationTeamLocations = mutableSetOf<AvailableLocation>()
+    private val dedicatedCourtLocations = mutableSetOf<AvailableLocation>()
+    private val anyCourtLocations = mutableSetOf<AvailableLocation>()
+    private val sharedLocations = mutableSetOf<AvailableLocation>()
 
-    fun add(availableLocation: AvailableLocation) {
-      // TODO handle probation code, court code, shared and scheduled types specifically
-      when (availableLocation.usage) {
-        LocationUsage.PROBATION -> probation.add(availableLocation)
-        LocationUsage.COURT -> court.add(availableLocation)
-        else -> shared.add(availableLocation)
+    fun add(location: Location, startTime: LocalTime, endTime: LocalTime) {
+      AvailableLocation(
+        name = location.description ?: location.key,
+        startTime = startTime,
+        endTime = endTime,
+        dpsLocationId = location.dpsLocationId,
+        dpsLocationKey = location.key,
+        usage = location.extraAttributes?.locationUsage?.let { ModelLocationUsage.valueOf(it.name) },
+        timeSlot = slot(startTime),
+      ).let { availableLocation ->
+        if (location.extraAttributes != null) {
+          val attributes = location.extraAttributes
+
+          when (attributes.locationUsage) {
+            LocationUsage.COURT -> {
+              dedicatedCourtLocations.addIf({ attributes.allowedParties.isNotEmpty() }, availableLocation)
+              anyCourtLocations.addIf({ attributes.allowedParties.isEmpty() }, availableLocation)
+            }
+            LocationUsage.PROBATION -> {
+              dedicatedProbationTeamLocations.addIf({ attributes.allowedParties.isNotEmpty() }, availableLocation)
+              anyProbationTeamLocations.addIf({ attributes.allowedParties.isEmpty() }, availableLocation)
+            }
+            LocationUsage.SHARED -> sharedLocations.add(availableLocation)
+            LocationUsage.SCHEDULE -> TODO()
+          }
+        } else {
+          sharedLocations.add(availableLocation)
+        }
       }
     }
 
     fun build() = run {
-      if (probation.isNotEmpty() && court.isNotEmpty()) {
-        throw IllegalStateException("Cannot mix probation and court only locations")
+      val probation = buildList<AvailableLocation> {
+        // TODO need to handle schedules as part of the available locations
+        addAll(dedicatedProbationTeamLocations)
+        addAll(anyProbationTeamLocations.filter { any -> this.none { it.startTime == any.startTime } })
       }
 
-      val sharedCopy = mutableListOf<AvailableLocation>().also { it.addAll(shared) }
-      probation.forEach { probation -> sharedCopy.removeIf { shared -> shared.startTime == probation.startTime } }
-      court.forEach { court -> sharedCopy.removeIf { shared -> shared.startTime == court.startTime } }
+      // This is not complete for courts (regardless of schedules), it is more complicated than this with pre and post meetings!!!!
+      val court = buildList<AvailableLocation> {
+        // TODO need to handle schedules as part of the available locations
+        addAll(dedicatedCourtLocations)
+        addAll(anyCourtLocations.filter { any -> this.none { it.startTime == any.startTime } })
+      }
 
-      val result =
-        (probation + court + sharedCopy)
-          .sortedWith(compareBy({ it.startTime }, { it.name }))
-          .distinctBy { it.startTime }
-          .toList()
+      if (probation.isNotEmpty() && court.isNotEmpty()) {
+        throw IllegalStateException("Cannot mix probation and court locations")
+      }
 
-      result
+      val availableLocations = buildList<AvailableLocation> {
+        addAll(probation)
+        addAll(court)
+        addAll(sharedLocations.filter { shared -> this.none { it.startTime == shared.startTime } })
+      }
+
+      availableLocations
+        .sortedWith(compareBy({ it.startTime }, { it.name }))
+        .distinctBy { it.startTime }
+        .toList()
     }
   }
 
