@@ -39,23 +39,19 @@ class AvailableLocationsService(
    * room can be booked, by the time the user attempts to save the booking the room could already have been taken by
    * another user of the service.
    */
-  fun findAvailableLocations(request: AvailableLocationsRequest, maxSlots: Int = 10): AvailableLocationsResponse {
-    require(maxSlots > 0) {
-      "The cap for the maximum number of available slots must be a positive number"
-    }
-
+  fun findAvailableLocations(request: AvailableLocationsRequest): AvailableLocationsResponse {
     val (startOfDay, endOfDay) = getStartAndEndOfDay(request)
     val prisonVideoLinkLocations = getDecoratedLocationsAt(request.prisonCode!!)
     val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date!!, prisonVideoLinkLocations, request.vlbIdToExclude))
     val meetingDuration = request.bookingDuration!!.toLong()
 
-    val availableLocations = buildList {
+    val availableLocations = availableLocations {
       prisonVideoLinkLocations.forEach { location ->
         // These time adjustments do not allow for PRE and POST meeting times.
         var meetingStartTime = startOfDay
         var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
-        while (meetingStartTime.isBefore(endOfDay) && this.size < maxSlots) {
+        while (meetingStartTime.isBefore(endOfDay)) {
           if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime) &&
             request.fallsWithinSlotTime(meetingStartTime) &&
             location.allowsByAnyRuleOrSchedule(request, meetingStartTime)
@@ -80,14 +76,50 @@ class AvailableLocationsService(
     }
 
     return AvailableLocationsResponse(
-      availableLocations
-        .sortedWith(compareBy({ it.startTime }, { it.name }))
-        .distinctBy { it.startTime }
-        .also { log.info("AVAILABLE LOCATIONS: found ${it.size} available locations matching request $request") },
+      availableLocations.build().also { log.info("AVAILABLE LOCATIONS: found ${it.size} available locations matching request $request") },
     )
   }
 
-  private fun AvailableLocationsRequest.fallsWithinSlotTime(time: LocalTime) = timeSlots!!.any { slot -> slot.isTimeInSlot(time) }
+  private fun availableLocations(init: AvailableLocationsBuilder.() -> Unit): AvailableLocationsBuilder {
+    val availableLocations = AvailableLocationsBuilder()
+    availableLocations.init()
+    return availableLocations
+  }
+
+  private class AvailableLocationsBuilder {
+    private val probation = mutableSetOf<AvailableLocation>()
+    private val court = mutableSetOf<AvailableLocation>()
+    private val shared = mutableSetOf<AvailableLocation>()
+
+    fun add(availableLocation: AvailableLocation) {
+      // TODO handle probation code, court code, shared and scheduled types specifically
+      when (availableLocation.usage) {
+        LocationUsage.PROBATION -> probation.add(availableLocation)
+        LocationUsage.COURT -> court.add(availableLocation)
+        else -> shared.add(availableLocation)
+      }
+    }
+
+    fun build() = run {
+      if (probation.isNotEmpty() && court.isNotEmpty()) {
+        throw IllegalStateException("Cannot mix probation and court only locations")
+      }
+
+      val sharedCopy = mutableListOf<AvailableLocation>().also { it.addAll(shared) }
+      probation.forEach { probation -> sharedCopy.removeIf { shared -> shared.startTime == probation.startTime } }
+      court.forEach { court -> sharedCopy.removeIf { shared -> shared.startTime == court.startTime } }
+
+      val result =
+        (probation + court + sharedCopy)
+          .sortedWith(compareBy({ it.startTime }, { it.name }))
+          .distinctBy { it.startTime }
+          .toList()
+
+      result
+    }
+  }
+
+  private fun AvailableLocationsRequest.fallsWithinSlotTime(time: LocalTime) = timeSlots == null || timeSlots.any { slot -> slot.isTimeInSlot(time) }
 
   private fun getStartAndEndOfDay(request: AvailableLocationsRequest): Pair<LocalTime, LocalTime> {
     val regimeStartOfDay = prisonRegime.startOfDay(request.prisonCode!!)

@@ -114,6 +114,27 @@ class LocationAttributesTest {
     }
 
     @Test
+    fun `should not be available for inactive probation room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.INACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isBool false
+    }
+
+    @Test
     fun `should be available for specific active probation room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
@@ -221,6 +242,27 @@ class LocationAttributesTest {
       )
 
       roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool true
+    }
+
+    @Test
+    fun `should not be available for inactive court room attribute`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.INACTIVE,
+        locationUsage = LocationUsage.COURT,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool false
     }
 
     @Test

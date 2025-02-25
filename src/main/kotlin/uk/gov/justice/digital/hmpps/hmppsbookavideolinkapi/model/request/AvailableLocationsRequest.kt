@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.LocalDate
@@ -44,9 +43,8 @@ data class AvailableLocationsRequest(
   )
   val bookingDuration: Int?,
 
-  @field:NotEmpty(message = "At least one time slot must be supplied")
-  @Schema(description = "The time slots to look up available locations", example = "[\"AM\"]", required = true)
-  val timeSlots: List<TimeSlot>?,
+  @Schema(description = "The time slots to look up available locations. If null, then all time slots are considered.", example = "[\"AM\"]", required = false)
+  val timeSlots: List<TimeSlot>? = null,
 
   @Schema(
     description = "Exclude the video link booking with this ID from the availability check. Useful when checking availability during the amending of a booking.",

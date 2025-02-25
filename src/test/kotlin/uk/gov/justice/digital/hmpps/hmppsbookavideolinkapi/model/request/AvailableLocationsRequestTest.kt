@@ -58,12 +58,6 @@ class AvailableLocationsRequestTest : ValidatorBase<AvailableLocationsRequest>()
   }
 
   @Test
-  fun `should fail when no time slot provided`() {
-    requestThirty.copy(timeSlots = null) failsWithSingle ModelError("timeSlots", "At least one time slot must be supplied")
-    requestThirty.copy(timeSlots = emptyList()) failsWithSingle ModelError("timeSlots", "At least one time slot must be supplied")
-  }
-
-  @Test
   fun `should fail when booking not in allowed slots`() {
     IntRange(1, 29).forEach {
       requestThirty.copy(bookingDuration = it) failsWithSingle ModelError("allowedDuration", "The booking duration can only be one of 30, 60, 90 or 120 minutes")
