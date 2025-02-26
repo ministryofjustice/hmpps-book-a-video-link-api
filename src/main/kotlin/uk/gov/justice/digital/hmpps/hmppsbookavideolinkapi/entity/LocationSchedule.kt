@@ -11,6 +11,8 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetween
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -72,9 +74,32 @@ class LocationSchedule(
     "(locationScheduleId = $locationScheduleId, startDay = $startDayOfWeek, endDay = $endDayOfWeek " +
     "startTime = $startTime, endTime = $endTime)"
 
-  // TODO
-  fun isAvailableFor(probationTeam: ProbationTeam, onDateTime: LocalDateTime): AvailabilityStatus = AvailabilityStatus.PROBATION
+  fun isAvailableForProbationTeam(team: ProbationTeam, startingOnDateTime: LocalDateTime) = run {
+    (
+      locationUsage == LocationUsage.PROBATION &&
+        allowedParties.orEmpty().split(",").contains(team.code) &&
+        startingOnDateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) &&
+        startingOnDateTime.toLocalTime().isBetween(startTime, endTime)
+      ) ||
+      (
+        !startingOnDateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) ||
+          !startingOnDateTime.toLocalTime().isBetween(startTime, endTime)
+        )
+  }
+
+  fun isAvailableForAnyProbationTeam(startingOnDateTime: LocalDateTime) = run {
+    (
+      locationUsage == LocationUsage.PROBATION &&
+        allowedParties.isNullOrBlank() &&
+        startingOnDateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) &&
+        startingOnDateTime.toLocalTime().isBetween(startTime, endTime)
+      ) ||
+      (
+        !startingOnDateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) ||
+          !startingOnDateTime.toLocalTime().isBetween(startTime, endTime)
+        )
+  }
 
   // TODO
-  fun isAvailableFor(court: Court, onDateTime: LocalDateTime): AvailabilityStatus = AvailabilityStatus.COURT
+  fun isAvailableFor(court: Court, onDateTime: LocalDateTime): AvailabilityStatus = AvailabilityStatus.COURT_ANY
 }
