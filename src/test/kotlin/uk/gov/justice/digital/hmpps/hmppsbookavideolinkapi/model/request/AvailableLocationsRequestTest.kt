@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.TimeSlot
 import java.time.LocalDate
 
 class AvailableLocationsRequestTest : ValidatorBase<AvailableLocationsRequest>() {
