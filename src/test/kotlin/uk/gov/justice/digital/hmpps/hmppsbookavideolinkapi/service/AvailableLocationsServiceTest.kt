@@ -340,8 +340,8 @@ class AvailableLocationsServiceTest {
 
   @Nested
   inner class UndecoratedAndDecoratedRooms {
-    private val decoratedLocation = wandsworthLocation.toModel().copy(
-      description = "decorated room",
+    private val decoratedProbationLocation = wandsworthLocation.toModel().copy(
+      description = "b - decorated probation room",
       extraAttributes = RoomAttributes(
         attributeId = 1,
         locationStatus = LocationStatus.ACTIVE,
@@ -353,7 +353,20 @@ class AvailableLocationsServiceTest {
         notes = null,
       ),
     )
-    private val undecoratedLocation = wandsworthLocation2.toModel().copy(description = "undecorated room")
+    private val decoratedProbationTeamLocation = wandsworthLocation.toModel().copy(
+      description = "c - decorated probation team room",
+      extraAttributes = RoomAttributes(
+        attributeId = 2,
+        locationStatus = LocationStatus.ACTIVE,
+        statusMessage = null,
+        yesterday(),
+        LocationUsage.PROBATION,
+        allowedParties = listOf("BLACKPOOL_MC_PPOC"),
+        prisonVideoUrl = null,
+        notes = null,
+      ),
+    )
+    private val undecoratedLocation = wandsworthLocation2.toModel().copy(description = "a - undecorated room")
 
     @BeforeEach
     fun before() {
@@ -363,13 +376,13 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should favour decorated probation room over undecorated`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedLocation, undecoratedLocation)
+      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, undecoratedLocation)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
             WANDSWORTH,
             tomorrow(),
-            listOf(decoratedLocation, undecoratedLocation),
+            listOf(decoratedProbationLocation, undecoratedLocation),
           ),
         ),
       ) doReturn BookedLocations(emptyList())
@@ -391,20 +404,131 @@ class AvailableLocationsServiceTest {
       response.locations hasSize 2
 
       response.locations containsExactly listOf(
-        availableLocation(decoratedLocation, time(9, 0), time(9, 30), LocationUsage.PROBATION),
-        availableLocation(decoratedLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
+        availableLocation(decoratedProbationLocation, time(9, 0), time(9, 30), LocationUsage.PROBATION),
+        availableLocation(decoratedProbationLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
       )
     }
 
     @Test
-    fun `should exclude decorated probation room at 9am but include decorated room at 915am`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedLocation, undecoratedLocation)
+    fun `should favour decorated probation team room over decorated probation room`() {
+      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
             WANDSWORTH,
             tomorrow(),
-            listOf(decoratedLocation, undecoratedLocation),
+            listOf(decoratedProbationLocation, decoratedProbationTeamLocation),
+          ),
+        ),
+      ) doReturn BookedLocations(emptyList())
+
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn true
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn true
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn true
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn true
+
+      val response = service().findAvailableLocations(
+        AvailableLocationsRequest(
+          prisonCode = WANDSWORTH,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = tomorrow(),
+          bookingDuration = 30,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 2
+
+      response.locations containsExactly listOf(
+        availableLocation(decoratedProbationTeamLocation, time(9, 0), time(9, 30), LocationUsage.PROBATION),
+        availableLocation(decoratedProbationTeamLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
+      )
+    }
+
+    @Test
+    fun `should favour decorated probation room over decorated probation team room when team room is not available`() {
+      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation)
+      whenever(
+        bookedLocationsService.findBooked(
+          BookedLookup(
+            WANDSWORTH,
+            tomorrow(),
+            listOf(decoratedProbationLocation, decoratedProbationTeamLocation),
+          ),
+        ),
+      ) doReturn BookedLocations(emptyList())
+
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn true
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn true
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn false
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn false
+
+      val response = service().findAvailableLocations(
+        AvailableLocationsRequest(
+          prisonCode = WANDSWORTH,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = tomorrow(),
+          bookingDuration = 30,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 2
+
+      response.locations containsExactly listOf(
+        availableLocation(decoratedProbationLocation, time(9, 0), time(9, 30), LocationUsage.PROBATION),
+        availableLocation(decoratedProbationLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
+      )
+    }
+
+    @Test
+    fun `should favour decorated probation team room over decorated probation room over shared room`() {
+      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation, undecoratedLocation)
+      whenever(
+        bookedLocationsService.findBooked(
+          BookedLookup(
+            WANDSWORTH,
+            tomorrow(),
+            listOf(decoratedProbationLocation, decoratedProbationTeamLocation, undecoratedLocation),
+          ),
+        ),
+      ) doReturn BookedLocations(emptyList())
+
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn true
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn true
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn true
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn true
+
+      val response = service().findAvailableLocations(
+        AvailableLocationsRequest(
+          prisonCode = WANDSWORTH,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = tomorrow(),
+          bookingDuration = 30,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 2
+
+      response.locations containsExactly listOf(
+        availableLocation(decoratedProbationTeamLocation, time(9, 0), time(9, 30), LocationUsage.PROBATION),
+        availableLocation(decoratedProbationTeamLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
+      )
+    }
+
+    @Test
+    fun `should exclude decorated probation room at 9am but include decorated room at 915am`() {
+      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, undecoratedLocation)
+      whenever(
+        bookedLocationsService.findBooked(
+          BookedLookup(
+            WANDSWORTH,
+            tomorrow(),
+            listOf(decoratedProbationLocation, undecoratedLocation),
           ),
         ),
       ) doReturn BookedLocations(emptyList())
@@ -428,7 +552,7 @@ class AvailableLocationsServiceTest {
       response.locations containsExactly listOf(
         // decorated room is not available at 9:00am but undecorated is
         availableLocation(undecoratedLocation, time(9, 0), time(9, 30)),
-        availableLocation(decoratedLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
+        availableLocation(decoratedProbationLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
       )
     }
   }
