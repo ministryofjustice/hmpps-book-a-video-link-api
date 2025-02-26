@@ -39,7 +39,6 @@ generic-service:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     DB_SSL_MODE: "verify-full"
     HMPPS_SQS_USE_WEB_TOKEN: true
-    FEATURE_MASTER_VLPM_TYPES: false
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:
@@ -64,6 +63,8 @@ generic-service:
       HMPPS_SQS_QUEUES_BVLS_QUEUE_NAME: "sqs_queue_name"
     sqs-domain-event-dlq-secret:
       HMPPS_SQS_QUEUES_BVLS_DLQ_NAME: "sqs_queue_name"
+    feature-toggles:
+      FEATURE_MASTER_VLPM_TYPES: "FEATURE_MASTER_VLPM_TYPES"
 
   allowlist:
     groups:
