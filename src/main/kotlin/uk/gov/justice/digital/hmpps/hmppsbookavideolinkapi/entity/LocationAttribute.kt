@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetween
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -83,31 +84,72 @@ class LocationAttribute(
   override fun toString(): String = this::class.simpleName +
     "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
 
-  fun isAvailableFor(probationTeam: ProbationTeam, onDateTime: LocalDateTime) = locationStatus == LocationStatus.ACTIVE && check(probationTeam, onDateTime)
+  fun isAvailableFor(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(probationTeam, startingOnDateTime)
 
-  fun isAvailableFor(court: Court, onDateTime: LocalDateTime) = locationStatus == LocationStatus.ACTIVE && check(court, onDateTime)
+  fun isAvailableFor(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(court, startingOnDateTime)
 
-  private fun check(probationTeam: ProbationTeam, onDateTime: LocalDateTime): Boolean {
+  private fun check(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus {
+    if (locationStatus == LocationStatus.INACTIVE) {
+      return AvailabilityStatus.NONE
+    }
+
     return when (locationUsage) {
-      LocationUsage.SHARED -> true
-      LocationUsage.PROBATION -> isPartyAllowed(probationTeam.code)
-      LocationUsage.SCHEDULE -> locationSchedule.check(probationTeam, onDateTime)
-      else -> return false
+      LocationUsage.SHARED -> AvailabilityStatus.SHARED
+      LocationUsage.PROBATION -> {
+        if (allowedParties == null) {
+          AvailabilityStatus.PROBATION
+        } else {
+          if (isPartyAllowed(probationTeam.code)) {
+            AvailabilityStatus.PROBATION_TEAM
+          } else {
+            AvailabilityStatus.NONE
+          }
+        }
+      }
+      LocationUsage.SCHEDULE -> locationSchedule.check(probationTeam, startingOnDateTime)
+      else -> return AvailabilityStatus.NONE
     }
   }
 
-  private fun List<LocationSchedule>.check(probationTeam: ProbationTeam, onDateTime: LocalDateTime) = any { it.isAvailableFor(probationTeam, onDateTime) }
+  private fun List<LocationSchedule>.check(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus {
+    val dayOfWeek = startingOnDateTime.dayOfWeek.value
 
-  private fun check(court: Court, onDateTime: LocalDateTime): Boolean {
+    filter {
+      dayOfWeek.between(it.startDayOfWeek, it.endDayOfWeek) && startingOnDateTime.toLocalTime().isBetween(it.startTime, it.endTime)
+    }
+      .let { it ->
+        if (it.isEmpty()) {
+          return AvailabilityStatus.SHARED
+        } else {
+          TODO()
+        }
+      }
+  }
+
+  private fun check(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus {
+    if (locationStatus == LocationStatus.INACTIVE) {
+      return AvailabilityStatus.NONE
+    }
+
     return when (locationUsage) {
-      LocationUsage.SHARED -> true
-      LocationUsage.COURT -> isPartyAllowed(court.code)
-      LocationUsage.SCHEDULE -> locationSchedule.check(court, onDateTime)
-      else -> return false
+      LocationUsage.SHARED -> AvailabilityStatus.SHARED
+      LocationUsage.COURT -> {
+        if (allowedParties == null) {
+          AvailabilityStatus.COURT
+        } else {
+          if (isPartyAllowed(court.code)) {
+            AvailabilityStatus.COURT_ROOM
+          } else {
+            AvailabilityStatus.NONE
+          }
+        }
+      }
+      LocationUsage.SCHEDULE -> TODO()
+      else -> return AvailabilityStatus.NONE
     }
   }
 
-  private fun List<LocationSchedule>.check(court: Court, onDateTime: LocalDateTime) = any { it.isAvailableFor(court, onDateTime) }
+  private fun Int.between(from: Int, to: Int) = this in from..to
 
   private fun isPartyAllowed(party: String) = allowedParties.isNullOrBlank() || allowedParties.replace(" ", "").split(",").contains(party)
 }
@@ -122,4 +164,13 @@ enum class LocationUsage {
   PROBATION,
   SHARED,
   SCHEDULE,
+}
+
+enum class AvailabilityStatus {
+  PROBATION_TEAM,
+  PROBATION,
+  COURT_ROOM,
+  COURT,
+  SHARED,
+  NONE,
 }

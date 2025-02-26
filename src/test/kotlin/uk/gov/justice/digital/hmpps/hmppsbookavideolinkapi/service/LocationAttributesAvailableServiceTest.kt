@@ -7,10 +7,10 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilityStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
@@ -65,35 +65,35 @@ class LocationAttributesAvailableServiceTest {
   fun `should return true when location attribute is available for court`() {
     whenever(locationAttributeRepository.findById(1)) doReturn Optional.of(locationAttribute)
     whenever(courtRepository.findByCode("COURT")) doReturn court
-    whenever(locationAttribute.isAvailableFor(court, now)) doReturn true
+    whenever(locationAttribute.isAvailableFor(court, now)) doReturn AvailabilityStatus.COURT
 
-    service.isLocationAvailableFor(LocationAvailableRequest.court(1, "COURT", now)) isBool true
+    service.isLocationAvailableFor(LocationAvailableRequest.court(1, "COURT", now)) isEqualTo AvailabilityStatus.COURT
   }
 
   @Test
   fun `should return false when location attribute is not available for court`() {
     whenever(locationAttributeRepository.findById(1)) doReturn Optional.of(locationAttribute)
     whenever(courtRepository.findByCode("COURT")) doReturn court
-    whenever(locationAttribute.isAvailableFor(court, now)) doReturn false
+    whenever(locationAttribute.isAvailableFor(court, now)) doReturn AvailabilityStatus.NONE
 
-    service.isLocationAvailableFor(LocationAvailableRequest.court(1, "COURT", now)) isBool false
+    service.isLocationAvailableFor(LocationAvailableRequest.court(1, "COURT", now)) isEqualTo AvailabilityStatus.NONE
   }
 
   @Test
   fun `should return true when location attribute is available for probation team`() {
     whenever(locationAttributeRepository.findById(1)) doReturn Optional.of(locationAttribute)
     whenever(probationTeamRepository.findByCode("PROBATION")) doReturn probationTeam
-    whenever(locationAttribute.isAvailableFor(probationTeam, now)) doReturn true
+    whenever(locationAttribute.isAvailableFor(probationTeam, now)) doReturn AvailabilityStatus.PROBATION
 
-    service.isLocationAvailableFor(LocationAvailableRequest.probation(1, "PROBATION", now)) isBool true
+    service.isLocationAvailableFor(LocationAvailableRequest.probation(1, "PROBATION", now)) isEqualTo AvailabilityStatus.PROBATION
   }
 
   @Test
   fun `should return false when location attribute is not available for probation team`() {
     whenever(locationAttributeRepository.findById(1)) doReturn Optional.of(locationAttribute)
     whenever(probationTeamRepository.findByCode("PROBATION")) doReturn probationTeam
-    whenever(locationAttribute.isAvailableFor(probationTeam, now)) doReturn false
+    whenever(locationAttribute.isAvailableFor(probationTeam, now)) doReturn AvailabilityStatus.NONE
 
-    service.isLocationAvailableFor(LocationAvailableRequest.probation(1, "PROBATION", now)) isBool false
+    service.isLocationAvailableFor(LocationAvailableRequest.probation(1, "PROBATION", now)) isEqualTo AvailabilityStatus.NONE
   }
 }

@@ -73,8 +73,8 @@ class LocationSchedule(
     "startTime = $startTime, endTime = $endTime)"
 
   // TODO
-  fun isAvailableFor(probationTeam: ProbationTeam, onDateTime: LocalDateTime) = true
+  fun isAvailableFor(probationTeam: ProbationTeam, onDateTime: LocalDateTime): AvailabilityStatus = AvailabilityStatus.PROBATION
 
   // TODO
-  fun isAvailableFor(court: Court, onDateTime: LocalDateTime) = true
+  fun isAvailableFor(court: Court, onDateTime: LocalDateTime): AvailabilityStatus = AvailabilityStatus.COURT
 }

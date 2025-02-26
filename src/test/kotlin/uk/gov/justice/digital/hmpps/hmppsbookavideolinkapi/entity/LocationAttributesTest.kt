@@ -7,7 +7,6 @@ import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import java.time.DayOfWeek
@@ -110,7 +109,7 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isBool true
+      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isEqualTo AvailabilityStatus.PROBATION
     }
 
     @Test
@@ -131,7 +130,7 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isBool false
+      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -153,7 +152,10 @@ class LocationAttributesTest {
         allowedParties = "TEAM_CODE",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(code = "TEAM_CODE"), LocalDateTime.now()) isBool true
+      roomAttributes.isAvailableFor(
+        probationTeam(code = "TEAM_CODE"),
+        LocalDateTime.now(),
+      ) isEqualTo AvailabilityStatus.PROBATION_TEAM
     }
 
     @Test
@@ -175,7 +177,10 @@ class LocationAttributesTest {
         allowedParties = "TEAM_CODE",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(code = "DIFFERENT_TEAM_CODE"), LocalDateTime.now()) isBool false
+      roomAttributes.isAvailableFor(
+        probationTeam(code = "DIFFERENT_TEAM_CODE"),
+        LocalDateTime.now(),
+      ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -196,7 +201,7 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isBool false
+      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -217,9 +222,28 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isBool true
+      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isEqualTo AvailabilityStatus.SHARED
     }
   }
+
+  private fun schedule(
+    locationAttribute: LocationAttribute,
+    start: DayOfWeek = DayOfWeek.MONDAY,
+    end: DayOfWeek = DayOfWeek.FRIDAY,
+    startTime: LocalTime = LocalTime.of(9, 0),
+    endTime: LocalTime = LocalTime.of(17, 0),
+  ) = LocationSchedule(
+    locationScheduleId = 1,
+    locationAttribute = locationAttribute,
+    startDayOfWeek = start.value,
+    endDayOfWeek = end.value,
+    startTime = startTime,
+    endTime = endTime,
+    locationUsage = LocationUsage.SCHEDULE,
+    allowedParties = null,
+    notes = null,
+    createdBy = "test",
+  )
 
   @Nested
   inner class Court {
@@ -241,7 +265,7 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool true
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT
     }
 
     @Test
@@ -262,7 +286,7 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool false
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -283,7 +307,7 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool false
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -300,12 +324,12 @@ class LocationAttributesTest {
           notes = null,
         ),
         locationStatus = LocationStatus.ACTIVE,
-        locationUsage = LocationUsage.PROBATION,
+        locationUsage = LocationUsage.COURT,
         createdBy = "TEST",
         allowedParties = "COURT",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(code = "COURT"), LocalDateTime.now()) isBool true
+      roomAttributes.isAvailableFor(court(code = "COURT"), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT_ROOM
     }
 
     @Test
@@ -322,12 +346,12 @@ class LocationAttributesTest {
           notes = null,
         ),
         locationStatus = LocationStatus.ACTIVE,
-        locationUsage = LocationUsage.PROBATION,
+        locationUsage = LocationUsage.COURT,
         createdBy = "TEST",
         allowedParties = "COURT",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(code = "DIFFERENT_COURT"), LocalDateTime.now()) isBool false
+      roomAttributes.isAvailableFor(court(code = "DIFFERENT_COURT"), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -348,7 +372,7 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isBool true
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.SHARED
     }
   }
 }
