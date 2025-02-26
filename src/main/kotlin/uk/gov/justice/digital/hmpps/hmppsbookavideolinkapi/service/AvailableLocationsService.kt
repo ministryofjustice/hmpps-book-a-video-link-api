@@ -4,10 +4,9 @@ import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.addIf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilityStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailableLocationsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -54,11 +53,9 @@ class AvailableLocationsService(
         var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
         while (meetingStartTime.isBefore(endOfDay)) {
-          if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime) &&
-            request.fallsWithinSlotTime(meetingStartTime) &&
-            location.allowsByAnyRuleOrSchedule(request, meetingStartTime)
-          ) {
-            add(location, meetingStartTime, meetingEndTime)
+          if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime) && request.fallsWithinSlotTime(meetingStartTime)) {
+            val availabilityStatus = location.allowsByAnyRuleOrSchedule(request, meetingStartTime)
+            add(availabilityStatus, location, meetingStartTime, meetingEndTime)
           }
 
           meetingStartTime = meetingStartTime.plusMinutes(FIFTEEN_MINUTES)
@@ -81,7 +78,7 @@ class AvailableLocationsService(
     private val anyCourtLocations = mutableSetOf<AvailableLocation>()
     private val sharedLocations = mutableSetOf<AvailableLocation>()
 
-    fun add(location: Location, startTime: LocalTime, endTime: LocalTime) {
+    fun add(availabilityStatus: AvailabilityStatus, location: Location, startTime: LocalTime, endTime: LocalTime) {
       AvailableLocation(
         name = location.description ?: location.key,
         startTime = startTime,
@@ -91,37 +88,25 @@ class AvailableLocationsService(
         usage = location.extraAttributes?.locationUsage?.let { ModelLocationUsage.valueOf(it.name) },
         timeSlot = slot(startTime),
       ).let { availableLocation ->
-        if (location.extraAttributes != null) {
-          val attributes = location.extraAttributes
-
-          when (attributes.locationUsage) {
-            LocationUsage.COURT -> {
-              dedicatedCourtLocations.addIf({ attributes.allowedParties.isNotEmpty() }, availableLocation)
-              anyCourtLocations.addIf({ attributes.allowedParties.isEmpty() }, availableLocation)
-            }
-            LocationUsage.PROBATION -> {
-              dedicatedProbationTeamLocations.addIf({ attributes.allowedParties.isNotEmpty() }, availableLocation)
-              anyProbationTeamLocations.addIf({ attributes.allowedParties.isEmpty() }, availableLocation)
-            }
-            LocationUsage.SHARED -> sharedLocations.add(availableLocation)
-            LocationUsage.SCHEDULE -> TODO()
-          }
-        } else {
-          sharedLocations.add(availableLocation)
+        when (availabilityStatus) {
+          AvailabilityStatus.PROBATION_TEAM -> dedicatedProbationTeamLocations.add(availableLocation)
+          AvailabilityStatus.PROBATION -> anyProbationTeamLocations.add(availableLocation)
+          AvailabilityStatus.COURT_ROOM -> dedicatedCourtLocations.add(availableLocation)
+          AvailabilityStatus.COURT -> anyCourtLocations.add(availableLocation)
+          AvailabilityStatus.SHARED -> sharedLocations.add(availableLocation)
+          AvailabilityStatus.NONE -> { }
         }
       }
     }
 
     fun build() = run {
       val probation = buildList<AvailableLocation> {
-        // TODO need to handle schedules as part of the available locations
         addAll(dedicatedProbationTeamLocations)
         addAll(anyProbationTeamLocations.filter { any -> this.none { it.startTime == any.startTime } })
       }
 
       // This is not complete for courts (regardless of schedules), it is more complicated than this with pre and post meetings!!!!
       val court = buildList<AvailableLocation> {
-        // TODO need to handle schedules as part of the available locations
         addAll(dedicatedCourtLocations)
         addAll(anyCourtLocations.filter { any -> this.none { it.startTime == any.startTime } })
       }
@@ -167,7 +152,7 @@ class AvailableLocationsService(
 
   private fun getDecoratedLocationsAt(prisonCode: String) = locationsService.getDecoratedVideoLocations(prisonCode = prisonCode, enabledOnly = true)
 
-  private fun Location.allowsByAnyRuleOrSchedule(request: AvailableLocationsRequest, time: LocalTime): Boolean {
+  private fun Location.allowsByAnyRuleOrSchedule(request: AvailableLocationsRequest, time: LocalTime): AvailabilityStatus {
     if (extraAttributes != null) {
       return when (request.bookingType!!) {
         BookingType.COURT -> locationAttributesService.isLocationAvailableFor(
@@ -187,7 +172,7 @@ class AvailableLocationsService(
       }
     }
 
-    return true
+    return AvailabilityStatus.SHARED
   }
 }
 
@@ -198,7 +183,7 @@ class LocationAttributesAvailableService(
   private val courtRepository: CourtRepository,
   private val probationTeamRepository: ProbationTeamRepository,
 ) {
-  fun isLocationAvailableFor(request: LocationAvailableRequest): Boolean {
+  fun isLocationAvailableFor(request: LocationAvailableRequest): AvailabilityStatus {
     val attribute = locationAttributeRepository.findById(request.attributeId)
       .orElseThrow { EntityNotFoundException("Location attribute ${request.attributeId} not found") }
 
