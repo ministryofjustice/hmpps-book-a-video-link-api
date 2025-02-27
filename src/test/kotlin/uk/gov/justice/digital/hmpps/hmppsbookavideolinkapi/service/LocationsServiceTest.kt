@@ -429,13 +429,13 @@ class LocationsServiceTest {
   @Test
   fun `should return undecorated location by id`() {
     whenever(locationsClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
-    whenever(locationAttributeRepository.findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)) doReturn null
+    whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn null
 
     service.getLocationById(wandsworthLocation.id) isEqualTo wandsworthLocation.toModel()
 
     inOrder(locationsClient, locationAttributeRepository) {
       verify(locationsClient).getLocationById(wandsworthLocation.id)
-      verify(locationAttributeRepository).findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)
+      verify(locationAttributeRepository).findByDpsLocationId(wandsworthLocation.id)
     }
   }
 
@@ -460,26 +460,26 @@ class LocationsServiceTest {
       prisonVideoUrl = "video-link",
     )
 
-    whenever(locationAttributeRepository.findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)) doReturn roomAttributes
+    whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes
 
     service.getLocationById(wandsworthLocation.id) isEqualTo wandsworthLocation.toModel().toDecoratedLocation(roomAttributes.toRoomAttributes())
 
     inOrder(locationsClient, locationAttributeRepository) {
       verify(locationsClient).getLocationById(wandsworthLocation.id)
-      verify(locationAttributeRepository).findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)
+      verify(locationAttributeRepository).findByDpsLocationId(wandsworthLocation.id)
     }
   }
 
   @Test
   fun `should return undecorated location by key`() {
     whenever(locationsClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
-    whenever(locationAttributeRepository.findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)) doReturn null
+    whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn null
 
     service.getLocationByKey(wandsworthLocation.key) isEqualTo wandsworthLocation.toModel()
 
     inOrder(locationsClient, locationAttributeRepository) {
       verify(locationsClient).getLocationByKey(wandsworthLocation.key)
-      verify(locationAttributeRepository).findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)
+      verify(locationAttributeRepository).findByDpsLocationId(wandsworthLocation.id)
     }
   }
 
@@ -504,13 +504,13 @@ class LocationsServiceTest {
       prisonVideoUrl = "video-link",
     )
 
-    whenever(locationAttributeRepository.findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)) doReturn roomAttributes
+    whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes
 
     service.getLocationByKey(wandsworthLocation.key) isEqualTo wandsworthLocation.toModel().toDecoratedLocation(roomAttributes.toRoomAttributes())
 
     inOrder(locationsClient, locationAttributeRepository) {
       verify(locationsClient).getLocationByKey(wandsworthLocation.key)
-      verify(locationAttributeRepository).findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)
+      verify(locationAttributeRepository).findByDpsLocationId(wandsworthLocation.id)
     }
   }
 }
