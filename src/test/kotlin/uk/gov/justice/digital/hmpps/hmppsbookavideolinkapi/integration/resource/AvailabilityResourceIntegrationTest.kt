@@ -178,7 +178,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = PENTONVILLE,
       prisonerNumber = "A1111AA",
       appointmentDate = tomorrow(),

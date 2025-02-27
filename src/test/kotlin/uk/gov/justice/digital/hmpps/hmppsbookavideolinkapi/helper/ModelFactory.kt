@@ -220,7 +220,6 @@ fun requestCourtVideoLinkRequest(
 fun probationBookingRequest(
   probationTeamCode: String = "BLKPPP",
   probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
-  videoLinkUrl: String = "https://video.link.com",
   prisonCode: String = "WWI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
@@ -252,7 +251,7 @@ fun probationBookingRequest(
     probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
     comments = comments,
-    videoLinkUrl = videoLinkUrl,
+    videoLinkUrl = null,
     additionalBookingDetails = additionalBookingDetails,
   )
 }
@@ -338,7 +337,6 @@ fun amendCourtBookingRequest(
 
 fun amendProbationBookingRequest(
   probationMeetingType: ProbationMeetingType = ProbationMeetingType.PSR,
-  videoLinkUrl: String = "https://video.link.com",
   prisonCode: String = WANDSWORTH,
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
@@ -369,7 +367,7 @@ fun amendProbationBookingRequest(
     probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
     comments = comments,
-    videoLinkUrl = videoLinkUrl,
+    videoLinkUrl = null,
     additionalBookingDetails = additionalBookingDetails,
   )
 }

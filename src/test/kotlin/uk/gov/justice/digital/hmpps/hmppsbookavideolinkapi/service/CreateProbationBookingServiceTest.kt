@@ -40,7 +40,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
@@ -126,7 +125,6 @@ class CreateProbationBookingServiceTest {
       .hasProbationTeam(requestedProbationTeam)
       .hasMeetingType(ProbationMeetingType.PSR)
       .hasComments("probation booking comments")
-      .hasVideoUrl("https://video.link.com")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .appointments()
@@ -187,7 +185,6 @@ class CreateProbationBookingServiceTest {
       .hasProbationTeam(requestedProbationTeam)
       .hasMeetingType(ProbationMeetingType.PSR)
       .hasComments("probation booking comments")
-      .hasVideoUrl("https://video.link.com")
       .hasCreatedBy(PRISON_USER_BIRMINGHAM)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .appointments()

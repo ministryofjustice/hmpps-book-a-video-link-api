@@ -8,6 +8,11 @@ spring:
   jpa:
     show-sql: true
 
+  datasource:
+    url: 'jdbc:postgresql://localhost/book-a-video-link-db?sslmode=prefer'
+    username: book-a-video-link
+    password: book-a-video-link
+
   flyway:
     locations: classpath:/migrations/common,classpath:/migrations/dev
 

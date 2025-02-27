@@ -55,7 +55,6 @@ class AmendProbationBookingService(
     return booking.apply {
       probationMeetingType = request.probationMeetingType!!.name
       comments = request.comments
-      videoUrl = request.videoLinkUrl
       this.amendedBy = amendedBy.username
       amendedTime = now()
     }

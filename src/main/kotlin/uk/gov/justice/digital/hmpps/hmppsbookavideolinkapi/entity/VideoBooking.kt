@@ -167,7 +167,6 @@ class VideoBooking private constructor(
       probationTeam: ProbationTeam,
       probationMeetingType: String,
       comments: String?,
-      videoUrl: String?,
       createdBy: String,
       createdByPrison: Boolean,
     ): VideoBooking = VideoBooking(
@@ -177,7 +176,7 @@ class VideoBooking private constructor(
       probationTeam = probationTeam,
       probationMeetingType = probationMeetingType,
       comments = comments,
-      videoUrl = videoUrl,
+      videoUrl = null,
       createdBy = createdBy,
       createdByPrison = createdByPrison,
     )

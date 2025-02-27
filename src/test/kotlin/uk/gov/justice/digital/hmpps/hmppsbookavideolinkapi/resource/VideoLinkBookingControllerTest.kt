@@ -28,7 +28,6 @@ import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.HmppsBookAVideoLinkApiExceptionHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
@@ -55,8 +54,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.RequestBookingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBookingsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.hmpps.kotlin.auth.HmppsResourceServerConfiguration
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -88,7 +89,7 @@ class VideoLinkBookingControllerTest {
     fun videoAppointmentRepository() = mock<VideoAppointmentRepository>()
 
     @Bean
-    fun locationsInsidePrisonClient() = mock<LocationsInsidePrisonClient>()
+    fun locationService() = mock<LocationsService>()
 
     @Bean
     fun additionalBookingDetailRepository() = mock<AdditionalBookingDetailRepository>()
@@ -98,7 +99,7 @@ class VideoLinkBookingControllerTest {
       videoBookingRepository(),
       referenceCodeRepository(),
       videoAppointmentRepository(),
-      locationsInsidePrisonClient(),
+      locationService(),
       additionalBookingDetailRepository(),
     )
   }
@@ -116,7 +117,7 @@ class VideoLinkBookingControllerTest {
   private lateinit var referenceCodeRepository: ReferenceCodeRepository
 
   @Autowired
-  private lateinit var locationsInsidePrisonClient: LocationsInsidePrisonClient
+  private lateinit var locationService: LocationsService
 
   @Autowired
   private lateinit var context: WebApplicationContext
@@ -227,7 +228,7 @@ class VideoLinkBookingControllerTest {
   fun `should get Wandsworth prison court video booking for external user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
     whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
-    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
+    whenever(locationService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel()
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
@@ -243,7 +244,7 @@ class VideoLinkBookingControllerTest {
   fun `should get Wandsworth prison court video booking for Wandsworth prison user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(wandsworthPrisonCourtBooking)
     whenever(referenceCodeRepository.findByGroupCodeAndCode("COURT_HEARING_TYPE", wandsworthPrisonCourtBooking.hearingType!!)) doReturn courtAppealReferenceCode
-    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
+    whenever(locationService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel()
 
     mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON

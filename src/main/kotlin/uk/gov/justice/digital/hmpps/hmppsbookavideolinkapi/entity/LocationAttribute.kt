@@ -97,7 +97,7 @@ class LocationAttribute(
     return when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.PROBATION -> {
-        if (allowedParties == null) {
+        if (allowedParties.isNullOrBlank()) {
           AvailabilityStatus.PROBATION_ANY
         } else {
           if (isPartyAllowed(probationTeam.code)) {
@@ -141,7 +141,7 @@ class LocationAttribute(
     return when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.COURT -> {
-        if (allowedParties == null) {
+        if (allowedParties.isNullOrBlank()) {
           AvailabilityStatus.COURT_ANY
         } else {
           if (isPartyAllowed(court.code)) {

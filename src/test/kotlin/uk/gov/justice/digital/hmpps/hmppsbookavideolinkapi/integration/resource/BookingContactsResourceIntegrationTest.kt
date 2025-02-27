@@ -68,7 +68,6 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = "BLKPPP",
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = PENTONVILLE,
       prisonerNumber = "A1111AA",
       startTime = LocalTime.of(9, 0),

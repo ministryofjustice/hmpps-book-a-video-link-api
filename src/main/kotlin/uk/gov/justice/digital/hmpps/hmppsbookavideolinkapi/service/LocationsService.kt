@@ -3,12 +3,14 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toDecoratedLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
+import java.util.UUID
 
 @Service
 class LocationsService(
@@ -38,4 +40,26 @@ class LocationsService(
     // Preserves the order of the original prison locations
     return (locationsById + decoratedLocations.associateBy { it.dpsLocationId }).values.toList()
   }
+
+  /**
+   * Will also include (active) room attributes if there are any.
+   */
+  fun getLocationById(id: UUID) = locationsInsidePrisonClient.getLocationById(id)
+    ?.let { location ->
+      locationAttributeRepository.findByDpsLocationIdAndLocationStatus(id, LocationStatus.ACTIVE)
+        ?.let { attributes ->
+          location.toModel().toDecoratedLocation(attributes.toRoomAttributes())
+        } ?: location.toModel()
+    }
+
+  /**
+   * Will also include (active) room attributes if there are any.
+   */
+  fun getLocationByKey(key: String) = locationsInsidePrisonClient.getLocationByKey(key)
+    ?.let { location ->
+      locationAttributeRepository.findByDpsLocationIdAndLocationStatus(location.id, LocationStatus.ACTIVE)
+        ?.let { attributes ->
+          location.toModel().toDecoratedLocation(attributes.toRoomAttributes())
+        } ?: location.toModel()
+    }
 }

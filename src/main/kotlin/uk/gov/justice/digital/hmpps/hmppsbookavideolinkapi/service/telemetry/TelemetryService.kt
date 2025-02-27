@@ -54,7 +54,6 @@ sealed class TelemetryEvent(val eventType: String) {
       "location_id" to meeting().prisonLocationId.toString(),
       "start" to meeting().start().toIsoDateTime(),
       "end" to meeting().end().toIsoDateTime(),
-      "cvp_link" to (videoUrl != null).toString(),
     )
   }
 }

@@ -403,7 +403,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),

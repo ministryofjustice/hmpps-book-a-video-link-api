@@ -4,11 +4,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -17,9 +20,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributesWithSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributesWithoutSchedule
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toDecoratedLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
 import java.time.DayOfWeek
 import java.time.LocalTime
 
@@ -418,5 +424,93 @@ class LocationsServiceTest {
     assertThat(result[2].key).isEqualTo(locationC.key)
     assertThat(result[3].key).isEqualTo(locationD.key)
     assertThat(result[4].key).isEqualTo(locationE.key)
+  }
+
+  @Test
+  fun `should return undecorated location by id`() {
+    whenever(locationsClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
+    whenever(locationAttributeRepository.findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)) doReturn null
+
+    service.getLocationById(wandsworthLocation.id) isEqualTo wandsworthLocation.toModel()
+
+    inOrder(locationsClient, locationAttributeRepository) {
+      verify(locationsClient).getLocationById(wandsworthLocation.id)
+      verify(locationAttributeRepository).findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)
+    }
+  }
+
+  @Test
+  fun `should return decorated location by id`() {
+    whenever(locationsClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
+
+    val roomAttributes = LocationAttribute(
+      locationAttributeId = 1L,
+      dpsLocationId = wandsworthLocation.id,
+      prison = Prison(
+        prisonId = 1,
+        code = WANDSWORTH,
+        name = "TEST",
+        enabled = true,
+        createdBy = "TEST",
+        notes = null,
+      ),
+      locationStatus = LocationStatus.ACTIVE,
+      locationUsage = LocationUsage.PROBATION,
+      createdBy = "TEST",
+      prisonVideoUrl = "video-link",
+    )
+
+    whenever(locationAttributeRepository.findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)) doReturn roomAttributes
+
+    service.getLocationById(wandsworthLocation.id) isEqualTo wandsworthLocation.toModel().toDecoratedLocation(roomAttributes.toRoomAttributes())
+
+    inOrder(locationsClient, locationAttributeRepository) {
+      verify(locationsClient).getLocationById(wandsworthLocation.id)
+      verify(locationAttributeRepository).findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)
+    }
+  }
+
+  @Test
+  fun `should return undecorated location by key`() {
+    whenever(locationsClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
+    whenever(locationAttributeRepository.findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)) doReturn null
+
+    service.getLocationByKey(wandsworthLocation.key) isEqualTo wandsworthLocation.toModel()
+
+    inOrder(locationsClient, locationAttributeRepository) {
+      verify(locationsClient).getLocationByKey(wandsworthLocation.key)
+      verify(locationAttributeRepository).findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)
+    }
+  }
+
+  @Test
+  fun `should return decorated location by key`() {
+    whenever(locationsClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
+
+    val roomAttributes = LocationAttribute(
+      locationAttributeId = 1L,
+      dpsLocationId = wandsworthLocation.id,
+      prison = Prison(
+        prisonId = 1,
+        code = WANDSWORTH,
+        name = "TEST",
+        enabled = true,
+        createdBy = "TEST",
+        notes = null,
+      ),
+      locationStatus = LocationStatus.ACTIVE,
+      locationUsage = LocationUsage.PROBATION,
+      createdBy = "TEST",
+      prisonVideoUrl = "video-link",
+    )
+
+    whenever(locationAttributeRepository.findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)) doReturn roomAttributes
+
+    service.getLocationByKey(wandsworthLocation.key) isEqualTo wandsworthLocation.toModel().toDecoratedLocation(roomAttributes.toRoomAttributes())
+
+    inOrder(locationsClient, locationAttributeRepository) {
+      verify(locationsClient).getLocationByKey(wandsworthLocation.key)
+      verify(locationAttributeRepository).findByDpsLocationIdAndLocationStatus(wandsworthLocation.id, LocationStatus.ACTIVE)
+    }
   }
 }

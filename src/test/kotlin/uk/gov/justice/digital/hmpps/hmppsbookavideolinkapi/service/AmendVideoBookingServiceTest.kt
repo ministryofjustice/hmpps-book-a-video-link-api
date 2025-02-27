@@ -524,7 +524,7 @@ class AmendVideoBookingServiceTest {
       probationTeam isEqualTo probationBooking.probationTeam!!
       probationMeetingType isEqualTo probationBookingRequest.probationMeetingType?.name
       comments isEqualTo "probation booking comments"
-      videoUrl isEqualTo probationBookingRequest.videoLinkUrl
+      videoUrl isEqualTo null
       amendedBy isEqualTo PROBATION_USER.username
       amendedTime isCloseTo LocalDateTime.now()
 
