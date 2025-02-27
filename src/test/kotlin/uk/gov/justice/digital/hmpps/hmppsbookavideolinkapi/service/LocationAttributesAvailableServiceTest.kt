@@ -62,16 +62,16 @@ class LocationAttributesAvailableServiceTest {
   }
 
   @Test
-  fun `should return true when location attribute is available for court`() {
+  fun `should be COURT ANY when location attribute is available for court`() {
     whenever(locationAttributeRepository.findById(1)) doReturn Optional.of(locationAttribute)
     whenever(courtRepository.findByCode("COURT")) doReturn court
-    whenever(locationAttribute.isAvailableFor(court, now)) doReturn AvailabilityStatus.COURT
+    whenever(locationAttribute.isAvailableFor(court, now)) doReturn AvailabilityStatus.COURT_ANY
 
-    service.isLocationAvailableFor(LocationAvailableRequest.court(1, "COURT", now)) isEqualTo AvailabilityStatus.COURT
+    service.isLocationAvailableFor(LocationAvailableRequest.court(1, "COURT", now)) isEqualTo AvailabilityStatus.COURT_ANY
   }
 
   @Test
-  fun `should return false when location attribute is not available for court`() {
+  fun `should be NONE when location attribute is not available for court`() {
     whenever(locationAttributeRepository.findById(1)) doReturn Optional.of(locationAttribute)
     whenever(courtRepository.findByCode("COURT")) doReturn court
     whenever(locationAttribute.isAvailableFor(court, now)) doReturn AvailabilityStatus.NONE
@@ -80,16 +80,16 @@ class LocationAttributesAvailableServiceTest {
   }
 
   @Test
-  fun `should return true when location attribute is available for probation team`() {
+  fun `should be PROBATION ANY when location attribute is available for probation team`() {
     whenever(locationAttributeRepository.findById(1)) doReturn Optional.of(locationAttribute)
     whenever(probationTeamRepository.findByCode("PROBATION")) doReturn probationTeam
-    whenever(locationAttribute.isAvailableFor(probationTeam, now)) doReturn AvailabilityStatus.PROBATION
+    whenever(locationAttribute.isAvailableFor(probationTeam, now)) doReturn AvailabilityStatus.PROBATION_ANY
 
-    service.isLocationAvailableFor(LocationAvailableRequest.probation(1, "PROBATION", now)) isEqualTo AvailabilityStatus.PROBATION
+    service.isLocationAvailableFor(LocationAvailableRequest.probation(1, "PROBATION", now)) isEqualTo AvailabilityStatus.PROBATION_ANY
   }
 
   @Test
-  fun `should return false when location attribute is not available for probation team`() {
+  fun `should be NONE when location attribute is not available for probation team`() {
     whenever(locationAttributeRepository.findById(1)) doReturn Optional.of(locationAttribute)
     whenever(probationTeamRepository.findByCode("PROBATION")) doReturn probationTeam
     whenever(locationAttribute.isAvailableFor(probationTeam, now)) doReturn AvailabilityStatus.NONE

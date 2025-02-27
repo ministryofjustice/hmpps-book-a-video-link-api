@@ -90,9 +90,9 @@ class AvailableLocationsService(
       ).let { availableLocation ->
         when (availabilityStatus) {
           AvailabilityStatus.PROBATION_TEAM -> dedicatedProbationTeamLocations.add(availableLocation)
-          AvailabilityStatus.PROBATION -> anyProbationTeamLocations.add(availableLocation)
+          AvailabilityStatus.PROBATION_ANY -> anyProbationTeamLocations.add(availableLocation)
           AvailabilityStatus.COURT_ROOM -> dedicatedCourtLocations.add(availableLocation)
-          AvailabilityStatus.COURT -> anyCourtLocations.add(availableLocation)
+          AvailabilityStatus.COURT_ANY -> anyCourtLocations.add(availableLocation)
           AvailabilityStatus.SHARED -> sharedLocations.add(availableLocation)
           AvailabilityStatus.NONE -> { }
         }

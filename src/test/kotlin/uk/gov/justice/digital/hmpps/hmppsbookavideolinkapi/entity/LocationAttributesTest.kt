@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -92,7 +93,7 @@ class LocationAttributesTest {
   @Nested
   inner class Probation {
     @Test
-    fun `should be available for active probation room attribute`() {
+    fun `should be PROBATION ANY for active probation room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -109,11 +110,11 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isEqualTo AvailabilityStatus.PROBATION
+      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ANY
     }
 
     @Test
-    fun `should not be available for inactive probation room attribute`() {
+    fun `should be NONE for inactive probation room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -130,11 +131,11 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
-    fun `should be available for specific active probation room attribute`() {
+    fun `should be PROBATION_TEAM for specific active probation room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -159,7 +160,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should not be available for specific active probation room attribute`() {
+    fun `should be NONE for specific active probation room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -179,12 +180,12 @@ class LocationAttributesTest {
 
       roomAttributes.isAvailableFor(
         probationTeam(code = "DIFFERENT_TEAM_CODE"),
-        LocalDateTime.now(),
+        today().atTime(12, 0),
       ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
-    fun `should not be available for active court room attribute`() {
+    fun `should be NONE for active court room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -201,11 +202,11 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
-    fun `should be available for active shared room attribute`() {
+    fun `should be SHARED for active shared room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -222,16 +223,120 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), LocalDateTime.now()) isEqualTo AvailabilityStatus.SHARED
+      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be SHARED if the schedule is empty`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        createdBy = "TEST",
+      )
+
+      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be PROBATION ANY for any probation schedule`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        createdBy = "TEST",
+      ).apply {
+        setLocationSchedule(
+          listOf(
+            schedule(this, locationUsage = LocationUsage.PROBATION),
+          ),
+        )
+      }
+
+      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ANY
+    }
+
+    @Test
+    fun `should be PROBATION_TEAM for probation team schedule`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        createdBy = "TEST",
+      ).apply {
+        setLocationSchedule(
+          listOf(
+            schedule(this, locationUsage = LocationUsage.PROBATION, allowedParties = "PROBATION_TEAM"),
+          ),
+        )
+      }
+
+      roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_TEAM
+    }
+
+    @Test
+    fun `should be NONE for court schedule`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        createdBy = "TEST",
+      ).apply {
+        setLocationSchedule(
+          listOf(
+            schedule(this, locationUsage = LocationUsage.COURT),
+          ),
+        )
+      }
+
+      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
     }
   }
 
   private fun schedule(
     locationAttribute: LocationAttribute,
     start: DayOfWeek = DayOfWeek.MONDAY,
-    end: DayOfWeek = DayOfWeek.FRIDAY,
+    end: DayOfWeek = DayOfWeek.SUNDAY,
     startTime: LocalTime = LocalTime.of(9, 0),
     endTime: LocalTime = LocalTime.of(17, 0),
+    locationUsage: LocationUsage,
+    allowedParties: String? = null,
   ) = LocationSchedule(
     locationScheduleId = 1,
     locationAttribute = locationAttribute,
@@ -239,8 +344,8 @@ class LocationAttributesTest {
     endDayOfWeek = end.value,
     startTime = startTime,
     endTime = endTime,
-    locationUsage = LocationUsage.SCHEDULE,
-    allowedParties = null,
+    locationUsage = locationUsage,
+    allowedParties = allowedParties,
     notes = null,
     createdBy = "test",
   )
@@ -248,7 +353,7 @@ class LocationAttributesTest {
   @Nested
   inner class Court {
     @Test
-    fun `should be available for active court room attribute`() {
+    fun `should be COURT ANY for active court room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -265,11 +370,11 @@ class LocationAttributesTest {
         createdBy = "TEST",
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT
+      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT_ANY
     }
 
     @Test
-    fun `should not be available for inactive court room attribute`() {
+    fun `should be NONE for inactive court room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -290,7 +395,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should not be available for active probation room attribute`() {
+    fun `should be NONE for active probation room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -311,7 +416,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should be available for specific active court room attribute`() {
+    fun `should be COURT ROOM for specific active court room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -333,7 +438,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should not be available for specific active court room attribute`() {
+    fun `should be NONE for specific active court room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),
@@ -355,7 +460,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should be available for active shared room attribute`() {
+    fun `should be SHARED for active shared room attribute`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,
         dpsLocationId = UUID.randomUUID(),

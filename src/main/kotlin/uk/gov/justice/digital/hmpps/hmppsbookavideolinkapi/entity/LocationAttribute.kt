@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetween
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -97,7 +98,7 @@ class LocationAttribute(
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.PROBATION -> {
         if (allowedParties == null) {
-          AvailabilityStatus.PROBATION
+          AvailabilityStatus.PROBATION_ANY
         } else {
           if (isPartyAllowed(probationTeam.code)) {
             AvailabilityStatus.PROBATION_TEAM
@@ -111,20 +112,26 @@ class LocationAttribute(
     }
   }
 
-  private fun List<LocationSchedule>.check(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus {
-    val dayOfWeek = startingOnDateTime.dayOfWeek.value
-
-    filter {
-      dayOfWeek.between(it.startDayOfWeek, it.endDayOfWeek) && startingOnDateTime.toLocalTime().isBetween(it.startTime, it.endTime)
-    }
-      .let { it ->
-        if (it.isEmpty()) {
-          return AvailabilityStatus.SHARED
-        } else {
-          TODO()
-        }
-      }
+  private fun List<LocationSchedule>.check(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus = filter {
+    startingOnDateTime.dayOfWeek.between(it.startDayOfWeek, it.endDayOfWeek) && startingOnDateTime.toLocalTime().isBetween(it.startTime, it.endTime)
   }
+    .let {
+      if (it.isEmpty()) {
+        return AvailabilityStatus.SHARED
+      } else {
+        if (any { schedule ->
+            schedule.isAvailableForProbationTeam(
+              probationTeam,
+              startingOnDateTime,
+            )
+          }
+        ) {
+          return AvailabilityStatus.PROBATION_TEAM
+        }
+        if (any { schedule -> schedule.isAvailableForAnyProbationTeam(startingOnDateTime) }) return AvailabilityStatus.PROBATION_ANY
+        return AvailabilityStatus.NONE
+      }
+    }
 
   private fun check(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus {
     if (locationStatus == LocationStatus.INACTIVE) {
@@ -135,7 +142,7 @@ class LocationAttribute(
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.COURT -> {
         if (allowedParties == null) {
-          AvailabilityStatus.COURT
+          AvailabilityStatus.COURT_ANY
         } else {
           if (isPartyAllowed(court.code)) {
             AvailabilityStatus.COURT_ROOM
@@ -149,9 +156,7 @@ class LocationAttribute(
     }
   }
 
-  private fun Int.between(from: Int, to: Int) = this in from..to
-
-  private fun isPartyAllowed(party: String) = allowedParties.isNullOrBlank() || allowedParties.replace(" ", "").split(",").contains(party)
+  private fun isPartyAllowed(party: String) = allowedParties.orEmpty().replace(" ", "").split(",").contains(party)
 }
 
 enum class LocationStatus {
@@ -168,9 +173,9 @@ enum class LocationUsage {
 
 enum class AvailabilityStatus {
   PROBATION_TEAM,
-  PROBATION,
+  PROBATION_ANY,
   COURT_ROOM,
-  COURT,
+  COURT_ANY,
   SHARED,
   NONE,
 }
