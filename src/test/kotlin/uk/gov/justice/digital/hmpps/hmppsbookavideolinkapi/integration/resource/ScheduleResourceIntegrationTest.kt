@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -23,12 +24,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import java.time.LocalDate
 import java.time.LocalTime
 
 class ScheduleResourceIntegrationTest : IntegrationTestBase() {
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
+
+  @MockitoBean
+  private lateinit var outboundEventsService: OutboundEventsService
 
   @Nested
   @DisplayName("Prison schedule")
@@ -89,6 +94,10 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `Prison - return court and probation bookings for the prison`() {
+      nomisMappingApi().stubGetNomisLocationMappingBy(pentonvilleLocation, 1)
+      prisonerApi().stubGetScheduledAppointments(PENTONVILLE, tomorrow(), 1)
+      locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation)
+
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
@@ -110,7 +119,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       val probationBookingRequest = probationBookingRequest(
         probationTeamCode = "BLKPPP",
         probationMeetingType = ProbationMeetingType.PSR,
-        videoLinkUrl = "https://probation.videolink.com",
         prisonCode = PENTONVILLE,
         prisonerNumber = "A1111AA",
         startTime = LocalTime.of(9, 0),
@@ -141,7 +149,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       )
 
       assertThat(scheduleResponse.map { it.videoUrl }).containsAll(
-        listOf("https://video.link.com", "https://probation.videolink.com"),
+        listOf("https://video.link.com"),
       )
     }
   }
@@ -159,7 +167,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       val probationBookingRequest = probationBookingRequest(
         probationTeamCode = "BLKPPP",
         probationMeetingType = ProbationMeetingType.PSR,
-        videoLinkUrl = "https://probation.videolink.com",
         prisonCode = PENTONVILLE,
         prisonerNumber = "A1111AA",
         startTime = LocalTime.of(9, 0),
@@ -265,7 +272,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       val probationBookingRequest = probationBookingRequest(
         probationTeamCode = "BLKPPP",
         probationMeetingType = ProbationMeetingType.PSR,
-        videoLinkUrl = "https://probation.videolink.com",
         prisonCode = PENTONVILLE,
         prisonerNumber = "A1111AA",
         startTime = LocalTime.of(9, 0),

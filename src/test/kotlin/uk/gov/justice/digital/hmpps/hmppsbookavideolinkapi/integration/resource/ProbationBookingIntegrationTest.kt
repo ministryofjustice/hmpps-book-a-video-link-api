@@ -38,7 +38,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationMe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
@@ -78,7 +77,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   private val psrProbationBookingRequest = probationBookingRequest(
     probationTeamCode = BLACKPOOL_MC_PPOC,
     probationMeetingType = ProbationMeetingType.PSR,
-    videoLinkUrl = "https://probation.videolink.com",
     prisonCode = BIRMINGHAM,
     prisonerNumber = "123456",
     startTime = LocalTime.of(9, 0),
@@ -96,7 +94,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   private val rrProbationBookingRequest = probationBookingRequest(
     probationTeamCode = BLACKPOOL_MC_PPOC,
     probationMeetingType = ProbationMeetingType.RR,
-    videoLinkUrl = "https://probation.videolink.com",
     prisonCode = BIRMINGHAM,
     prisonerNumber = "123456",
     startTime = LocalTime.of(11, 0),
@@ -114,7 +111,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   private val otherProbationBookingRequest = probationBookingRequest(
     probationTeamCode = BLACKPOOL_MC_PPOC,
     probationMeetingType = ProbationMeetingType.OTHER,
-    videoLinkUrl = "https://probation.videolink.com",
     prisonCode = BIRMINGHAM,
     prisonerNumber = "654321",
     startTime = LocalTime.of(14, 0),
@@ -160,7 +156,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasBookingType(BookingType.PROBATION)
       .hasMeetingType(ProbationMeetingType.PSR)
       .hasComments("psr integration test probation booking comments")
-      .hasVideoUrl("https://probation.videolink.com")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)
@@ -224,7 +219,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasBookingType(BookingType.PROBATION)
       .hasMeetingType(ProbationMeetingType.RR)
       .hasComments("rr integration test probation booking comments")
-      .hasVideoUrl("https://probation.videolink.com")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)
@@ -261,7 +255,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
         comments = "rr integration test probation booking comments",
-        videoLinkUrl = "https://probation.videolink.com",
         additionalBookingDetails = AdditionalBookingDetails(
           contactName = "rr probation contact",
           contactEmail = "rr_probation_contact@email.com",
@@ -290,7 +283,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasBookingType(BookingType.PROBATION)
       .hasMeetingType(ProbationMeetingType.RR)
       .hasComments("rr integration test probation booking comments")
-      .hasVideoUrl("https://probation.videolink.com")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)
@@ -346,7 +338,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasBookingType(BookingType.PROBATION)
       .hasMeetingType(ProbationMeetingType.OTHER)
       .hasComments("other integration test probation booking comments")
-      .hasVideoUrl("https://probation.videolink.com")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)
@@ -389,7 +380,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(14, 30),
         endTime = LocalTime.of(15, 30),
         comments = "other integration test probation booking comments",
-        videoLinkUrl = "https://probation.videolink.com",
         additionalBookingDetails = null,
       ),
       PROBATION_USER,
@@ -414,7 +404,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasBookingType(BookingType.PROBATION)
       .hasMeetingType(ProbationMeetingType.OTHER)
       .hasComments("other integration test probation booking comments")
-      .hasVideoUrl("https://probation.videolink.com")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)

@@ -99,7 +99,6 @@ fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType
   probationTeam = probationTeam,
   probationMeetingType = meetingType.name,
   comments = "Probation meeting comments",
-  videoUrl = "https://probation.meeting.link",
   createdBy = "Probation team user",
   createdByPrison = false,
 )

@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -14,7 +14,7 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   prisonAppointmentId = prisonAppointmentId,
   bookingType = BookingType.valueOf(bookingType),
   statusCode = BookingStatus.valueOf(statusCode),
-  videoUrl = videoUrl,
+  videoUrl = videoUrl.takeIf { courtCode != null } ?: locations.find { it.dpsLocationId == prisonLocationId }?.extraAttributes?.prisonVideoUrl,
   bookingComments = bookingComments,
   createdByPrison = createdByPrison,
   courtId = courtId,
@@ -33,11 +33,11 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   appointmentType = AppointmentType.valueOf(appointmentType),
   appointmentTypeDescription = appointmentTypeDescription,
   appointmentComments = appointmentComments,
-  prisonLocKey = locations.find { it.id == prisonLocationId }?.key ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
+  prisonLocKey = locations.find { it.dpsLocationId == prisonLocationId }?.key ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
   appointmentDate = appointmentDate,
   startTime = startTime,
   endTime = endTime,
-  prisonLocDesc = locations.find { it.id == prisonLocationId }?.localName ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
+  prisonLocDesc = locations.find { it.dpsLocationId == prisonLocationId }?.description ?: throw IllegalArgumentException("Prison location with id $prisonLocationId not found in supplied set of locations"),
   dpsLocationId = prisonLocationId,
   createdTime = createdTime,
   createdBy = createdBy,

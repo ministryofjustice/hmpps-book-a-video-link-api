@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ScheduleRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
@@ -11,7 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem a
 @Service
 class ScheduleService(
   private val scheduleRepository: ScheduleRepository,
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
+  private val locationsService: LocationsService,
 ) {
   fun getScheduleForPrison(prisonCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> = if (includeCancelled) {
     scheduleRepository.getScheduleForPrisonIncludingCancelled(prisonCode, date).mapScheduleToModel()
@@ -32,7 +31,7 @@ class ScheduleService(
   }
 
   private fun List<ScheduleItemEntity>.mapScheduleToModel(): List<ScheduleItem> {
-    val locations = mapNotNull { locationsInsidePrisonClient.getLocationById(it.prisonLocationId) }
+    val locations = mapNotNull { locationsService.getLocationById(it.prisonLocationId) }
     return toModel(locations)
   }
 }

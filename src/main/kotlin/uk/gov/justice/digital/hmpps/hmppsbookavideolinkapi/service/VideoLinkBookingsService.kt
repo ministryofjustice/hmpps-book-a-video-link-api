@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
@@ -26,7 +25,7 @@ class VideoLinkBookingsService(
   private val videoBookingRepository: VideoBookingRepository,
   private val referenceCodeRepository: ReferenceCodeRepository,
   private val videoAppointmentRepository: VideoAppointmentRepository,
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
+  private val locationsService: LocationsService,
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,
 ) {
   fun getVideoLinkBookingById(videoBookingId: Long, user: User): VideoLinkBooking {
@@ -43,10 +42,8 @@ class VideoLinkBookingsService(
       .takeIf { it.isBookingType(PROBATION) }
       ?.let { referenceCodeRepository.findByProbationMeetingType(booking.probationMeetingType!!) }
 
-    val locations = booking.appointments().mapNotNull { locationsInsidePrisonClient.getLocationById(it.prisonLocationId) }.toSet()
-
     return booking.toModel(
-      locations = locations,
+      locations = booking.appointments().mapNotNull { locationsService.getLocationById(it.prisonLocationId) }.toSet(),
       courtHearingTypeDescription = hearingType?.description,
       probationMeetingTypeDescription = meetingType?.description,
       additionalBookingDetails = additionalBookingDetailRepository.findByVideoBooking(booking)?.let {
@@ -60,7 +57,7 @@ class VideoLinkBookingsService(
   }
 
   fun findMatchingVideoLinkBooking(searchRequest: VideoBookingSearchRequest, user: User): VideoLinkBooking {
-    val location = locationsInsidePrisonClient.getLocationByKey(searchRequest.locationKey!!)
+    val location = locationsService.getLocationByKey(searchRequest.locationKey!!)
       ?: throw EntityNotFoundException("Location with key ${searchRequest.locationKey} not found")
 
     val matchingAppointment = when (searchRequest.statusCode) {
@@ -68,14 +65,14 @@ class VideoLinkBookingsService(
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = searchRequest.prisonerNumber!!,
           appointmentDate = searchRequest.date!!,
-          prisonLocationId = location.id,
+          prisonLocationId = location.dpsLocationId,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
         )
       BookingStatus.CANCELLED -> videoAppointmentRepository.findLatestCancelledVideoAppointment(
         prisonerNumber = searchRequest.prisonerNumber!!,
         appointmentDate = searchRequest.date!!,
-        prisonLocationId = location.id,
+        prisonLocationId = location.dpsLocationId,
         startTime = searchRequest.startTime!!,
         endTime = searchRequest.endTime!!,
       )

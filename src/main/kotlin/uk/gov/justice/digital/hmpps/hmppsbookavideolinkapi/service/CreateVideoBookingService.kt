@@ -82,7 +82,6 @@ class CreateVideoBookingService(
       probationTeam = probationTeam,
       probationMeetingType = request.probationMeetingType!!.name,
       comments = request.comments,
-      videoUrl = request.videoLinkUrl,
       createdBy = createdBy.username,
       createdByPrison = false,
     )

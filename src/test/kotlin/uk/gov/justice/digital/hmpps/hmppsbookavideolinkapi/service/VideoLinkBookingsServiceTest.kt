@@ -11,7 +11,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -29,6 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -41,7 +43,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppoi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toDecoratedLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
@@ -50,15 +54,15 @@ class VideoLinkBookingsServiceTest {
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val referenceCodeRepository: ReferenceCodeRepository = mock()
   private val videoAppointmentRepository: VideoAppointmentRepository = mock()
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val locationsService: LocationsService = mock()
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository = mock()
 
   private val service = VideoLinkBookingsService(
     videoBookingRepository,
     referenceCodeRepository,
     videoAppointmentRepository,
-    locationsInsidePrisonClient,
-    additionalBookingDetailRepository = additionalBookingDetailRepository,
+    locationsService,
+    additionalBookingDetailRepository,
   )
 
   @BeforeEach
@@ -80,8 +84,18 @@ class VideoLinkBookingsServiceTest {
       ),
     ) doReturn courtHearingTypeRefCode
 
-    whenever(locationsInsidePrisonClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
-    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
+    whenever(locationsService.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation.toModel()
+    whenever(locationsService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel().toDecoratedLocation(
+      RoomAttributes(
+        attributeId = 1,
+        locationUsage = LocationUsage.SHARED,
+        locationStatus = LocationStatus.ACTIVE,
+        expectedActiveDate = LocalDate.now(),
+        notes = null,
+        prisonVideoUrl = "decorated-video-link-url",
+        statusMessage = null,
+      ),
+    )
   }
 
   @Nested
@@ -169,7 +183,7 @@ class VideoLinkBookingsServiceTest {
     }
 
     @Test
-    fun `should get a probation video booking by ID for probation user`() {
+    fun `should get a probation video booking by ID for probation user with decorated URL`() {
       val probationMeetingGroup = "PROBATION_MEETING_TYPE"
       val probationMeetingCode = "PSR"
       val createdBy = "TIM"
@@ -215,7 +229,7 @@ class VideoLinkBookingsServiceTest {
         probationTeamDescription isEqualTo "probation team description"
         this.probationMeetingType isEqualTo ProbationMeetingType.PSR
         probationMeetingTypeDescription isEqualTo "Pre-sentence report"
-        videoLinkUrl isEqualTo "https://probation.meeting.link"
+        videoLinkUrl isEqualTo "decorated-video-link-url"
         comments isEqualTo "Probation meeting comments"
 
         // Should be null for a probation booking
@@ -282,7 +296,7 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
-        locations = setOf(wandsworthLocation),
+        locations = setOf(wandsworthLocation.toModel()),
         courtHearingTypeDescription = "Tribunal",
       )
     }
@@ -323,7 +337,7 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
-        locations = setOf(wandsworthLocation),
+        locations = setOf(wandsworthLocation.toModel()),
         courtHearingTypeDescription = "Tribunal",
       )
     }

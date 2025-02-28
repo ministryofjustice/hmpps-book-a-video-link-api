@@ -1,12 +1,13 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType as EntityBookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking as VideoBookingEntity
 
 fun VideoBookingEntity.toModel(
@@ -28,7 +29,7 @@ fun VideoBookingEntity.toModel(
   probationMeetingType = probationMeetingType?.let { ProbationMeetingType.valueOf(probationMeetingType!!) },
   probationMeetingTypeDescription = probationMeetingType?.let { probationMeetingTypeDescription },
   comments = comments,
-  videoLinkUrl = videoUrl,
+  videoLinkUrl = videoUrl.takeIf { this.isBookingType(EntityBookingType.COURT) } ?: locations.singleOrNull()?.extraAttributes?.prisonVideoUrl,
   createdByPrison = createdByPrison,
   createdBy = createdBy,
   createdAt = createdTime,

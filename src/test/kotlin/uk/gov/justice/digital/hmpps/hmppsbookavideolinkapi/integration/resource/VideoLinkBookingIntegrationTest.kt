@@ -17,6 +17,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -64,8 +66,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
@@ -117,6 +121,12 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Autowired
   private lateinit var bookingHistoryRepository: BookingHistoryRepository
+
+  @Autowired
+  private lateinit var locationAttributeRepository: LocationAttributeRepository
+
+  @Autowired
+  private lateinit var prisonRepository: PrisonRepository
 
   @Test
   fun `should create a Derby court booking as court users and emails sent to Pentonville prison`() {
@@ -538,7 +548,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
@@ -558,7 +567,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       probationTeam?.probationTeamId isEqualTo 1
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
       comments isEqualTo "integration test probation booking comments"
-      videoUrl isEqualTo "https://probation.videolink.com"
+      videoUrl isEqualTo null
       createdBy isEqualTo PROBATION_USER.username
       createdByPrison isEqualTo false
     }
@@ -594,7 +603,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
@@ -612,7 +620,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val secondProbationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "78910",
       startTime = LocalTime.of(9, 30),
@@ -635,7 +642,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = WANDSWORTH,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
@@ -651,7 +657,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val clashingBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = WANDSWORTH,
       prisonerNumber = "789012",
       startTime = LocalTime.of(8, 0),
@@ -685,7 +690,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val clashingBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = WANDSWORTH,
       prisonerNumber = "789012",
       startTime = LocalTime.of(8, 0),
@@ -719,7 +723,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val clashingBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = RISLEY,
       prisonerNumber = "789012",
       startTime = LocalTime.of(8, 0),
@@ -907,7 +910,20 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   fun `should return the details of a probation video link booking by ID`() {
     videoBookingRepository.findAll() hasSize 0
 
+    locationAttributeRepository.saveAndFlush(
+      LocationAttribute(
+        dpsLocationId = wandsworthLocation.id,
+        prison = prisonRepository.findByCode(WANDSWORTH)!!,
+        createdBy = "INTEGRATION TEST",
+        locationUsage = LocationUsage.PROBATION,
+        prisonVideoUrl = "https://probation-url",
+      ),
+    )
+
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+    nomisMappingApi().stubGetNomisLocationMappingBy(wandsworthLocation, 1)
+    prisonerApi().stubGetScheduledAppointments(WANDSWORTH, tomorrow(), 1)
+    locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -942,7 +958,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       assertThat(courtHearingTypeDescription).isNull()
 
       assertThat(createdByPrison).isFalse()
-      assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
+      assertThat(videoLinkUrl).isEqualTo("https://probation-url")
 
       // Verify that there is a single appointment
       assertThat(prisonAppointments).hasSize(1)
@@ -1295,7 +1311,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
@@ -1309,7 +1324,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val amendBookingRequest = amendProbationBookingRequest(
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(10, 0),
@@ -1329,7 +1343,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       probationTeam?.probationTeamId isEqualTo 1
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
       comments isEqualTo "amended probation booking comments"
-      videoUrl isEqualTo "https://probation.videolink.com"
+      videoUrl isEqualTo null
       createdBy isEqualTo PROBATION_USER.username
       createdByPrison isEqualTo false
       amendedBy isEqualTo PROBATION_USER.username
@@ -1357,7 +1371,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val probationBookingRequest1 = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
@@ -1369,7 +1382,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val probationBookingRequest2 = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(15, 0),
@@ -1384,7 +1396,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val clashingBookingRequest = amendProbationBookingRequest(
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
@@ -1421,7 +1432,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
@@ -1437,7 +1447,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val amendBookingRequest = amendProbationBookingRequest(
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),
@@ -1472,7 +1481,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val amendBookingRequest = amendProbationBookingRequest(
       probationMeetingType = ProbationMeetingType.PSR,
-      videoLinkUrl = "https://probation.videolink.com",
       prisonCode = RISLEY,
       prisonerNumber = "123456",
       startTime = LocalTime.of(9, 0),

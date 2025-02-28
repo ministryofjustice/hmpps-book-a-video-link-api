@@ -32,7 +32,6 @@ class ProbationBookingAmendedTelemetryEventTest {
       createdBy = "probation_user",
       createdByPrison = false,
       comments = null,
-      videoUrl = "http://booking.created.url",
     ).addAppointment(
       prison = prison(BIRMINGHAM),
       prisonerNumber = "ABC123",
@@ -57,7 +56,6 @@ class ProbationBookingAmendedTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
-        "cvp_link" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -77,7 +75,6 @@ class ProbationBookingAmendedTelemetryEventTest {
       createdBy = "probation_user",
       createdByPrison = false,
       comments = null,
-      videoUrl = "http://booking.created.url",
     ).addAppointment(
       prison = prison(BIRMINGHAM),
       prisonerNumber = "ABC123",
@@ -102,7 +99,6 @@ class ProbationBookingAmendedTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
-        "cvp_link" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
