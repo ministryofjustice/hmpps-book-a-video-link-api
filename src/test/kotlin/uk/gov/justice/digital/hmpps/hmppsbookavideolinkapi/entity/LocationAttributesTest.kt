@@ -302,6 +302,33 @@ class LocationAttributesTest {
     }
 
     @Test
+    fun `should be SHARED for schedule`() {
+      val roomAttributes = LocationAttribute(
+        locationAttributeId = 1L,
+        dpsLocationId = UUID.randomUUID(),
+        prison = Prison(
+          prisonId = 1,
+          code = PENTONVILLE,
+          name = "TEST",
+          enabled = true,
+          createdBy = "TEST",
+          notes = null,
+        ),
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        createdBy = "TEST",
+      ).apply {
+        setLocationSchedule(
+          listOf(
+            schedule(this, locationUsage = LocationUsage.SHARED),
+          ),
+        )
+      }
+
+      roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
     fun `should be NONE for court schedule`() {
       val roomAttributes = LocationAttribute(
         locationAttributeId = 1L,

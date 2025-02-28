@@ -12,69 +12,65 @@ import java.time.LocalTime
 import java.util.UUID
 
 class LocationScheduleTest {
-  private val saturday = LocalDate.of(2025, 2, 22).atStartOfDay()
-  private val sunday = LocalDate.of(2025, 2, 23).atStartOfDay()
   private val mondayNoon = LocalDate.of(2025, 2, 24).atTime(12, 0)
-  private val mondayMidnight = LocalDate.of(2025, 2, 24).atTime(0, 0)
+  private val tuesdayNoon = mondayNoon.plusDays(1)
+  private val wednesdayNoon = mondayNoon.plusDays(2)
+  private val thursdayNoon = mondayNoon.plusDays(3)
+  private val fridayNoon = mondayNoon.plusDays(4)
+
+  @Test
+  fun `should fall on date and time`() {
+    schedule(start = DayOfWeek.MONDAY).fallsOn(mondayNoon) isBool true
+    schedule(start = DayOfWeek.TUESDAY).fallsOn(tuesdayNoon) isBool true
+    schedule(start = DayOfWeek.WEDNESDAY).fallsOn(wednesdayNoon) isBool true
+    schedule(start = DayOfWeek.THURSDAY).fallsOn(thursdayNoon) isBool true
+    schedule(start = DayOfWeek.FRIDAY).fallsOn(fridayNoon) isBool true
+  }
+
+  @Test
+  fun `should not fall on date and time`() {
+    schedule(start = DayOfWeek.MONDAY).fallsOn(tuesdayNoon) isBool false
+    schedule(start = DayOfWeek.MONDAY).fallsOn(wednesdayNoon) isBool false
+    schedule(start = DayOfWeek.MONDAY).fallsOn(thursdayNoon) isBool false
+    schedule(start = DayOfWeek.MONDAY).fallsOn(fridayNoon) isBool false
+  }
 
   @DisplayName("Probation tests")
   @Nested
   inner class Probation {
     @Test
-    fun `should be available for probation team on Monday at noon`() {
+    fun `should be for probation team`() {
       val schedule = schedule(locationUsage = LocationUsage.PROBATION, allowedParties = "PROBATION_TEAM")
 
-      schedule.isAvailableForProbationTeam(probationTeam(code = "PROBATION_TEAM"), mondayNoon) isBool true
+      schedule.isForProbationTeam(probationTeam(code = "PROBATION_TEAM")) isBool true
     }
 
     @Test
-    fun `should be available for probation team on Monday out of hours`() {
+    fun `should not be for probation team`() {
       val schedule = schedule(locationUsage = LocationUsage.PROBATION, allowedParties = "PROBATION_TEAM")
 
-      schedule.isAvailableForProbationTeam(probationTeam(code = "PROBATION_TEAM"), mondayMidnight) isBool true
+      schedule.isForProbationTeam(probationTeam(code = "DIFFERENT_PROBATION_TEAM")) isBool false
     }
 
     @Test
-    fun `should be not available for probation team on Monday at noon`() {
-      val schedule = schedule(locationUsage = LocationUsage.PROBATION, allowedParties = "PROBATION_TEAM")
-
-      schedule.isAvailableForProbationTeam(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), mondayNoon) isBool false
-    }
-
-    @Test
-    fun `should be available for any probation team on Monday at noon`() {
+    fun `should be for any probation team`() {
       val schedule = schedule(locationUsage = LocationUsage.PROBATION)
 
-      schedule.isAvailableForAnyProbationTeam(mondayNoon) isBool true
+      schedule.isForAnyProbationTeam() isBool true
     }
 
     @Test
-    fun `should be available for any probation team on Monday out of hours`() {
-      val schedule = schedule(locationUsage = LocationUsage.PROBATION)
+    fun `should not be for any probation team`() {
+      val schedule = schedule(locationUsage = LocationUsage.COURT)
 
-      schedule.isAvailableForAnyProbationTeam(mondayMidnight) isBool true
-    }
-
-    @Test
-    fun `should not be available for any probation team on Monday at noon`() {
-      val schedule = schedule(locationUsage = LocationUsage.PROBATION, allowedParties = "PROBATION_TEAM")
-
-      schedule.isAvailableForAnyProbationTeam(mondayNoon) isBool false
-    }
-
-    @Test
-    fun `should be available for any probation team on Saturday or Sunday`() {
-      val schedule = schedule(locationUsage = LocationUsage.PROBATION)
-
-      schedule.isAvailableForAnyProbationTeam(saturday) isBool true
-      schedule.isAvailableForAnyProbationTeam(sunday) isBool true
+      schedule.isForAnyProbationTeam() isBool false
     }
   }
 
   private fun schedule(
-    locationUsage: LocationUsage,
+    locationUsage: LocationUsage = LocationUsage.SHARED,
     start: DayOfWeek = DayOfWeek.MONDAY,
-    end: DayOfWeek = DayOfWeek.FRIDAY,
+    end: DayOfWeek = start,
     startTime: LocalTime = LocalTime.of(9, 0),
     endTime: LocalTime = LocalTime.of(17, 0),
     allowedParties: String? = null,
