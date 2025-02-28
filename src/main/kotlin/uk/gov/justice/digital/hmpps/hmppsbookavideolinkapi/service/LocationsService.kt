@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoo
 import java.util.UUID
 
 @Service
+@Transactional(readOnly = true)
 class LocationsService(
   private val prisonRepository: PrisonRepository,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
@@ -27,7 +28,6 @@ class LocationsService(
     ?.filter { !enabledOnly || it.active }
     ?.toModel() ?: emptyList()
 
-  @Transactional(readOnly = true)
   fun getDecoratedVideoLocations(prisonCode: String, enabledOnly: Boolean): List<Location> {
     val prisonLocations = getVideoLinkLocationsAtPrison(prisonCode, enabledOnly)
     val locationsById = prisonLocations.associateBy { it.dpsLocationId }
