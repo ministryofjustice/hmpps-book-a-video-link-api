@@ -144,7 +144,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
     response.isEmpty() isBool true
   }
 
-  //TODO: Not sure why there is a need to run clean-all-data.sql here, as it should be run by the IntegrationTestBase() class
+  // TODO: Not sure why there is a need to run clean-all-data.sql here, as it should be run by the IntegrationTestBase() class
   @Test
   @Sql("classpath:test_data/clean-all-data.sql", "classpath:integration-test-data/seed-locations-with-extended-attributes.sql")
   fun `should get video link locations with additional room attributes`() {
