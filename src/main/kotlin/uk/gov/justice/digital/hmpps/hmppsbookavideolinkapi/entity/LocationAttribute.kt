@@ -13,8 +13,6 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetween
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -107,31 +105,29 @@ class LocationAttribute(
           }
         }
       }
-      LocationUsage.SCHEDULE -> locationSchedule.check(probationTeam, startingOnDateTime)
+      LocationUsage.SCHEDULE -> getScheduleAvailability(probationTeam, startingOnDateTime)
       else -> return AvailabilityStatus.NONE
     }
   }
 
-  private fun List<LocationSchedule>.check(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus = filter {
-    startingOnDateTime.dayOfWeek.between(it.startDayOfWeek, it.endDayOfWeek) && startingOnDateTime.toLocalTime().isBetween(it.startTime, it.endTime)
-  }
-    .let {
-      if (it.isEmpty()) {
-        return AvailabilityStatus.SHARED
-      } else {
-        if (any { schedule ->
-            schedule.isAvailableForProbationTeam(
-              probationTeam,
-              startingOnDateTime,
-            )
-          }
-        ) {
-          return AvailabilityStatus.PROBATION_TEAM
-        }
-        if (any { schedule -> schedule.isAvailableForAnyProbationTeam(startingOnDateTime) }) return AvailabilityStatus.PROBATION_ANY
-        return AvailabilityStatus.NONE
-      }
+  /**
+   * We need to look at the schedule as a whole to determine availability. A schedule on its own is not enough.
+   */
+  private fun getScheduleAvailability(probationTeam: ProbationTeam, dateAndTime: LocalDateTime): AvailabilityStatus {
+    val schedules = locationSchedule.filter { it.fallsOn(dateAndTime) }
+
+    // If there aren't any schedules which fall on the requested date and time then the default fallback is SHARED
+    if (schedules.isEmpty()) {
+      return AvailabilityStatus.SHARED
+    } else {
+      // If there are matches then look to see if any match the following
+      if (schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) }) return AvailabilityStatus.PROBATION_TEAM
+      if (schedules.any { schedule -> schedule.isForAnyProbationTeam() }) return AvailabilityStatus.PROBATION_ANY
+      if (schedules.any { schedule -> schedule.isShared() }) return AvailabilityStatus.SHARED
     }
+
+    return AvailabilityStatus.NONE
+  }
 
   private fun check(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus {
     if (locationStatus == LocationStatus.INACTIVE) {

@@ -74,32 +74,11 @@ class LocationSchedule(
     "(locationScheduleId = $locationScheduleId, startDay = $startDayOfWeek, endDay = $endDayOfWeek " +
     "startTime = $startTime, endTime = $endTime)"
 
-  fun isAvailableForProbationTeam(team: ProbationTeam, startingOnDateTime: LocalDateTime) = run {
-    (
-      locationUsage == LocationUsage.PROBATION &&
-        allowedParties.orEmpty().split(",").contains(team.code) &&
-        startingOnDateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) &&
-        startingOnDateTime.toLocalTime().isBetween(startTime, endTime)
-      ) ||
-      (
-        !startingOnDateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) ||
-          !startingOnDateTime.toLocalTime().isBetween(startTime, endTime)
-        )
-  }
+  fun fallsOn(dateTime: LocalDateTime) = dateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) && dateTime.toLocalTime().isBetween(startTime, endTime)
 
-  fun isAvailableForAnyProbationTeam(startingOnDateTime: LocalDateTime) = run {
-    (
-      locationUsage == LocationUsage.PROBATION &&
-        allowedParties.isNullOrBlank() &&
-        startingOnDateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) &&
-        startingOnDateTime.toLocalTime().isBetween(startTime, endTime)
-      ) ||
-      (
-        !startingOnDateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) ||
-          !startingOnDateTime.toLocalTime().isBetween(startTime, endTime)
-        )
-  }
+  fun isForProbationTeam(team: ProbationTeam) = locationUsage == LocationUsage.PROBATION && allowedParties.orEmpty().split(",").contains(team.code)
 
-  // TODO
-  fun isAvailableFor(court: Court, onDateTime: LocalDateTime): AvailabilityStatus = AvailabilityStatus.COURT_ANY
+  fun isForAnyProbationTeam() = locationUsage == LocationUsage.PROBATION && allowedParties.isNullOrBlank()
+
+  fun isShared() = locationUsage == LocationUsage.SHARED
 }
