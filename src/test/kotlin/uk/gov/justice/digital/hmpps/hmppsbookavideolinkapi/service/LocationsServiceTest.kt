@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttri
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toDecoratedLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
 import java.time.DayOfWeek
@@ -180,7 +179,7 @@ class LocationsServiceTest {
 
     whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesA + roomAttributesB
 
-    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = false)
+    val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = false)
 
     assertThat(result).hasSize(2)
     with(result[0]) {
@@ -243,7 +242,7 @@ class LocationsServiceTest {
     whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
     whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributes
 
-    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = true)
+    val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = true)
 
     assertThat(result).hasSize(1)
     with(result[0]) {
@@ -285,7 +284,7 @@ class LocationsServiceTest {
     whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
     whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributes
 
-    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = true)
+    val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = true)
 
     assertThat(result).hasSize(1)
     with(result[0]) {
@@ -313,7 +312,7 @@ class LocationsServiceTest {
     whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
     whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn emptyList()
 
-    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = true)
+    val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = true)
 
     result containsExactlyInAnyOrder listOf(locationA.toModel())
     assertThat(result[0].extraAttributes).isNull()
@@ -348,7 +347,7 @@ class LocationsServiceTest {
 
     whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesA + roomAttributesB
 
-    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = false)
+    val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = false)
 
     assertThat(result).hasSize(3)
 
@@ -415,7 +414,7 @@ class LocationsServiceTest {
     // Reverse the order of room decorations returned
     whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesE + roomAttributesD
 
-    val result = service.getDecoratedVideoLocations(WANDSWORTH, enabledOnly = false)
+    val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = false)
 
     assertThat(result).hasSize(5)
 
@@ -462,7 +461,7 @@ class LocationsServiceTest {
 
     whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes
 
-    service.getLocationById(wandsworthLocation.id) isEqualTo wandsworthLocation.toModel().toDecoratedLocation(roomAttributes.toRoomAttributes())
+    service.getLocationById(wandsworthLocation.id) isEqualTo wandsworthLocation.toModel(roomAttributes.toRoomAttributes())
 
     inOrder(locationsClient, locationAttributeRepository) {
       verify(locationsClient).getLocationById(wandsworthLocation.id)
@@ -506,7 +505,7 @@ class LocationsServiceTest {
 
     whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes
 
-    service.getLocationByKey(wandsworthLocation.key) isEqualTo wandsworthLocation.toModel().toDecoratedLocation(roomAttributes.toRoomAttributes())
+    service.getLocationByKey(wandsworthLocation.key) isEqualTo wandsworthLocation.toModel(roomAttributes.toRoomAttributes())
 
     inOrder(locationsClient, locationAttributeRepository) {
       verify(locationsClient).getLocationByKey(wandsworthLocation.key)

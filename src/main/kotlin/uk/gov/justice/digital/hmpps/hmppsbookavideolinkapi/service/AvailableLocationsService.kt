@@ -42,7 +42,7 @@ class AvailableLocationsService(
    */
   fun findAvailableLocations(request: AvailableLocationsRequest): AvailableLocationsResponse {
     val (startOfDay, endOfDay) = getStartAndEndOfDay(request)
-    val prisonVideoLinkLocations = getDecoratedLocationsAt(request.prisonCode!!)
+    val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode!!)
     val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date!!, prisonVideoLinkLocations, request.vlbIdToExclude))
     val meetingDuration = request.bookingDuration!!.toLong()
 
@@ -150,7 +150,7 @@ class AvailableLocationsService(
 
   private fun AvailableLocationsRequest.isForToday() = this.date!! == timeSource.today()
 
-  private fun getDecoratedLocationsAt(prisonCode: String) = locationsService.getDecoratedVideoLocations(prisonCode = prisonCode, enabledOnly = true)
+  private fun getVideoLinkLocationsAt(prisonCode: String) = locationsService.getVideoLinkLocationsAtPrison(prisonCode = prisonCode, enabledOnly = true)
 
   private fun Location.allowsByAnyRuleOrSchedule(request: AvailableLocationsRequest, time: LocalTime): AvailabilityStatus {
     if (extraAttributes != null) {

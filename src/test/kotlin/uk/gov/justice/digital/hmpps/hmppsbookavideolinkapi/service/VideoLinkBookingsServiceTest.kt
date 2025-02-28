@@ -11,8 +11,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -24,13 +22,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.additionalDeta
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.locationAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -43,9 +41,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppoi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toDecoratedLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
@@ -84,18 +80,8 @@ class VideoLinkBookingsServiceTest {
       ),
     ) doReturn courtHearingTypeRefCode
 
-    whenever(locationsService.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation.toModel()
-    whenever(locationsService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel().toDecoratedLocation(
-      RoomAttributes(
-        attributeId = 1,
-        locationUsage = LocationUsage.SHARED,
-        locationStatus = LocationStatus.ACTIVE,
-        expectedActiveDate = LocalDate.now(),
-        notes = null,
-        prisonVideoUrl = "decorated-video-link-url",
-        statusMessage = null,
-      ),
-    )
+    whenever(locationsService.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation.toModel(locationAttributes())
+    whenever(locationsService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel(locationAttributes())
   }
 
   @Nested
