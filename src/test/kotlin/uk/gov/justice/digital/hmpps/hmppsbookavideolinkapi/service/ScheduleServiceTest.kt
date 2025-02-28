@@ -7,21 +7,18 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.locationAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ScheduleRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toDecoratedLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
 import java.time.LocalTime
@@ -163,17 +160,7 @@ class ScheduleServiceTest {
     whenever(scheduleRepository.getScheduleForPrisonIncludingCancelled(PENTONVILLE, LocalDate.now()))
       .thenReturn(prisonItems)
 
-    whenever(locationsService.getLocationById(any())) doReturn pentonvilleLocation.toModel().toDecoratedLocation(
-      RoomAttributes(
-        1,
-        locationUsage = LocationUsage.SHARED,
-        locationStatus = LocationStatus.ACTIVE,
-        notes = null,
-        statusMessage = null,
-        expectedActiveDate = LocalDate.now(),
-        prisonVideoUrl = "prison-video-url",
-      ),
-    )
+    whenever(locationsService.getLocationById(any())) doReturn pentonvilleLocation.toModel(locationAttributes())
   }
 
   @Test
@@ -207,7 +194,7 @@ class ScheduleServiceTest {
       assertThat(item.courtCode).isNull()
       assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
       assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
-      assertThat(item.videoUrl).isEqualTo("prison-video-url")
+      assertThat(item.videoUrl).isEqualTo("decorated-video-link-url")
       assertThat(item.createdTime).isEqualTo(yesterday().atStartOfDay())
       assertThat(item.createdBy).isEqualTo("CREATOR")
       assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())

@@ -6,6 +6,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.mo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
@@ -56,6 +59,16 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   level = 2,
   leafLevel = true,
   status = Location.Status.ACTIVE,
+)
+
+fun locationAttributes() = RoomAttributes(
+  attributeId = 1,
+  locationUsage = LocationUsage.SHARED,
+  locationStatus = LocationStatus.ACTIVE,
+  expectedActiveDate = LocalDate.now(),
+  notes = null,
+  prisonVideoUrl = "decorated-video-link-url",
+  statusMessage = null,
 )
 
 fun prisonerSearchPrisoner(

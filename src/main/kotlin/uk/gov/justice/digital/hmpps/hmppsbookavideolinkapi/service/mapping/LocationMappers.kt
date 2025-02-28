@@ -8,25 +8,18 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomSchedule
 import java.time.DayOfWeek
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location as ModelLocation
 
-// Undecorated locations
-fun Location.toModel() = ModelLocation(
+fun Location.toModel(attributes: RoomAttributes? = null) = ModelLocation(
   key = key,
   description = localName,
   enabled = active,
   dpsLocationId = id,
-)
-
-// Undecorated locations
-fun List<Location>.toModel() = map { it.toModel() }.sortedBy { it.description }
-
-// Decorated locations
-fun ModelLocation.toDecoratedLocation(attributes: RoomAttributes) = ModelLocation(
-  key = key,
-  description = description,
-  enabled = enabled,
-  dpsLocationId = dpsLocationId,
   extraAttributes = attributes,
 )
+
+fun List<Location>.toModel(attributes: List<LocationAttribute>) = map {
+  val attributesForLocation = attributes.singleOrNull { a -> a.dpsLocationId == it.id }
+  it.toModel(attributesForLocation?.toRoomAttributes())
+}.sortedBy { it.description }
 
 fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   attributeId = this.locationAttributeId,

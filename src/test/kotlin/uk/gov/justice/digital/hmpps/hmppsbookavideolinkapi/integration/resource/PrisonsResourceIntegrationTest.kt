@@ -154,12 +154,59 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
       prisonCode = WANDSWORTH,
     )
 
+    val response = webTestClient.getAppointmentLocations(prisonCode = WANDSWORTH)
+
+    assertThat(response).isNotEmpty
+
+    with(response[0]) {
+      assertThat(key).isEqualTo("VIDEOLINK")
+      assertThat(dpsLocationId).isEqualTo(seededVideoUUID)
+      assertThat(description).isEqualTo("WWI VIDEOLINK")
+      assertThat(enabled).isTrue()
+      assertThat(extraAttributes).isNotNull
+
+      with(extraAttributes!!) {
+        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
+        assertThat(prisonVideoUrl).isEqualTo("/video-link/xxx")
+        assertThat(notes).isEqualTo("some notes")
+        assertThat(schedule).hasSize(3)
+        with(schedule[0]) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.THURSDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
+          assertThat(locationUsage).isEqualTo(LocationUsage.COURT)
+        }
+        with(schedule[1]) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.FRIDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.FRIDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
+          assertThat(locationUsage).isEqualTo(LocationUsage.PROBATION)
+        }
+        with(schedule[2]) {
+          assertThat(startDayOfWeek).isEqualTo(DayOfWeek.SATURDAY)
+          assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
+          assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
+          assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
+          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        }
+      }
+    }
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-locations-with-extended-attributes.sql")
+  fun `should get non-residential appointment locations with additional room attributes`() {
+    val seededVideoUUID = UUID.fromString("e58ed763-928c-4155-bee9-fdbaaadc15f3")
+
     locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(
-      listOf(LocationKeyValue("NOT_VIDEO_LINK", UUID.randomUUID())),
+      listOf(LocationKeyValue(key = "VIDEOLINK", id = seededVideoUUID)),
       prisonCode = WANDSWORTH,
     )
 
-    val response = webTestClient.getAppointmentLocations(prisonCode = WANDSWORTH, requestParams = "?extendedAttributes=true")
+    val response = webTestClient.getAppointmentLocations(prisonCode = WANDSWORTH, requestParams = "?videoLinkOnly=false")
 
     assertThat(response).isNotEmpty
 

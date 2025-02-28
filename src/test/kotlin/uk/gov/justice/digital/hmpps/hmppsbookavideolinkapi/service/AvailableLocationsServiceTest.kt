@@ -54,7 +54,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should return 7 available morning times for location 1 with time of request 10am`() {
-      whenever(locationsService.getDecoratedVideoLocations(RISLEY, true)) doReturn listOf(location1)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
 
       val response = service { LocalDateTime.of(today(), LocalTime.of(10, 0)) }.findAvailableLocations(
@@ -83,7 +83,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should return 6 available morning times for location 1 with time of request 1015am`() {
-      whenever(locationsService.getDecoratedVideoLocations(RISLEY, true)) doReturn listOf(location1)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
 
       val response = service { LocalDateTime.of(today(), LocalTime.of(10, 15)) }.findAvailableLocations(
@@ -111,7 +111,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should return 5 available morning times for location 1 with time of request 1030am`() {
-      whenever(locationsService.getDecoratedVideoLocations(RISLEY, true)) doReturn listOf(location1)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
 
       val response = service { LocalDateTime.of(today(), LocalTime.of(10, 30)) }.findAvailableLocations(
@@ -138,7 +138,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should return 4 available morning times for location 1 with time of request 1045am`() {
-      whenever(locationsService.getDecoratedVideoLocations(RISLEY, true)) doReturn listOf(location1)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
 
       val response = service { LocalDateTime.of(today(), LocalTime.of(10, 45)) }.findAvailableLocations(
@@ -178,7 +178,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should return 5 available morning times for location 1 with one blocked out booking`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
@@ -207,7 +207,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should return 9 available morning times for location 1 and 2 with two blocked out bookings`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1, location2)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(location1, location2)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
@@ -251,7 +251,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should return 20 available afternoon times for location 1 when on blocked out booking`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
@@ -295,7 +295,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should return 18 available morning and afternoon times for location 1 when two block out bookings`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(location1)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(
           BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0)),
@@ -377,7 +377,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should favour decorated probation room over undecorated`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, undecoratedLocation)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, undecoratedLocation)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
@@ -412,7 +412,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should favour decorated probation team room over decorated probation room`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
@@ -449,7 +449,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should favour decorated probation room over decorated probation team room when team room is not available`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
@@ -486,7 +486,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should favour decorated probation team room over decorated probation room over shared room`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation, undecoratedLocation)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation, undecoratedLocation)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
@@ -523,7 +523,7 @@ class AvailableLocationsServiceTest {
 
     @Test
     fun `should exclude decorated probation room at 9am but include decorated room at 915am`() {
-      whenever(locationsService.getDecoratedVideoLocations(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, undecoratedLocation)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, undecoratedLocation)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
