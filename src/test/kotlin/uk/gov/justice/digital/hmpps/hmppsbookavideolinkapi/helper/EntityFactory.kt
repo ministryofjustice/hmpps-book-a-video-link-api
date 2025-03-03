@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
@@ -222,23 +221,17 @@ fun videoRoomAttributesWithSchedule(
     locationStatus = locationStatus,
     locationUsage = locationUsage,
     createdBy = "TEST",
-  )
-
-  val roomSchedule = mutableListOf(
-    LocationSchedule(
-      locationScheduleId = 1,
+  ).apply {
+    addSchedule(
+      usage = LocationUsage.SHARED,
       startDayOfWeek = DayOfWeek.MONDAY.value,
       endDayOfWeek = DayOfWeek.SUNDAY.value,
       startTime = LocalTime.of(1, 0),
       endTime = LocalTime.of(23, 0),
-      locationUsage = LocationUsage.SHARED,
-      allowedParties = null,
+      allowedParties = emptySet(),
       createdBy = "TEST",
-      locationAttribute = roomAttributes,
-    ),
-  )
-
-  roomAttributes.setLocationSchedule(roomSchedule)
+    )
+  }
 
   return mutableListOf(roomAttributes)
 }

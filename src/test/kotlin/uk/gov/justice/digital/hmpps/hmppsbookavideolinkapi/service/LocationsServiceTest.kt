@@ -194,7 +194,7 @@ class LocationsServiceTest {
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
-          assertThat(scheduleId).isEqualTo(1)
+          assertThat(scheduleId).isEqualTo(0)
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
@@ -216,7 +216,7 @@ class LocationsServiceTest {
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
-          assertThat(scheduleId).isEqualTo(1)
+          assertThat(scheduleId).isEqualTo(0)
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
@@ -257,7 +257,7 @@ class LocationsServiceTest {
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
-          assertThat(scheduleId).isEqualTo(1)
+          assertThat(scheduleId).isEqualTo(0)
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.MONDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))

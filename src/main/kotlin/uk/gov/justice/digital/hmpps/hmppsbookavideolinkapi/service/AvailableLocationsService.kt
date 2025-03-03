@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import java.time.LocalDateTime
 import java.time.LocalTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.LocationUsage as ModelLocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
 
 private const val FIFTEEN_MINUTES = 15L
 

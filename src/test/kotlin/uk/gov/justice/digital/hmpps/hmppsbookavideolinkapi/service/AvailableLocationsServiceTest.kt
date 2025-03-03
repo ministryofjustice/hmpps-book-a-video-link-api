@@ -574,7 +574,7 @@ class AvailableLocationsServiceTest {
     endTime = endTime,
     dpsLocationKey = location.key,
     dpsLocationId = location.dpsLocationId,
-    usage = usage?.let { uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.LocationUsage.valueOf(usage.name) },
+    usage = usage?.let { uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage.valueOf(usage.name) },
     timeSlot = slot(startTime),
   )
 }

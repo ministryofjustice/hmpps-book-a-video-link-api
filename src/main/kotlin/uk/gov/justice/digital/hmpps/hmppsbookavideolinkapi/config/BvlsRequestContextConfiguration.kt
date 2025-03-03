@@ -29,6 +29,7 @@ class BvlsRequestContextConfiguration(private val bvlsRequestContextInterceptor:
       .addPathPatterns(
         "/courts/**",
         "/probation-teams/**",
+        "/room-admin/**",
         "/video-link-booking/**",
       )
   }
