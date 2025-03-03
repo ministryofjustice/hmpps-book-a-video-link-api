@@ -15,6 +15,7 @@ import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.UUID
 
 @Entity
@@ -59,14 +60,38 @@ class LocationAttribute(
   @OneToMany(mappedBy = "locationAttribute", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val locationSchedule: MutableList<LocationSchedule> = mutableListOf()
 
-  fun setLocationSchedule(schedules: List<LocationSchedule>) {
-    require(locationUsage == LocationUsage.SCHEDULE) {
-      "The location usage type must be SCHEDULE for a list of schedule rows to be associated with it."
-    }
-    this.locationSchedule.addAll(schedules)
-  }
-
   fun schedule() = locationSchedule.toList()
+
+  fun isLocationUsage(usage: LocationUsage) = locationUsage == usage
+
+  fun addSchedule(
+    usage: LocationUsage,
+    startDayOfWeek: Int,
+    endDayOfWeek: Int,
+    startTime: LocalTime,
+    endTime: LocalTime,
+    allowedParties: Set<String> = emptySet(),
+    notes: String? = null,
+    createdBy: String,
+  ) {
+    require(locationUsage == LocationUsage.SCHEDULE) {
+      "The location usage type must be SCHEDULE to add a schedule row to it."
+    }
+
+    locationSchedule.add(
+      LocationSchedule(
+        locationAttribute = this,
+        locationUsage = usage,
+        startDayOfWeek = startDayOfWeek,
+        endDayOfWeek = endDayOfWeek,
+        startTime = startTime,
+        endTime = endTime,
+        allowedParties = allowedParties.takeUnless { it.isEmpty() }?.sorted()?.joinToString(","),
+        notes = notes,
+        createdBy = createdBy,
+      ),
+    )
+  }
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

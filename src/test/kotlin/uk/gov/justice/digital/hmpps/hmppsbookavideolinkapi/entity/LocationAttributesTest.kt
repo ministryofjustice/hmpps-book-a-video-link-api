@@ -1,12 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
@@ -71,23 +70,49 @@ class LocationAttributesTest {
       createdBy = "TEST",
     )
 
-    val roomSchedule = listOf(
-      LocationSchedule(
-        locationScheduleId = 1,
+    roomAttributes.apply {
+      addSchedule(
+        usage = LocationUsage.SHARED,
         startDayOfWeek = DayOfWeek.MONDAY.value,
         endDayOfWeek = DayOfWeek.SUNDAY.value,
         startTime = LocalTime.of(1, 0),
         endTime = LocalTime.of(23, 0),
-        locationUsage = LocationUsage.SHARED,
-        allowedParties = null,
+        allowedParties = emptySet(),
         createdBy = "TEST",
-        locationAttribute = roomAttributes,
-      ),
-    )
+      )
 
-    roomAttributes.setLocationSchedule(roomSchedule)
+      addSchedule(
+        usage = LocationUsage.PROBATION,
+        startDayOfWeek = DayOfWeek.MONDAY.value,
+        endDayOfWeek = DayOfWeek.SUNDAY.value,
+        startTime = LocalTime.of(14, 0),
+        endTime = LocalTime.of(15, 0),
+        allowedParties = setOf("C", "A", "B"),
+        createdBy = "TEST",
+      )
+    }
 
-    assertThat(roomAttributes.schedule().hasSize(1))
+    with(roomAttributes.schedule()[0]) {
+      locationUsage isEqualTo LocationUsage.SHARED
+      startDayOfWeek isEqualTo 1
+      endDayOfWeek isEqualTo 7
+      startTime isEqualTo LocalTime.of(1, 0)
+      endTime isEqualTo LocalTime.of(23, 0)
+      allowedParties isEqualTo null
+      createdBy isEqualTo "TEST"
+      createdTime isCloseTo LocalDateTime.now()
+    }
+
+    with(roomAttributes.schedule()[1]) {
+      locationUsage isEqualTo LocationUsage.PROBATION
+      startDayOfWeek isEqualTo 1
+      endDayOfWeek isEqualTo 7
+      startTime isEqualTo LocalTime.of(14, 0)
+      endTime isEqualTo LocalTime.of(15, 0)
+      allowedParties isEqualTo "A,B,C"
+      createdBy isEqualTo "TEST"
+      createdTime isCloseTo LocalDateTime.now()
+    }
   }
 
   @Nested
@@ -263,13 +288,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SCHEDULE,
         createdBy = "TEST",
-      ).apply {
-        setLocationSchedule(
-          listOf(
-            schedule(this, locationUsage = LocationUsage.PROBATION),
-          ),
-        )
-      }
+      ).apply { schedule(this, locationUsage = LocationUsage.PROBATION) }
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ANY
     }
@@ -291,11 +310,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.SCHEDULE,
         createdBy = "TEST",
       ).apply {
-        setLocationSchedule(
-          listOf(
-            schedule(this, locationUsage = LocationUsage.PROBATION, allowedParties = "PROBATION_TEAM"),
-          ),
-        )
+        schedule(this, locationUsage = LocationUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
       }
 
       roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_TEAM
@@ -317,13 +332,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SCHEDULE,
         createdBy = "TEST",
-      ).apply {
-        setLocationSchedule(
-          listOf(
-            schedule(this, locationUsage = LocationUsage.SHARED),
-          ),
-        )
-      }
+      ).apply { schedule(this, locationUsage = LocationUsage.SHARED) }
 
       roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
     }
@@ -344,13 +353,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SCHEDULE,
         createdBy = "TEST",
-      ).apply {
-        setLocationSchedule(
-          listOf(
-            schedule(this, locationUsage = LocationUsage.COURT),
-          ),
-        )
-      }
+      ).apply { schedule(this, locationUsage = LocationUsage.COURT) }
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
     }
@@ -363,19 +366,18 @@ class LocationAttributesTest {
     startTime: LocalTime = LocalTime.of(9, 0),
     endTime: LocalTime = LocalTime.of(17, 0),
     locationUsage: LocationUsage,
-    allowedParties: String? = null,
-  ) = LocationSchedule(
-    locationScheduleId = 1,
-    locationAttribute = locationAttribute,
-    startDayOfWeek = start.value,
-    endDayOfWeek = end.value,
-    startTime = startTime,
-    endTime = endTime,
-    locationUsage = locationUsage,
-    allowedParties = allowedParties,
-    notes = null,
-    createdBy = "test",
-  )
+    allowedParties: Set<String> = emptySet(),
+  ) {
+    locationAttribute.addSchedule(
+      usage = locationUsage,
+      startDayOfWeek = start.value,
+      endDayOfWeek = end.value,
+      startTime = startTime,
+      endTime = endTime,
+      createdBy = "TEST",
+      allowedParties = allowedParties,
+    )
+  }
 
   @Nested
   inner class Court {

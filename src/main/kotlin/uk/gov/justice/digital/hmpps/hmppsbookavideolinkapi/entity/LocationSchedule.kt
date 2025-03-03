@@ -13,6 +13,7 @@ import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetween
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -49,6 +50,10 @@ class LocationSchedule(
   init {
     require(locationAttribute.locationUsage == LocationUsage.SCHEDULE) {
       "The location usage type must be SCHEDULE for a list of schedule rows to be associated with it."
+    }
+
+    requireNot(locationUsage == LocationUsage.SCHEDULE) {
+      "The location cannot be of type SCHEDULE for a location schedule row."
     }
   }
 
