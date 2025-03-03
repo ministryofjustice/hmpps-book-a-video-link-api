@@ -3,8 +3,10 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -33,6 +35,21 @@ class LocationScheduleTest {
     schedule(start = DayOfWeek.MONDAY).fallsOn(wednesdayNoon) isBool false
     schedule(start = DayOfWeek.MONDAY).fallsOn(thursdayNoon) isBool false
     schedule(start = DayOfWeek.MONDAY).fallsOn(fridayNoon) isBool false
+  }
+
+  @Test
+  fun `should fail if location usage SCHEDULE`() {
+    assertThrows<IllegalArgumentException> { schedule(locationUsage = LocationUsage.SCHEDULE) }.message isEqualTo "The location usage cannot be of type SCHEDULE for a location schedule row."
+  }
+
+  @Test
+  fun `should fail if end day before start day`() {
+    assertThrows<IllegalArgumentException> { schedule(start = DayOfWeek.TUESDAY, end = DayOfWeek.MONDAY) }.message isEqualTo "The end day cannot be before the start day."
+  }
+
+  @Test
+  fun `should fail if end time not after start time`() {
+    assertThrows<IllegalArgumentException> { schedule(startTime = LocalTime.of(12, 0), endTime = LocalTime.of(11, 59)) }.message isEqualTo "The end time must come after the start time."
   }
 
   @DisplayName("Probation tests")

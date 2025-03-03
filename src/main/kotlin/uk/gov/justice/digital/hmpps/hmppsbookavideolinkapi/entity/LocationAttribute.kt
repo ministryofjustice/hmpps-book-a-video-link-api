@@ -78,6 +78,19 @@ class LocationAttribute(
       "The location usage type must be SCHEDULE to add a schedule row to it."
     }
 
+    if (
+      locationSchedule.any {
+        it.locationUsage == usage &&
+          it.startDayOfWeek == startDayOfWeek &&
+          it.endDayOfWeek == endDayOfWeek &&
+          it.startTime == startTime &&
+          it.endTime == endTime &&
+          it.allowedParties == allowedParties.takeUnless { ap -> ap.isEmpty() }?.sorted()?.joinToString(",")
+      }
+    ) {
+      throw IllegalArgumentException("Cannot add a duplicate schedule row to location attribute with ID $locationAttributeId.")
+    }
+
     locationSchedule.add(
       LocationSchedule(
         locationAttribute = this,

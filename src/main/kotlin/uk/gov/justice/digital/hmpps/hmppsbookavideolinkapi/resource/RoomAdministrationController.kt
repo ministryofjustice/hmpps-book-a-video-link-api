@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.CreateRoomScheduleService
 import java.util.UUID
 
-@Tag(name = "Administration Controller")
+@Tag(name = "Room Administration Controller")
 @RestController
 @RequestMapping(value = ["room-admin"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @AuthApiResponses

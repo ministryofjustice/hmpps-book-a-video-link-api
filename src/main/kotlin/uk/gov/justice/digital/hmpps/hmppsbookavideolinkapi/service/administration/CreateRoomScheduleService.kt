@@ -21,7 +21,7 @@ class CreateRoomScheduleService(
 
     locationAttribute.run {
       require(isLocationUsage(SCHEDULE)) {
-        "Location attribute with ID $locationAttributeId requires a location usage of SCHEDULE"
+        "Location attribute with ID $locationAttributeId requires a location usage of SCHEDULE to add a row to it."
       }
 
       addSchedule(
@@ -30,7 +30,7 @@ class CreateRoomScheduleService(
         endDayOfWeek = request.endDayOfWeek!!,
         startTime = request.startTime!!,
         endTime = request.endTime!!,
-        allowedParties = request.allowedParties,
+        allowedParties = request.allowedParties.takeUnless { it.isNullOrEmpty() } ?: emptySet(),
         notes = request.notes,
         createdBy = user.username,
       )
