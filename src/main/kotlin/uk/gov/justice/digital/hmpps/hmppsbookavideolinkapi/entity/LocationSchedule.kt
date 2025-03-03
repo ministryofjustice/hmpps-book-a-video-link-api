@@ -53,7 +53,15 @@ class LocationSchedule(
     }
 
     requireNot(locationUsage == LocationUsage.SCHEDULE) {
-      "The location cannot be of type SCHEDULE for a location schedule row."
+      "The location usage cannot be of type SCHEDULE for a location schedule row."
+    }
+
+    require(startDayOfWeek <= endDayOfWeek) {
+      "The end day cannot be before the start day."
+    }
+
+    require(startTime.isBefore(endTime)) {
+      "The end time must come after the start time."
     }
   }
 

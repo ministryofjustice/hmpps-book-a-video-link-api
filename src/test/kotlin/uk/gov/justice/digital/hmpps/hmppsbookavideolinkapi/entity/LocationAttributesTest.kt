@@ -115,6 +115,47 @@ class LocationAttributesTest {
     }
   }
 
+  @Test
+  fun `should reject a duplicate schedule row`() {
+    val roomAttributes = LocationAttribute(
+      locationAttributeId = 1L,
+      dpsLocationId = UUID.randomUUID(),
+      prison = Prison(
+        prisonId = 1,
+        code = PENTONVILLE,
+        name = "TEST",
+        enabled = true,
+        createdBy = "TEST",
+        notes = null,
+      ),
+      locationStatus = LocationStatus.ACTIVE,
+      locationUsage = LocationUsage.SCHEDULE,
+      createdBy = "TEST",
+    )
+
+    roomAttributes.addSchedule(
+      usage = LocationUsage.SHARED,
+      startDayOfWeek = DayOfWeek.MONDAY.value,
+      endDayOfWeek = DayOfWeek.SUNDAY.value,
+      startTime = LocalTime.of(1, 0),
+      endTime = LocalTime.of(23, 0),
+      allowedParties = emptySet(),
+      createdBy = "TEST",
+    )
+
+    assertThrows<IllegalArgumentException> {
+      roomAttributes.addSchedule(
+        usage = LocationUsage.SHARED,
+        startDayOfWeek = DayOfWeek.MONDAY.value,
+        endDayOfWeek = DayOfWeek.SUNDAY.value,
+        startTime = LocalTime.of(1, 0),
+        endTime = LocalTime.of(23, 0),
+        allowedParties = emptySet(),
+        createdBy = "TEST",
+      )
+    }.message isEqualTo "Cannot add a duplicate schedule row to location attribute with ID 1."
+  }
+
   @Nested
   inner class Probation {
     @Test
