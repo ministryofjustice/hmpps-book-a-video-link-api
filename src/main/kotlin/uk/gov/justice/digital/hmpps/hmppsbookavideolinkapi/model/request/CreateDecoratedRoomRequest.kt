@@ -22,7 +22,7 @@ data class CreateDecoratedRoomRequest(
   @field:Size(max = 120, message = "Prison video URL should not exceed {max} characters")
   val prisonVideoUrl: String? = null,
 
-  @field:Size(max = 400, message = "Comments name should not exceed {max} characters")
+  @field:Size(max = 400, message = "Comments should not exceed {max} characters")
   @Schema(description = "Optional comments for the decorated location, can be null", example = "Temporarily unavailable due to ongoing work", required = false)
   val comments: String? = null,
 )
