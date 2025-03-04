@@ -205,36 +205,31 @@ fun videoRoomAttributesWithSchedule(
   dpsLocationId: UUID,
   locationStatus: LocationStatus = LocationStatus.ACTIVE,
   locationUsage: LocationUsage = LocationUsage.SCHEDULE,
-): MutableList<LocationAttribute> {
-  val roomAttributes = LocationAttribute.decoratedRoom(
-    dpsLocationId = dpsLocationId,
-    prison = Prison(
-      prisonId = 1,
-      code = prisonCode,
-      name = "TEST",
-      enabled = true,
-      createdBy = "TEST",
-      notes = null,
-    ),
-    locationUsage = locationUsage,
-    locationStatus = locationStatus,
+) = LocationAttribute.decoratedRoom(
+  dpsLocationId = dpsLocationId,
+  prison = Prison(
+    prisonId = 1,
+    code = prisonCode,
+    name = "TEST",
+    enabled = true,
+    createdBy = "TEST",
+    notes = null,
+  ),
+  locationUsage = locationUsage,
+  locationStatus = locationStatus,
+  allowedParties = emptySet(),
+  prisonVideoUrl = null,
+  createdBy = COURT_USER,
+).apply {
+  addSchedule(
+    usage = LocationUsage.SHARED,
+    startDayOfWeek = DayOfWeek.MONDAY.value,
+    endDayOfWeek = DayOfWeek.SUNDAY.value,
+    startTime = LocalTime.of(1, 0),
+    endTime = LocalTime.of(23, 0),
     allowedParties = emptySet(),
-    prisonVideoUrl = null,
-    createdBy = COURT_USER,
-  ).apply {
-    this.locationStatus = locationStatus
-    addSchedule(
-      usage = LocationUsage.SHARED,
-      startDayOfWeek = DayOfWeek.MONDAY.value,
-      endDayOfWeek = DayOfWeek.SUNDAY.value,
-      startTime = LocalTime.of(1, 0),
-      endTime = LocalTime.of(23, 0),
-      allowedParties = emptySet(),
-      createdBy = "TEST",
-    )
-  }
-
-  return mutableListOf(roomAttributes)
+    createdBy = "TEST",
+  )
 }
 
 fun videoRoomAttributesWithoutSchedule(
@@ -242,26 +237,22 @@ fun videoRoomAttributesWithoutSchedule(
   dpsLocationId: UUID,
   locationStatus: LocationStatus = LocationStatus.ACTIVE,
   locationUsage: LocationUsage = LocationUsage.SHARED,
-): MutableList<LocationAttribute> {
-  val roomAttributes = LocationAttribute.decoratedRoom(
-    dpsLocationId = dpsLocationId,
-    prison = Prison(
-      prisonId = 1,
-      code = prisonCode,
-      name = "TEST",
-      enabled = true,
-      createdBy = "TEST",
-      notes = null,
-    ),
-    locationUsage = locationUsage,
-    locationStatus = locationStatus,
-    allowedParties = emptySet(),
-    prisonVideoUrl = null,
-    createdBy = COURT_USER,
-  )
-
-  return mutableListOf(roomAttributes)
-}
+) = LocationAttribute.decoratedRoom(
+  dpsLocationId = dpsLocationId,
+  prison = Prison(
+    prisonId = 1,
+    code = prisonCode,
+    name = "TEST",
+    enabled = true,
+    createdBy = "TEST",
+    notes = null,
+  ),
+  locationUsage = locationUsage,
+  locationStatus = locationStatus,
+  allowedParties = emptySet(),
+  prisonVideoUrl = null,
+  createdBy = COURT_USER,
+)
 
 fun additionalDetails(
   booking: VideoBooking,

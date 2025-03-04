@@ -176,7 +176,7 @@ class LocationsServiceTest {
       dpsLocationId = locationB.id,
     )
 
-    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesA + roomAttributesB
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn listOf(roomAttributesA, roomAttributesB)
 
     val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = false)
 
@@ -236,7 +236,7 @@ class LocationsServiceTest {
 
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
-    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributes
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn listOf(roomAttributes)
 
     val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = true)
 
@@ -276,7 +276,7 @@ class LocationsServiceTest {
 
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(locationsClient.getVideoLinkLocationsAtPrison(WANDSWORTH)) doReturn listOf(locationA, locationB)
-    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributes
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn listOf(roomAttributes)
 
     val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = true)
 
@@ -336,7 +336,7 @@ class LocationsServiceTest {
 
     // Location C has no decorating data
 
-    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesA + roomAttributesB
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn listOf(roomAttributesA, roomAttributesB)
 
     val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = false)
 
@@ -399,7 +399,7 @@ class LocationsServiceTest {
     )
 
     // Reverse the order of room decorations returned
-    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn roomAttributesE + roomAttributesD
+    whenever(locationAttributeRepository.findByPrisonCode(WANDSWORTH)) doReturn listOf(roomAttributesE, roomAttributesD)
 
     val result = service.getVideoLinkLocationsAtPrison(WANDSWORTH, enabledOnly = false)
 
