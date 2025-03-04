@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
@@ -911,12 +912,14 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     videoBookingRepository.findAll() hasSize 0
 
     locationAttributeRepository.saveAndFlush(
-      LocationAttribute(
+      LocationAttribute.decoratedRoom(
         dpsLocationId = wandsworthLocation.id,
         prison = prisonRepository.findByCode(WANDSWORTH)!!,
-        createdBy = "INTEGRATION TEST",
+        createdBy = PROBATION_USER,
         locationUsage = LocationUsage.PROBATION,
+        locationStatus = LocationStatus.ACTIVE,
         prisonVideoUrl = "https://probation-url",
+        allowedParties = emptySet(),
       ),
     )
 

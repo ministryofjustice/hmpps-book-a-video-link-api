@@ -14,6 +14,9 @@ data class Location(
   @Schema(description = "The location key for the location (this can change)", example = "BMI-VIDEOLINK")
   val key: String,
 
+  @Schema(description = "The prison code for the locationl", example = "BMI")
+  val prisonCode: String,
+
   @Schema(description = "The description for the location, can be null", example = "VIDEO LINK")
   val description: String?,
 

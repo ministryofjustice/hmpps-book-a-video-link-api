@@ -9,12 +9,11 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import java.time.LocalTime
@@ -28,20 +27,14 @@ class CreateRoomScheduleServiceTest {
 
   @Test
   fun `should add schedule row to existing empty schedule`() {
-    val roomAttributes = LocationAttribute(
-      locationAttributeId = 1L,
+    val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
-      prison = Prison(
-        prisonId = 1,
-        code = PENTONVILLE,
-        name = "TEST",
-        enabled = true,
-        createdBy = "TEST",
-        notes = null,
-      ),
+      prison = pentonvillePrison,
       locationStatus = LocationStatus.ACTIVE,
-      locationUsage = uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage.SCHEDULE,
-      createdBy = "TEST",
+      locationUsage = EntityLocationUsage.SCHEDULE,
+      createdBy = PROBATION_USER,
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
     )
 
     roomAttributes.schedule().isEmpty() isBool true
@@ -79,20 +72,14 @@ class CreateRoomScheduleServiceTest {
 
   @Test
   fun `should add schedule row to existing populated schedule`() {
-    val roomAttributes = LocationAttribute(
-      locationAttributeId = 1L,
+    val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
-      prison = Prison(
-        prisonId = 1,
-        code = PENTONVILLE,
-        name = "TEST",
-        enabled = true,
-        createdBy = "TEST",
-        notes = null,
-      ),
+      prison = pentonvillePrison,
       locationStatus = LocationStatus.ACTIVE,
-      locationUsage = uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage.SCHEDULE,
-      createdBy = "TEST",
+      locationUsage = EntityLocationUsage.SCHEDULE,
+      createdBy = PROBATION_USER,
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
     ).apply {
       addSchedule(
         usage = EntityLocationUsage.PROBATION,

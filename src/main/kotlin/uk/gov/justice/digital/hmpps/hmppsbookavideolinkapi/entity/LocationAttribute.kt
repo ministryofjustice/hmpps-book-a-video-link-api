@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -20,7 +21,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "location_attribute")
-class LocationAttribute(
+class LocationAttribute private constructor(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val locationAttributeId: Long = 0,
@@ -32,7 +33,7 @@ class LocationAttribute(
   val prison: Prison,
 
   @Enumerated(EnumType.STRING)
-  val locationStatus: LocationStatus = LocationStatus.ACTIVE,
+  var locationStatus: LocationStatus = LocationStatus.ACTIVE,
 
   val statusMessage: String? = null,
 
@@ -183,6 +184,26 @@ class LocationAttribute(
   }
 
   private fun isPartyAllowed(party: String) = allowedParties.orEmpty().replace(" ", "").split(",").contains(party)
+
+  companion object {
+    fun decoratedRoom(
+      dpsLocationId: UUID,
+      prison: Prison,
+      locationUsage: LocationUsage,
+      allowedParties: Set<String>,
+      locationStatus: LocationStatus,
+      prisonVideoUrl: String?,
+      createdBy: ExternalUser,
+    ) = LocationAttribute(
+      dpsLocationId = dpsLocationId,
+      prison = prison,
+      locationUsage = locationUsage,
+      locationStatus = locationStatus,
+      allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(","),
+      prisonVideoUrl = prisonVideoUrl,
+      createdBy = createdBy.username,
+    )
+  }
 }
 
 enum class LocationStatus {

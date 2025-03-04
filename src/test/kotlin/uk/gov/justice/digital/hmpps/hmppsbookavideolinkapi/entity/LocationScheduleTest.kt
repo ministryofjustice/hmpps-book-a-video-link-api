@@ -4,9 +4,10 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -93,20 +94,14 @@ class LocationScheduleTest {
     allowedParties: String? = null,
   ) = LocationSchedule(
     locationScheduleId = 1,
-    locationAttribute = LocationAttribute(
-      locationAttributeId = 1L,
+    locationAttribute = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
-      prison = Prison(
-        prisonId = 1,
-        code = PENTONVILLE,
-        name = "TEST",
-        enabled = true,
-        createdBy = "TEST",
-        notes = null,
-      ),
+      prison = pentonvillePrison,
       locationStatus = LocationStatus.ACTIVE,
       locationUsage = LocationUsage.SCHEDULE,
-      createdBy = "TEST",
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      createdBy = PROBATION_USER,
     ),
     startDayOfWeek = start.value,
     endDayOfWeek = end.value,

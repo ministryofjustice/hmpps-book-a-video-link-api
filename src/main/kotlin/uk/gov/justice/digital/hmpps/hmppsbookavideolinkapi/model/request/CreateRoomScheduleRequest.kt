@@ -13,7 +13,7 @@ data class CreateRoomScheduleRequest(
   @Schema(description = "The location usage for the schedule", example = "PROBATION", required = true)
   val locationUsage: LocationUsage?,
 
-  @Schema(description = "Court or probation team codes allowed to use the room", example = "[\"DRBYMC\"]")
+  @Schema(description = "Court or probation team codes allowed to use the room", example = "[\"DRBYMC\"]", required = false)
   val allowedParties: Set<String>? = null,
 
   @field:Min(value = 1, message = "Start day of week cannot be less than {min}")

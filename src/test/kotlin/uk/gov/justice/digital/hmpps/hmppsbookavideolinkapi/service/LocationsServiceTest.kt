@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributesWithSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributesWithoutSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
@@ -167,13 +168,11 @@ class LocationsServiceTest {
 
     val roomAttributesA = videoRoomAttributesWithSchedule(
       prisonCode = WANDSWORTH,
-      attributeId = 1,
       dpsLocationId = locationA.id,
     )
 
     val roomAttributesB = videoRoomAttributesWithSchedule(
       prisonCode = WANDSWORTH,
-      attributeId = 2,
       dpsLocationId = locationB.id,
     )
 
@@ -189,7 +188,6 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(attributeId).isEqualTo(1)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
@@ -211,7 +209,6 @@ class LocationsServiceTest {
       assertThat(enabled).isFalse()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(attributeId).isEqualTo(2)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
@@ -234,7 +231,6 @@ class LocationsServiceTest {
 
     val roomAttributes = videoRoomAttributesWithSchedule(
       prisonCode = WANDSWORTH,
-      attributeId = 1,
       dpsLocationId = locationA.id,
     )
 
@@ -252,7 +248,6 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(attributeId).isEqualTo(1)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
@@ -276,7 +271,6 @@ class LocationsServiceTest {
 
     val roomAttributes = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
-      attributeId = 1,
       dpsLocationId = locationA.id,
     )
 
@@ -294,7 +288,6 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(attributeId).isEqualTo(1)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
         assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
         assertThat(allowedParties).isEmpty()
@@ -330,7 +323,6 @@ class LocationsServiceTest {
     // Location A is ACTIVE - in decoration data
     val roomAttributesA = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
-      attributeId = 1,
       dpsLocationId = locationA.id,
       locationStatus = LocationStatus.ACTIVE,
     )
@@ -338,7 +330,6 @@ class LocationsServiceTest {
     // Location B is INACTIVE - in decoration data
     val roomAttributesB = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
-      attributeId = 2,
       dpsLocationId = locationB.id,
       locationStatus = LocationStatus.INACTIVE,
     )
@@ -356,7 +347,6 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(attributeId).isEqualTo(1)
         assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
       }
     }
@@ -365,7 +355,6 @@ class LocationsServiceTest {
       assertThat(key).isEqualTo(locationB.key)
       assertThat(enabled).isTrue()
       with(extraAttributes!!) {
-        assertThat(attributeId).isEqualTo(2)
         assertThat(locationStatus).isEqualTo(LocationStatus.INACTIVE)
       }
     }
@@ -398,7 +387,6 @@ class LocationsServiceTest {
     // Location D decorations
     val roomAttributesD = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
-      attributeId = 1,
       dpsLocationId = locationD.id,
       locationStatus = LocationStatus.ACTIVE,
     )
@@ -406,7 +394,6 @@ class LocationsServiceTest {
     // Location E decorations
     val roomAttributesE = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
-      attributeId = 2,
       dpsLocationId = locationE.id,
       locationStatus = LocationStatus.ACTIVE,
     )
@@ -442,21 +429,14 @@ class LocationsServiceTest {
   fun `should return decorated location by id`() {
     whenever(locationsClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
 
-    val roomAttributes = LocationAttribute(
-      locationAttributeId = 1L,
+    val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = wandsworthLocation.id,
-      prison = Prison(
-        prisonId = 1,
-        code = WANDSWORTH,
-        name = "TEST",
-        enabled = true,
-        createdBy = "TEST",
-        notes = null,
-      ),
+      prison = wandsworthPrison,
       locationStatus = LocationStatus.ACTIVE,
       locationUsage = LocationUsage.PROBATION,
-      createdBy = "TEST",
+      createdBy = PROBATION_USER,
       prisonVideoUrl = "video-link",
+      allowedParties = emptySet(),
     )
 
     whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes
@@ -486,21 +466,14 @@ class LocationsServiceTest {
   fun `should return decorated location by key`() {
     whenever(locationsClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
 
-    val roomAttributes = LocationAttribute(
-      locationAttributeId = 1L,
+    val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = wandsworthLocation.id,
-      prison = Prison(
-        prisonId = 1,
-        code = WANDSWORTH,
-        name = "TEST",
-        enabled = true,
-        createdBy = "TEST",
-        notes = null,
-      ),
+      prison = wandsworthPrison,
       locationStatus = LocationStatus.ACTIVE,
       locationUsage = LocationUsage.PROBATION,
-      createdBy = "TEST",
+      createdBy = PROBATION_USER,
       prisonVideoUrl = "video-link",
+      allowedParties = emptySet(),
     )
 
     whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes

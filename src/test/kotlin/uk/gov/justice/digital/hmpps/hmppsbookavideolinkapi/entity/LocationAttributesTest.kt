@@ -3,10 +3,12 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import java.time.DayOfWeek
@@ -17,20 +19,14 @@ import java.util.UUID
 class LocationAttributesTest {
   @Test
   fun `should reject location attributes with a schedule if the location usage is not SCHEDULE`() {
-    val roomAttributes = LocationAttribute(
-      locationAttributeId = 1L,
+    val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
-      prison = Prison(
-        prisonId = 1,
-        code = PENTONVILLE,
-        name = "TEST",
-        enabled = true,
-        createdBy = "TEST",
-        notes = null,
-      ),
+      prison = pentonvillePrison,
       locationStatus = LocationStatus.ACTIVE,
       locationUsage = LocationUsage.COURT,
-      createdBy = "TEST",
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      createdBy = COURT_USER,
     )
 
     val exception = assertThrows<IllegalArgumentException> {
@@ -54,20 +50,14 @@ class LocationAttributesTest {
 
   @Test
   fun `should accept attributes with a schedule if location usage is SCHEDULE`() {
-    val roomAttributes = LocationAttribute(
-      locationAttributeId = 1L,
+    val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
-      prison = Prison(
-        prisonId = 1,
-        code = PENTONVILLE,
-        name = "TEST",
-        enabled = true,
-        createdBy = "TEST",
-        notes = null,
-      ),
+      prison = pentonvillePrison,
       locationStatus = LocationStatus.ACTIVE,
       locationUsage = LocationUsage.SCHEDULE,
-      createdBy = "TEST",
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      createdBy = COURT_USER,
     )
 
     roomAttributes.apply {
@@ -117,20 +107,14 @@ class LocationAttributesTest {
 
   @Test
   fun `should reject a duplicate schedule row`() {
-    val roomAttributes = LocationAttribute(
-      locationAttributeId = 1L,
+    val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
-      prison = Prison(
-        prisonId = 1,
-        code = PENTONVILLE,
-        name = "TEST",
-        enabled = true,
-        createdBy = "TEST",
-        notes = null,
-      ),
+      prison = pentonvillePrison,
       locationStatus = LocationStatus.ACTIVE,
       locationUsage = LocationUsage.SCHEDULE,
-      createdBy = "TEST",
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      createdBy = COURT_USER,
     )
 
     roomAttributes.addSchedule(
@@ -153,27 +137,21 @@ class LocationAttributesTest {
         allowedParties = emptySet(),
         createdBy = "TEST",
       )
-    }.message isEqualTo "Cannot add a duplicate schedule row to location attribute with ID 1."
+    }.message isEqualTo "Cannot add a duplicate schedule row to location attribute with ID 0."
   }
 
   @Nested
   inner class Probation {
     @Test
     fun `should be PROBATION ANY for active probation room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
-        locationStatus = LocationStatus.ACTIVE,
+        prison = pentonvillePrison,
         locationUsage = LocationUsage.PROBATION,
-        createdBy = "TEST",
+        locationStatus = LocationStatus.ACTIVE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ANY
@@ -181,20 +159,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be NONE for inactive probation room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
-        locationStatus = LocationStatus.INACTIVE,
+        prison = pentonvillePrison,
         locationUsage = LocationUsage.PROBATION,
-        createdBy = "TEST",
+        locationStatus = LocationStatus.INACTIVE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
@@ -202,21 +174,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be PROBATION_TEAM for specific active probation room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.PROBATION,
-        createdBy = "TEST",
-        allowedParties = "TEAM_CODE",
+        createdBy = PROBATION_USER,
+        prisonVideoUrl = null,
+        allowedParties = setOf("TEAM_CODE"),
       )
 
       roomAttributes.isAvailableFor(
@@ -227,21 +192,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be NONE for specific active probation room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.PROBATION,
-        createdBy = "TEST",
-        allowedParties = "TEAM_CODE",
+        createdBy = PROBATION_USER,
+        prisonVideoUrl = null,
+        allowedParties = setOf("TEAM_CODE"),
       )
 
       roomAttributes.isAvailableFor(
@@ -252,20 +210,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be NONE for active court room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.COURT,
-        createdBy = "TEST",
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = COURT_USER,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
@@ -273,20 +225,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be SHARED for active shared room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SHARED,
-        createdBy = "TEST",
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
@@ -294,20 +240,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be SHARED if the schedule is empty`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SCHEDULE,
-        createdBy = "TEST",
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
@@ -315,20 +255,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be PROBATION ANY for any probation schedule`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SCHEDULE,
-        createdBy = "TEST",
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       ).apply { schedule(this, locationUsage = LocationUsage.PROBATION) }
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ANY
@@ -336,20 +270,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be PROBATION_TEAM for probation team schedule`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SCHEDULE,
-        createdBy = "TEST",
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       ).apply {
         schedule(this, locationUsage = LocationUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
       }
@@ -359,20 +287,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be SHARED for schedule`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SCHEDULE,
-        createdBy = "TEST",
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       ).apply { schedule(this, locationUsage = LocationUsage.SHARED) }
 
       roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
@@ -380,20 +302,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be NONE for court schedule`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SCHEDULE,
-        createdBy = "TEST",
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       ).apply { schedule(this, locationUsage = LocationUsage.COURT) }
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
@@ -424,20 +340,14 @@ class LocationAttributesTest {
   inner class Court {
     @Test
     fun `should be COURT ANY for active court room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
-        locationStatus = LocationStatus.ACTIVE,
+        prison = pentonvillePrison,
         locationUsage = LocationUsage.COURT,
-        createdBy = "TEST",
+        locationStatus = LocationStatus.ACTIVE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = COURT_USER,
       )
 
       roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT_ANY
@@ -445,20 +355,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be NONE for inactive court room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
-        locationStatus = LocationStatus.INACTIVE,
+        prison = pentonvillePrison,
         locationUsage = LocationUsage.COURT,
-        createdBy = "TEST",
+        locationStatus = LocationStatus.INACTIVE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = COURT_USER,
       )
 
       roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
@@ -466,20 +370,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be NONE for active probation room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
-        locationStatus = LocationStatus.ACTIVE,
+        prison = pentonvillePrison,
         locationUsage = LocationUsage.PROBATION,
-        createdBy = "TEST",
+        locationStatus = LocationStatus.ACTIVE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = PROBATION_USER,
       )
 
       roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
@@ -487,21 +385,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be COURT ROOM for specific active court room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
-        locationStatus = LocationStatus.ACTIVE,
+        prison = pentonvillePrison,
         locationUsage = LocationUsage.COURT,
-        createdBy = "TEST",
-        allowedParties = "COURT",
+        locationStatus = LocationStatus.ACTIVE,
+        createdBy = COURT_USER,
+        prisonVideoUrl = null,
+        allowedParties = setOf("COURT"),
       )
 
       roomAttributes.isAvailableFor(court(code = "COURT"), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT_ROOM
@@ -509,21 +400,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be NONE for specific active court room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.COURT,
-        createdBy = "TEST",
-        allowedParties = "COURT",
+        createdBy = COURT_USER,
+        prisonVideoUrl = null,
+        allowedParties = setOf("COURT"),
       )
 
       roomAttributes.isAvailableFor(court(code = "DIFFERENT_COURT"), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
@@ -531,20 +415,14 @@ class LocationAttributesTest {
 
     @Test
     fun `should be SHARED for active shared room attribute`() {
-      val roomAttributes = LocationAttribute(
-        locationAttributeId = 1L,
+      val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
-        prison = Prison(
-          prisonId = 1,
-          code = PENTONVILLE,
-          name = "TEST",
-          enabled = true,
-          createdBy = "TEST",
-          notes = null,
-        ),
+        prison = pentonvillePrison,
         locationStatus = LocationStatus.ACTIVE,
         locationUsage = LocationUsage.SHARED,
-        createdBy = "TEST",
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        createdBy = COURT_USER,
       )
 
       roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.SHARED

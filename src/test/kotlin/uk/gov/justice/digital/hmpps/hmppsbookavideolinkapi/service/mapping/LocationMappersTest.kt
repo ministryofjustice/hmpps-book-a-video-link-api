@@ -15,7 +15,7 @@ class LocationMappersTest {
     val idToCheck: UUID = UUID.randomUUID()
     val location = location(PENTONVILLE, "SUFFIX", true, "VCC PENTONVILLE ROOM A1", idToCheck)
 
-    location.toModel() isEqualTo ModelLocation("PVI-SUFFIX", "VCC PENTONVILLE ROOM A1", true, idToCheck)
+    location.toModel() isEqualTo ModelLocation(prisonCode = PENTONVILLE, key = "PVI-SUFFIX", description = "VCC PENTONVILLE ROOM A1", enabled = true, dpsLocationId = idToCheck)
   }
 
   @Test
@@ -23,6 +23,6 @@ class LocationMappersTest {
     val idToCheck: UUID = UUID.randomUUID()
     val location = location(RISLEY, "SUFFIX", false, "PCVL RISLEY ROOM B1", idToCheck)
 
-    location.toModel() isEqualTo ModelLocation("RSI-SUFFIX", "PCVL RISLEY ROOM B1", false, idToCheck)
+    location.toModel() isEqualTo ModelLocation(prisonCode = RISLEY, key = "RSI-SUFFIX", description = "PCVL RISLEY ROOM B1", enabled = false, dpsLocationId = idToCheck)
   }
 }
