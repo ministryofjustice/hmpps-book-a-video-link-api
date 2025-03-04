@@ -13,8 +13,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
@@ -112,11 +114,50 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     getLocationAttribute(id).schedule().size isEqualTo 1
   }
 
+  @Test
+  fun `should get a decorated location by its DPS identifier`() {
+    locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation3)
+
+    val undecorated = webTestClient.getLocation(wandsworthLocation3.toModel(), PROBATION_USER)
+
+    undecorated.extraAttributes isEqualTo null
+
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.PROBATION,
+        locationStatus = ModelLocationStatus.ACTIVE,
+        prisonVideoUrl = "shared-prison-video-url-3",
+      ),
+      wandsworthLocation3.toModel(),
+      PROBATION_USER,
+    )
+
+    val decorated = webTestClient.getLocation(wandsworthLocation3.toModel(), PROBATION_USER)
+
+    with(decorated.extraAttributes!!) {
+      locationUsage.name isEqualTo LocationUsage.PROBATION.name
+      locationStatus.name isEqualTo ModelLocationStatus.ACTIVE.name
+      allowedParties.isEmpty() isBool true
+      prisonVideoUrl isEqualTo "shared-prison-video-url-3"
+    }
+  }
+
   // Using the entity manager to get round lazy loading of schedule(s)
   private fun getLocationAttribute(id: Long) = entityManagerFactory
     .createEntityManager()
     .createQuery("SELECT la from LocationAttribute la where la.locationAttributeId = $id")
     .singleResult as LocationAttribute
+
+  private fun WebTestClient.getLocation(location: Location, user: ExternalUser) = this
+    .get()
+    .uri("/room-admin/${location.dpsLocationId}")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(Location::class.java)
+    .returnResult().responseBody!!
 
   private fun WebTestClient.createDecoratedRoom(request: CreateDecoratedRoomRequest, location: Location, user: ExternalUser) = this
     .post()
