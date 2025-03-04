@@ -202,13 +202,11 @@ fun videoAppointment(
 
 fun videoRoomAttributesWithSchedule(
   prisonCode: String,
-  attributeId: Long = 1,
   dpsLocationId: UUID,
   locationStatus: LocationStatus = LocationStatus.ACTIVE,
   locationUsage: LocationUsage = LocationUsage.SCHEDULE,
 ): MutableList<LocationAttribute> {
-  val roomAttributes = LocationAttribute(
-    locationAttributeId = attributeId,
+  val roomAttributes = LocationAttribute.decoratedRoom(
     dpsLocationId = dpsLocationId,
     prison = Prison(
       prisonId = 1,
@@ -218,10 +216,13 @@ fun videoRoomAttributesWithSchedule(
       createdBy = "TEST",
       notes = null,
     ),
-    locationStatus = locationStatus,
     locationUsage = locationUsage,
-    createdBy = "TEST",
+    locationStatus = locationStatus,
+    allowedParties = emptySet(),
+    prisonVideoUrl = null,
+    createdBy = COURT_USER,
   ).apply {
+    this.locationStatus = locationStatus
     addSchedule(
       usage = LocationUsage.SHARED,
       startDayOfWeek = DayOfWeek.MONDAY.value,
@@ -238,13 +239,11 @@ fun videoRoomAttributesWithSchedule(
 
 fun videoRoomAttributesWithoutSchedule(
   prisonCode: String,
-  attributeId: Long = 1,
   dpsLocationId: UUID,
   locationStatus: LocationStatus = LocationStatus.ACTIVE,
   locationUsage: LocationUsage = LocationUsage.SHARED,
 ): MutableList<LocationAttribute> {
-  val roomAttributes = LocationAttribute(
-    locationAttributeId = attributeId,
+  val roomAttributes = LocationAttribute.decoratedRoom(
     dpsLocationId = dpsLocationId,
     prison = Prison(
       prisonId = 1,
@@ -254,9 +253,11 @@ fun videoRoomAttributesWithoutSchedule(
       createdBy = "TEST",
       notes = null,
     ),
-    locationStatus = locationStatus,
     locationUsage = locationUsage,
-    createdBy = "TEST",
+    locationStatus = locationStatus,
+    allowedParties = emptySet(),
+    prisonVideoUrl = null,
+    createdBy = COURT_USER,
   )
 
   return mutableListOf(roomAttributes)

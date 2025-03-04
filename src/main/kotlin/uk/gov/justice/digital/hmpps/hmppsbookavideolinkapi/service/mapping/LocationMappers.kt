@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location as Mod
 
 fun Location.toModel(attributes: RoomAttributes? = null) = ModelLocation(
   key = key,
+  prisonCode = prisonId,
   description = localName,
   enabled = active,
   dpsLocationId = id,

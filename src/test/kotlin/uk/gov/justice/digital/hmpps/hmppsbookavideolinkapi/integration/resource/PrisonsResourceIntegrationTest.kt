@@ -92,7 +92,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
     val response = webTestClient.getAppointmentLocations(WANDSWORTH)
 
-    response.single() isEqualTo Location(key = "VIDEOLINK", description = "WWI VIDEOLINK", enabled = true, dpsLocationId = videoUUID)
+    response.single() isEqualTo Location(key = "VIDEOLINK", description = "WWI VIDEOLINK", enabled = true, dpsLocationId = videoUUID, prisonCode = WANDSWORTH)
   }
 
   @Test

@@ -13,3 +13,6 @@ val prisonNames = mapOf(
   PENTONVILLE to "Pentonville (HMP & YOI)",
   NORWICH to "Norwich (HMP & YOI)",
 )
+
+val pentonvillePrison = prison(PENTONVILLE)
+val wandsworthPrison = prison(WANDSWORTH)
