@@ -22,9 +22,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationSchedu
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage as ModelLocationScheduleUsage
 
-class CreateRoomScheduleServiceTest {
+class CreateLocationScheduleServiceTest {
   private val locationAttributeRepository: LocationAttributeRepository = mock()
-  private val service = CreateRoomScheduleService(locationAttributeRepository)
+  private val service = CreateLocationScheduleService(locationAttributeRepository)
 
   @Test
   fun `should add schedule row to existing empty schedule`() {

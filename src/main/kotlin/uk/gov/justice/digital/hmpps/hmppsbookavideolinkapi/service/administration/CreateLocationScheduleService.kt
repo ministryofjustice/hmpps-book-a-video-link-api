@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import java.util.UUID
 
 @Service
-class CreateRoomScheduleService(
+class CreateLocationScheduleService(
   private val locationAttributeRepository: LocationAttributeRepository,
 ) {
   @Transactional

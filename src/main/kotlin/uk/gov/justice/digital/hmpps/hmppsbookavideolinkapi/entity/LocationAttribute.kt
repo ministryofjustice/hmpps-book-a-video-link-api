@@ -83,10 +83,6 @@ class LocationAttribute private constructor(
     this.allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(",")
   }
 
-  fun allowedParties(parties: Set<String>) {
-    allowedParties = parties.takeUnless { it.isEmpty() }?.joinToString(",")
-  }
-
   fun schedule() = locationSchedule.toList()
 
   fun isLocationUsage(usage: LocationUsage) = locationUsage == usage
@@ -230,7 +226,7 @@ class LocationAttribute private constructor(
       this.locationUsage = locationUsage
       this.prisonVideoUrl = prisonVideoUrl
       this.notes = notes
-      allowedParties(allowedParties)
+      this.allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(",")
     }
   }
 }

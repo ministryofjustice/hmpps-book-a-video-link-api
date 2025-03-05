@@ -23,10 +23,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
 
-class AmendDecoratedRoomServiceTest {
+class AmendDecoratedLocationsServiceTest {
   private val locationsService: LocationsService = mock()
   private val locationAttributeRepository: LocationAttributeRepository = Mockito.mock()
-  private val service = AmendDecoratedRoomService(locationsService, locationAttributeRepository)
+  private val service = AmendDecoratedLocationService(locationsService, locationAttributeRepository)
   private val decoratedRoom = LocationAttribute.decoratedRoom(
     dpsLocationId = wandsworthLocation.id,
     prison = wandsworthPrison,

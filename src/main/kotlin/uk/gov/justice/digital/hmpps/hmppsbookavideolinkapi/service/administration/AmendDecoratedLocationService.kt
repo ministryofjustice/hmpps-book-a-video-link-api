@@ -14,7 +14,7 @@ import java.util.UUID
 
 @Service
 @Transactional
-class AmendDecoratedRoomService(
+class AmendDecoratedLocationService(
   private val locationsService: LocationsService,
   private val locationAttributeRepository: LocationAttributeRepository,
 ) {
