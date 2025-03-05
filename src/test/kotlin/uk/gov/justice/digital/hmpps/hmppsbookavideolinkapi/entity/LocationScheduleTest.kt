@@ -101,6 +101,7 @@ class LocationScheduleTest {
       locationUsage = LocationUsage.SCHEDULE,
       allowedParties = emptySet(),
       prisonVideoUrl = null,
+      notes = null,
       createdBy = PROBATION_USER,
     ),
     startDayOfWeek = start.value,

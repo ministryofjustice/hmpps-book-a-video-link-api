@@ -6,24 +6,28 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import java.time.LocalDateTime
 import java.time.LocalTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
@@ -92,7 +96,8 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = EntityLocationUsage.SCHEDULE,
         prisonVideoUrl = "https://probation-url",
         allowedParties = emptySet(),
-        locationStatus = LocationStatus.ACTIVE,
+        notes = null,
+        locationStatus = EntityLocationStatus.ACTIVE,
       ),
     ).locationAttributeId
 
@@ -135,10 +140,57 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     val decorated = webTestClient.getLocation(wandsworthLocation3.toModel(), PROBATION_USER)
 
     with(decorated.extraAttributes!!) {
-      locationUsage.name isEqualTo LocationUsage.PROBATION.name
+      locationUsage.name isEqualTo ModelLocationUsage.PROBATION.name
       locationStatus.name isEqualTo ModelLocationStatus.ACTIVE.name
       allowedParties.isEmpty() isBool true
       prisonVideoUrl isEqualTo "shared-prison-video-url-3"
+    }
+  }
+
+  @Test
+  fun `should amend an existing decorated location`() {
+    locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation3)
+
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.PROBATION,
+        locationStatus = ModelLocationStatus.INACTIVE,
+        allowedParties = setOf("PROBATION"),
+        prisonVideoUrl = "shared-prison-video-url-3",
+        comments = "some comments",
+      ),
+      wandsworthLocation3.toModel(),
+      PROBATION_USER,
+    )
+
+    val amendedRoom = webTestClient.amendDecoratedRoom(
+      AmendDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.COURT,
+        locationStatus = ModelLocationStatus.ACTIVE,
+        allowedParties = setOf("COURT"),
+        prisonVideoUrl = "different-prison-video-url-3",
+        comments = "amended comments",
+      ),
+      wandsworthLocation3.toModel(),
+      COURT_USER,
+    )
+
+    with(amendedRoom.extraAttributes!!) {
+      locationUsage isEqualTo ModelLocationUsage.COURT
+      locationStatus isEqualTo ModelLocationStatus.ACTIVE
+      allowedParties containsExactlyInAnyOrder setOf("COURT")
+      prisonVideoUrl isEqualTo "different-prison-video-url-3"
+      notes isEqualTo "amended comments"
+    }
+
+    with(locationAttributeRepository.findByDpsLocationId(amendedRoom.dpsLocationId)!!) {
+      locationUsage isEqualTo EntityLocationUsage.COURT
+      locationStatus isEqualTo EntityLocationStatus.ACTIVE
+      allowedParties isEqualTo "COURT"
+      prisonVideoUrl isEqualTo "different-prison-video-url-3"
+      notes isEqualTo "amended comments"
+      amendedBy isEqualTo COURT_USER.username
+      amendedTime isCloseTo LocalDateTime.now()
     }
   }
 
@@ -167,6 +219,18 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
     .expectStatus().isCreated
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(Location::class.java)
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.amendDecoratedRoom(request: AmendDecoratedRoomRequest, location: Location, user: ExternalUser) = this
+    .put()
+    .uri("/room-admin/${location.dpsLocationId}")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
     .expectBody(Location::class.java)
     .returnResult().responseBody!!

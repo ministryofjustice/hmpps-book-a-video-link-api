@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -14,7 +12,7 @@ data class Location(
   @Schema(description = "The location key for the location (this can change)", example = "BMI-VIDEOLINK")
   val key: String,
 
-  @Schema(description = "The prison code for the locationl", example = "BMI")
+  @Schema(description = "The prison code for the location", example = "BMI")
   val prisonCode: String,
 
   @Schema(description = "The description for the location, can be null", example = "VIDEO LINK")

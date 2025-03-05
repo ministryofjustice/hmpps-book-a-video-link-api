@@ -9,8 +9,6 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
@@ -28,6 +26,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
 import java.time.DayOfWeek
 import java.time.LocalTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
 
 class LocationsServiceTest {
 
@@ -188,8 +190,8 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
-        assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
+        assertThat(locationStatus).isEqualTo(ModelLocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(ModelLocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
           assertThat(scheduleId).isEqualTo(0)
@@ -197,7 +199,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelLocationUsage.SHARED)
         }
       }
     }
@@ -209,8 +211,8 @@ class LocationsServiceTest {
       assertThat(enabled).isFalse()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
-        assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
+        assertThat(locationStatus).isEqualTo(ModelLocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(ModelLocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
           assertThat(scheduleId).isEqualTo(0)
@@ -218,7 +220,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelLocationUsage.SHARED)
         }
       }
     }
@@ -248,8 +250,8 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
-        assertThat(locationUsage).isEqualTo(LocationUsage.SCHEDULE)
+        assertThat(locationStatus).isEqualTo(ModelLocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(ModelLocationUsage.SCHEDULE)
         assertThat(schedule).hasSize(1)
         with(schedule[0]) {
           assertThat(scheduleId).isEqualTo(0)
@@ -257,7 +259,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelLocationUsage.SHARED)
           assertThat(allowedParties).isEmpty()
         }
       }
@@ -288,8 +290,8 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
-        assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+        assertThat(locationStatus).isEqualTo(ModelLocationStatus.ACTIVE)
+        assertThat(locationUsage).isEqualTo(ModelLocationUsage.SHARED)
         assertThat(allowedParties).isEmpty()
         assertThat(schedule).isNullOrEmpty()
       }
@@ -324,14 +326,14 @@ class LocationsServiceTest {
     val roomAttributesA = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
       dpsLocationId = locationA.id,
-      locationStatus = LocationStatus.ACTIVE,
+      locationStatus = EntityLocationStatus.ACTIVE,
     )
 
     // Location B is INACTIVE - in decoration data
     val roomAttributesB = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
       dpsLocationId = locationB.id,
-      locationStatus = LocationStatus.INACTIVE,
+      locationStatus = EntityLocationStatus.INACTIVE,
     )
 
     // Location C has no decorating data
@@ -347,7 +349,7 @@ class LocationsServiceTest {
       assertThat(enabled).isTrue()
       assertThat(extraAttributes).isNotNull
       with(extraAttributes!!) {
-        assertThat(locationStatus).isEqualTo(LocationStatus.ACTIVE)
+        assertThat(locationStatus).isEqualTo(ModelLocationStatus.ACTIVE)
       }
     }
 
@@ -355,7 +357,7 @@ class LocationsServiceTest {
       assertThat(key).isEqualTo(locationB.key)
       assertThat(enabled).isTrue()
       with(extraAttributes!!) {
-        assertThat(locationStatus).isEqualTo(LocationStatus.INACTIVE)
+        assertThat(locationStatus).isEqualTo(ModelLocationStatus.INACTIVE)
       }
     }
 
@@ -388,14 +390,14 @@ class LocationsServiceTest {
     val roomAttributesD = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
       dpsLocationId = locationD.id,
-      locationStatus = LocationStatus.ACTIVE,
+      locationStatus = EntityLocationStatus.ACTIVE,
     )
 
     // Location E decorations
     val roomAttributesE = videoRoomAttributesWithoutSchedule(
       prisonCode = WANDSWORTH,
       dpsLocationId = locationE.id,
-      locationStatus = LocationStatus.ACTIVE,
+      locationStatus = EntityLocationStatus.ACTIVE,
     )
 
     // Reverse the order of room decorations returned
@@ -432,10 +434,11 @@ class LocationsServiceTest {
     val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = wandsworthLocation.id,
       prison = wandsworthPrison,
-      locationStatus = LocationStatus.ACTIVE,
-      locationUsage = LocationUsage.PROBATION,
+      locationStatus = EntityLocationStatus.ACTIVE,
+      locationUsage = EntityLocationUsage.PROBATION,
       createdBy = PROBATION_USER,
       prisonVideoUrl = "video-link",
+      notes = null,
       allowedParties = emptySet(),
     )
 
@@ -469,10 +472,11 @@ class LocationsServiceTest {
     val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = wandsworthLocation.id,
       prison = wandsworthPrison,
-      locationStatus = LocationStatus.ACTIVE,
-      locationUsage = LocationUsage.PROBATION,
+      locationStatus = EntityLocationStatus.ACTIVE,
+      locationUsage = EntityLocationUsage.PROBATION,
       createdBy = PROBATION_USER,
       prisonVideoUrl = "video-link",
+      notes = null,
       allowedParties = emptySet(),
     )
 

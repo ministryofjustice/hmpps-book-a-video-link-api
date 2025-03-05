@@ -34,6 +34,7 @@ class CreateRoomScheduleServiceTest {
       locationUsage = EntityLocationUsage.SCHEDULE,
       createdBy = PROBATION_USER,
       allowedParties = emptySet(),
+      notes = null,
       prisonVideoUrl = null,
     )
 
@@ -79,6 +80,7 @@ class CreateRoomScheduleServiceTest {
       locationUsage = EntityLocationUsage.SCHEDULE,
       createdBy = PROBATION_USER,
       allowedParties = emptySet(),
+      notes = null,
       prisonVideoUrl = null,
     ).apply {
       addSchedule(

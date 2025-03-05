@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationSchedule
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomSchedule
 import java.time.DayOfWeek
@@ -24,10 +26,10 @@ fun List<Location>.toModel(attributes: List<LocationAttribute>) = map {
 
 fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   attributeId = this.locationAttributeId,
-  locationStatus = this.locationStatus,
+  locationStatus = LocationStatus.valueOf(this.locationStatus.name),
   statusMessage = this.statusMessage,
   expectedActiveDate = this.expectedActiveDate,
-  locationUsage = this.locationUsage,
+  locationUsage = LocationUsage.valueOf(this.locationUsage.name),
   allowedParties = this.allowedParties.let { this.allowedParties?.split(",") } ?: emptyList(),
   prisonVideoUrl = this.prisonVideoUrl,
   notes = this.notes,
@@ -41,7 +43,7 @@ fun List<LocationSchedule>.toRoomSchedule() = map {
     endDayOfWeek = DayOfWeek.of(it.endDayOfWeek),
     startTime = it.startTime,
     endTime = it.endTime,
-    locationUsage = it.locationUsage,
+    locationUsage = LocationUsage.valueOf(it.locationUsage.name),
     allowedParties = it.allowedParties.let { parties -> parties?.split(",") } ?: emptyList(),
   )
 }
