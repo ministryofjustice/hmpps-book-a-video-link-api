@@ -45,7 +45,7 @@ data class RoomAttributes(
   @Schema(description = "The preferred usage for this room (COURT, PROBATION, SHARED, BLOCKED, SCHEDULE)", example = "SHARED", required = true)
   val locationUsage: LocationUsage,
 
-  @Schema(description = "Court or probation team codes allowed to use the room (comma-separated list)", example = "[YRKMAG,DRBYJS")
+  @Schema(description = "Court or probation team codes allowed to use the room (comma-separated list)", example = "[\"YRKMAG\",\"DRBYJS\"]")
   val allowedParties: List<String> = emptyList(),
 
   @Schema(description = "The video URL to access the equipment in this room", example = "https://prison.video.link/123")
