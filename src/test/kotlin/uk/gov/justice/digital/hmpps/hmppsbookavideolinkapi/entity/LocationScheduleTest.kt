@@ -39,11 +39,6 @@ class LocationScheduleTest {
   }
 
   @Test
-  fun `should fail if location usage SCHEDULE`() {
-    assertThrows<IllegalArgumentException> { schedule(locationUsage = LocationUsage.SCHEDULE) }.message isEqualTo "The location usage cannot be of type SCHEDULE for a location schedule row."
-  }
-
-  @Test
   fun `should fail if end day before start day`() {
     assertThrows<IllegalArgumentException> { schedule(start = DayOfWeek.TUESDAY, end = DayOfWeek.MONDAY) }.message isEqualTo "The end day cannot be before the start day."
   }
@@ -58,35 +53,35 @@ class LocationScheduleTest {
   inner class Probation {
     @Test
     fun `should be for probation team`() {
-      val schedule = schedule(locationUsage = LocationUsage.PROBATION, allowedParties = "PROBATION_TEAM")
+      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION, allowedParties = "PROBATION_TEAM")
 
       schedule.isForProbationTeam(probationTeam(code = "PROBATION_TEAM")) isBool true
     }
 
     @Test
     fun `should not be for probation team`() {
-      val schedule = schedule(locationUsage = LocationUsage.PROBATION, allowedParties = "PROBATION_TEAM")
+      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION, allowedParties = "PROBATION_TEAM")
 
       schedule.isForProbationTeam(probationTeam(code = "DIFFERENT_PROBATION_TEAM")) isBool false
     }
 
     @Test
     fun `should be for any probation team`() {
-      val schedule = schedule(locationUsage = LocationUsage.PROBATION)
+      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION)
 
       schedule.isForAnyProbationTeam() isBool true
     }
 
     @Test
     fun `should not be for any probation team`() {
-      val schedule = schedule(locationUsage = LocationUsage.COURT)
+      val schedule = schedule(locationUsage = LocationScheduleUsage.COURT)
 
       schedule.isForAnyProbationTeam() isBool false
     }
   }
 
   private fun schedule(
-    locationUsage: LocationUsage = LocationUsage.SHARED,
+    locationUsage: LocationScheduleUsage = LocationScheduleUsage.SHARED,
     start: DayOfWeek = DayOfWeek.MONDAY,
     end: DayOfWeek = start,
     startTime: LocalTime = LocalTime.of(9, 0),

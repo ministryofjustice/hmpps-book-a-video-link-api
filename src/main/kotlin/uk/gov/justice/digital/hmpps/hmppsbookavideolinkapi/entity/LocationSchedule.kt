@@ -13,7 +13,6 @@ import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetween
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -37,7 +36,7 @@ class LocationSchedule(
   val endTime: LocalTime,
 
   @Enumerated(EnumType.STRING)
-  val locationUsage: LocationUsage,
+  val locationUsage: LocationScheduleUsage,
 
   val allowedParties: String? = null,
 
@@ -50,10 +49,6 @@ class LocationSchedule(
   init {
     require(locationAttribute.locationUsage == LocationUsage.SCHEDULE) {
       "The location usage type must be SCHEDULE for a list of schedule rows to be associated with it."
-    }
-
-    requireNot(locationUsage == LocationUsage.SCHEDULE) {
-      "The location usage cannot be of type SCHEDULE for a location schedule row."
     }
 
     require(startDayOfWeek <= endDayOfWeek) {
@@ -89,9 +84,16 @@ class LocationSchedule(
 
   fun fallsOn(dateTime: LocalDateTime) = dateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) && dateTime.toLocalTime().isBetween(startTime, endTime)
 
-  fun isForProbationTeam(team: ProbationTeam) = locationUsage == LocationUsage.PROBATION && allowedParties.orEmpty().split(",").contains(team.code)
+  fun isForProbationTeam(team: ProbationTeam) = locationUsage == LocationScheduleUsage.PROBATION && allowedParties.orEmpty().split(",").contains(team.code)
 
-  fun isForAnyProbationTeam() = locationUsage == LocationUsage.PROBATION && allowedParties.isNullOrBlank()
+  fun isForAnyProbationTeam() = locationUsage == LocationScheduleUsage.PROBATION && allowedParties.isNullOrBlank()
 
-  fun isShared() = locationUsage == LocationUsage.SHARED
+  fun isShared() = locationUsage == LocationScheduleUsage.SHARED
+}
+
+enum class LocationScheduleUsage {
+  COURT,
+  PROBATION,
+  SHARED,
+  BLOCKED,
 }

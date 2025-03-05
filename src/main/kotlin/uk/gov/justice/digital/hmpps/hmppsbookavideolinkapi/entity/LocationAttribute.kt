@@ -92,7 +92,7 @@ class LocationAttribute private constructor(
   fun isLocationUsage(usage: LocationUsage) = locationUsage == usage
 
   fun addSchedule(
-    usage: LocationUsage,
+    usage: LocationScheduleUsage,
     startDayOfWeek: Int,
     endDayOfWeek: Int,
     startTime: LocalTime,

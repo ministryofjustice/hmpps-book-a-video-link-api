@@ -18,8 +18,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateR
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import java.time.LocalTime
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationScheduleUsage as EntityLocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage as ModelLocationScheduleUsage
 
 class CreateRoomScheduleServiceTest {
   private val locationAttributeRepository: LocationAttributeRepository = mock()
@@ -47,7 +48,7 @@ class CreateRoomScheduleServiceTest {
     service.create(
       dpsLocationId,
       CreateRoomScheduleRequest(
-        locationUsage = ModelLocationUsage.SHARED,
+        locationUsage = ModelLocationScheduleUsage.SHARED,
         startDayOfWeek = 1,
         endDayOfWeek = 7,
         startTime = LocalTime.of(9, 0),
@@ -59,7 +60,7 @@ class CreateRoomScheduleServiceTest {
     )
 
     with(roomAttributes.schedule().single()) {
-      locationUsage isEqualTo EntityLocationUsage.SHARED
+      locationUsage isEqualTo EntityLocationScheduleUsage.SHARED
       startDayOfWeek isEqualTo 1
       endDayOfWeek isEqualTo 7
       startTime isEqualTo LocalTime.of(9, 0)
@@ -84,7 +85,7 @@ class CreateRoomScheduleServiceTest {
       prisonVideoUrl = null,
     ).apply {
       addSchedule(
-        usage = EntityLocationUsage.PROBATION,
+        usage = EntityLocationScheduleUsage.PROBATION,
         startDayOfWeek = 1,
         endDayOfWeek = 2,
         startTime = LocalTime.of(13, 0),
@@ -104,7 +105,7 @@ class CreateRoomScheduleServiceTest {
     service.create(
       dpsLocationId,
       CreateRoomScheduleRequest(
-        locationUsage = ModelLocationUsage.SHARED,
+        locationUsage = ModelLocationScheduleUsage.SHARED,
         startDayOfWeek = 1,
         endDayOfWeek = 7,
         startTime = LocalTime.of(9, 0),
@@ -118,7 +119,7 @@ class CreateRoomScheduleServiceTest {
     roomAttributes.schedule() hasSize 2
 
     with(roomAttributes.schedule()[0]) {
-      locationUsage isEqualTo EntityLocationUsage.PROBATION
+      locationUsage isEqualTo EntityLocationScheduleUsage.PROBATION
       startDayOfWeek isEqualTo 1
       endDayOfWeek isEqualTo 2
       startTime isEqualTo LocalTime.of(13, 0)
@@ -128,7 +129,7 @@ class CreateRoomScheduleServiceTest {
     }
 
     with(roomAttributes.schedule()[1]) {
-      locationUsage isEqualTo EntityLocationUsage.SHARED
+      locationUsage isEqualTo EntityLocationScheduleUsage.SHARED
       startDayOfWeek isEqualTo 1
       endDayOfWeek isEqualTo 7
       startTime isEqualTo LocalTime.of(9, 0)
@@ -150,7 +151,7 @@ class CreateRoomScheduleServiceTest {
       service.create(
         dpsLocationId,
         CreateRoomScheduleRequest(
-          locationUsage = ModelLocationUsage.SHARED,
+          locationUsage = ModelLocationScheduleUsage.SHARED,
           startDayOfWeek = 1,
           endDayOfWeek = 7,
           startTime = LocalTime.of(9, 0),

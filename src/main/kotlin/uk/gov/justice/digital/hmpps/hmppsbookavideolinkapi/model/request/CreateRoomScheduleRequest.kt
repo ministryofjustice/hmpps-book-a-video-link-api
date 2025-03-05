@@ -5,13 +5,13 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage
 import java.time.LocalTime
 
 data class CreateRoomScheduleRequest(
   @field:NotNull(message = "The location usage is mandatory")
   @Schema(description = "The location usage for the schedule", example = "PROBATION", required = true)
-  val locationUsage: LocationUsage?,
+  val locationUsage: LocationScheduleUsage?,
 
   @Schema(description = "Court or probation team codes allowed to use the room", example = "[\"DRBYMC\"]")
   val allowedParties: Set<String>? = null,

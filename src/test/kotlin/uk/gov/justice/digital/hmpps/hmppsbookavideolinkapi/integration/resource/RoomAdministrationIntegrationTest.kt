@@ -29,6 +29,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage as ModelLocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
 
@@ -105,7 +106,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
 
     webTestClient.createSchedule(
       CreateRoomScheduleRequest(
-        locationUsage = ModelLocationUsage.PROBATION,
+        locationUsage = ModelLocationScheduleUsage.PROBATION,
         startDayOfWeek = 1,
         endDayOfWeek = 7,
         startTime = LocalTime.of(9, 0),
