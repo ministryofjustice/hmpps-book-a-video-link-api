@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administrati
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage.SCHEDULE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
@@ -25,7 +25,7 @@ class CreateRoomScheduleService(
       }
 
       addSchedule(
-        usage = LocationUsage.valueOf(request.locationUsage!!.name),
+        usage = LocationScheduleUsage.valueOf(request.locationUsage!!.name),
         startDayOfWeek = request.startDayOfWeek!!,
         endDayOfWeek = request.endDayOfWeek!!,
         startTime = request.startTime!!,

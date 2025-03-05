@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
@@ -223,7 +224,7 @@ fun videoRoomAttributesWithSchedule(
   createdBy = COURT_USER,
 ).apply {
   addSchedule(
-    usage = LocationUsage.SHARED,
+    usage = LocationScheduleUsage.SHARED,
     startDayOfWeek = DayOfWeek.MONDAY.value,
     endDayOfWeek = DayOfWeek.SUNDAY.value,
     startTime = LocalTime.of(1, 0),

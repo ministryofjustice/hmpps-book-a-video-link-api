@@ -40,7 +40,7 @@ class LocationAttributesTest {
           endDayOfWeek = DayOfWeek.SUNDAY.value,
           startTime = LocalTime.of(1, 0),
           endTime = LocalTime.of(23, 0),
-          locationUsage = LocationUsage.SHARED,
+          locationUsage = LocationScheduleUsage.SHARED,
           allowedParties = null,
           createdBy = "TEST",
           locationAttribute = roomAttributes,
@@ -66,7 +66,7 @@ class LocationAttributesTest {
 
     roomAttributes.apply {
       addSchedule(
-        usage = LocationUsage.SHARED,
+        usage = LocationScheduleUsage.SHARED,
         startDayOfWeek = DayOfWeek.MONDAY.value,
         endDayOfWeek = DayOfWeek.SUNDAY.value,
         startTime = LocalTime.of(1, 0),
@@ -76,7 +76,7 @@ class LocationAttributesTest {
       )
 
       addSchedule(
-        usage = LocationUsage.PROBATION,
+        usage = LocationScheduleUsage.PROBATION,
         startDayOfWeek = DayOfWeek.MONDAY.value,
         endDayOfWeek = DayOfWeek.SUNDAY.value,
         startTime = LocalTime.of(14, 0),
@@ -87,7 +87,7 @@ class LocationAttributesTest {
     }
 
     with(roomAttributes.schedule()[0]) {
-      locationUsage isEqualTo LocationUsage.SHARED
+      locationUsage isEqualTo LocationScheduleUsage.SHARED
       startDayOfWeek isEqualTo 1
       endDayOfWeek isEqualTo 7
       startTime isEqualTo LocalTime.of(1, 0)
@@ -98,7 +98,7 @@ class LocationAttributesTest {
     }
 
     with(roomAttributes.schedule()[1]) {
-      locationUsage isEqualTo LocationUsage.PROBATION
+      locationUsage isEqualTo LocationScheduleUsage.PROBATION
       startDayOfWeek isEqualTo 1
       endDayOfWeek isEqualTo 7
       startTime isEqualTo LocalTime.of(14, 0)
@@ -123,7 +123,7 @@ class LocationAttributesTest {
     )
 
     roomAttributes.addSchedule(
-      usage = LocationUsage.SHARED,
+      usage = LocationScheduleUsage.SHARED,
       startDayOfWeek = DayOfWeek.MONDAY.value,
       endDayOfWeek = DayOfWeek.SUNDAY.value,
       startTime = LocalTime.of(1, 0),
@@ -134,7 +134,7 @@ class LocationAttributesTest {
 
     assertThrows<IllegalArgumentException> {
       roomAttributes.addSchedule(
-        usage = LocationUsage.SHARED,
+        usage = LocationScheduleUsage.SHARED,
         startDayOfWeek = DayOfWeek.MONDAY.value,
         endDayOfWeek = DayOfWeek.SUNDAY.value,
         startTime = LocalTime.of(1, 0),
@@ -319,7 +319,7 @@ class LocationAttributesTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
-      ).apply { schedule(this, locationUsage = LocationUsage.PROBATION) }
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION) }
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ANY
     }
@@ -336,7 +336,7 @@ class LocationAttributesTest {
         notes = null,
         createdBy = PROBATION_USER,
       ).apply {
-        schedule(this, locationUsage = LocationUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
+        schedule(this, locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
       }
 
       roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_TEAM
@@ -353,7 +353,7 @@ class LocationAttributesTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
-      ).apply { schedule(this, locationUsage = LocationUsage.SHARED) }
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.SHARED) }
 
       roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
     }
@@ -369,7 +369,7 @@ class LocationAttributesTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
-      ).apply { schedule(this, locationUsage = LocationUsage.COURT) }
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.COURT) }
 
       roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
     }
@@ -381,7 +381,7 @@ class LocationAttributesTest {
     end: DayOfWeek = DayOfWeek.SUNDAY,
     startTime: LocalTime = LocalTime.of(9, 0),
     endTime: LocalTime = LocalTime.of(17, 0),
-    locationUsage: LocationUsage,
+    locationUsage: LocationScheduleUsage,
     allowedParties: Set<String> = emptySet(),
   ) {
     locationAttribute.addSchedule(
