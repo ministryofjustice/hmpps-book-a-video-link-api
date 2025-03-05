@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPrison
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -26,6 +28,7 @@ class LocationAttributesTest {
       locationUsage = LocationUsage.COURT,
       allowedParties = emptySet(),
       prisonVideoUrl = null,
+      notes = null,
       createdBy = COURT_USER,
     )
 
@@ -57,6 +60,7 @@ class LocationAttributesTest {
       locationUsage = LocationUsage.SCHEDULE,
       allowedParties = emptySet(),
       prisonVideoUrl = null,
+      notes = null,
       createdBy = COURT_USER,
     )
 
@@ -114,6 +118,7 @@ class LocationAttributesTest {
       locationUsage = LocationUsage.SCHEDULE,
       allowedParties = emptySet(),
       prisonVideoUrl = null,
+      notes = null,
       createdBy = COURT_USER,
     )
 
@@ -140,6 +145,49 @@ class LocationAttributesTest {
     }.message isEqualTo "Cannot add a duplicate schedule row to location attribute with ID 0."
   }
 
+  @Test
+  fun `should amend a room attribute`() {
+    val roomAttributes = LocationAttribute.decoratedRoom(
+      dpsLocationId = wandsworthLocation.id,
+      prison = wandsworthPrison,
+      locationUsage = LocationUsage.SHARED,
+      locationStatus = LocationStatus.INACTIVE,
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      notes = null,
+      createdBy = COURT_USER,
+    )
+
+    with(roomAttributes) {
+      locationUsage isEqualTo LocationUsage.SHARED
+      locationStatus isEqualTo LocationStatus.INACTIVE
+      allowedParties isEqualTo null
+      prisonVideoUrl isEqualTo null
+      notes isEqualTo null
+      amendedBy isEqualTo null
+      amendedTime isEqualTo null
+    }
+
+    roomAttributes.amend(
+      locationUsage = LocationUsage.PROBATION,
+      locationStatus = LocationStatus.ACTIVE,
+      allowedParties = setOf("PROBATION"),
+      prisonVideoUrl = "prison-room-url",
+      comments = "updated notes",
+      amendedBy = PROBATION_USER,
+    )
+
+    with(roomAttributes) {
+      locationUsage isEqualTo LocationUsage.PROBATION
+      locationStatus isEqualTo LocationStatus.ACTIVE
+      allowedParties isEqualTo "PROBATION"
+      prisonVideoUrl isEqualTo "prison-room-url"
+      notes isEqualTo "updated notes"
+      amendedBy isEqualTo PROBATION_USER.username
+      amendedTime isCloseTo LocalDateTime.now()
+    }
+  }
+
   @Nested
   inner class Probation {
     @Test
@@ -151,6 +199,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.ACTIVE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       )
 
@@ -166,6 +215,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.INACTIVE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       )
 
@@ -181,6 +231,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.PROBATION,
         createdBy = PROBATION_USER,
         prisonVideoUrl = null,
+        notes = null,
         allowedParties = setOf("TEAM_CODE"),
       )
 
@@ -199,6 +250,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.PROBATION,
         createdBy = PROBATION_USER,
         prisonVideoUrl = null,
+        notes = null,
         allowedParties = setOf("TEAM_CODE"),
       )
 
@@ -217,6 +269,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.COURT,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = COURT_USER,
       )
 
@@ -232,6 +285,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.SHARED,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       )
 
@@ -247,6 +301,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.SCHEDULE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       )
 
@@ -262,6 +317,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.SCHEDULE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       ).apply { schedule(this, locationUsage = LocationUsage.PROBATION) }
 
@@ -277,6 +333,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.SCHEDULE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       ).apply {
         schedule(this, locationUsage = LocationUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
@@ -294,6 +351,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.SCHEDULE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       ).apply { schedule(this, locationUsage = LocationUsage.SHARED) }
 
@@ -309,6 +367,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.SCHEDULE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       ).apply { schedule(this, locationUsage = LocationUsage.COURT) }
 
@@ -347,6 +406,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.ACTIVE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = COURT_USER,
       )
 
@@ -362,6 +422,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.INACTIVE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = COURT_USER,
       )
 
@@ -377,6 +438,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.ACTIVE,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = PROBATION_USER,
       )
 
@@ -392,6 +454,7 @@ class LocationAttributesTest {
         locationStatus = LocationStatus.ACTIVE,
         createdBy = COURT_USER,
         prisonVideoUrl = null,
+        notes = null,
         allowedParties = setOf("COURT"),
       )
 
@@ -407,6 +470,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.COURT,
         createdBy = COURT_USER,
         prisonVideoUrl = null,
+        notes = null,
         allowedParties = setOf("COURT"),
       )
 
@@ -422,6 +486,7 @@ class LocationAttributesTest {
         locationUsage = LocationUsage.SHARED,
         allowedParties = emptySet(),
         prisonVideoUrl = null,
+        notes = null,
         createdBy = COURT_USER,
       )
 

@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -23,10 +24,12 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.getBvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.AmendDecoratedRoomService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.CreateDecoratedRoomService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.CreateRoomScheduleService
 import java.util.UUID
@@ -38,9 +41,9 @@ import java.util.UUID
 class RoomAdministrationController(
   private val createDecoratedRoomService: CreateDecoratedRoomService,
   private val createRoomScheduleService: CreateRoomScheduleService,
+  private val amendDecoratedRoomService: AmendDecoratedRoomService,
   private val locationsService: LocationsService,
 ) {
-
   @Operation(summary = "Endpoint to return the details of a location")
   @ApiResponses(
     value = [
@@ -103,6 +106,38 @@ class RoomAdministrationController(
     request: CreateDecoratedRoomRequest,
     httpRequest: HttpServletRequest,
   ) = createDecoratedRoomService.create(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+
+  @Operation(
+    summary = "Endpoint to support changes to a decorated room.",
+    description = "Only BVLS administration users can change decorated rooms.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "201",
+        description = "The the decorated room has been changed",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = Location::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PutMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], path = ["/{dpsLocationId}"])
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  fun amendDecoratedRoom(
+    @Parameter(description = "The identifier of the DPS location for the scheduled row to be amended.")
+    @PathVariable(name = "dpsLocationId", required = true)
+    dpsLocationId: UUID,
+    @Valid
+    @RequestBody
+    @Parameter(description = "The request with the decoration details", required = true)
+    request: AmendDecoratedRoomRequest,
+    httpRequest: HttpServletRequest,
+  ) = amendDecoratedRoomService.amend(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
 
   @Operation(
     summary = "Endpoint to support the creation of a single schedule row for a scheduled room",

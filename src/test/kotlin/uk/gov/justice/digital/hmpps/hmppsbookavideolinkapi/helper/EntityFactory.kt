@@ -219,6 +219,7 @@ fun videoRoomAttributesWithSchedule(
   locationStatus = locationStatus,
   allowedParties = emptySet(),
   prisonVideoUrl = null,
+  notes = null,
   createdBy = COURT_USER,
 ).apply {
   addSchedule(
@@ -251,6 +252,7 @@ fun videoRoomAttributesWithoutSchedule(
   locationStatus = locationStatus,
   allowedParties = emptySet(),
   prisonVideoUrl = null,
+  notes = null,
   createdBy = COURT_USER,
 )
 

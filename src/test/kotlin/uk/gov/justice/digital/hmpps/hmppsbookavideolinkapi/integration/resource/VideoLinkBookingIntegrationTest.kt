@@ -919,6 +919,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         locationUsage = LocationUsage.PROBATION,
         locationStatus = LocationStatus.ACTIVE,
         prisonVideoUrl = "https://probation-url",
+        notes = null,
         allowedParties = emptySet(),
       ),
     )

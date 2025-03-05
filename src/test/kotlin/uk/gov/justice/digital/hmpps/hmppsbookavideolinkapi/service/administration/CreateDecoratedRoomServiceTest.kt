@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
@@ -34,7 +35,7 @@ class CreateDecoratedRoomServiceTest {
     locationsService,
     prisonRepository,
   )
-  private var locationAttributeCaptor = argumentCaptor<LocationAttribute>()
+  private val locationAttributeCaptor = argumentCaptor<LocationAttribute>()
 
   @Test
   fun `should create an active decorated location`() {
@@ -54,6 +55,7 @@ class CreateDecoratedRoomServiceTest {
         locationStatus = ModelLocationStatus.ACTIVE,
         prisonVideoUrl = "shared-prison-video-url-1",
         allowedParties = setOf("DRBYMC", "DRBYCC"),
+        comments = "some comments",
       ),
       PROBATION_USER,
     )
@@ -65,6 +67,7 @@ class CreateDecoratedRoomServiceTest {
       locationStatus isEqualTo EntityLocationStatus.ACTIVE
       prisonVideoUrl isEqualTo "shared-prison-video-url-1"
       allowedParties isEqualTo "DRBYMC,DRBYCC"
+      notes isEqualTo "some comments"
     }
   }
 
@@ -93,5 +96,21 @@ class CreateDecoratedRoomServiceTest {
         PROBATION_USER,
       )
     }.message isEqualTo "Matching prison code WWI not found for DPS location ID ${wandsworthLocation.id}."
+  }
+
+  @Test
+  fun `should fail if location already decorated`() {
+    whenever(locationsService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel(
+      attributes = videoRoomAttributesWithoutSchedule(WANDSWORTH, wandsworthLocation.id).toRoomAttributes(),
+    )
+    whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn wandsworthPrison
+
+    assertThrows<IllegalArgumentException> {
+      service.create(
+        wandsworthLocation.id,
+        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE),
+        PROBATION_USER,
+      )
+    }.message isEqualTo "DPS location with ID ${wandsworthLocation.id} is already decorated."
   }
 }

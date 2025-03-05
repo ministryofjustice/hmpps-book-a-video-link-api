@@ -32,27 +32,32 @@ class LocationAttribute private constructor(
   @JoinColumn(name = "prison_id")
   val prison: Prison,
 
-  @Enumerated(EnumType.STRING)
-  var locationStatus: LocationStatus = LocationStatus.ACTIVE,
-
   val statusMessage: String? = null,
 
   val expectedActiveDate: LocalDate? = null,
-
-  @Enumerated(EnumType.STRING)
-  val locationUsage: LocationUsage,
-
-  val allowedParties: String? = null,
-
-  val prisonVideoUrl: String? = null,
-
-  val notes: String? = null,
 
   val createdBy: String,
 
   val createdTime: LocalDateTime = LocalDateTime.now(),
 ) {
+  @Enumerated(EnumType.STRING)
+  var locationStatus: LocationStatus = LocationStatus.ACTIVE
+    private set
+
+  @Enumerated(EnumType.STRING)
+  var locationUsage: LocationUsage = LocationUsage.SHARED
+    private set
+
+  var prisonVideoUrl: String? = null
+    private set
+
+  var notes: String? = null
+    private set
+
   var amendedBy: String? = null
+    private set
+
+  var allowedParties: String? = null
     private set
 
   var amendedTime: LocalDateTime? = null
@@ -60,6 +65,27 @@ class LocationAttribute private constructor(
 
   @OneToMany(mappedBy = "locationAttribute", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val locationSchedule: MutableList<LocationSchedule> = mutableListOf()
+
+  fun amend(
+    locationStatus: LocationStatus,
+    locationUsage: LocationUsage,
+    allowedParties: Set<String>,
+    prisonVideoUrl: String?,
+    comments: String?,
+    amendedBy: ExternalUser,
+  ) = apply {
+    this.locationStatus = locationStatus
+    this.locationUsage = locationUsage
+    this.prisonVideoUrl = prisonVideoUrl
+    this.notes = comments
+    this.amendedBy = amendedBy.username
+    this.amendedTime = LocalDateTime.now()
+    this.allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(",")
+  }
+
+  fun allowedParties(parties: Set<String>) {
+    allowedParties = parties.takeUnless { it.isEmpty() }?.joinToString(",")
+  }
 
   fun schedule() = locationSchedule.toList()
 
@@ -193,16 +219,19 @@ class LocationAttribute private constructor(
       allowedParties: Set<String>,
       locationStatus: LocationStatus,
       prisonVideoUrl: String?,
+      notes: String?,
       createdBy: ExternalUser,
     ) = LocationAttribute(
       dpsLocationId = dpsLocationId,
       prison = prison,
-      locationUsage = locationUsage,
-      locationStatus = locationStatus,
-      allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(","),
-      prisonVideoUrl = prisonVideoUrl,
       createdBy = createdBy.username,
-    )
+    ).apply {
+      this.locationStatus = locationStatus
+      this.locationUsage = locationUsage
+      this.prisonVideoUrl = prisonVideoUrl
+      this.notes = notes
+      allowedParties(allowedParties)
+    }
   }
 }
 

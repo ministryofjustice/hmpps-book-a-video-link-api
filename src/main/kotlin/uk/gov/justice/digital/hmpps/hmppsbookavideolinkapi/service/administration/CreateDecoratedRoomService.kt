@@ -37,6 +37,7 @@ class CreateDecoratedRoomService(
         locationUsage = LocationUsage.valueOf(request.locationUsage!!.name),
         allowedParties = request.allowedParties ?: emptySet(),
         prisonVideoUrl = request.prisonVideoUrl,
+        notes = request.comments,
         createdBy = user,
       ),
     ).let { location.copy(extraAttributes = it.toRoomAttributes()) }
