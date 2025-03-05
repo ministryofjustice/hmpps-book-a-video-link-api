@@ -10,9 +10,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
@@ -27,6 +29,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.UUID
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage as ModelLocationScheduleUsage
@@ -195,6 +198,41 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     }
   }
 
+  @Test
+  fun `should delete an existing decorated location with schedule`() {
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
+
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SCHEDULE,
+        locationStatus = ModelLocationStatus.INACTIVE,
+      ),
+      risleyLocation.toModel(),
+      PROBATION_USER,
+    )
+
+    webTestClient.createSchedule(
+      CreateRoomScheduleRequest(
+        locationUsage = ModelLocationScheduleUsage.PROBATION,
+        startDayOfWeek = 1,
+        endDayOfWeek = 7,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(12, 0),
+        notes = "some notes for the schedule",
+      ),
+      risleyLocation.toModel(),
+      PROBATION_USER,
+    )
+
+    val persistedLocationAttributeId = locationAttributeRepository.findByDpsLocationId(risleyLocation.id)!!.locationAttributeId
+
+    getLocationAttribute(persistedLocationAttributeId).schedule() hasSize 1
+
+    webTestClient.deleteDecoratedRoom(risleyLocation.id, PROBATION_USER)
+
+    locationAttributeRepository.findByDpsLocationId(risleyLocation.id) isEqualTo null
+  }
+
   // Using the entity manager to get round lazy loading of schedule(s)
   private fun getLocationAttribute(id: Long) = entityManagerFactory
     .createEntityManager()
@@ -235,6 +273,14 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
     .expectBody(Location::class.java)
     .returnResult().responseBody!!
+
+  private fun WebTestClient.deleteDecoratedRoom(dpsLocationId: UUID, user: ExternalUser) = this
+    .delete()
+    .uri("/room-admin/$dpsLocationId")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isNoContent
 
   private fun WebTestClient.createSchedule(request: CreateRoomScheduleRequest, location: Location, user: ExternalUser) = this
     .post()

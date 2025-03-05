@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoo
 import java.util.UUID
 
 @Service
-class CreateDecoratedRoomService(
+class CreateDecoratedLocationService(
   private val locationAttributeRepository: LocationAttributeRepository,
   private val locationsService: LocationsService,
   private val prisonRepository: PrisonRepository,

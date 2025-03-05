@@ -13,6 +13,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,9 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateD
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.AmendDecoratedRoomService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.CreateDecoratedRoomService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.CreateRoomScheduleService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.DecoratedLocationsService
 import java.util.UUID
 
 @Tag(name = "Room Administration Controller")
@@ -39,9 +38,7 @@ import java.util.UUID
 @RequestMapping(value = ["room-admin"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @AuthApiResponses
 class RoomAdministrationController(
-  private val createDecoratedRoomService: CreateDecoratedRoomService,
-  private val createRoomScheduleService: CreateRoomScheduleService,
-  private val amendDecoratedRoomService: AmendDecoratedRoomService,
+  private val decoratedLocationsService: DecoratedLocationsService,
   private val locationsService: LocationsService,
 ) {
   @Operation(summary = "Endpoint to return the details of a location")
@@ -105,7 +102,7 @@ class RoomAdministrationController(
     @Parameter(description = "The request with the new decoration details", required = true)
     request: CreateDecoratedRoomRequest,
     httpRequest: HttpServletRequest,
-  ) = createDecoratedRoomService.create(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+  ) = decoratedLocationsService.decorateLocation(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
 
   @Operation(
     summary = "Endpoint to support changes to a decorated room.",
@@ -137,7 +134,43 @@ class RoomAdministrationController(
     @Parameter(description = "The request with the decoration details", required = true)
     request: AmendDecoratedRoomRequest,
     httpRequest: HttpServletRequest,
-  ) = amendDecoratedRoomService.amend(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+  ) = decoratedLocationsService.amendDecoratedLocation(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @DeleteMapping(value = ["/{dpsLocationId}"])
+  @Operation(summary = "Endpoint to support deletion of a decorated location including any schedules if there are any.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "204",
+        description = "The decoration was deleted.",
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The video booking ID was not found.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  fun deleteDecoratedLocation(@PathVariable("dpsLocationId") dpsLocationId: UUID) {
+    decoratedLocationsService.deleteDecoratedLocation(dpsLocationId)
+  }
 
   @Operation(
     summary = "Endpoint to support the creation of a single schedule row for a scheduled room",
@@ -164,6 +197,6 @@ class RoomAdministrationController(
     request: CreateRoomScheduleRequest,
     httpRequest: HttpServletRequest,
   ) {
-    createRoomScheduleService.create(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+    decoratedLocationsService.createSchedule(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
   }
 }

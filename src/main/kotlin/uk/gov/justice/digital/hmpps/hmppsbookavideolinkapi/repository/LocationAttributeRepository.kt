@@ -10,4 +10,6 @@ interface LocationAttributeRepository : JpaRepository<LocationAttribute, Long> {
   fun findByPrisonCode(prisonCode: String): List<LocationAttribute>
 
   fun findByDpsLocationId(uuid: UUID): LocationAttribute?
+
+  fun deleteLocationAttributesByDpsLocationId(dpsLocationId: UUID)
 }
