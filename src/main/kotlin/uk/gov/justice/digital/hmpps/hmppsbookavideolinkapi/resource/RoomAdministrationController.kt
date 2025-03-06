@@ -155,16 +155,6 @@ class RoomAdministrationController(
           ),
         ],
       ),
-      ApiResponse(
-        responseCode = "404",
-        description = "The video booking ID was not found.",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
     ],
   )
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
@@ -198,5 +188,34 @@ class RoomAdministrationController(
     httpRequest: HttpServletRequest,
   ) {
     decoratedLocationsService.createSchedule(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+  }
+
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @DeleteMapping(value = ["/{dpsLocationId}/schedule/{scheduleId}"])
+  @Operation(summary = "Endpoint to support deletion of a schedule.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "204",
+        description = "The schedule was deleted.",
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  fun deleteSchedule(
+    @PathVariable("dpsLocationId") dpsLocationId: UUID,
+    @PathVariable("scheduleId") scheduleId: Long,
+  ) {
+    decoratedLocationsService.deleteSchedule(dpsLocationId, scheduleId)
   }
 }

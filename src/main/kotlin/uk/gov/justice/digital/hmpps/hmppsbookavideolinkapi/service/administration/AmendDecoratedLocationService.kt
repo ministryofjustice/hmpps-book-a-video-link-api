@@ -26,7 +26,7 @@ class AmendDecoratedLocationService(
       decoratedRoom.amend(
         locationUsage = LocationUsage.valueOf(request.locationUsage!!.name),
         locationStatus = LocationStatus.valueOf(request.locationStatus!!.name),
-        prisonVideoUrl = request.prisonVideoUrl!!,
+        prisonVideoUrl = request.prisonVideoUrl,
         allowedParties = request.allowedParties ?: emptySet(),
         comments = request.comments,
         amendedBy = user,
