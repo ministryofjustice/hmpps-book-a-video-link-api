@@ -28,6 +28,7 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage as ModelScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
 
@@ -199,7 +200,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(ModelLocationUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.SHARED)
         }
       }
     }
@@ -220,7 +221,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(ModelLocationUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.SHARED)
         }
       }
     }
@@ -259,7 +260,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(ModelLocationUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.SHARED)
           assertThat(allowedParties).isEmpty()
         }
       }
