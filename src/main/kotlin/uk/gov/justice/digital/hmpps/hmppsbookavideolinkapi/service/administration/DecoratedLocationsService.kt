@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationScheduleRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import java.util.UUID
 
@@ -16,6 +17,7 @@ class DecoratedLocationsService(
   private val amendDecoratedLocationService: AmendDecoratedLocationService,
   private val createLocationScheduleService: CreateLocationScheduleService,
   private val locationAttributeRepository: LocationAttributeRepository,
+  private val locationScheduleRepository: LocationScheduleRepository,
 ) {
   fun decorateLocation(dpsLocationId: UUID, request: CreateDecoratedRoomRequest, user: ExternalUser) = run {
     createDecoratedLocationService.create(dpsLocationId, request, user)
@@ -31,5 +33,9 @@ class DecoratedLocationsService(
 
   fun createSchedule(dpsLocationId: UUID, request: CreateRoomScheduleRequest, user: ExternalUser) {
     createLocationScheduleService.create(dpsLocationId, request, user)
+  }
+
+  fun deleteSchedule(dpsLocationId: UUID, scheduleId: Long) {
+    locationScheduleRepository.deleteSchedule(scheduleId, dpsLocationId)
   }
 }

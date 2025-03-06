@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
@@ -172,7 +173,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.COURT,
         locationStatus = ModelLocationStatus.ACTIVE,
         allowedParties = setOf("COURT"),
-        prisonVideoUrl = "different-prison-video-url-3",
+        prisonVideoUrl = null,
         comments = "amended comments",
       ),
       wandsworthLocation3.toModel(),
@@ -183,7 +184,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationUsage isEqualTo ModelLocationUsage.COURT
       locationStatus isEqualTo ModelLocationStatus.ACTIVE
       allowedParties containsExactlyInAnyOrder setOf("COURT")
-      prisonVideoUrl isEqualTo "different-prison-video-url-3"
+      prisonVideoUrl isEqualTo null
       notes isEqualTo "amended comments"
     }
 
@@ -191,7 +192,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationUsage isEqualTo EntityLocationUsage.COURT
       locationStatus isEqualTo EntityLocationStatus.ACTIVE
       allowedParties isEqualTo "COURT"
-      prisonVideoUrl isEqualTo "different-prison-video-url-3"
+      prisonVideoUrl isEqualTo null
       notes isEqualTo "amended comments"
       amendedBy isEqualTo COURT_USER.username
       amendedTime isCloseTo LocalDateTime.now()
@@ -231,6 +232,40 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     webTestClient.deleteDecoratedRoom(risleyLocation.id, PROBATION_USER)
 
     locationAttributeRepository.findByDpsLocationId(risleyLocation.id) isEqualTo null
+  }
+
+  @Test
+  fun `should delete an existing schedule from a decorated location`() {
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
+
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SCHEDULE,
+        locationStatus = ModelLocationStatus.INACTIVE,
+      ),
+      risleyLocation2.toModel(),
+      PROBATION_USER,
+    )
+
+    webTestClient.createSchedule(
+      CreateRoomScheduleRequest(
+        locationUsage = ModelLocationScheduleUsage.PROBATION,
+        startDayOfWeek = 1,
+        endDayOfWeek = 7,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(12, 0),
+        notes = "some notes for the schedule",
+      ),
+      risleyLocation2.toModel(),
+      PROBATION_USER,
+    )
+
+    val persistedLocationAttributeId = locationAttributeRepository.findByDpsLocationId(risleyLocation2.id)!!.locationAttributeId
+    val decoratedLocationWithSchedule = getLocationAttribute(persistedLocationAttributeId)
+
+    webTestClient.deleteSchedule(risleyLocation2.id, decoratedLocationWithSchedule.schedule().single().locationScheduleId, PROBATION_USER)
+
+    getLocationAttribute(persistedLocationAttributeId).schedule().isEmpty() isBool true
   }
 
   // Using the entity manager to get round lazy loading of schedule(s)
@@ -290,4 +325,12 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
     .expectStatus().isCreated
+
+  private fun WebTestClient.deleteSchedule(dpsLocationId: UUID, scheduleId: Long, user: ExternalUser) = this
+    .delete()
+    .uri("/room-admin/$dpsLocationId/schedule/$scheduleId")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isNoContent
 }
