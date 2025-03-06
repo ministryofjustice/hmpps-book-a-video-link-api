@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationSchedule
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
@@ -43,7 +44,7 @@ fun List<LocationSchedule>.toRoomSchedule() = map {
     endDayOfWeek = DayOfWeek.of(it.endDayOfWeek),
     startTime = it.startTime,
     endTime = it.endTime,
-    locationUsage = LocationUsage.valueOf(it.locationUsage.name),
+    locationUsage = LocationScheduleUsage.valueOf(it.locationUsage.name),
     allowedParties = it.allowedParties.let { parties -> parties?.split(",") } ?: emptyList(),
   )
 }

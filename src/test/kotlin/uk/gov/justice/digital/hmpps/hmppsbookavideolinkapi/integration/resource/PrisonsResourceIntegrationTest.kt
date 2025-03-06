@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
@@ -177,21 +178,21 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.THURSDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
-          assertThat(locationUsage).isEqualTo(LocationUsage.COURT)
+          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.COURT)
         }
         with(schedule[1]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.FRIDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.FRIDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
-          assertThat(locationUsage).isEqualTo(LocationUsage.PROBATION)
+          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.PROBATION)
         }
         with(schedule[2]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.SATURDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
-          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.SHARED)
         }
       }
     }
@@ -229,21 +230,21 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.THURSDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
-          assertThat(locationUsage).isEqualTo(LocationUsage.COURT)
+          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.COURT)
         }
         with(schedule[1]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.FRIDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.FRIDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
-          assertThat(locationUsage).isEqualTo(LocationUsage.PROBATION)
+          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.PROBATION)
         }
         with(schedule[2]) {
           assertThat(startDayOfWeek).isEqualTo(DayOfWeek.SATURDAY)
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
-          assertThat(locationUsage).isEqualTo(LocationUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.SHARED)
         }
       }
     }

@@ -76,7 +76,7 @@ data class RoomSchedule(
 
   @Schema(description = "The usage of this room within this slot (PROBATION, COURT, SHARED, BLOCKED)", example = "SHARED", required = true)
   @Enumerated(EnumType.STRING)
-  val locationUsage: LocationUsage,
+  val locationUsage: LocationScheduleUsage,
 
   @Schema(description = "Court or probation codes (comma-separated) that can use the room within this slot", example = "[YRKMAG,DRBYJS]")
   val allowedParties: List<String> = emptyList(),
