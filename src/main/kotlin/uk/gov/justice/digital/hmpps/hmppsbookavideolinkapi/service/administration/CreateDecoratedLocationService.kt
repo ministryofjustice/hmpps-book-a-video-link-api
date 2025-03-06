@@ -22,7 +22,7 @@ class CreateDecoratedLocationService(
   private val prisonRepository: PrisonRepository,
 ) {
   @Transactional
-  fun create(dpsLocationId: UUID, request: CreateDecoratedRoomRequest, user: ExternalUser): Location {
+  fun create(dpsLocationId: UUID, request: CreateDecoratedRoomRequest, createdBy: ExternalUser): Location {
     val location = locationsService.getLocationById(dpsLocationId) ?: throw EntityNotFoundException("DPS location with ID $dpsLocationId not found.")
 
     require(location.extraAttributes == null) {
@@ -38,7 +38,7 @@ class CreateDecoratedLocationService(
         allowedParties = request.allowedParties ?: emptySet(),
         prisonVideoUrl = request.prisonVideoUrl,
         notes = request.comments,
-        createdBy = user,
+        createdBy = createdBy,
       ),
     ).let { location.copy(extraAttributes = it.toRoomAttributes()) }
   }

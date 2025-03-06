@@ -10,4 +10,7 @@ interface LocationScheduleRepository : JpaRepository<LocationSchedule, Long> {
   @Query(value = "DELETE LocationSchedule ls WHERE ls.locationScheduleId = :locationScheduleId AND ls.locationAttribute.dpsLocationId = :dpsLocationId")
   @Modifying
   fun deleteSchedule(locationScheduleId: Long, dpsLocationId: UUID)
+
+  @Query(value = "FROM LocationSchedule ls WHERE ls.locationScheduleId = :locationScheduleId AND ls.locationAttribute.dpsLocationId = :dpsLocationId")
+  fun findByScheduleIdAndDpsLocationId(locationScheduleId: Long, dpsLocationId: UUID): LocationSchedule?
 }

@@ -115,14 +115,14 @@ class LocationAttribute private constructor(
     }
 
     locationSchedule.add(
-      LocationSchedule(
+      LocationSchedule.newSchedule(
         locationAttribute = this,
         locationUsage = usage,
         startDayOfWeek = startDayOfWeek,
         endDayOfWeek = endDayOfWeek,
         startTime = startTime,
         endTime = endTime,
-        allowedParties = allowedParties.takeUnless { it.isEmpty() }?.sorted()?.joinToString(","),
+        allowedParties = allowedParties,
         notes = notes,
         createdBy = createdBy,
       ),

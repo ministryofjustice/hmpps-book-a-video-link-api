@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administrati
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
@@ -16,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationScheduleRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
@@ -25,8 +25,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage a
 
 class AmendDecoratedLocationsServiceTest {
   private val locationsService: LocationsService = mock()
-  private val locationAttributeRepository: LocationAttributeRepository = Mockito.mock()
-  private val service = AmendDecoratedLocationService(locationsService, locationAttributeRepository)
+  private val locationAttributeRepository: LocationAttributeRepository = mock()
+  private val locationScheduleRepository: LocationScheduleRepository = mock()
+  private val service = AmendDecoratedLocationService(locationsService, locationAttributeRepository, locationScheduleRepository)
   private val decoratedRoom = LocationAttribute.decoratedRoom(
     dpsLocationId = wandsworthLocation.id,
     prison = wandsworthPrison,

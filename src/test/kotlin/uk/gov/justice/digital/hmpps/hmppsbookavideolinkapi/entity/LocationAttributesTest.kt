@@ -34,14 +34,13 @@ class LocationAttributesTest {
 
     val exception = assertThrows<IllegalArgumentException> {
       mutableListOf(
-        LocationSchedule(
-          locationScheduleId = 1,
+        LocationSchedule.newSchedule(
           startDayOfWeek = DayOfWeek.MONDAY.value,
           endDayOfWeek = DayOfWeek.SUNDAY.value,
           startTime = LocalTime.of(1, 0),
           endTime = LocalTime.of(23, 0),
           locationUsage = LocationScheduleUsage.SHARED,
-          allowedParties = null,
+          allowedParties = emptySet(),
           createdBy = "TEST",
           locationAttribute = roomAttributes,
         ),
