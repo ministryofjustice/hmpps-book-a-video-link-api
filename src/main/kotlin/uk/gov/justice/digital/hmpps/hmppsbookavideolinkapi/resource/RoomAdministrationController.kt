@@ -82,7 +82,7 @@ class RoomAdministrationController(
     value = [
       ApiResponse(
         responseCode = "201",
-        description = "Successfully created the the decorated room.",
+        description = "Successfully created the decorated room.",
         content = [
           Content(
             mediaType = "application/json",
