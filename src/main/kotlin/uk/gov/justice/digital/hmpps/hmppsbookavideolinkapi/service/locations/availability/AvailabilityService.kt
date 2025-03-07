@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

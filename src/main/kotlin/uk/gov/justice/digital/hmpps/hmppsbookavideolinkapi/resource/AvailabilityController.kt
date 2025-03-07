@@ -18,8 +18,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Availab
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailableLocationsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AvailabilityService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.AvailableLocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailableLocationsService
 
 @Tag(name = "Availability Controller")
 @RestController

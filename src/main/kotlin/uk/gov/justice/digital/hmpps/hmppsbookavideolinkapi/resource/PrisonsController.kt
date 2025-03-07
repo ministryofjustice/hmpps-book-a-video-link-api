@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 
 @Tag(name = "Prisons Controller")
 @RestController

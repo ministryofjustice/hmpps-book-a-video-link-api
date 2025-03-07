@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interva
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingOption
 import java.time.LocalTime
-import java.util.*
+import java.util.TreeMap
 
 @Service
 class AvailabilityFinderService(
@@ -50,7 +50,7 @@ class AvailabilityFinderService(
 
     fun timelinesByLocationKey(slots: List<AppointmentSlot>, locations: List<Location>): Map<String, Timeline> = slots
       .groupBy { a -> locations.single { it.id == a.prisonLocationId }.key }
-      .mapValues { (_, appointments) -> appointments.flatMap(::toEvents) }
+      .mapValues { (_, appointments) -> appointments.flatMap(Companion::toEvents) }
       .mapValues { Timeline(it.value) }
 
     private fun toEvents(slot: AppointmentSlot) = listOf(StartEvent(slot.startTime), EndEvent(slot.endTime))

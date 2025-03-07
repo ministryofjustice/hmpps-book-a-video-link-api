@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability
 
 import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
@@ -16,6 +16,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookedLocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookedLookup
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.time.LocalDateTime
 import java.time.LocalTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage

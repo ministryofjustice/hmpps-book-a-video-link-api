@@ -31,8 +31,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendRo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration.DecoratedLocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration.DecoratedLocationsService
 import java.util.UUID
 
 @Tag(name = "Room Administration Controller")
