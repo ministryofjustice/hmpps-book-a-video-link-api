@@ -5,8 +5,8 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.1.2"
-  id("org.openapi.generator") version "7.11.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.1.3"
+  id("org.openapi.generator") version "7.12.0"
   kotlin("plugin.spring") version "2.1.10"
   kotlin("plugin.jpa") version "2.1.10"
 }
@@ -28,11 +28,11 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.3.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.3.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.4.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.3.2")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.18.2")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.18.3")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
@@ -44,9 +44,9 @@ dependencies {
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
 
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.13.2")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.13.3")
 
-  implementation("com.googlecode.libphonenumber:libphonenumber:8.13.55")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.0")
 
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
@@ -58,9 +58,9 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:localstack:1.20.5")
-  testImplementation("org.testcontainers:postgresql:1.20.5")
-  testImplementation("org.wiremock:wiremock-standalone:3.12.0")
+  testImplementation("org.testcontainers:localstack:1.20.6")
+  testImplementation("org.testcontainers:postgresql:1.20.6")
+  testImplementation("org.wiremock:wiremock-standalone:3.12.1")
 }
 
 kotlin {
