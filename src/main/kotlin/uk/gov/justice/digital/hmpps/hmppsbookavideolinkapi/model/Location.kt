@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -69,9 +70,11 @@ data class RoomSchedule(
   val endDayOfWeek: DayOfWeek,
 
   @Schema(description = "Start time of this slot (24 hr clock, HH:MI)", example = "10:00", required = true)
+  @JsonFormat(pattern = "HH:mm")
   val startTime: LocalTime,
 
   @Schema(description = "End time of this slot (24 hr clock, HH:MI)", example = "16:00", required = true)
+  @JsonFormat(pattern = "HH:mm")
   val endTime: LocalTime,
 
   @Schema(description = "The usage of this room within this slot (PROBATION, COURT, SHARED, BLOCKED)", example = "SHARED", required = true)

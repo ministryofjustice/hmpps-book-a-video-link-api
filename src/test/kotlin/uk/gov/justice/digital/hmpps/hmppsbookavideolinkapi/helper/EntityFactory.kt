@@ -230,7 +230,7 @@ fun videoRoomAttributesWithSchedule(
     startTime = LocalTime.of(1, 0),
     endTime = LocalTime.of(23, 0),
     allowedParties = emptySet(),
-    createdBy = "TEST",
+    createdBy = COURT_USER,
   )
 }
 

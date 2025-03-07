@@ -32,7 +32,7 @@ class CreateLocationScheduleService(
       endTime = request.endTime!!,
       allowedParties = request.allowedParties.takeUnless { it.isNullOrEmpty() } ?: emptySet(),
       notes = request.notes,
-      createdBy = createdBy.username,
+      createdBy = createdBy,
     )
 
     locationAttributeRepository.saveAndFlush(locationAttribute).schedule().last().toModel()

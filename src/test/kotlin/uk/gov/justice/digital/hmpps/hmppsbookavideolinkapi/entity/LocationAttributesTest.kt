@@ -41,7 +41,7 @@ class LocationAttributesTest {
           endTime = LocalTime.of(23, 0),
           locationUsage = LocationScheduleUsage.SHARED,
           allowedParties = emptySet(),
-          createdBy = "TEST",
+          createdBy = COURT_USER,
           locationAttribute = roomAttributes,
         ),
       )
@@ -71,7 +71,7 @@ class LocationAttributesTest {
         startTime = LocalTime.of(1, 0),
         endTime = LocalTime.of(23, 0),
         allowedParties = emptySet(),
-        createdBy = "TEST",
+        createdBy = COURT_USER,
       )
 
       addSchedule(
@@ -81,7 +81,7 @@ class LocationAttributesTest {
         startTime = LocalTime.of(14, 0),
         endTime = LocalTime.of(15, 0),
         allowedParties = setOf("C", "A", "B"),
-        createdBy = "TEST",
+        createdBy = COURT_USER,
       )
     }
 
@@ -92,7 +92,7 @@ class LocationAttributesTest {
       startTime isEqualTo LocalTime.of(1, 0)
       endTime isEqualTo LocalTime.of(23, 0)
       allowedParties isEqualTo null
-      createdBy isEqualTo "TEST"
+      createdBy isEqualTo COURT_USER.username
       createdTime isCloseTo LocalDateTime.now()
     }
 
@@ -103,7 +103,7 @@ class LocationAttributesTest {
       startTime isEqualTo LocalTime.of(14, 0)
       endTime isEqualTo LocalTime.of(15, 0)
       allowedParties isEqualTo "A,B,C"
-      createdBy isEqualTo "TEST"
+      createdBy isEqualTo COURT_USER.username
       createdTime isCloseTo LocalDateTime.now()
     }
   }
@@ -128,7 +128,7 @@ class LocationAttributesTest {
       startTime = LocalTime.of(1, 0),
       endTime = LocalTime.of(23, 0),
       allowedParties = emptySet(),
-      createdBy = "TEST",
+      createdBy = COURT_USER,
     )
 
     assertThrows<IllegalArgumentException> {
@@ -139,7 +139,7 @@ class LocationAttributesTest {
         startTime = LocalTime.of(1, 0),
         endTime = LocalTime.of(23, 0),
         allowedParties = emptySet(),
-        createdBy = "TEST",
+        createdBy = COURT_USER,
       )
     }.message isEqualTo "Cannot add a duplicate schedule row to location attribute with ID 0."
   }
@@ -389,7 +389,7 @@ class LocationAttributesTest {
       endDayOfWeek = end.value,
       startTime = startTime,
       endTime = endTime,
-      createdBy = "TEST",
+      createdBy = COURT_USER,
       allowedParties = allowedParties,
     )
   }
