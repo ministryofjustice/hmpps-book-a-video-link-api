@@ -95,7 +95,7 @@ class LocationAttribute private constructor(
     endTime: LocalTime,
     allowedParties: Set<String> = emptySet(),
     notes: String? = null,
-    createdBy: String,
+    createdBy: ExternalUser,
   ) {
     require(locationUsage == LocationUsage.SCHEDULE) {
       "The location usage type must be SCHEDULE to add a schedule row to it."

@@ -103,6 +103,20 @@ class LocationSchedule private constructor(
     require(startDayOfWeek <= endDayOfWeek) { "The end day cannot be before the start day." }
     require(startTime.isBefore(endTime)) { "The end time must come after the start time." }
 
+    if (
+      locationAttribute.schedule().any {
+        it.locationScheduleId != locationScheduleId
+        it.locationUsage == locationUsage &&
+          it.startDayOfWeek == startDayOfWeek &&
+          it.endDayOfWeek == endDayOfWeek &&
+          it.startTime == startTime &&
+          it.endTime == endTime &&
+          it.allowedParties == allowedParties.takeUnless { ap -> ap.isNullOrEmpty() }?.sorted()?.joinToString(",")
+      }
+    ) {
+      throw IllegalArgumentException("Cannot amend, amendment would conflict with an existing scheduled row.")
+    }
+
     this.locationUsage = locationUsage
     this.startDayOfWeek = startDayOfWeek
     this.endDayOfWeek = endDayOfWeek
@@ -124,10 +138,10 @@ class LocationSchedule private constructor(
       endTime: LocalTime,
       allowedParties: Set<String>?,
       notes: String? = null,
-      createdBy: String,
+      createdBy: ExternalUser,
     ) = LocationSchedule(
       locationAttribute = locationAttribute,
-      createdBy = createdBy,
+      createdBy = createdBy.username,
     ).apply {
       require(startDayOfWeek <= endDayOfWeek) { "The end day cannot be before the start day." }
       require(startTime.isBefore(endTime)) { "The end time must come after the start time." }

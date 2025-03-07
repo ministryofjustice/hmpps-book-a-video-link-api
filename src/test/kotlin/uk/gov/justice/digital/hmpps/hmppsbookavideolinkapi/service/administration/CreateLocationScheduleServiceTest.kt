@@ -93,7 +93,7 @@ class CreateLocationScheduleServiceTest {
         endTime = LocalTime.of(17, 0),
         allowedParties = emptySet(),
         notes = "Some notes",
-        createdBy = "TEST",
+        createdBy = PROBATION_USER,
       )
     }
 

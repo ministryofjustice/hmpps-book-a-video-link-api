@@ -4,13 +4,16 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
@@ -84,6 +87,91 @@ class LocationScheduleTest {
     }.message isEqualTo "The end time must come after the start time."
   }
 
+  @Test
+  fun `should fail to amend if causes a duplicate row`() {
+    val schedule = schedule(
+      start = DayOfWeek.MONDAY,
+      end = DayOfWeek.FRIDAY,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(15, 0),
+      locationUsage = LocationScheduleUsage.PROBATION,
+      allowedParties = setOf("PROBATION_TEAM"),
+    )
+
+    val locationAttribute = schedule.locationAttribute
+
+    locationAttribute.addSchedule(
+      usage = LocationScheduleUsage.PROBATION,
+      startDayOfWeek = DayOfWeek.MONDAY.value,
+      endDayOfWeek = DayOfWeek.SUNDAY.value,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(15, 0),
+      allowedParties = setOf("PROBATION_TEAM"),
+      notes = null,
+      createdBy = PROBATION_USER,
+    )
+
+    assertThrows<IllegalArgumentException> {
+      schedule.amend(
+        locationUsage = LocationScheduleUsage.PROBATION,
+        startDayOfWeek = DayOfWeek.MONDAY.value,
+        endDayOfWeek = DayOfWeek.SUNDAY.value,
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(15, 0),
+        allowedParties = setOf("PROBATION_TEAM"),
+        notes = null,
+        amendedBy = PROBATION_USER,
+      )
+    }.message isEqualTo "Cannot amend, amendment would conflict with an existing scheduled row."
+  }
+
+  @Test
+  fun `should amend row`() {
+    val schedule = schedule(
+      start = DayOfWeek.MONDAY,
+      end = DayOfWeek.FRIDAY,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(15, 0),
+      locationUsage = LocationScheduleUsage.PROBATION,
+      allowedParties = setOf("PROBATION_TEAM"),
+    )
+
+    val locationAttribute = schedule.locationAttribute
+
+    locationAttribute.addSchedule(
+      usage = LocationScheduleUsage.PROBATION,
+      startDayOfWeek = DayOfWeek.MONDAY.value,
+      endDayOfWeek = DayOfWeek.SUNDAY.value,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(15, 0),
+      allowedParties = setOf("PROBATION_TEAM"),
+      notes = null,
+      createdBy = PROBATION_USER,
+    )
+
+    schedule.amend(
+      locationUsage = LocationScheduleUsage.PROBATION,
+      startDayOfWeek = DayOfWeek.MONDAY.value,
+      endDayOfWeek = DayOfWeek.WEDNESDAY.value,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(14, 0),
+      allowedParties = setOf("ANOTHER_PROBATION_TEAM"),
+      notes = null,
+      amendedBy = PROBATION_USER,
+    )
+
+    with(schedule) {
+      locationUsage isEqualTo LocationScheduleUsage.PROBATION
+      startDayOfWeek isEqualTo DayOfWeek.MONDAY.value
+      endDayOfWeek isEqualTo DayOfWeek.WEDNESDAY.value
+      startTime isEqualTo LocalTime.of(11, 0)
+      endTime isEqualTo LocalTime.of(14, 0)
+      allowedParties isEqualTo "ANOTHER_PROBATION_TEAM"
+      amendedBy isEqualTo PROBATION_USER.username
+      amendedTime isCloseTo LocalDateTime.now()
+    }
+  }
+
   @DisplayName("Probation tests")
   @Nested
   inner class Probation {
@@ -141,6 +229,6 @@ class LocationScheduleTest {
     locationUsage = locationUsage,
     allowedParties = allowedParties,
     notes = null,
-    createdBy = "test",
+    createdBy = COURT_USER,
   )
 }

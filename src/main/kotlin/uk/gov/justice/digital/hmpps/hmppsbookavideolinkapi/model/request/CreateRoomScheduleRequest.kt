@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage
 import java.time.LocalTime
 
@@ -38,6 +39,7 @@ data class CreateRoomScheduleRequest(
   @JsonFormat(pattern = "HH:mm")
   val endTime: LocalTime?,
 
+  @field:Size(max = 400, message = "Notes should not exceed {max} characters")
   @Schema(description = "Notes related to the schedule", example = "Some notes")
   val notes: String?,
 )
