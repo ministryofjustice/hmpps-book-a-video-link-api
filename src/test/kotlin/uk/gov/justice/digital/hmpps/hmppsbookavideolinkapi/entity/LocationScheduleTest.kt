@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -201,6 +202,38 @@ class LocationScheduleTest {
       val schedule = schedule(locationUsage = LocationScheduleUsage.COURT)
 
       schedule.isForAnyProbationTeam() isBool false
+    }
+  }
+
+  @DisplayName("Court tests")
+  @Nested
+  inner class Court {
+    @Test
+    fun `should be for probation team`() {
+      val schedule = schedule(locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
+
+      schedule.isForCourt(court(code = "COURT")) isBool true
+    }
+
+    @Test
+    fun `should not be for probation team`() {
+      val schedule = schedule(locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
+
+      schedule.isForCourt(court(code = "DIFFERENT_COURT")) isBool false
+    }
+
+    @Test
+    fun `should be for any probation team`() {
+      val schedule = schedule(locationUsage = LocationScheduleUsage.COURT)
+
+      schedule.isForAnyCourt() isBool true
+    }
+
+    @Test
+    fun `should not be for any probation team`() {
+      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION)
+
+      schedule.isForAnyCourt() isBool false
     }
   }
 

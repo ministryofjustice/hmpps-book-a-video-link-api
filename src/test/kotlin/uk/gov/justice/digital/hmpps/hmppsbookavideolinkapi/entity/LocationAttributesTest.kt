@@ -374,26 +374,6 @@ class LocationAttributesTest {
     }
   }
 
-  private fun schedule(
-    locationAttribute: LocationAttribute,
-    start: DayOfWeek = DayOfWeek.MONDAY,
-    end: DayOfWeek = DayOfWeek.SUNDAY,
-    startTime: LocalTime = LocalTime.of(9, 0),
-    endTime: LocalTime = LocalTime.of(17, 0),
-    locationUsage: LocationScheduleUsage,
-    allowedParties: Set<String> = emptySet(),
-  ) {
-    locationAttribute.addSchedule(
-      usage = locationUsage,
-      startDayOfWeek = start.value,
-      endDayOfWeek = end.value,
-      startTime = startTime,
-      endTime = endTime,
-      createdBy = COURT_USER,
-      allowedParties = allowedParties,
-    )
-  }
-
   @Nested
   inner class Court {
     @Test
@@ -491,5 +471,107 @@ class LocationAttributesTest {
 
       roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.SHARED
     }
+
+    @Test
+    fun `should be SHARED if the schedule is empty`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      )
+
+      roomAttributes.isAvailableFor(court(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be PROBATION ANY for any probation schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.COURT) }
+
+      roomAttributes.isAvailableFor(court(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.COURT_ANY
+    }
+
+    @Test
+    fun `should be PROBATION_TEAM for probation team schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
+      }
+
+      roomAttributes.isAvailableFor(court(code = "COURT"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.COURT_ROOM
+    }
+
+    @Test
+    fun `should be SHARED for schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.SHARED) }
+
+      roomAttributes.isAvailableFor(court(code = "COURT"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be NONE for court schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION) }
+
+      roomAttributes.isAvailableFor(court(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
+    }
+  }
+
+  private fun schedule(
+    locationAttribute: LocationAttribute,
+    start: DayOfWeek = DayOfWeek.MONDAY,
+    end: DayOfWeek = DayOfWeek.SUNDAY,
+    startTime: LocalTime = LocalTime.of(9, 0),
+    endTime: LocalTime = LocalTime.of(17, 0),
+    locationUsage: LocationScheduleUsage,
+    allowedParties: Set<String> = emptySet(),
+  ) {
+    locationAttribute.addSchedule(
+      usage = locationUsage,
+      startDayOfWeek = start.value,
+      endDayOfWeek = end.value,
+      startTime = startTime,
+      endTime = endTime,
+      createdBy = COURT_USER,
+      allowedParties = allowedParties,
+    )
   }
 }

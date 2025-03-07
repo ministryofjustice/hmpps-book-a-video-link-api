@@ -88,6 +88,10 @@ class LocationSchedule private constructor(
 
   fun isForAnyProbationTeam() = locationUsage == LocationScheduleUsage.PROBATION && allowedParties.isNullOrBlank()
 
+  fun isForCourt(court: Court) = locationUsage == LocationScheduleUsage.COURT && allowedParties.orEmpty().split(",").contains(court.code)
+
+  fun isForAnyCourt() = locationUsage == LocationScheduleUsage.COURT && allowedParties.isNullOrBlank()
+
   fun isShared() = locationUsage == LocationScheduleUsage.SHARED
 
   fun amend(

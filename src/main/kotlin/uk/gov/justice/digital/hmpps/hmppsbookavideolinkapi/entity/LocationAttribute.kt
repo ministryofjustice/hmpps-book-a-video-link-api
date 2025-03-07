@@ -146,8 +146,6 @@ class LocationAttribute private constructor(
 
   fun isAvailableFor(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(probationTeam, startingOnDateTime)
 
-  fun isAvailableFor(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(court, startingOnDateTime)
-
   private fun check(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus {
     if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
@@ -182,26 +180,39 @@ class LocationAttribute private constructor(
     }
   }
 
+  fun isAvailableFor(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(court, startingOnDateTime)
+
   private fun check(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus {
-    if (locationStatus == LocationStatus.INACTIVE) {
-      return AvailabilityStatus.NONE
-    }
+    if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
     return when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
-      LocationUsage.COURT -> {
-        if (allowedParties.isNullOrBlank()) {
-          AvailabilityStatus.COURT_ANY
-        } else {
-          if (isPartyAllowed(court.code)) {
-            AvailabilityStatus.COURT_ROOM
-          } else {
-            AvailabilityStatus.NONE
-          }
-        }
+      LocationUsage.COURT -> when {
+        allowedParties.isNullOrBlank() -> AvailabilityStatus.COURT_ANY
+        isPartyAllowed(court.code) -> AvailabilityStatus.COURT_ROOM
+        else -> AvailabilityStatus.NONE
       }
-      LocationUsage.SCHEDULE -> TODO()
+
+      LocationUsage.SCHEDULE -> getScheduleAvailability(court, startingOnDateTime)
       else -> return AvailabilityStatus.NONE
+    }
+  }
+
+  /**
+   * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
+   */
+  private fun getScheduleAvailability(court: Court, dateAndTime: LocalDateTime): AvailabilityStatus {
+    val schedules = locationSchedule.filter { it.fallsOn(dateAndTime) }
+
+    return when {
+      // If there aren't any schedules which fall on the requested date and time then default to SHARED
+      schedules.isEmpty() -> AvailabilityStatus.SHARED
+      // If there are schedules fall on the date and time look and see if any match the following
+      schedules.any { schedule -> schedule.isForCourt(court) } -> AvailabilityStatus.COURT_ROOM
+      schedules.any { schedule -> schedule.isForAnyCourt() } -> AvailabilityStatus.COURT_ANY
+      schedules.any { schedule -> schedule.isShared() } -> AvailabilityStatus.SHARED
+      // If there are no matches above then it is not available
+      else -> AvailabilityStatus.NONE
     }
   }
 
