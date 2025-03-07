@@ -54,9 +54,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.RequestBookingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBookingsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.hmpps.kotlin.auth.HmppsResourceServerConfiguration
 import java.time.LocalDateTime

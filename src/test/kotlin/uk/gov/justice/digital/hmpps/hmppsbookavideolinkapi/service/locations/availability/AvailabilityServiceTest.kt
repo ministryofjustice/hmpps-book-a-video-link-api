@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -30,6 +30,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Locatio
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityFinderService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityOptionsGenerator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.ExternalAppointmentsService
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime

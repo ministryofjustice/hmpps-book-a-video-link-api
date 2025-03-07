@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ScheduleRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
 import java.time.LocalTime

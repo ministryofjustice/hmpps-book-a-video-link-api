@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendRo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationScheduleRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.util.UUID
 

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.format.annotation.DateTimeFormat

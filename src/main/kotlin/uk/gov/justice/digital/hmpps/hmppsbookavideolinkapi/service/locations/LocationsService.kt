@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration
 
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test

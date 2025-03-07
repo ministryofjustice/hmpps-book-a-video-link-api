@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.administration
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration
 
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test
@@ -16,7 +16,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPris
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationScheduleRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.LocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration.AmendDecoratedLocationService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
