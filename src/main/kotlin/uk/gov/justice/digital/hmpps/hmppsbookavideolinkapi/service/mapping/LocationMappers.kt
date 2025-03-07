@@ -37,14 +37,14 @@ fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   schedule = this.schedule().toRoomSchedule(),
 )
 
-fun List<LocationSchedule>.toRoomSchedule() = map {
-  RoomSchedule(
-    scheduleId = it.locationScheduleId,
-    startDayOfWeek = DayOfWeek.of(it.startDayOfWeek),
-    endDayOfWeek = DayOfWeek.of(it.endDayOfWeek),
-    startTime = it.startTime,
-    endTime = it.endTime,
-    locationUsage = LocationScheduleUsage.valueOf(it.locationUsage.name),
-    allowedParties = it.allowedParties.let { parties -> parties?.split(",") } ?: emptyList(),
-  )
-}
+fun List<LocationSchedule>.toRoomSchedule() = map { it.toModel() }
+
+fun LocationSchedule.toModel() = RoomSchedule(
+  scheduleId = locationScheduleId,
+  startDayOfWeek = DayOfWeek.of(startDayOfWeek),
+  endDayOfWeek = DayOfWeek.of(endDayOfWeek),
+  startTime = startTime,
+  endTime = endTime,
+  locationUsage = LocationScheduleUsage.valueOf(locationUsage.name),
+  allowedParties = allowedParties.let { parties -> parties?.split(",") } ?: emptyList(),
+)

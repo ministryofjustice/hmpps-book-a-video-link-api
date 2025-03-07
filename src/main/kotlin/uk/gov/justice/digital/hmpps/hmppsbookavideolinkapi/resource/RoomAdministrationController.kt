@@ -25,7 +25,9 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.getBvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
@@ -41,12 +43,12 @@ class RoomAdministrationController(
   private val decoratedLocationsService: DecoratedLocationsService,
   private val locationsService: LocationsService,
 ) {
-  @Operation(summary = "Endpoint to return the details of a location")
+  @Operation(summary = "Endpoint to support retrieval of a room including any decorations if there are any.")
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "The returned location will include any decorations where present",
+        description = "Successfully returned the requested room.",
         content = [
           Content(
             mediaType = "application/json",
@@ -56,7 +58,7 @@ class RoomAdministrationController(
       ),
       ApiResponse(
         responseCode = "404",
-        description = "The DPS location ID was not found.",
+        description = "The room was not found.",
         content = [
           Content(
             mediaType = "application/json",
@@ -73,18 +75,28 @@ class RoomAdministrationController(
   ) = locationsService.getLocationById(dpsLocationId) ?: throw EntityNotFoundException("DPS location with ID $dpsLocationId not found.")
 
   @Operation(
-    summary = "Endpoint to support the creation of a decorated room.",
+    summary = "Endpoint to support the initial decoration of a room.",
     description = "Only BVLS administration users can create decorated rooms.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "201",
-        description = "The the decorated room has been created",
+        description = "Successfully created the the decorated room.",
         content = [
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = Location::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The room to be decorated was not found.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
@@ -105,18 +117,28 @@ class RoomAdministrationController(
   ) = decoratedLocationsService.decorateLocation(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
 
   @Operation(
-    summary = "Endpoint to support changes to a decorated room.",
+    summary = "Endpoint to support amending an already decorated room.",
     description = "Only BVLS administration users can change decorated rooms.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "201",
-        description = "The the decorated room has been changed",
+        description = "Successfully amended the decorated room.",
         content = [
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = Location::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The decorated room to be amended was not found.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
           ),
         ],
       ),
@@ -138,12 +160,12 @@ class RoomAdministrationController(
 
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = ["/{dpsLocationId}"])
-  @Operation(summary = "Endpoint to support deletion of a decorated location including any schedules if there are any.")
+  @Operation(summary = "Endpoint to support deletion of a decorated room including any schedules if there are any.")
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "204",
-        description = "The decoration was deleted.",
+        description = "Successfully deleted the decorated room.",
       ),
       ApiResponse(
         responseCode = "400",
@@ -163,14 +185,24 @@ class RoomAdministrationController(
   }
 
   @Operation(
-    summary = "Endpoint to support the creation of a single schedule row for a scheduled room",
+    summary = "Endpoint to support the creation of a schedule row for a decorated room schedule.",
     description = "Only BVLS administration users can create a schedule.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "201",
-        description = "The the schedule row has been added to the room's schedule",
+        description = "Successfully added the schedule row to the room's schedule",
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The decorated room was not found.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
       ),
     ],
   )
@@ -186,18 +218,18 @@ class RoomAdministrationController(
     @Parameter(description = "The request with the new schedule details", required = true)
     request: CreateRoomScheduleRequest,
     httpRequest: HttpServletRequest,
-  ) {
+  ) = run {
     decoratedLocationsService.createSchedule(dpsLocationId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
   }
 
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping(value = ["/{dpsLocationId}/schedule/{scheduleId}"])
-  @Operation(summary = "Endpoint to support deletion of a schedule.")
+  @Operation(summary = "Endpoint to support deletion of a schedule row from a room schedule.")
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "204",
-        description = "The schedule was deleted.",
+        description = "Successfully deleted schedule row from the schedule.",
       ),
       ApiResponse(
         responseCode = "400",
@@ -218,4 +250,49 @@ class RoomAdministrationController(
   ) {
     decoratedLocationsService.deleteSchedule(dpsLocationId, scheduleId)
   }
+
+  @Operation(
+    summary = "Endpoint to support amending a room schedule.",
+    description = "Only BVLS administration users can change room schedules.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "201",
+        description = "Successfully amended the room schedule.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = RoomSchedule::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The room schedule was not found.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PutMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], path = ["/{dpsLocationId}/schedule/{scheduleId}"])
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  fun amendDecoratedRoom(
+    @Parameter(description = "The identifier of the DPS location for the room schedule to be amended.")
+    @PathVariable(name = "dpsLocationId", required = true)
+    dpsLocationId: UUID,
+    @Parameter(description = "The identifier of the room schedule to be amended.")
+    @PathVariable(name = "scheduleId", required = true)
+    scheduleId: Long,
+    @Valid
+    @RequestBody
+    @Parameter(description = "The request with the decoration details", required = true)
+    request: AmendRoomScheduleRequest,
+    httpRequest: HttpServletRequest,
+  ) = decoratedLocationsService.amendSchedule(dpsLocationId, scheduleId, request, httpRequest.getBvlsRequestContext().user as ExternalUser)
 }

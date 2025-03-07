@@ -9,11 +9,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttrib
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
@@ -21,13 +23,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
@@ -268,6 +273,57 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     getLocationAttribute(persistedLocationAttributeId).schedule().isEmpty() isBool true
   }
 
+  @Test
+  fun `should amend a scheduled row on a decorated room schedule`() {
+    locationsInsidePrisonApi().stubGetLocationById(norwichLocation)
+
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SCHEDULE,
+        locationStatus = ModelLocationStatus.INACTIVE,
+      ),
+      norwichLocation.toModel(),
+      PROBATION_USER,
+    )
+
+    val schedule = webTestClient.createSchedule(
+      CreateRoomScheduleRequest(
+        locationUsage = ModelLocationScheduleUsage.COURT,
+        startDayOfWeek = 1,
+        endDayOfWeek = 7,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(12, 0),
+        notes = "some notes for the initial schedule",
+      ),
+      norwichLocation.toModel(),
+      COURT_USER,
+    )
+
+    val roomSchedule = webTestClient.amendSchedule(
+      norwichLocation.id,
+      schedule.scheduleId,
+      AmendRoomScheduleRequest(
+        locationUsage = ModelLocationScheduleUsage.PROBATION,
+        startDayOfWeek = 2,
+        endDayOfWeek = 5,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(12, 0),
+        allowedParties = setOf("PROBATION"),
+        notes = "some notes for the amended schedule",
+      ),
+      PROBATION_USER,
+    )
+
+    with(roomSchedule) {
+      locationUsage isEqualTo ModelLocationScheduleUsage.PROBATION
+      startDayOfWeek isEqualTo DayOfWeek.of(2)
+      endDayOfWeek isEqualTo DayOfWeek.of(5)
+      startTime isEqualTo java.time.LocalTime.of(9, 0)
+      endTime isEqualTo java.time.LocalTime.of(12, 0)
+      allowedParties containsExactly setOf("PROBATION")
+    }
+  }
+
   // Using the entity manager to get round lazy loading of schedule(s)
   private fun getLocationAttribute(id: Long) = entityManagerFactory
     .createEntityManager()
@@ -325,6 +381,9 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
     .expectStatus().isCreated
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(RoomSchedule::class.java)
+    .returnResult().responseBody!!
 
   private fun WebTestClient.deleteSchedule(dpsLocationId: UUID, scheduleId: Long, user: ExternalUser) = this
     .delete()
@@ -333,4 +392,16 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
     .expectStatus().isNoContent
+
+  private fun WebTestClient.amendSchedule(dpsLocationId: UUID, scheduleId: Long, request: AmendRoomScheduleRequest, user: ExternalUser) = this
+    .put()
+    .uri("/room-admin/$dpsLocationId/schedule/$scheduleId")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(RoomSchedule::class.java)
+    .returnResult().responseBody!!
 }

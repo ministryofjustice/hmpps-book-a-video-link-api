@@ -13,12 +13,13 @@ import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetween
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Entity
 @Table(name = "location_schedule")
-class LocationSchedule(
+class LocationSchedule private constructor(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val locationScheduleId: Long = 0,
@@ -27,36 +28,35 @@ class LocationSchedule(
   @ManyToOne(fetch = FetchType.LAZY)
   val locationAttribute: LocationAttribute,
 
-  val startDayOfWeek: Int,
-
-  val endDayOfWeek: Int,
-
-  val startTime: LocalTime,
-
-  val endTime: LocalTime,
-
-  @Enumerated(EnumType.STRING)
-  val locationUsage: LocationScheduleUsage,
-
-  val allowedParties: String? = null,
-
-  val notes: String? = null,
-
   val createdBy: String,
 
   val createdTime: LocalDateTime = LocalDateTime.now(),
 ) {
+  var startDayOfWeek: Int = -1
+    private set
+
+  var endDayOfWeek: Int = -1
+    private set
+
+  var startTime: LocalTime = LocalTime.MIN
+    private set
+
+  var endTime: LocalTime = LocalTime.MIN
+    private set
+
+  @Enumerated(EnumType.STRING)
+  var locationUsage: LocationScheduleUsage = LocationScheduleUsage.SHARED
+    private set
+
+  var allowedParties: String? = null
+    private set
+
+  var notes: String? = null
+    private set
+
   init {
     require(locationAttribute.locationUsage == LocationUsage.SCHEDULE) {
       "The location usage type must be SCHEDULE for a list of schedule rows to be associated with it."
-    }
-
-    require(startDayOfWeek <= endDayOfWeek) {
-      "The end day cannot be before the start day."
-    }
-
-    require(startTime.isBefore(endTime)) {
-      "The end time must come after the start time."
     }
   }
 
@@ -89,6 +89,58 @@ class LocationSchedule(
   fun isForAnyProbationTeam() = locationUsage == LocationScheduleUsage.PROBATION && allowedParties.isNullOrBlank()
 
   fun isShared() = locationUsage == LocationScheduleUsage.SHARED
+
+  fun amend(
+    locationUsage: LocationScheduleUsage,
+    startDayOfWeek: Int,
+    endDayOfWeek: Int,
+    startTime: LocalTime,
+    endTime: LocalTime,
+    allowedParties: Set<String>?,
+    notes: String?,
+    amendedBy: ExternalUser,
+  ) = apply {
+    require(startDayOfWeek <= endDayOfWeek) { "The end day cannot be before the start day." }
+    require(startTime.isBefore(endTime)) { "The end time must come after the start time." }
+
+    this.locationUsage = locationUsage
+    this.startDayOfWeek = startDayOfWeek
+    this.endDayOfWeek = endDayOfWeek
+    this.startTime = startTime
+    this.endTime = endTime
+    this.allowedParties = allowedParties.takeUnless { it.isNullOrEmpty() }?.sorted()?.joinToString(",")
+    this.notes = notes
+    this.amendedBy = amendedBy.username
+    this.amendedTime = LocalDateTime.now()
+  }
+
+  companion object {
+    fun newSchedule(
+      locationAttribute: LocationAttribute,
+      locationUsage: LocationScheduleUsage,
+      startDayOfWeek: Int,
+      endDayOfWeek: Int,
+      startTime: LocalTime,
+      endTime: LocalTime,
+      allowedParties: Set<String>?,
+      notes: String? = null,
+      createdBy: String,
+    ) = LocationSchedule(
+      locationAttribute = locationAttribute,
+      createdBy = createdBy,
+    ).apply {
+      require(startDayOfWeek <= endDayOfWeek) { "The end day cannot be before the start day." }
+      require(startTime.isBefore(endTime)) { "The end time must come after the start time." }
+
+      this.locationUsage = locationUsage
+      this.startDayOfWeek = startDayOfWeek
+      this.endDayOfWeek = endDayOfWeek
+      this.startTime = startTime
+      this.endTime = endTime
+      this.allowedParties = allowedParties.takeUnless { it.isNullOrEmpty() }?.sorted()?.joinToString(",")
+      this.notes = notes
+    }
+  }
 }
 
 enum class LocationScheduleUsage {

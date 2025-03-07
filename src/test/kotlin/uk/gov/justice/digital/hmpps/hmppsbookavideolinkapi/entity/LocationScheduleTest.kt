@@ -40,12 +40,48 @@ class LocationScheduleTest {
 
   @Test
   fun `should fail if end day before start day`() {
-    assertThrows<IllegalArgumentException> { schedule(start = DayOfWeek.TUESDAY, end = DayOfWeek.MONDAY) }.message isEqualTo "The end day cannot be before the start day."
+    assertThrows<IllegalArgumentException> {
+      schedule(
+        start = DayOfWeek.TUESDAY,
+        end = DayOfWeek.MONDAY,
+      )
+    }.message isEqualTo "The end day cannot be before the start day."
+
+    assertThrows<IllegalArgumentException> {
+      schedule().amend(
+        locationUsage = LocationScheduleUsage.SHARED,
+        startDayOfWeek = 2,
+        endDayOfWeek = 1,
+        startTime = LocalTime.now(),
+        endTime = LocalTime.now().plusMinutes(1),
+        allowedParties = null,
+        notes = null,
+        amendedBy = PROBATION_USER,
+      )
+    }.message isEqualTo "The end day cannot be before the start day."
   }
 
   @Test
   fun `should fail if end time not after start time`() {
-    assertThrows<IllegalArgumentException> { schedule(startTime = LocalTime.of(12, 0), endTime = LocalTime.of(11, 59)) }.message isEqualTo "The end time must come after the start time."
+    assertThrows<IllegalArgumentException> {
+      schedule(
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(11, 59),
+      )
+    }.message isEqualTo "The end time must come after the start time."
+
+    assertThrows<IllegalArgumentException> {
+      schedule().amend(
+        locationUsage = LocationScheduleUsage.SHARED,
+        startDayOfWeek = 1,
+        endDayOfWeek = 2,
+        startTime = LocalTime.now(),
+        endTime = LocalTime.now().minusMinutes(1),
+        allowedParties = null,
+        notes = null,
+        amendedBy = PROBATION_USER,
+      )
+    }.message isEqualTo "The end time must come after the start time."
   }
 
   @DisplayName("Probation tests")
@@ -53,14 +89,14 @@ class LocationScheduleTest {
   inner class Probation {
     @Test
     fun `should be for probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION, allowedParties = "PROBATION_TEAM")
+      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
 
       schedule.isForProbationTeam(probationTeam(code = "PROBATION_TEAM")) isBool true
     }
 
     @Test
     fun `should not be for probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION, allowedParties = "PROBATION_TEAM")
+      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
 
       schedule.isForProbationTeam(probationTeam(code = "DIFFERENT_PROBATION_TEAM")) isBool false
     }
@@ -86,9 +122,8 @@ class LocationScheduleTest {
     end: DayOfWeek = start,
     startTime: LocalTime = LocalTime.of(9, 0),
     endTime: LocalTime = LocalTime.of(17, 0),
-    allowedParties: String? = null,
-  ) = LocationSchedule(
-    locationScheduleId = 1,
+    allowedParties: Set<String>? = null,
+  ) = LocationSchedule.newSchedule(
     locationAttribute = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
       prison = pentonvillePrison,

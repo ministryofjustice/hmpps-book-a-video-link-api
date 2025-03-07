@@ -44,6 +44,7 @@ class CreateLocationScheduleServiceTest {
     val dpsLocationId = UUID.randomUUID()
 
     whenever(locationAttributeRepository.findByDpsLocationId(dpsLocationId)) doReturn roomAttributes
+    whenever(locationAttributeRepository.saveAndFlush(roomAttributes)) doReturn roomAttributes
 
     service.create(
       dpsLocationId,
@@ -101,6 +102,7 @@ class CreateLocationScheduleServiceTest {
     val dpsLocationId = UUID.randomUUID()
 
     whenever(locationAttributeRepository.findByDpsLocationId(dpsLocationId)) doReturn roomAttributes
+    whenever(locationAttributeRepository.saveAndFlush(roomAttributes)) doReturn roomAttributes
 
     service.create(
       dpsLocationId,
