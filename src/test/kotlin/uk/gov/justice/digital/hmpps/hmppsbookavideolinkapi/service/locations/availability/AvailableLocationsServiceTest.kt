@@ -30,10 +30,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Availab
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookedLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookedLocations
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookedLocationsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookedLookup
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDateTime

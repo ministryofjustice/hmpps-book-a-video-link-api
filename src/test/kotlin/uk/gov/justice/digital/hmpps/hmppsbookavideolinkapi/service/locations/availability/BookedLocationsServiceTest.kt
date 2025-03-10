@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCategorySummary
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentLocationSummary
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.DpsLocationsIds
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisDpsLocationMapping
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
@@ -60,7 +61,7 @@ class BookedLocationsServiceTest {
       whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(WANDSWORTH)) doReturn true
 
       nomisMappingClient.stub {
-        on { getNomisLocationMappingsBy(listOf(wandsworthLocation.id, wandsworthLocation2.id)) } doReturn listOf(
+        on { getNomisLocationMappingsBy(DpsLocationsIds(listOf(wandsworthLocation.id, wandsworthLocation2.id))) } doReturn listOf(
           NomisDpsLocationMapping(wandsworthLocation.id, 1),
           NomisDpsLocationMapping(wandsworthLocation2.id, 2),
         )
@@ -220,7 +221,7 @@ class BookedLocationsServiceTest {
       whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(RISLEY)) doReturn false
 
       nomisMappingClient.stub {
-        on { getNomisLocationMappingsBy(listOf(risleyLocation.id, risleyLocation2.id)) } doReturn listOf(
+        on { getNomisLocationMappingsBy(DpsLocationsIds(listOf(risleyLocation.id, risleyLocation2.id))) } doReturn listOf(
           NomisDpsLocationMapping(risleyLocation.id, 1),
           NomisDpsLocationMapping(risleyLocation2.id, 2),
         )

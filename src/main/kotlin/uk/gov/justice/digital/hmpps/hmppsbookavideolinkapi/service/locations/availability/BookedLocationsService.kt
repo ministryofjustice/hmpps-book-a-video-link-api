@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameAppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.DpsLocationsIds
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledAppointment
@@ -49,7 +50,7 @@ class BookedLocationsService(
     locations: Collection<Location>,
     existingAppointments: List<PrisonAppointment>,
   ): BookedLocations {
-    val nomisToDpsLocations = nomisMappingClient.getNomisLocationMappingsBy(locations.map(Location::dpsLocationId))
+    val nomisToDpsLocations = nomisMappingClient.getNomisLocationMappingsBy(DpsLocationsIds(locations.map(Location::dpsLocationId)))
       .associate { it.nomisLocationId to it.dpsLocationId }
 
     return when (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {

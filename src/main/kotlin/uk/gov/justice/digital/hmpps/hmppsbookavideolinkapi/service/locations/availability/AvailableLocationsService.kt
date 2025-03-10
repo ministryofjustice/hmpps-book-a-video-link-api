@@ -16,8 +16,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookedLocationsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookedLookup
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.time.LocalDateTime
 import java.time.LocalTime
