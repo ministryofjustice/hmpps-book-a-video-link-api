@@ -31,15 +31,27 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as Mod
 
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG", localName = "Birmingham room")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
+val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
+val pentonvilleLocation = location(prisonCode = PENTONVILLE, locationKeySuffix = "ABCDEFG", localName = "Pentonville room 3")
+val risleyLocation = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG", localName = "Risley room")
+val risleyLocation2 = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG", localName = "Risley room 2")
 val wandsworthLocation = location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG", localName = "Wandsworth room")
 val wandsworthLocation2 =
   location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG2", localName = "Wandsworth room 2")
 val wandsworthLocation3 =
   location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG3", localName = "Wandsworth room 3")
-val pentonvilleLocation = location(prisonCode = PENTONVILLE, locationKeySuffix = "ABCDEFG", localName = "Pentonville room 3")
-val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
-val risleyLocation = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG", localName = "Risley room")
-val risleyLocation2 = location(prisonCode = RISLEY, locationKeySuffix = "ABCDEFG", localName = "Risley room 2")
+
+val allLocations = setOf(
+  birminghamLocation,
+  inactiveBirminghamLocation,
+  norwichLocation,
+  pentonvilleLocation,
+  risleyLocation,
+  risleyLocation2,
+  wandsworthLocation,
+  wandsworthLocation2,
+  wandsworthLocation3,
+)
 
 fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null, id: UUID = UUID.randomUUID()) = Location(
   id = id,
