@@ -19,20 +19,25 @@ class CacheConfiguration {
   companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    const val VIDEO_LINK_LOCATIONS_CACHE_NAME: String = "video_link_locations"
-    const val NON_RESIDENTIAL_LOCATIONS_CACHE_NAME: String = "non_residential_locations"
-    const val ROLLED_OUT_PRISONS_CACHE_NAME = "rolled_out_prisons"
+    const val COURTS_CACHE = "courts"
     const val NOMIS_MAPPING_CACHE_NAME = "nomis_mapping"
+    const val NON_RESIDENTIAL_LOCATIONS_CACHE_NAME: String = "non_residential_locations"
+    const val PROBATION_TEAMS_CACHE = "probation_team"
+    const val ROLLED_OUT_PRISONS_CACHE_NAME = "rolled_out_prisons"
+    const val VIDEO_LINK_LOCATIONS_CACHE_NAME: String = "video_link_locations"
+
     const val TWO = 2L
     const val FIVE = 5L
   }
 
   @Bean
   fun cacheManager(): CacheManager = ConcurrentMapCacheManager(
-    VIDEO_LINK_LOCATIONS_CACHE_NAME,
-    NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
-    ROLLED_OUT_PRISONS_CACHE_NAME,
+    COURTS_CACHE,
     NOMIS_MAPPING_CACHE_NAME,
+    NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
+    PROBATION_TEAMS_CACHE,
+    ROLLED_OUT_PRISONS_CACHE_NAME,
+    VIDEO_LINK_LOCATIONS_CACHE_NAME,
   )
 
   @CacheEvict(value = [VIDEO_LINK_LOCATIONS_CACHE_NAME], allEntries = true)
@@ -57,5 +62,17 @@ class CacheConfiguration {
   @Scheduled(fixedDelay = TWO, timeUnit = TimeUnit.HOURS)
   fun cacheEvictNomisMapping() {
     log.info("Evicting cache: $NOMIS_MAPPING_CACHE_NAME after $TWO hours")
+  }
+
+  @CacheEvict(value = [COURTS_CACHE], allEntries = true)
+  @Scheduled(fixedDelay = TWO, timeUnit = TimeUnit.HOURS)
+  fun cacheEvictCourts() {
+    log.info("Evicting cache: $COURTS_CACHE after $TWO hours")
+  }
+
+  @CacheEvict(value = [PROBATION_TEAMS_CACHE], allEntries = true)
+  @Scheduled(fixedDelay = TWO, timeUnit = TimeUnit.HOURS)
+  fun cacheEvictProbationTeams() {
+    log.info("Evicting cache: $PROBATION_TEAMS_CACHE after $TWO hours")
   }
 }

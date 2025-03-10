@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UserProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetProbationTeamPreferencesRequest
@@ -15,6 +17,7 @@ class ProbationTeamsService(
   private val probationTeamRepository: ProbationTeamRepository,
   private val userProbationRepository: UserProbationRepository,
 ) {
+  @Cacheable(CacheConfiguration.PROBATION_TEAMS_CACHE)
   fun getProbationTeams(enabledOnly: Boolean) = if (enabledOnly) {
     probationTeamRepository.findAllByEnabledIsTrue().toModel()
   } else {
