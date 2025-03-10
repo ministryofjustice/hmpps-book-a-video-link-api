@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UserCourt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetCourtPreferencesRequest
@@ -16,6 +18,7 @@ class CourtsService(
   private val userCourtRepository: UserCourtRepository,
 ) {
 
+  @Cacheable(CacheConfiguration.COURTS_CACHE)
   fun getCourts(enabledOnly: Boolean) = if (enabledOnly) {
     courtRepository.findAllByEnabledIsTrue().toModel()
   } else {
