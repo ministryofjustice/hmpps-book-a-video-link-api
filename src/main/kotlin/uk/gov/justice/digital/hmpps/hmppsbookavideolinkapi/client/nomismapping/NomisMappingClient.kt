@@ -22,7 +22,7 @@ class NomisMappingClient(private val nomisMappingApiWebClient: WebClient) {
   fun getNomisLocationMappingsBy(dpsLocationIds: DpsLocationsIds) = nomisMappingApiWebClient
     .post()
     .uri("/api/locations/dps")
-    .bodyValue(dpsLocationIds)
+    .bodyValue(dpsLocationIds.locationIds)
     .retrieve()
     .bodyToMono(typeReference<Collection<NomisDpsLocationMapping>>())
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
