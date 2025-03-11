@@ -176,6 +176,7 @@ class ScheduleServiceTest {
       assertThat(item.probationTeamCode).isNull()
       assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
       assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
+      assertThat(item.videoUrl).isEqualTo("http://video.url")
       assertThat(item.createdTime).isEqualTo(yesterday().atStartOfDay())
       assertThat(item.createdBy).isEqualTo("CREATOR")
       assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
