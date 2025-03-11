@@ -29,7 +29,7 @@ fun VideoBookingEntity.toModel(
   probationMeetingType = probationMeetingType?.let { ProbationMeetingType.valueOf(probationMeetingType!!) },
   probationMeetingTypeDescription = probationMeetingType?.let { probationMeetingTypeDescription },
   comments = comments,
-  videoLinkUrl = videoUrl.takeIf { this.isBookingType(EntityBookingType.COURT) } ?: locations.singleOrNull()?.extraAttributes?.prisonVideoUrl,
+  videoLinkUrl = if (isBookingType(EntityBookingType.COURT)) videoUrl else locations.singleOrNull()?.extraAttributes?.prisonVideoUrl,
   createdByPrison = createdByPrison,
   createdBy = createdBy,
   createdAt = createdTime,
