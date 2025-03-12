@@ -201,7 +201,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.BLOCKED)
         }
       }
     }
@@ -222,7 +222,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.BLOCKED)
         }
       }
     }
@@ -261,7 +261,7 @@ class LocationsServiceTest {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(1, 0))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 0))
-          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(ModelScheduleUsage.BLOCKED)
           assertThat(allowedParties).isEmpty()
         }
       }

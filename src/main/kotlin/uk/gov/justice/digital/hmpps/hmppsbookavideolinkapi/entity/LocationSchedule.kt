@@ -45,7 +45,7 @@ class LocationSchedule private constructor(
     private set
 
   @Enumerated(EnumType.STRING)
-  var locationUsage: LocationScheduleUsage = LocationScheduleUsage.SHARED
+  var locationUsage: LocationScheduleUsage = LocationScheduleUsage.BLOCKED
     private set
 
   var allowedParties: String? = null
@@ -92,7 +92,7 @@ class LocationSchedule private constructor(
 
   fun isForAnyCourt() = locationUsage == LocationScheduleUsage.COURT && allowedParties.isNullOrBlank()
 
-  fun isShared() = locationUsage == LocationScheduleUsage.SHARED
+  fun isUsage(usage: LocationScheduleUsage) = locationUsage == usage
 
   fun amend(
     locationUsage: LocationScheduleUsage,
@@ -164,6 +164,5 @@ class LocationSchedule private constructor(
 enum class LocationScheduleUsage {
   COURT,
   PROBATION,
-  SHARED,
   BLOCKED,
 }

@@ -224,7 +224,7 @@ fun videoRoomAttributesWithSchedule(
   createdBy = COURT_USER,
 ).apply {
   addSchedule(
-    usage = LocationScheduleUsage.SHARED,
+    usage = LocationScheduleUsage.BLOCKED,
     startDayOfWeek = DayOfWeek.MONDAY.value,
     endDayOfWeek = DayOfWeek.SUNDAY.value,
     startTime = LocalTime.of(1, 0),

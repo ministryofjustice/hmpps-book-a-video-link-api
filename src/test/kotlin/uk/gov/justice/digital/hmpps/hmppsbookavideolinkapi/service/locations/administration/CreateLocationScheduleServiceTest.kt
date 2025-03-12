@@ -49,7 +49,7 @@ class CreateLocationScheduleServiceTest {
     service.create(
       dpsLocationId,
       CreateRoomScheduleRequest(
-        locationUsage = ModelLocationScheduleUsage.SHARED,
+        locationUsage = ModelLocationScheduleUsage.PROBATION,
         startDayOfWeek = 1,
         endDayOfWeek = 7,
         startTime = LocalTime.of(9, 0),
@@ -61,7 +61,7 @@ class CreateLocationScheduleServiceTest {
     )
 
     with(roomAttributes.schedule().single()) {
-      locationUsage isEqualTo EntityLocationScheduleUsage.SHARED
+      locationUsage isEqualTo EntityLocationScheduleUsage.PROBATION
       startDayOfWeek isEqualTo 1
       endDayOfWeek isEqualTo 7
       startTime isEqualTo LocalTime.of(9, 0)
@@ -107,7 +107,7 @@ class CreateLocationScheduleServiceTest {
     service.create(
       dpsLocationId,
       CreateRoomScheduleRequest(
-        locationUsage = ModelLocationScheduleUsage.SHARED,
+        locationUsage = ModelLocationScheduleUsage.PROBATION,
         startDayOfWeek = 1,
         endDayOfWeek = 7,
         startTime = LocalTime.of(9, 0),
@@ -131,7 +131,7 @@ class CreateLocationScheduleServiceTest {
     }
 
     with(roomAttributes.schedule()[1]) {
-      locationUsage isEqualTo EntityLocationScheduleUsage.SHARED
+      locationUsage isEqualTo EntityLocationScheduleUsage.PROBATION
       startDayOfWeek isEqualTo 1
       endDayOfWeek isEqualTo 7
       startTime isEqualTo LocalTime.of(9, 0)
@@ -153,7 +153,7 @@ class CreateLocationScheduleServiceTest {
       service.create(
         dpsLocationId,
         CreateRoomScheduleRequest(
-          locationUsage = ModelLocationScheduleUsage.SHARED,
+          locationUsage = ModelLocationScheduleUsage.PROBATION,
           startDayOfWeek = 1,
           endDayOfWeek = 7,
           startTime = LocalTime.of(9, 0),

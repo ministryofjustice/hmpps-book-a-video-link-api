@@ -192,7 +192,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
-          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.BLOCKED)
         }
       }
     }
@@ -244,7 +244,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
           assertThat(endDayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
           assertThat(startTime).isEqualTo(LocalTime.of(0, 1))
           assertThat(endTime).isEqualTo(LocalTime.of(23, 59))
-          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.SHARED)
+          assertThat(locationUsage).isEqualTo(LocationScheduleUsage.BLOCKED)
         }
       }
     }
