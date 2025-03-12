@@ -172,9 +172,9 @@ class LocationAttribute private constructor(
       // If there aren't any schedules which fall on the requested date and time then default to SHARED
       schedules.isEmpty() -> AvailabilityStatus.SHARED
       // If there are schedules fall on the date and time look and see if any match the following
+      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
       schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) } -> AvailabilityStatus.PROBATION_TEAM
       schedules.any { schedule -> schedule.isForAnyProbationTeam() } -> AvailabilityStatus.PROBATION_ANY
-      schedules.any { schedule -> schedule.isShared() } -> AvailabilityStatus.SHARED
       // If there are no matches above then it is not available
       else -> AvailabilityStatus.NONE
     }
@@ -208,9 +208,9 @@ class LocationAttribute private constructor(
       // If there aren't any schedules which fall on the requested date and time then default to SHARED
       schedules.isEmpty() -> AvailabilityStatus.SHARED
       // If there are schedules fall on the date and time look and see if any match the following
+      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
       schedules.any { schedule -> schedule.isForCourt(court) } -> AvailabilityStatus.COURT_ROOM
       schedules.any { schedule -> schedule.isForAnyCourt() } -> AvailabilityStatus.COURT_ANY
-      schedules.any { schedule -> schedule.isShared() } -> AvailabilityStatus.SHARED
       // If there are no matches above then it is not available
       else -> AvailabilityStatus.NONE
     }

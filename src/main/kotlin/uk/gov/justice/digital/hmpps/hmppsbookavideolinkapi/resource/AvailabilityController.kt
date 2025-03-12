@@ -16,10 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailableLocationsRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.DateTimeAvailabilityRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlotAvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailableLocationsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.DateTimeAvailabilityService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.TimeSlotAvailabilityService
 
 @Tag(name = "Availability Controller")
 @RestController
@@ -27,7 +30,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.ava
 @AuthApiResponses
 class AvailabilityController(
   private val availabilityService: AvailabilityService,
-  private val availableLocationsService: AvailableLocationsService,
+  private val timeSlotAvailabilityService: TimeSlotAvailabilityService,
+  private val dateTimeAvailabilityService: DateTimeAvailabilityService,
 ) {
 
   @Operation(summary = "Endpoint to assess booking availability and to suggest alternatives")
@@ -71,7 +75,8 @@ class AvailabilityController(
   )
   @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], path = ["/locations"])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
-  fun availableLocations(
+  @Deprecated(message = "Do not use, has been replaced", replaceWith = ReplaceWith("availableByTimeSlot"))
+  fun availableByTimeSlotOld(
     @Valid
     @RequestBody
     @Parameter(
@@ -79,5 +84,64 @@ class AvailabilityController(
       required = true,
     )
     request: AvailableLocationsRequest,
-  ): AvailableLocationsResponse = availableLocationsService.findAvailableLocations(request)
+  ): AvailableLocationsResponse = availableByTimeSlot(
+    TimeSlotAvailabilityRequest(
+      prisonCode = request.prisonCode,
+      bookingType = request.bookingType,
+      courtCode = request.courtCode,
+      probationTeamCode = request.probationTeamCode,
+      date = request.date,
+      bookingDuration = request.bookingDuration,
+      timeSlots = request.timeSlots,
+      vlbIdToExclude = request.vlbIdToExclude,
+    ),
+  )
+
+  @Operation(summary = "Endpoint to provide locations which are available for booking at time of request")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Available locations response, including available locations for given criteria",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = AvailableLocationsResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], path = ["/by-time-slot"])
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
+  fun availableByTimeSlot(
+    @Valid
+    @RequestBody
+    @Parameter(description = "The search criteria for looking up available locations", required = true)
+    request: TimeSlotAvailabilityRequest,
+  ): AvailableLocationsResponse = timeSlotAvailabilityService.findAvailable(request)
+
+  @Operation(summary = "Endpoint to provide locations which are available for booking at time of request")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Available locations response, including available locations for given criteria",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = AvailableLocationsResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], path = ["/by-date-and-time"])
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
+  fun availableByDateTime(
+    @Valid
+    @RequestBody
+    @Parameter(description = "The search criteria for looking up available locations", required = true)
+    request: DateTimeAvailabilityRequest,
+  ): AvailableLocationsResponse = dateTimeAvailabilityService.findAvailable(request)
 }

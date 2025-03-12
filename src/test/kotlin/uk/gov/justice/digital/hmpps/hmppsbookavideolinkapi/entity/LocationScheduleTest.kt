@@ -53,7 +53,7 @@ class LocationScheduleTest {
 
     assertThrows<IllegalArgumentException> {
       schedule().amend(
-        locationUsage = LocationScheduleUsage.SHARED,
+        locationUsage = LocationScheduleUsage.PROBATION,
         startDayOfWeek = 2,
         endDayOfWeek = 1,
         startTime = LocalTime.now(),
@@ -76,7 +76,7 @@ class LocationScheduleTest {
 
     assertThrows<IllegalArgumentException> {
       schedule().amend(
-        locationUsage = LocationScheduleUsage.SHARED,
+        locationUsage = LocationScheduleUsage.PROBATION,
         startDayOfWeek = 1,
         endDayOfWeek = 2,
         startTime = LocalTime.now(),
@@ -238,7 +238,7 @@ class LocationScheduleTest {
   }
 
   private fun schedule(
-    locationUsage: LocationScheduleUsage = LocationScheduleUsage.SHARED,
+    locationUsage: LocationScheduleUsage = LocationScheduleUsage.PROBATION,
     start: DayOfWeek = DayOfWeek.MONDAY,
     end: DayOfWeek = start,
     startTime: LocalTime = LocalTime.of(9, 0),
