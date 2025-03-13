@@ -1331,7 +1331,7 @@ class BookingFacadeTest {
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "probationTeam" to "probation team description",
           "probationEmailAddress" to "probation.user@probation.com",
-          "prison" to "Wandsworth",
+          "prison" to "Birmingham",
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
@@ -1345,7 +1345,7 @@ class BookingFacadeTest {
         address isEqualTo PROBATION_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "probationTeam" to "probation team description",
-          "prison" to "Wandsworth",
+          "prison" to "Birmingham",
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
@@ -1503,7 +1503,7 @@ class BookingFacadeTest {
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "probationTeam" to "probation team description",
           "probationEmailAddress" to "probation.user@probation.com",
-          "prison" to "Wandsworth",
+          "prison" to "Birmingham",
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
@@ -1517,7 +1517,7 @@ class BookingFacadeTest {
         address isEqualTo PROBATION_USER.email
         personalisation() containsEntriesExactlyInAnyOrder mapOf(
           "probationTeam" to "probation team description",
-          "prison" to "Wandsworth",
+          "prison" to "Birmingham",
           "offenderNo" to "654321",
           "prisonerName" to "Bob Builder",
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
