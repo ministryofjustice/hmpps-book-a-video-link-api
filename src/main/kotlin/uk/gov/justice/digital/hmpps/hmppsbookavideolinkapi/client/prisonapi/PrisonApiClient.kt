@@ -59,7 +59,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     log.info("PRISON-API CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
     getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
       .also { log.info("PRISON-API CLIENT: matches pre-location filter: $it") }
-      .filter { locationIds.contains(it.locationId) }
+      .filter { it.locationId in locationIds }
       .also { log.info("PRISON-API CLIENT matches post-location filter: $it") }
   } else {
     emptyList()
@@ -108,16 +108,20 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
    * Returns all matching appointment types for a prison, not just video link bookings. It will however filter down to
    * the supplied location IDs where there is match.
    */
-  fun getScheduledAppointments(prisonCode: String, date: LocalDate, locationId: Collection<Long>) = prisonApiWebClient.get()
-    .uri { uriBuilder: UriBuilder ->
-      uriBuilder
-        .path("/api/schedules/{prisonCode}/appointments")
-        .queryParam("date", date)
-        .build(prisonCode)
-    }
-    .retrieve()
-    .bodyToMono(typeReference<List<ScheduledAppointment>>())
-    .block() ?: emptyList()
+  fun getScheduledAppointments(prisonCode: String, date: LocalDate, locationIds: Collection<Long>) = run {
+    (
+      prisonApiWebClient.get()
+        .uri { uriBuilder: UriBuilder ->
+          uriBuilder
+            .path("/api/schedules/{prisonCode}/appointments")
+            .queryParam("date", date)
+            .build(prisonCode)
+        }
+        .retrieve()
+        .bodyToMono(typeReference<List<ScheduledAppointment>>())
+        .block() ?: emptyList()
+      ).filter { appointment -> locationIds.isEmpty() || appointment.locationId in locationIds }
+  }
 }
 
 // Overriding due to deserialisation issues from generated type. Only including fields we are interested in.

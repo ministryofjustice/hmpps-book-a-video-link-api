@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -66,6 +67,22 @@ class PrisonApiClientTest {
     server.stubGetPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "123456", date = tomorrow(), locationIds = setOf(1000, 2000, 3000))
 
     client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 4000) hasSize 0
+  }
+
+  @Test
+  fun `should get unfiltered scheduled appointments`() {
+    server.stubGetScheduledAppointments(prisonCode = BIRMINGHAM, date = tomorrow(), setOf(1000, 2000, 3000))
+
+    client.getScheduledAppointments(BIRMINGHAM, tomorrow(), emptySet()) hasSize 3
+  }
+
+  @Test
+  fun `should get filtered scheduled appointments`() {
+    server.stubGetScheduledAppointments(prisonCode = BIRMINGHAM, date = tomorrow(), setOf(1000, 2000, 3000))
+
+    client.getScheduledAppointments(BIRMINGHAM, tomorrow(), setOf(1000)).map { it.locationId } containsExactly listOf(1000)
+    client.getScheduledAppointments(BIRMINGHAM, tomorrow(), setOf(1000, 3000)).map { it.locationId } containsExactlyInAnyOrder listOf(1000, 3000)
+    client.getScheduledAppointments(BIRMINGHAM, tomorrow(), setOf(2000, 3000)).map { it.locationId } containsExactlyInAnyOrder listOf(2000, 3000)
   }
 
   @AfterEach

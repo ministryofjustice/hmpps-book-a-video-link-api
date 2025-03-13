@@ -237,7 +237,7 @@ class LocationAttributesTest {
       roomAttributes.isAvailableFor(
         probationTeam(code = "TEAM_CODE"),
         LocalDateTime.now(),
-      ) isEqualTo AvailabilityStatus.PROBATION_TEAM
+      ) isEqualTo AvailabilityStatus.PROBATION_ROOM
     }
 
     @Test
@@ -357,7 +357,7 @@ class LocationAttributesTest {
         schedule(this, locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
       }
 
-      roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_TEAM
+      roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ROOM
     }
 
     @Test

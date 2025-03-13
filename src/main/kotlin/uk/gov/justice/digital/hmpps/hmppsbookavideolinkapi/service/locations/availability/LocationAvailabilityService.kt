@@ -37,7 +37,7 @@ abstract class LocationAvailabilityService<REQUEST>(private val locationsService
         timeSlot = slot(startTime),
       ).let { availableLocation ->
         when (availabilityStatus) {
-          AvailabilityStatus.PROBATION_TEAM -> dedicatedProbationTeamLocations.add(availableLocation)
+          AvailabilityStatus.PROBATION_ROOM -> dedicatedProbationTeamLocations.add(availableLocation)
           AvailabilityStatus.PROBATION_ANY -> anyProbationTeamLocations.add(availableLocation)
           AvailabilityStatus.COURT_ROOM -> dedicatedCourtLocations.add(availableLocation)
           AvailabilityStatus.COURT_ANY -> anyCourtLocations.add(availableLocation)
