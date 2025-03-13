@@ -153,7 +153,7 @@ class LocationAttribute private constructor(
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.PROBATION -> when {
         allowedParties.isNullOrBlank() -> AvailabilityStatus.PROBATION_ANY
-        isPartyAllowed(probationTeam.code) -> AvailabilityStatus.PROBATION_TEAM
+        isPartyAllowed(probationTeam.code) -> AvailabilityStatus.PROBATION_ROOM
         else -> AvailabilityStatus.NONE
       }
 
@@ -173,7 +173,7 @@ class LocationAttribute private constructor(
       schedules.isEmpty() -> AvailabilityStatus.SHARED
       // If there are schedules fall on the date and time look and see if any match the following
       schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
-      schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) } -> AvailabilityStatus.PROBATION_TEAM
+      schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) } -> AvailabilityStatus.PROBATION_ROOM
       schedules.any { schedule -> schedule.isForAnyProbationTeam() } -> AvailabilityStatus.PROBATION_ANY
       // If there are no matches above then it is not available
       else -> AvailabilityStatus.NONE
@@ -255,7 +255,7 @@ enum class LocationUsage {
 }
 
 enum class AvailabilityStatus {
-  PROBATION_TEAM,
+  PROBATION_ROOM,
   PROBATION_ANY,
   COURT_ROOM,
   COURT_ANY,

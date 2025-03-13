@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppoi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 class PrisonApiMockServer : MockServer(8094) {
@@ -102,6 +103,45 @@ class PrisonApiMockServer : MockServer(8094) {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(mapper.writeValueAsString(emptyList<ScheduledAppointment>()))
+            .withStatus(200),
+        ),
+    )
+  }
+
+  fun stubGetScheduledAppointments(
+    prisonCode: String,
+    date: LocalDate,
+    locationIds: Collection<Long>,
+  ) {
+    stubFor(
+      WireMock.get("/api/schedules/$prisonCode/appointments?date=${date.toIsoDate()}")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              mapper.writeValueAsString(
+                buildList {
+                  locationIds.forEachIndexed { index, id ->
+                    add(
+                      ScheduledAppointment(
+                        agencyId = prisonCode,
+                        offenderNo = id.toString(),
+                        id = index.toLong(),
+                        locationId = id,
+                        locationDescription = "description-$id",
+                        appointmentTypeCode = "ABC",
+                        appointmentTypeDescription = "description",
+                        createUserId = "user id",
+                        startTime = LocalDateTime.now(),
+                        endTime = LocalDateTime.now(),
+                        firstName = "firstname-$index",
+                        lastName = "lastname-$index",
+                      ),
+                    )
+                  }
+                },
+              ),
+            )
             .withStatus(200),
         ),
     )

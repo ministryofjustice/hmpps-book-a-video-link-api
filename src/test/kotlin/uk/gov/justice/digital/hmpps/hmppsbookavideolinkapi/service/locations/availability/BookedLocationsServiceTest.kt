@@ -235,7 +235,7 @@ class BookedLocationsServiceTest {
           getScheduledAppointments(
             prisonCode = RISLEY,
             date = tomorrow(),
-            locationId = setOf(1, 2),
+            locationIds = setOf(1, 2),
           )
         } doReturn listOf(
           scheduledAppointment(
@@ -297,7 +297,7 @@ class BookedLocationsServiceTest {
           getScheduledAppointments(
             prisonCode = RISLEY,
             date = tomorrow(),
-            locationId = setOf(1, 2),
+            locationIds = setOf(1, 2),
           )
         } doReturn listOf(
           scheduledAppointment(
