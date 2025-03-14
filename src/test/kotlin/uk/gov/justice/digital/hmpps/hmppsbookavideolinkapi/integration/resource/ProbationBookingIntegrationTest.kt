@@ -130,7 +130,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
-    prisonerApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
+    prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
     activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
     val bookingId = webTestClient.createBooking(psrProbationBookingRequest, PROBATION_USER)
@@ -193,7 +193,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
-    prisonerApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
+    prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
     activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
     val bookingId = webTestClient.createBooking(rrProbationBookingRequest, PROBATION_USER)
@@ -312,7 +312,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     prisonSearchApi().stubGetPrisoner("654321", BIRMINGHAM)
     nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
-    prisonerApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
+    prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
     activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
     val bookingId = webTestClient.createBooking(otherProbationBookingRequest, PROBATION_USER)

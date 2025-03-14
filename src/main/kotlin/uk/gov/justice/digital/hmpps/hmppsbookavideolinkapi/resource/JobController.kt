@@ -43,5 +43,9 @@ class JobController(
     @Valid
     @RequestBody
     publishEventUtilityModel: PublishEventUtilityModel,
-  ) = publishEventUtilityModel.identifiers!!.forEach{ outboundEventsService.send(domainEventType, it) }
+  ): String {
+    publishEventUtilityModel.identifiers!!.forEach { outboundEventsService.send(domainEventType, it) }
+
+    return "Domain event ${domainEventType.name} published"
+  }
 }
