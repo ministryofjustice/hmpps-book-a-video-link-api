@@ -84,13 +84,13 @@ abstract class IntegrationTestBase {
     HmppsAuthApiExtension.server.stubHealthPing(status)
     locationsInsidePrisonApi().stubHealthPing(status)
     manageUsersApi().stubHealthPing(status)
-    prisonerApi().stubHealthPing(status)
+    prisonApi().stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
     nomisMappingApi().stubHealthPing(status)
   }
 
   protected fun activitiesAppointmentsApi() = ActivitiesAppointmentsApiExtension.server
-  protected fun prisonerApi() = PrisonApiExtension.server
+  protected fun prisonApi() = PrisonApiExtension.server
 
   protected fun prisonSearchApi() = PrisonerSearchApiExtension.server
 

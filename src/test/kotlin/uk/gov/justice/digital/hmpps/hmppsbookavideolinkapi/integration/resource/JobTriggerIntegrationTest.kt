@@ -2,11 +2,20 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.junit.jupiter.api.Assumptions.assumingThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisDpsLocationMapping
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
@@ -24,10 +33,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PublishEventUtilityModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType
 import java.nio.charset.StandardCharsets
 import java.time.DayOfWeek.FRIDAY
@@ -37,10 +48,20 @@ import java.time.DayOfWeek.THURSDAY
 import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalTime
+import java.util.*
 import kotlin.reflect.KClass
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
-class JobTriggerIntegrationTest : IntegrationTestBase() {
+class JobTriggerIntegrationTest : SqsIntegrationTestBase() {
+
+  @MockitoBean
+  private lateinit var activitiesAppointmentsClient: ActivitiesAppointmentsClient
+
+  @MockitoBean
+  private lateinit var prisonApiClient: PrisonApiClient
+
+  @MockitoBean
+  private lateinit var nomisMappingClient: NomisMappingClient
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
@@ -207,6 +228,41 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     notificationRepository.findAll().also { it hasSize 0 }
   }
 
+  @Test
+  @Sql("classpath:integration-test-data/seed-cancelled-booking-for-tomorrow.sql")
+  fun `should publish and process a VIDEO_BOOKING_CANCELLED domain event`() {
+    activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn false }
+    nomisMappingClient.stub {
+      on { getNomisLocationMappingBy(UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2")) } doReturn NomisDpsLocationMapping(
+        dpsLocationId = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"),
+        nomisLocationId = 99,
+      )
+    }
+    prisonApiClient.stub {
+      on { getPrisonersAppointmentsAtLocations(BIRMINGHAM, "78910", tomorrow(), 99) } doReturn listOf(
+        PrisonerSchedule(
+          offenderNo = "78910",
+          locationId = 99,
+          firstName = "Bob",
+          lastName = "Builder",
+          eventId = 99,
+          event = "VLB",
+          startTime = tomorrow().atTime(LocalTime.of(9, 0)),
+          endTime = tomorrow().atTime(LocalTime.of(10, 0)),
+        ),
+      )
+    }
+
+    notificationRepository.findAll() hasSize 0
+
+    webTestClient.publishDomainEvent(DomainEventType.VIDEO_BOOKING_CANCELLED, PublishEventUtilityModel(identifiers = setOf(4000L)))
+      .also { it isEqualTo "Domain event VIDEO_BOOKING_CANCELLED published" }
+
+    waitUntil {
+      verify(prisonApiClient).cancelAppointment(99)
+    }
+  }
+
   private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
     single { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
   }
@@ -219,6 +275,16 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType(MediaType.TEXT_PLAIN, StandardCharsets.UTF_8))
+    .expectBody(String::class.java)
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.publishDomainEvent(domainEventType: DomainEventType, request: PublishEventUtilityModel) = this
+    .post()
+    .uri("/job-admin/publish/${domainEventType.name}")
+    .bodyValue(request)
+    .accept(MediaType.TEXT_PLAIN)
+    .exchange()
+    .expectStatus().isOk
     .expectBody(String::class.java)
     .returnResult().responseBody!!
 }

@@ -95,7 +95,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     @Test
     fun `Prison - return court and probation bookings for the prison`() {
       nomisMappingApi().stubGetNomisLocationMappingBy(pentonvilleLocation, 1)
-      prisonerApi().stubGetScheduledAppointments(PENTONVILLE, tomorrow(), 1)
+      prisonApi().stubGetScheduledAppointments(PENTONVILLE, tomorrow(), 1)
       locationsInsidePrisonApi().stubGetLocationById(pentonvilleLocation)
 
       videoBookingRepository.findAll() hasSize 0
