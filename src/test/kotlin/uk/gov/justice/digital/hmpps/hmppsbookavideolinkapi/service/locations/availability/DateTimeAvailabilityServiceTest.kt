@@ -180,20 +180,20 @@ class DateTimeAvailabilityServiceTest {
       response.locations hasSize 2
 
       response.locations containsExactly listOf(
-        availableLocation(undecoratedLocation, time(9, 0), time(10, 0), LocationUsage.SHARED),
         availableLocation(decoratedProbationLocation, time(9, 0), time(10, 0), LocationUsage.PROBATION),
+        availableLocation(undecoratedLocation, time(9, 0), time(10, 0), LocationUsage.SHARED),
       )
     }
 
     @Test
-    fun `should include decorated probation team room and decorated probation room`() {
-      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation)
+    fun `should include ordered decorated probation team room, decorated probation room and shared room`() {
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation, undecoratedLocation)
       whenever(
         bookedLocationsService.findBooked(
           BookedLookup(
             WANDSWORTH,
             tomorrow(),
-            listOf(decoratedProbationLocation, decoratedProbationTeamLocation),
+            listOf(decoratedProbationLocation, decoratedProbationTeamLocation, undecoratedLocation),
           ),
         ),
       ) doReturn BookedLocations(emptyList())
@@ -212,11 +212,12 @@ class DateTimeAvailabilityServiceTest {
         ),
       )
 
-      response.locations hasSize 2
+      response.locations hasSize 3
 
       response.locations containsExactly listOf(
-        availableLocation(decoratedProbationLocation, time(9, 0), time(10, 0), LocationUsage.PROBATION),
         availableLocation(decoratedProbationTeamLocation, time(9, 0), time(10, 0), LocationUsage.PROBATION),
+        availableLocation(decoratedProbationLocation, time(9, 0), time(10, 0), LocationUsage.PROBATION),
+        availableLocation(undecoratedLocation, time(9, 0), time(10, 0), LocationUsage.SHARED),
       )
     }
 
@@ -283,8 +284,8 @@ class DateTimeAvailabilityServiceTest {
       response.locations hasSize 2
 
       response.locations containsExactly listOf(
-        availableLocation(undecoratedLocation, time(9, 0), time(10, 0), LocationUsage.SHARED),
         availableLocation(decoratedProbationTeamLocation, time(9, 0), time(10, 0), LocationUsage.PROBATION),
+        availableLocation(undecoratedLocation, time(9, 0), time(10, 0), LocationUsage.SHARED),
       )
     }
   }

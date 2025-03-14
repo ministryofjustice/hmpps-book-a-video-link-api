@@ -6,9 +6,12 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilityStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.DateTimeAvailabilityRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.time.LocalTime
 
@@ -38,14 +41,24 @@ class DateTimeAvailabilityService(
     val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode!!)
     val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date, prisonVideoLinkLocations, request.vlbIdToExclude))
 
-    val availableLocationsBuilder = AvailableLocationsBuilder.availableLocations {
+    val availableLocationsBuilder = DateTimeLocationsBuilder.builder {
       prisonVideoLinkLocations.forEach { location ->
         val meetingStartTime = request.startTime
         val meetingEndTime = request.endTime!!
 
         if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime)) {
-          val availabilityStatus = location.allowsByAnyRuleOrSchedule(request, meetingStartTime)
-          add(availabilityStatus, location, meetingStartTime, meetingEndTime)
+          add(
+            availabilityStatus = location.allowsByAnyRuleOrSchedule(request, meetingStartTime),
+            availableLocation = AvailableLocation(
+              name = location.description ?: location.key,
+              startTime = meetingStartTime,
+              endTime = meetingEndTime,
+              dpsLocationId = location.dpsLocationId,
+              dpsLocationKey = location.key,
+              usage = location.extraAttributes?.locationUsage?.let { LocationUsage.valueOf(it.name) } ?: LocationUsage.SHARED,
+              timeSlot = slot(meetingStartTime),
+            ),
+          )
         }
       }
     }
@@ -78,5 +91,33 @@ class DateTimeAvailabilityService(
     }
 
     return AvailabilityStatus.SHARED
+  }
+}
+
+class DateTimeLocationsBuilder private constructor() : LocationAvailabilityService.AvailableLocationBuilder() {
+  companion object {
+    fun builder(init: DateTimeLocationsBuilder.() -> Unit) = DateTimeLocationsBuilder().also { it.init() }
+  }
+
+  fun build() = run {
+    val probation = buildList {
+      addAll(dedicatedProbationTeamLocations.sortedBy { it.name })
+      addAll(anyProbationTeamLocations.sortedBy { it.name })
+    }
+
+    val court = buildList {
+      addAll(dedicatedCourtLocations.sortedBy { it.name })
+      addAll(anyCourtLocations.sortedBy { it.name })
+    }
+
+    if (probation.isNotEmpty() && court.isNotEmpty()) {
+      throw IllegalStateException("Cannot mix probation and court locations")
+    }
+
+    buildList {
+      addAll(probation)
+      addAll(court)
+      addAll(sharedLocations.sortedBy { it.name })
+    }
   }
 }
