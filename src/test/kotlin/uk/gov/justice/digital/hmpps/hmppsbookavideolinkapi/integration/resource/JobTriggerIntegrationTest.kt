@@ -255,7 +255,7 @@ class JobTriggerIntegrationTest : SqsIntegrationTestBase() {
 
     notificationRepository.findAll() hasSize 0
 
-    webTestClient.publishDomainEvent(DomainEventType.VIDEO_BOOKING_CANCELLED, PublishEventUtilityModel(identifiers = listOf(4000L)))
+    webTestClient.publishDomainEvent(DomainEventType.VIDEO_BOOKING_CANCELLED, PublishEventUtilityModel(identifiers = setOf(4000L)))
       .also { it isEqualTo "Domain event VIDEO_BOOKING_CANCELLED published" }
 
     waitUntil {

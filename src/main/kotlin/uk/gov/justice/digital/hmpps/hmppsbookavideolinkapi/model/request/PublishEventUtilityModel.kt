@@ -7,5 +7,5 @@ import jakarta.validation.constraints.NotEmpty
 data class PublishEventUtilityModel(
   @field:NotEmpty(message = "At least one identifier must be supplied")
   @Schema(description = "A list of entity identifiers to be published with the event", example = "[1,2]")
-  val identifiers: List<Long>?,
+  val identifiers: Set<Long>?,
 )
