@@ -229,7 +229,7 @@ class JobTriggerIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  @Sql("classpath:integration-test-data/seed-cancelled-booking-for-tomorrow.sql")
+  @Sql("classpath:test_data/clean-all-data.sql", "classpath:integration-test-data/seed-cancelled-booking-for-tomorrow.sql")
   fun `should publish and process a VIDEO_BOOKING_CANCELLED domain event`() {
     activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn false }
     nomisMappingClient.stub {
