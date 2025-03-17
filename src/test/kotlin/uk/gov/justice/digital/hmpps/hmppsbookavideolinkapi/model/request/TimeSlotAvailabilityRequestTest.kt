@@ -5,9 +5,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.TimeSlot
 import java.time.LocalDate
 
-class AvailableLocationsRequestTest : ValidatorBase<AvailableLocationsRequest>() {
+class TimeSlotAvailabilityRequestTest : ValidatorBase<TimeSlotAvailabilityRequest>() {
 
-  private val requestThirty = AvailableLocationsRequest(
+  private val requestThirty = TimeSlotAvailabilityRequest(
     prisonCode = "RSI",
     bookingType = BookingType.PROBATION,
     probationTeamCode = "probation_team_code",
