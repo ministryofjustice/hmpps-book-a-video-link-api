@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.locationAttributes
@@ -91,8 +92,7 @@ class VideoLinkBookingMappersTest {
       probationTeam(DERBY_JUSTICE_CENTRE),
       probationMeetingType = "PSR",
       comments = "some comments for the probation booking",
-      createdBy = "test",
-      createdByPrison = false,
+      createdBy = PROBATION_USER,
     )
 
     booking.toModel(locations = setOf(risleyLocation.toModel(locationAttributes().copy(prisonVideoUrl = "prob-video-url"))), probationMeetingTypeDescription = "meeting type description") isEqualTo VideoLinkBooking(
@@ -110,7 +110,7 @@ class VideoLinkBookingMappersTest {
       probationMeetingTypeDescription = "meeting type description",
       createdByPrison = false,
       videoLinkUrl = "prob-video-url",
-      createdBy = "test",
+      createdBy = PROBATION_USER.username,
       createdAt = booking.createdTime,
       comments = "some comments for the probation booking",
       amendedAt = null,

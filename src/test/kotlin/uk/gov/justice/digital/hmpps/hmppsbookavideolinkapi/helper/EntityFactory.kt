@@ -100,8 +100,7 @@ fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType
   probationTeam = probationTeam,
   probationMeetingType = meetingType.name,
   comments = "Probation meeting comments",
-  createdBy = "Probation team user",
-  createdByPrison = false,
+  createdBy = PROBATION_USER,
 )
 
 /**

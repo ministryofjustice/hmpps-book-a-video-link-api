@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -98,8 +99,7 @@ class VideoBookingTest {
         probationTeam = probationTeam("READ_ONLY", readOnly = true),
         probationMeetingType = "PSR",
         comments = null,
-        createdBy = "TEST",
-        createdByPrison = false,
+        createdBy = PROBATION_USER,
       )
     }.message isEqualTo "Probation team with code READ_ONLY is read only"
   }
@@ -111,8 +111,7 @@ class VideoBookingTest {
         probationTeam = probationTeam("NOT_READ_ONLY", readOnly = false),
         probationMeetingType = "PSR",
         comments = null,
-        createdBy = "TEST",
-        createdByPrison = false,
+        createdBy = PROBATION_USER,
       )
     }
   }

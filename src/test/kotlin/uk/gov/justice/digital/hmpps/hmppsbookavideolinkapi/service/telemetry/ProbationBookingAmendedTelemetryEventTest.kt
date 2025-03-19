@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -29,8 +30,7 @@ class ProbationBookingAmendedTelemetryEventTest {
     val booking = VideoBooking.newProbationBooking(
       probationTeam = probationTeam(BLACKPOOL_MC_PPOC),
       probationMeetingType = "PSR",
-      createdBy = "probation_user",
-      createdByPrison = false,
+      createdBy = PROBATION_USER,
       comments = null,
     ).addAppointment(
       prison = prison(BIRMINGHAM),
@@ -72,8 +72,7 @@ class ProbationBookingAmendedTelemetryEventTest {
     val booking = VideoBooking.newProbationBooking(
       probationTeam = probationTeam(BLACKPOOL_MC_PPOC),
       probationMeetingType = "PSR",
-      createdBy = "probation_user",
-      createdByPrison = false,
+      createdBy = PROBATION_USER,
       comments = null,
     ).addAppointment(
       prison = prison(BIRMINGHAM),

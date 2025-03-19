@@ -476,7 +476,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasComments("psr integration test probation booking comments")
       .hasCreatedBy(PRISON_USER_BIRMINGHAM)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
-      .hasCreatedByPrison(false)
+      .hasCreatedByPrison(true)
       .also { it.probationTeam?.code isEqualTo TEAM_NOT_LISTED }
 
     prisonAppointmentRepository

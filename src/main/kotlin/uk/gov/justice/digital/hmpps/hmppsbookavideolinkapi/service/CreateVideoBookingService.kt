@@ -82,8 +82,7 @@ class CreateVideoBookingService(
       probationTeam = probationTeam,
       probationMeetingType = request.probationMeetingType!!.name,
       comments = request.comments,
-      createdBy = createdBy.username,
-      createdByPrison = false,
+      createdBy = createdBy,
     )
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), createdBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
