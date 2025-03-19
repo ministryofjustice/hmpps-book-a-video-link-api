@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
@@ -28,8 +29,7 @@ class CourtBookingCancelledTelemetryEventTest {
   private val booking = VideoBooking.newCourtBooking(
     court = court(DERBY_JUSTICE_CENTRE),
     hearingType = "APPEAL",
-    createdBy = "court_user",
-    createdByPrison = false,
+    createdBy = COURT_USER,
     comments = null,
     videoUrl = "http://booking.created.url",
   ).addAppointment(

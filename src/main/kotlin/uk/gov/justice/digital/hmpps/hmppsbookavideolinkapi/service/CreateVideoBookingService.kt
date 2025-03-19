@@ -58,8 +58,7 @@ class CreateVideoBookingService(
       hearingType = request.courtHearingType!!.name,
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
-      createdBy = createdBy.username,
-      createdByPrison = createdBy is PrisonUser,
+      createdBy = createdBy,
     )
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }

@@ -146,13 +146,13 @@ class VideoBooking private constructor(
   fun probationMeeting(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_PROBATION" }
 
   companion object {
+
     fun newCourtBooking(
       court: Court,
       hearingType: String,
       comments: String?,
       videoUrl: String?,
-      createdBy: String,
-      createdByPrison: Boolean,
+      createdBy: User,
     ): VideoBooking = VideoBooking(
       bookingType = BookingType.COURT,
       court = court,
@@ -161,8 +161,8 @@ class VideoBooking private constructor(
       probationMeetingType = null,
       comments = comments,
       videoUrl = videoUrl,
-      createdBy = createdBy,
-      createdByPrison = createdByPrison,
+      createdBy = createdBy.username,
+      createdByPrison = createdBy is PrisonUser,
     )
 
     fun newProbationBooking(
