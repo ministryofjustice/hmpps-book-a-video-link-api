@@ -277,20 +277,6 @@ class CreateProbationBookingServiceTest {
   }
 
   @Test
-  fun `should fail to create a probation video booking when team not enabled for probation user`() {
-    val probationBookingRequest = probationBookingRequest()
-    val disabledProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!, false)
-
-    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn disabledProbationTeam
-
-    val error = assertThrows<IllegalArgumentException> { service.create(probationBookingRequest, PROBATION_USER) }
-
-    error.message isEqualTo "Probation team with code ${probationBookingRequest.probationTeamCode} is not enabled"
-
-    verifyNoInteractions(videoBookingRepository)
-  }
-
-  @Test
   fun `should fail to create a probation video booking when appointment type not probation specific for probation user`() {
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"

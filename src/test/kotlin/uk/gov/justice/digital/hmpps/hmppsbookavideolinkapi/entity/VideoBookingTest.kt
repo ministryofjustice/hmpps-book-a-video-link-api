@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -9,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalDateTime.now
@@ -87,5 +89,31 @@ class VideoBookingTest {
   @Test
   fun `should not be a migrated booking`() {
     booking.isMigrated() isBool false
+  }
+
+  @Test
+  fun `should reject new booking if probation team is read only`() {
+    assertThrows<IllegalArgumentException> {
+      VideoBooking.newProbationBooking(
+        probationTeam = probationTeam("READ_ONLY", readOnly = true),
+        probationMeetingType = "PSR",
+        comments = null,
+        createdBy = "TEST",
+        createdByPrison = false,
+      )
+    }.message isEqualTo "Probation team with code READ_ONLY is read only"
+  }
+
+  @Test
+  fun `should accept new booking if probation team is not read only`() {
+    assertDoesNotThrow {
+      VideoBooking.newProbationBooking(
+        probationTeam = probationTeam("NOT_READ_ONLY", readOnly = false),
+        probationMeetingType = "PSR",
+        comments = null,
+        createdBy = "TEST",
+        createdByPrison = false,
+      )
+    }
   }
 }

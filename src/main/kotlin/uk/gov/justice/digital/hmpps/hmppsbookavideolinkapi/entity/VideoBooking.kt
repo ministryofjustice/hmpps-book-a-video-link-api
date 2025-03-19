@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -173,7 +174,7 @@ class VideoBooking private constructor(
       bookingType = BookingType.PROBATION,
       court = null,
       hearingType = null,
-      probationTeam = probationTeam,
+      probationTeam = probationTeam.also { requireNot(probationTeam.readOnly) { "Probation team with code ${it.code} is read only" } },
       probationMeetingType = probationMeetingType,
       comments = comments,
       videoUrl = null,

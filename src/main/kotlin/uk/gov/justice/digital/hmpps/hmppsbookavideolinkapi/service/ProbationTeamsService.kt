@@ -19,10 +19,10 @@ class ProbationTeamsService(
 ) {
   @Cacheable(CacheConfiguration.PROBATION_TEAMS_CACHE)
   fun getProbationTeams(enabledOnly: Boolean) = if (enabledOnly) {
-    probationTeamRepository.findAllByEnabledIsTrue().toModel()
+    probationTeamRepository.findAllByEnabledIsTrue()
   } else {
-    probationTeamRepository.findAll().filter(ProbationTeam::isReadable).toModel()
-  }
+    probationTeamRepository.findAll().filter(ProbationTeam::isReadable)
+  }.sortedWith(compareBy({ !it.enabled }, { it.description })).toModel()
 
   fun getUserProbationTeamPreferences(user: User) = probationTeamRepository.findProbationTeamsByUsername(user.username).toModel()
 

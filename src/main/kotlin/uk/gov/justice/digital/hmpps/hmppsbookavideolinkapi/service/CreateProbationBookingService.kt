@@ -18,8 +18,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
 
-private const val MEETING_TYPE_OTHER = "OTHER"
-
 @Service
 class CreateProbationBookingService(
   private val probationTeamRepository: ProbationTeamRepository,
@@ -45,7 +43,6 @@ class CreateProbationBookingService(
     }
 
     val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
-      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
       ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
 
     val prisoner = request.prisoner().validate()
