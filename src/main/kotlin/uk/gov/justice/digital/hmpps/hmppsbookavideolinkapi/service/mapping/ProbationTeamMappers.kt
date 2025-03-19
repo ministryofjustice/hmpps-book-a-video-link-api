@@ -11,4 +11,4 @@ fun ProbationTeamEntity.toModel() = ProbationTeam(
   notes = notes,
 )
 
-fun List<ProbationTeamEntity>.toModel() = map { it.toModel() }.sortedBy { it.description }
+fun List<ProbationTeamEntity>.toModel() = map { it.toModel() }

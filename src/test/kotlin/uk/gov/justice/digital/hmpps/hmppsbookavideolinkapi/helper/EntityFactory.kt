@@ -57,11 +57,12 @@ fun prison(prisonCode: String = BIRMINGHAM, enabled: Boolean = true) = Prison(
   createdBy = "Test",
 )
 
-fun probationTeam(code: String = "BLKPPP", enabled: Boolean = true) = ProbationTeam(
+fun probationTeam(code: String = "BLKPPP", enabled: Boolean = true, readOnly: Boolean = false) = ProbationTeam(
   probationTeamId = 0,
   code = code,
   description = "probation team description",
   enabled = enabled,
+  readOnly = readOnly,
   notes = null,
   createdBy = "Test",
 )
