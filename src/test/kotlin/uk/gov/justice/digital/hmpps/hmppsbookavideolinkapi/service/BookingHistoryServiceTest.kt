@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -104,7 +105,7 @@ class BookingHistoryServiceTest {
       probationMeetingType isEqualTo probationBooking.probationMeetingType
       comments isEqualTo "Probation meeting comments"
       videoUrl isEqualTo probationBooking.videoUrl
-      createdBy isEqualTo "Probation team user"
+      createdBy isEqualTo PROBATION_USER.username
       createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
       with(appointments().first()) {

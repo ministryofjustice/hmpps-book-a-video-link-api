@@ -14,6 +14,7 @@ import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -168,8 +169,7 @@ class VideoBooking private constructor(
       probationTeam: ProbationTeam,
       probationMeetingType: String,
       comments: String?,
-      createdBy: String,
-      createdByPrison: Boolean,
+      createdBy: User,
     ): VideoBooking = VideoBooking(
       bookingType = BookingType.PROBATION,
       court = null,
@@ -178,8 +178,8 @@ class VideoBooking private constructor(
       probationMeetingType = probationMeetingType,
       comments = comments,
       videoUrl = null,
-      createdBy = createdBy,
-      createdByPrison = createdByPrison,
+      createdBy = createdBy.username,
+      createdByPrison = createdBy is PrisonUser,
     )
   }
 }
