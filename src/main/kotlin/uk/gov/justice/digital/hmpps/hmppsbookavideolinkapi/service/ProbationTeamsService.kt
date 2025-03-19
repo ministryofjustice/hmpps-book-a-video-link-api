@@ -22,7 +22,12 @@ class ProbationTeamsService(
     probationTeamRepository.findAllByEnabledIsTrue()
   } else {
     probationTeamRepository.findAll().filter(ProbationTeam::isReadable)
-  }.sortedWith(compareBy({ !it.enabled }, { it.description })).toModel()
+  }.orderedByEnabledAndDescription().toModel()
+
+  /**
+   * This means disabled teams will show ordered by description at the bottom of the list.
+   */
+  private fun List<ProbationTeam>.orderedByEnabledAndDescription() = sortedWith(compareBy({ !it.enabled }, { it.description }))
 
   fun getUserProbationTeamPreferences(user: User) = probationTeamRepository.findProbationTeamsByUsername(user.username).toModel()
 

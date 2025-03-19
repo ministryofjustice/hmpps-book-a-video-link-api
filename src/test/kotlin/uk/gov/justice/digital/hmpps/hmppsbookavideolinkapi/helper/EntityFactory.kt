@@ -72,8 +72,7 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
   hearingType = "TRIBUNAL",
   comments = "Court hearing comments",
   videoUrl = "https://court.hearing.link",
-  createdBy = createdBy,
-  createdByPrison = createdByPrison,
+  createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
 )
 
 /**

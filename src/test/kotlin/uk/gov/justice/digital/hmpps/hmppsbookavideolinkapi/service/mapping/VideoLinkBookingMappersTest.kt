@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
@@ -25,8 +26,7 @@ class VideoLinkBookingMappersTest {
       CourtHearingType.TRIBUNAL.name,
       comments = "some comments for the court booking",
       videoUrl = null,
-      createdBy = "test",
-      createdByPrison = false,
+      createdBy = COURT_USER,
     )
 
     booking.toModel(locations = setOf(risleyLocation.toModel(locationAttributes().copy(prisonVideoUrl = "prob-video-url"))), courtHearingTypeDescription = "hearing type description") isEqualTo VideoLinkBooking(
@@ -44,7 +44,7 @@ class VideoLinkBookingMappersTest {
       probationMeetingTypeDescription = null,
       createdByPrison = false,
       videoLinkUrl = null,
-      createdBy = "test",
+      createdBy = COURT_USER.username,
       createdAt = booking.createdTime,
       comments = "some comments for the court booking",
       amendedAt = null,
@@ -59,8 +59,7 @@ class VideoLinkBookingMappersTest {
       CourtHearingType.TRIBUNAL.name,
       comments = "some comments for the court booking",
       videoUrl = "court-video-url",
-      createdBy = "test",
-      createdByPrison = false,
+      createdBy = COURT_USER,
     )
 
     booking.toModel(locations = setOf(risleyLocation.toModel(locationAttributes().copy(prisonVideoUrl = "prob-video-url"))), courtHearingTypeDescription = "hearing type description") isEqualTo VideoLinkBooking(
@@ -78,7 +77,7 @@ class VideoLinkBookingMappersTest {
       probationMeetingTypeDescription = null,
       createdByPrison = false,
       videoLinkUrl = "court-video-url",
-      createdBy = "test",
+      createdBy = COURT_USER.username,
       createdAt = booking.createdTime,
       comments = "some comments for the court booking",
       amendedAt = null,
