@@ -26,6 +26,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /utility/ {
+          deny all;
+          return 401;
+        }
 
   # Used to access resources like SQS queues and SNS topics
   serviceAccountName: hmpps-book-a-video-link
