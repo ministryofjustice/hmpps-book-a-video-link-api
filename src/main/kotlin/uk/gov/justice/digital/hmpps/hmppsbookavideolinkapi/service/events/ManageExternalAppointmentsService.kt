@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.appointmentCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameAppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
@@ -33,6 +34,9 @@ class ManageExternalAppointmentsService(
   private val nomisMappingClient: NomisMappingClient,
   private val supportedAppointmentTypes: SupportedAppointmentTypes,
 ) {
+  private val activitiesAndAppointmentsMatcher = ActivitiesAndAppointmentsMatcher(activitiesAppointmentsClient, supportedAppointmentTypes)
+  private val nomisMatcher = NomisMatcher(prisonApiClient, supportedAppointmentTypes)
+
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -49,12 +53,7 @@ class ManageExternalAppointmentsService(
 
           // Attempt to check that an appointment does not already exist before creating.
           // This is here because we have seen network timeouts even though the transaction has completed in the external API.
-          activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-            prisonCode = appointment.prisonCode(),
-            prisonerNumber = appointment.prisonerNumber,
-            onDate = appointment.appointmentDate,
-            internalLocationId,
-          ).findMatchingAppointments(appointment).ifEmpty {
+          activitiesAndAppointmentsMatcher.findMatchingAppointments(appointment, internalLocationId).ifEmpty {
             // Only create if no existing matches found
             activitiesAppointmentsClient.createAppointment(
               prisonCode = appointment.prisonCode(),
@@ -76,12 +75,7 @@ class ManageExternalAppointmentsService(
 
           // Attempt to check if an appointment does not already exist before creating.
           // This is here because we have seen network timeouts even though the transaction has completed in the external API.
-          prisonApiClient.getPrisonersAppointmentsAtLocations(
-            prisonCode = appointment.prisonCode(),
-            prisonerNumber = appointment.prisonerNumber,
-            onDate = appointment.appointmentDate,
-            internalLocationId,
-          ).findMatchingPrisonApi(appointment).ifEmpty {
+          nomisMatcher.findMatchingAppointments(appointment, internalLocationId).ifEmpty {
             // Only create if no existing matches found
             prisonApiClient.createAppointment(
               bookingId = appointment.bookingId(),
@@ -111,29 +105,21 @@ class ManageExternalAppointmentsService(
     prisonAppointmentRepository.findById(prisonAppointmentId).ifPresentOrElse(
       { appointment ->
         if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(appointment.prisonCode())) {
-          activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-            prisonCode = appointment.prisonCode(),
-            prisonerNumber = appointment.prisonerNumber,
-            onDate = appointment.appointmentDate,
-            appointment.internalLocationId(),
-          ).findMatchingAppointments(appointment)
-            .forEach { matchingAppointment ->
-              log.info("EXTERNAL APPOINTMENTS: soft deleting video booking appointment $appointment from activities and appointments")
-              activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId)
-              log.info("EXTERNAL APPOINTMENTS: soft deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
-            }
+          val matchingAppointmentIds = activitiesAndAppointmentsMatcher.findMatchingAppointments(appointment, appointment.internalLocationId())
+
+          matchingAppointmentIds.forEach { matchingAppointment ->
+            log.info("EXTERNAL APPOINTMENTS: soft deleting video booking appointment $appointment from activities and appointments")
+            activitiesAppointmentsClient.cancelAppointment(matchingAppointment)
+            log.info("EXTERNAL APPOINTMENTS: soft deleted matching appointment $matchingAppointment from activities and appointments")
+          }
         } else {
-          prisonApiClient.getPrisonersAppointmentsAtLocations(
-            prisonCode = appointment.prisonCode(),
-            prisonerNumber = appointment.prisonerNumber,
-            onDate = appointment.appointmentDate,
-            appointment.internalLocationId(),
-          ).findMatchingPrisonApi(appointment)
-            .forEach { matchingAppointment ->
-              log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from prison-api")
-              prisonApiClient.cancelAppointment(matchingAppointment.eventId)
-              log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.eventId} from prison-api")
-            }
+          val matchingAppointmentIds = nomisMatcher.findMatchingAppointments(appointment, appointment.internalLocationId())
+
+          matchingAppointmentIds.forEach { matchingAppointment ->
+            log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $appointment from prison-api")
+            prisonApiClient.cancelAppointment(matchingAppointment)
+            log.info("EXTERNAL APPOINTMENTS: deleted matching appointment $matchingAppointment from prison-api")
+          }
         }
       },
       {
@@ -148,56 +134,22 @@ class ManageExternalAppointmentsService(
     log.info("EXTERNAL APPOINTMENTS: deleting previous appointment for booking history appointment ID ${bha.bookingHistoryAppointmentId}")
 
     if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(bha.prisonCode)) {
-      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-        prisonCode = bha.prisonCode,
-        prisonerNumber = bha.prisonerNumber,
-        onDate = bha.appointmentDate,
-        bha.internalLocationId(),
-      ).findMatchingAppointments(bha).forEach { matchingAppointment ->
+      val matchingAppointmentIds = activitiesAndAppointmentsMatcher.findMatchingAppointments(bha, bha.internalLocationId())
+
+      matchingAppointmentIds.forEach { matchingAppointmentId ->
         log.info("EXTERNAL APPOINTMENTS: hard deleting video booking appointment $bha from activities and appointments")
-        activitiesAppointmentsClient.cancelAppointment(matchingAppointment.appointmentId, deleteOnCancel = true)
-        log.info("EXTERNAL APPOINTMENTS: hard deleted matching appointment ${matchingAppointment.appointmentId} from activities and appointments")
+        activitiesAppointmentsClient.cancelAppointment(matchingAppointmentId, deleteOnCancel = true)
+        log.info("EXTERNAL APPOINTMENTS: hard deleted matching appointment $matchingAppointmentId from activities and appointments")
       }
     } else {
-      prisonApiClient.getPrisonersAppointmentsAtLocations(
-        prisonCode = bha.prisonCode,
-        prisonerNumber = bha.prisonerNumber,
-        onDate = bha.appointmentDate,
-        bha.internalLocationId(),
-      ).findMatchingPrisonApi(bha).forEach { matchingAppointment ->
+      val matchingAppointmentIds = nomisMatcher.findMatchingAppointments(bha, bha.internalLocationId())
+
+      matchingAppointmentIds.forEach { matchingAppointmentId ->
         log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $bha from prison-api")
-        prisonApiClient.cancelAppointment(matchingAppointment.eventId)
-        log.info("EXTERNAL APPOINTMENTS: deleted matching appointment ${matchingAppointment.eventId} from prison-api")
+        prisonApiClient.cancelAppointment(matchingAppointmentId)
+        log.info("EXTERNAL APPOINTMENTS: deleted matching appointment $matchingAppointmentId from prison-api")
       }
     }
-  }
-
-  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> = filter { searchResult ->
-    searchResult.isTheSameTime(appointment) && searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment.bookingType())) && searchResult.isCancelled.not()
-  }.ifEmpty {
-    emptyList<AppointmentSearchResult>()
-      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
-  }
-
-  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(bha: BookingHistoryAppointment): List<AppointmentSearchResult> = filter { searchResult ->
-    searchResult.isTheSameTime(bha) && searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha.bookingType())) && searchResult.isCancelled.not()
-  }.ifEmpty {
-    emptyList<AppointmentSearchResult>()
-      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for booking history appointment ${bha.bookingHistoryAppointmentId}") }
-  }
-
-  private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(appointment: PrisonAppointment): List<PrisonerSchedule> = filter { schedule ->
-    schedule.isTheSameTime(appointment) && schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment.bookingType()))
-  }.ifEmpty {
-    emptyList<PrisonerSchedule>()
-      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
-  }
-
-  private fun Collection<PrisonerSchedule>.findMatchingPrisonApi(bha: BookingHistoryAppointment): List<PrisonerSchedule> = filter { schedule ->
-    schedule.isTheSameTime(bha) && schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha.bookingType()))
-  }.ifEmpty {
-    emptyList<PrisonerSchedule>()
-      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
   }
 
   // This should never happen but if it ever happens we are throwing NPE with a bit more context to it!
@@ -210,4 +162,92 @@ class ManageExternalAppointmentsService(
 
   private fun BookingHistoryAppointment.internalLocationId() = nomisMappingClient.getNomisLocationMappingBy(prisonLocationId)?.nomisLocationId
     ?: throw NullPointerException("EXTERNAL APPOINTMENTS: Internal location id for key $prisonLocationId not found for prison appointment ${bookingHistoryAppointmentId}Id")
+}
+
+private class NomisMatcher(
+  private val prisonApiClient: PrisonApiClient,
+  private val supportedAppointmentTypes: SupportedAppointmentTypes,
+) {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
+  fun findMatchingAppointments(appointment: PrisonAppointment, internalLocationId: Long): Collection<Long> = run {
+    prisonApiClient.getPrisonersAppointmentsAtLocations(
+      prisonCode = appointment.prisonCode(),
+      prisonerNumber = appointment.prisonerNumber,
+      onDate = appointment.appointmentDate,
+      internalLocationId,
+    ).findMatching(appointment).map { it.eventId }
+  }
+
+  fun findMatchingAppointments(appointment: BookingHistoryAppointment, internalLocationId: Long): Collection<Long> = run {
+    prisonApiClient.getPrisonersAppointmentsAtLocations(
+      prisonCode = appointment.prisonCode,
+      prisonerNumber = appointment.prisonerNumber,
+      onDate = appointment.appointmentDate,
+      internalLocationId,
+    ).findMatching(appointment).map { it.eventId }
+  }
+
+  private fun Collection<PrisonerSchedule>.findMatching(appointment: PrisonAppointment): List<PrisonerSchedule> = filter { schedule ->
+    schedule.isTheSameTime(appointment) &&
+      (schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment.bookingType())) || supportedAppointmentTypes.isSupported(schedule.appointmentCode()))
+  }.ifEmpty {
+    emptyList<PrisonerSchedule>()
+      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for prison appointment ${appointment.prisonAppointmentId}") }
+  }
+
+  private fun Collection<PrisonerSchedule>.findMatching(bha: BookingHistoryAppointment): List<PrisonerSchedule> = filter { schedule ->
+    schedule.isTheSameTime(bha) &&
+      (schedule.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha.bookingType())) || supportedAppointmentTypes.isSupported(schedule.appointmentCode()))
+  }.ifEmpty {
+    emptyList<PrisonerSchedule>()
+      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in prison-api for booking history appointment ${bha.bookingHistoryAppointmentId}") }
+  }
+}
+
+private class ActivitiesAndAppointmentsMatcher(
+  private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
+  private val supportedAppointmentTypes: SupportedAppointmentTypes,
+) {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
+  fun findMatchingAppointments(appointment: PrisonAppointment, internalLocationId: Long): Collection<Long> = run {
+    activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+      prisonCode = appointment.prisonCode(),
+      prisonerNumber = appointment.prisonerNumber,
+      onDate = appointment.appointmentDate,
+      internalLocationId,
+    ).findMatchingAppointments(appointment).map { it.appointmentId }
+  }
+
+  fun findMatchingAppointments(appointment: BookingHistoryAppointment, internalLocationId: Long): Collection<Long> = run {
+    activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+      prisonCode = appointment.prisonCode,
+      prisonerNumber = appointment.prisonerNumber,
+      onDate = appointment.appointmentDate,
+      internalLocationId,
+    ).findMatchingAppointments(appointment).map { it.appointmentId }
+  }
+
+  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(appointment: PrisonAppointment): List<AppointmentSearchResult> = filter { searchResult ->
+    searchResult.isTheSameTime(appointment) &&
+      (searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(appointment.bookingType())) || supportedAppointmentTypes.isSupported(searchResult.appointmentCode())) &&
+      searchResult.isCancelled.not()
+  }.ifEmpty {
+    emptyList<AppointmentSearchResult>()
+      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for prison appointment ${appointment.prisonAppointmentId}") }
+  }
+
+  private fun Collection<AppointmentSearchResult>.findMatchingAppointments(bha: BookingHistoryAppointment): List<AppointmentSearchResult> = filter { searchResult ->
+    searchResult.isTheSameTime(bha) &&
+      (searchResult.isTheSameAppointmentType(supportedAppointmentTypes.typeOf(bha.bookingType())) || supportedAppointmentTypes.isSupported(searchResult.appointmentCode())) &&
+      searchResult.isCancelled.not()
+  }.ifEmpty {
+    emptyList<AppointmentSearchResult>()
+      .also { log.info("EXTERNAL APPOINTMENTS: no matching appointments found in A&A for booking history appointment ${bha.bookingHistoryAppointmentId}") }
+  }
 }

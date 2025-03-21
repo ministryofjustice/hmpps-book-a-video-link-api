@@ -140,6 +140,8 @@ data class PrisonerSchedule(
 ) {
   fun isTheSameAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = event == appointmentType.code
 
+  fun appointmentCode() = event
+
   fun isTheSameTime(appointment: PrisonAppointment) = startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
     appointment.appointmentDate.atTime(appointment.endTime) == endTime
 
