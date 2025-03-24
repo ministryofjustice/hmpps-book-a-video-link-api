@@ -30,6 +30,10 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
 
+private const val VLB = "VLB"
+private const val VLOO = "VLOO"
+private const val VLPM = "VLPM"
+
 class ActivitiesAndAppointmentsServiceTest {
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val nomisMappingService: NomisMappingService = mock()
@@ -39,7 +43,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
   private val birminghamLocation = Location(
     locationId = 123456,
-    locationType = "VLB",
+    locationType = VLB,
     "VIDEO LINK",
     BIRMINGHAM,
   )
@@ -166,8 +170,8 @@ class ActivitiesAndAppointmentsServiceTest {
   @DisplayName("Matching appointments")
   inner class MatchingAppointments {
     @Test
-    fun `should find matching VLB appointment`() {
-      val matchingAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, "VLB")
+    fun `should find matching court VLB appointment when not supported VLPM appointment type`() {
+      val matchingAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, VLB)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
@@ -180,12 +184,90 @@ class ActivitiesAndAppointmentsServiceTest {
 
       whenever(nomisMappingService.getNomisLocationId(courtAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
 
-      service.findMatchingAppointments(courtAppointment).containsExactly(listOf(matchingAppointment.appointmentId))
+      service.findMatchingAppointments(courtAppointment) containsExactly listOf(matchingAppointment.appointmentId)
+    }
+
+    @Test
+    fun `should find matching court VLB appointment when supported VLPM appointment type`() {
+      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
+
+      val matchingAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, VLB)
+
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+          prisonCode = courtAppointment.prisonCode(),
+          prisonerNumber = courtAppointment.prisonerNumber,
+          onDate = courtAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(matchingAppointment)
+
+      whenever(nomisMappingService.getNomisLocationId(courtAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
+
+      service.findMatchingAppointments(courtAppointment) containsExactly listOf(matchingAppointment.appointmentId)
+    }
+
+    @Test
+    fun `should find matching probation VLB appointment when not supported VLPM appointment type`() {
+      val matchingAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLB)
+
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+          prisonCode = probationAppointment.prisonCode(),
+          prisonerNumber = probationAppointment.prisonerNumber,
+          onDate = probationAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(matchingAppointment)
+
+      whenever(nomisMappingService.getNomisLocationId(probationAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
+
+      service.findMatchingAppointments(probationAppointment) containsExactly listOf(matchingAppointment.appointmentId)
+    }
+
+    @Test
+    fun `should find matching probation VLB appointment when supported VLPM appointment type`() {
+      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
+
+      val matchingAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLB)
+
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+          prisonCode = probationAppointment.prisonCode(),
+          prisonerNumber = probationAppointment.prisonerNumber,
+          onDate = probationAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(matchingAppointment)
+
+      whenever(nomisMappingService.getNomisLocationId(probationAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
+
+      service.findMatchingAppointments(probationAppointment) containsExactly listOf(matchingAppointment.appointmentId)
+    }
+
+    @Test
+    fun `should find matching VLPM appointment when supported VLPM appointment type`() {
+      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
+
+      val matchingAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLPM)
+
+      whenever(
+        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+          prisonCode = probationAppointment.prisonCode(),
+          prisonerNumber = probationAppointment.prisonerNumber,
+          onDate = probationAppointment.appointmentDate,
+          birminghamLocation.locationId,
+        ),
+      ) doReturn listOf(matchingAppointment)
+
+      whenever(nomisMappingService.getNomisLocationId(probationAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
+
+      service.findMatchingAppointments(probationAppointment) containsExactly listOf(matchingAppointment.appointmentId)
     }
 
     @Test
     fun `should not find matching appointment when already cancelled`() {
-      val cancelledAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, "VLB").copy(isCancelled = true)
+      val cancelledAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, VLB).copy(isCancelled = true)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
@@ -203,7 +285,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should not find matching appointment when times do not match`() {
-      val differentEndTimeAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, "VLB").copy(endTime = courtAppointment.endTime.plusHours(1).toHourMinuteStyle())
+      val differentEndTimeAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, VLB).copy(endTime = courtAppointment.endTime.plusHours(1).toHourMinuteStyle())
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
@@ -221,7 +303,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should not find matching appointment when unsupported VLOO appointment type`() {
-      val vlooAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, "VLOO")
+      val vlooAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, VLOO)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
@@ -238,10 +320,10 @@ class ActivitiesAndAppointmentsServiceTest {
     }
 
     @Test
-    fun `should not find matching appointment when supported VLMP appointment type`() {
+    fun `should not find matching appointment when supported VLPM appointment type`() {
       whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
 
-      val vlpmAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, "VLPM")
+      val vlpmAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLPM)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
@@ -258,10 +340,10 @@ class ActivitiesAndAppointmentsServiceTest {
     }
 
     @Test
-    fun `should not find matching appointment when unsupported VLMP appointment type`() {
+    fun `should not find matching appointment when unsupported VLPM appointment type`() {
       whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn false
 
-      val vlpmAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, "VLPM")
+      val vlpmAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLPM)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
