@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
@@ -14,13 +15,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPrison
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
 class LocationAttributesTest {
   @Test
-  fun `should reject location attributes with a schedule if the location usage is not SCHEDULE`() {
+  fun `should accept location attributes with a schedule if the location usage is not SCHEDULE`() {
     val roomAttributes = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
       prison = pentonvillePrison,
@@ -32,22 +34,18 @@ class LocationAttributesTest {
       createdBy = COURT_USER,
     )
 
-    val exception = assertThrows<IllegalArgumentException> {
-      mutableListOf(
-        LocationSchedule.newSchedule(
-          startDayOfWeek = DayOfWeek.MONDAY.value,
-          endDayOfWeek = DayOfWeek.SUNDAY.value,
-          startTime = LocalTime.of(1, 0),
-          endTime = LocalTime.of(23, 0),
-          locationUsage = LocationScheduleUsage.COURT,
-          allowedParties = emptySet(),
-          createdBy = COURT_USER,
-          locationAttribute = roomAttributes,
-        ),
+    assertDoesNotThrow {
+      LocationSchedule.newSchedule(
+        startDayOfWeek = DayOfWeek.MONDAY.value,
+        endDayOfWeek = DayOfWeek.SUNDAY.value,
+        startTime = LocalTime.of(1, 0),
+        endTime = LocalTime.of(23, 0),
+        locationUsage = LocationScheduleUsage.COURT,
+        allowedParties = emptySet(),
+        createdBy = COURT_USER,
+        locationAttribute = roomAttributes,
       )
     }
-
-    exception.message isEqualTo "The location usage type must be SCHEDULE for a list of schedule rows to be associated with it."
   }
 
   @Test
@@ -393,6 +391,33 @@ class LocationAttributesTest {
       )
 
       roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT_ANY
+    }
+
+    @Test
+    fun `should be COURT ANY for active court room attribute with probation only schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationUsage = LocationUsage.COURT,
+        locationStatus = LocationStatus.ACTIVE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        addSchedule(
+          LocationScheduleUsage.PROBATION,
+          startDayOfWeek = 1,
+          endDayOfWeek = 7,
+          startTime = LocalTime.of(8, 0),
+          endTime = LocalTime.of(18, 0),
+          allowedParties = emptySet(),
+          notes = null,
+          createdBy = COURT_USER,
+        )
+      }
+
+      roomAttributes.isAvailableFor(court(), LocalDate.now().atTime(12, 0)) isEqualTo AvailabilityStatus.COURT_ANY
     }
 
     @Test

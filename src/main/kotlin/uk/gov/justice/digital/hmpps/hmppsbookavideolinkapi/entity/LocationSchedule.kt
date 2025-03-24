@@ -54,12 +54,6 @@ class LocationSchedule private constructor(
   var notes: String? = null
     private set
 
-  init {
-    require(locationAttribute.locationUsage == LocationUsage.SCHEDULE) {
-      "The location usage type must be SCHEDULE for a list of schedule rows to be associated with it."
-    }
-  }
-
   var amendedBy: String? = null
     private set
 
