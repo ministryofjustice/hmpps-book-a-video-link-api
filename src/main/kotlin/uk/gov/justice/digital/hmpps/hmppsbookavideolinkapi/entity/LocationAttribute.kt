@@ -87,6 +87,10 @@ class LocationAttribute private constructor(
 
   fun isLocationUsage(usage: LocationUsage) = locationUsage == usage
 
+  /**
+   * You can add a schedule row to a location attribute even when it is not a scheduled attribute, however it won't have
+   * any effect unless the location attribute itself is marked as scheduled.
+   */
   fun addSchedule(
     usage: LocationScheduleUsage,
     startDayOfWeek: Int,
@@ -97,10 +101,6 @@ class LocationAttribute private constructor(
     notes: String? = null,
     createdBy: ExternalUser,
   ) {
-    require(locationUsage == LocationUsage.SCHEDULE) {
-      "The location usage type must be SCHEDULE to add a schedule row to it."
-    }
-
     if (
       locationSchedule.any {
         it.locationUsage == usage &&
