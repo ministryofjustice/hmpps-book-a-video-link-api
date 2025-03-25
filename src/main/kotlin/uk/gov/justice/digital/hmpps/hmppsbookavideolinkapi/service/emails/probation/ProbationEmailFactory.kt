@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation
 
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AdditionalBookingDetail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode.CANCELLED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 
@@ -22,6 +23,7 @@ object ProbationEmailFactory {
     appointment: PrisonAppointment,
     location: Location,
     action: BookingAction,
+    additionalBookingDetail: AdditionalBookingDetail?,
   ): Email? {
     booking.requireIsProbationBooking()
 
@@ -41,6 +43,9 @@ object ProbationEmailFactory {
         prisonerFirstName = prisoner.firstName,
         prisonerLastName = prisoner.lastName,
         prison = prison.name,
+        prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+        probationOfficerName = additionalBookingDetail?.contactName,
+        probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
       )
 
       BookingAction.AMEND -> AmendedProbationBookingUserEmail(
@@ -345,7 +350,7 @@ object ProbationEmailFactory {
     require(isStatus(CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
 
-  private fun PrisonAppointment.appointmentInformation(location: Location) = "${location.localName} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
+  private fun PrisonAppointment.appointmentInformation(location: Location) = "${location.description} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Collection<BookingContact>.primaryProbationContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
 }

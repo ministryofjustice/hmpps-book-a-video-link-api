@@ -17,6 +17,9 @@ abstract class ProbationEmail(
   userName: String? = null,
   probationEmailAddress: String? = null,
   dateOfBirth: LocalDate? = null,
+  prisonVideoUrl: String? = null,
+  probationOfficerName: String? = null,
+  probationOfficerEmailAddress: String? = null,
 ) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
 
   init {
@@ -27,6 +30,9 @@ abstract class ProbationEmail(
     userName?.let { addPersonalisation("userName", userName) }
     probationEmailAddress?.let { addPersonalisation("probationEmailAddress", probationEmailAddress) }
     dateOfBirth?.let { addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle()) }
+    prisonVideoUrl?.let { addPersonalisation("prisonVideoUrl", prisonVideoUrl) }
+    probationOfficerName?.let { addPersonalisation("probationOfficerName", probationOfficerName) }
+    probationOfficerEmailAddress?.let { addPersonalisation("probationOfficerEmailAddress", probationOfficerEmailAddress) }
   }
 }
 
@@ -132,6 +138,9 @@ class NewProbationBookingUserEmail(
   probationTeam: String,
   prison: String,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -144,6 +153,9 @@ class NewProbationBookingUserEmail(
   prison = prison,
   comments = comments,
   userName = userName,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
 )
 
 class NewProbationBookingPrisonProbationEmail(
