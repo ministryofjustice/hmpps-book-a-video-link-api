@@ -16,7 +16,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
@@ -31,6 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BI
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.additionalDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
@@ -42,6 +42,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.locationAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
@@ -51,6 +52,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingCourtEmail
@@ -80,7 +82,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCancelledTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
@@ -103,11 +107,12 @@ class BookingFacadeTest {
   private val notificationRepository: NotificationRepository = mock()
   private val outboundEventsService: OutboundEventsService = mock()
   private val notificationCaptor = argumentCaptor<Notification>()
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
+  private val locationsService: LocationsService = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
   private val telemetryService: TelemetryService = mock()
   private val telemetryCaptor = argumentCaptor<TelemetryEvent>()
   private val availabilityService: AvailabilityService = mock()
+  private val additionalBookingDetailRepository: AdditionalBookingDetailRepository = mock()
   private val facade = BookingFacade(
     videoBookingServiceDelegate,
     contactsService,
@@ -115,10 +120,11 @@ class BookingFacadeTest {
     emailService,
     notificationRepository,
     outboundEventsService,
-    locationsInsidePrisonClient,
+    locationsService,
     prisonerSearchClient,
     telemetryService,
     availabilityService,
+    additionalBookingDetailRepository,
   )
   private val courtBooking = courtBooking()
     .addAppointment(
@@ -178,10 +184,9 @@ class BookingFacadeTest {
   fun before() {
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(wandsworthLocation.key))) doReturn listOf(wandsworthLocation)
-    whenever(locationsInsidePrisonClient.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
-    whenever(locationsInsidePrisonClient.getLocationById(birminghamLocation.id)) doReturn birminghamLocation
+    whenever(locationsService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel()
+    whenever(locationsService.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation.toModel()
+    whenever(locationsService.getLocationById(birminghamLocation.id)) doReturn birminghamLocation.toModel(locationAttributes().copy(prisonVideoUrl = "birmingham-video-url"))
     whenever(availabilityService.isAvailable(any<CreateVideoBookingRequest>())) doReturn true
     whenever(availabilityService.isAvailable(anyLong(), any())) doReturn true
   }
@@ -374,6 +379,7 @@ class BookingFacadeTest {
       whenever(videoBookingServiceDelegate.create(request, PROBATION_USER)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
       whenever(emailService.send(any<NewProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<NewProbationBookingPrisonNoProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
+      whenever(additionalBookingDetailRepository.findByVideoBooking(probationBookingAtBirminghamPrison)) doReturn additionalDetails(probationBookingAtBirminghamPrison, "probation officer name", "probation.officer@email.com")
 
       facade.create(request, PROBATION_USER)
 
@@ -401,6 +407,9 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "probation officer name",
+          "probationOfficerEmailAddress" to "probation.officer@email.com",
         )
       }
 

@@ -1,3 +1,9 @@
 spring:
   flyway:
     locations: classpath:/migrations/common,classpath:/migrations/dev
+
+notify:
+  templates:
+    probation:
+      new-booking:
+        user: "31d92a30-e67b-4bd8-856c-415b57ba0f7b"

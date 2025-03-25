@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
@@ -16,12 +15,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCancelledTelemetryEvent
@@ -44,10 +45,11 @@ class BookingFacade(
   private val emailService: EmailService,
   private val notificationRepository: NotificationRepository,
   private val outboundEventsService: OutboundEventsService,
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
+  private val locationsService: LocationsService,
   private val prisonerSearchClient: PrisonerSearchClient,
   private val telemetryService: TelemetryService,
   private val availabilityService: AvailabilityService,
+  private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -164,7 +166,7 @@ class BookingFacade(
     val (pre, main, post) = booking.courtAppointments()
     val prison = prisonRepository.findByCode(booking.prisonCode())!!
     val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
-    val locations = setOfNotNull(pre?.prisonLocationId, main.prisonLocationId, post?.prisonLocationId).mapNotNull { locationsInsidePrisonClient.getLocationById(it) }.associateBy { it.id }
+    val locations = setOfNotNull(pre?.prisonLocationId, main.prisonLocationId, post?.prisonLocationId).mapNotNull { locationsService.getLocationById(it) }.associateBy { it.dpsLocationId }
 
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
@@ -182,11 +184,12 @@ class BookingFacade(
     val appointment = booking.appointments().single()
     val prison = prisonRepository.findByCode(booking.prisonCode())!!
     val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
-    val location = locationsInsidePrisonClient.getLocationById(appointment.prisonLocationId)!!
+    val location = locationsService.getLocationById(appointment.prisonLocationId)!!
+    val additionalBookingDetail = additionalBookingDetailRepository.findByVideoBooking(booking)
 
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
-        ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType).takeIf { user is PrisonUser || user is ExternalUser }
+        ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType, additionalBookingDetail).takeIf { user is PrisonUser || user is ExternalUser }
         ContactType.PROBATION -> ProbationEmailFactory.probation(contact, prisoner, booking, prison, appointment, location, eventType).takeIf { user is PrisonUser || user is ServiceUser }
         ContactType.PRISON -> ProbationEmailFactory.prison(contact, prisoner, booking, prison, appointment, location, eventType, contacts)
         else -> null

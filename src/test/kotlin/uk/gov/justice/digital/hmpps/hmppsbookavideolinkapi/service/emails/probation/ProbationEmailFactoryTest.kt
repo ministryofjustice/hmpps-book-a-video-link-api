@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -127,7 +128,8 @@ class ProbationEmailFactoryTest {
       booking = if (action == BookingAction.CANCEL) probationBooking.apply { cancel(COURT_USER) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation,
+      location = wandsworthLocation.toModel(),
+      additionalBookingDetail = null,
     )
 
     email isInstanceOf userEmails[action]!!
@@ -143,7 +145,8 @@ class ProbationEmailFactoryTest {
       booking = probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation,
+      location = wandsworthLocation.toModel(),
+      additionalBookingDetail = null,
     )
 
     email isEqualTo null
@@ -159,7 +162,8 @@ class ProbationEmailFactoryTest {
         booking = probationBooking,
         prison = prison,
         appointment = probationBooking.appointments().single(),
-        location = birminghamLocation,
+        location = birminghamLocation.toModel(),
+        additionalBookingDetail = null,
       )
     }
 
@@ -176,7 +180,8 @@ class ProbationEmailFactoryTest {
         booking = courtBooking,
         prison = prison,
         appointment = courtBooking.appointments().single(),
-        location = birminghamLocation,
+        location = birminghamLocation.toModel(),
+        additionalBookingDetail = null,
       )
     }
 
@@ -193,7 +198,7 @@ class ProbationEmailFactoryTest {
         booking = courtBooking,
         prison = prison,
         appointment = courtBooking.appointments().single(),
-        location = birminghamLocation,
+        location = birminghamLocation.toModel(),
         contacts = emptySet(),
       )
     }
@@ -211,7 +216,7 @@ class ProbationEmailFactoryTest {
       booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(PROBATION_USER) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation,
+      location = wandsworthLocation.toModel(),
     )
 
     email isInstanceOf probationEmails[action]!!
@@ -227,7 +232,7 @@ class ProbationEmailFactoryTest {
       booking = probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation,
+      location = wandsworthLocation.toModel(),
     )
 
     email isEqualTo null
@@ -243,7 +248,7 @@ class ProbationEmailFactoryTest {
       booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(PROBATION_USER) } else probationBooking,
       prison = prison,
       appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation,
+      location = wandsworthLocation.toModel(),
       contacts = setOf(probationBookingContact),
     )
 
@@ -260,7 +265,7 @@ class ProbationEmailFactoryTest {
         booking = probationBooking,
         prison = prison,
         appointment = probationBooking.appointments().single(),
-        location = birminghamLocation,
+        location = birminghamLocation.toModel(),
         contacts = emptySet(),
       )
     }

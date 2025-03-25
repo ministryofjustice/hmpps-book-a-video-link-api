@@ -855,6 +855,9 @@ class GovNotifyEmailServiceTest {
         appointmentInfo = "bobs appointment info",
         probationTeam = "the probation team",
         prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
       ),
     )
 
@@ -873,6 +876,9 @@ class GovNotifyEmailServiceTest {
         "prison" to "the prison",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
       ),
       null,
     )
