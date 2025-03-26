@@ -7,6 +7,7 @@ import jakarta.validation.Constraint
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 import jakarta.validation.Payload
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.time.Duration
@@ -48,12 +49,14 @@ data class AvailabilityRequest(
   )
   val date: LocalDate?,
 
+  @field:Valid
   @Schema(
     description = "If present, the prison location and start/end time of the requested pre hearing, else null",
     requiredMode = RequiredMode.NOT_REQUIRED,
   )
   val preAppointment: LocationAndInterval? = null,
 
+  @field:Valid
   @field:NotNull(message = "The main appointment is mandatory")
   @Schema(
     description = "The main appointment which is always present",
@@ -61,6 +64,7 @@ data class AvailabilityRequest(
   )
   val mainAppointment: LocationAndInterval?,
 
+  @field:Valid
   @Schema(
     description = "If present, the prison location and start/end time of the post hearing, else null",
     requiredMode = RequiredMode.NOT_REQUIRED,

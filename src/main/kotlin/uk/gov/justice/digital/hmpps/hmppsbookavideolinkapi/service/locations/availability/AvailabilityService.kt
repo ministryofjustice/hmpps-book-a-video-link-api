@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Availab
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.LocationAndInterval
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -75,21 +74,6 @@ class AvailabilityService(
   }
 
   private fun AmendVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
-
-  fun isAvailable(request: RequestVideoBookingRequest) = checkAvailability(
-    AvailabilityRequest(
-      bookingType = request.bookingType,
-      courtOrProbationCode = request.courtCode ?: request.probationTeamCode,
-      prisonCode = request.prisoners.first().prisonCode,
-      date = request.prisoners.first().appointments.first().date,
-      preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
-      mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
-        ?: request.appointment(AppointmentType.VLB_PROBATION),
-      postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
-    ),
-  ).availabilityOk
-
-  private fun RequestVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
 
   /**
    * Assumptions:

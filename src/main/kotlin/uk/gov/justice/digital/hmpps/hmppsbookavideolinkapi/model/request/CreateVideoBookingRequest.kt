@@ -198,7 +198,7 @@ data class Appointment(
   private fun isInvalidStart() = (date == null || startTime == null) || date.atTime(startTime).isAfter(LocalDateTime.now())
 }
 
-private interface DateValidationExtension
+interface DateValidationExtension
 
 enum class AppointmentType(val isProbation: Boolean, val isCourt: Boolean) {
   // Probation types
