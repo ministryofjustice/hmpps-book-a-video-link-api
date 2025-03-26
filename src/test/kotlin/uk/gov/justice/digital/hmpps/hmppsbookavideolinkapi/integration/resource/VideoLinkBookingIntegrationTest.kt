@@ -47,7 +47,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
@@ -1569,7 +1568,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1970, 1, 1),
       prisonCode = NORWICH,
-      location = norwichLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court request comments",
@@ -1594,7 +1592,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1970, 1, 1),
       prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test court request comments",
@@ -1610,53 +1607,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should fail to request a clashing court booking`() {
-    videoBookingRepository.findAll() hasSize 0
-
-    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-
-    val courtBookingRequest = courtBookingRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
-      prisonerNumber = "123456",
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
-    )
-
-    webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
-    val courtRequest = requestCourtVideoLinkRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
-      firstName = "John",
-      lastName = "Smith",
-      dateOfBirth = LocalDate.of(1970, 1, 1),
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
-      comments = "integration test court request comments",
-    )
-
-    val error = webTestClient.post()
-      .uri("/video-link-booking/request")
-      .bodyValue(courtRequest)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().is4xxClientError
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(ErrorResponse::class.java)
-      .returnResult().responseBody!!
-
-    with(error) {
-      status isEqualTo 400
-      userMessage isEqualTo "Exception: Unable to request court booking, booking overlaps with an existing appointment."
-      developerMessage isEqualTo "Unable to request court booking, booking overlaps with an existing appointment."
-    }
-  }
-
-  @Test
   fun `should request a Blackpool probation team booking and emails sent to Norwich prison`() {
     notificationRepository.findAll() hasSize 0
 
@@ -1666,7 +1616,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1970, 1, 1),
       prisonCode = NORWICH,
-      location = norwichLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test probation request comments",
@@ -1691,7 +1640,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1970, 1, 1),
       prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
       comments = "integration test probation request comments",
@@ -1704,53 +1652,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     notifications.isPresent("a@a.com", ProbationBookingRequestPrisonNoProbationTeamEmail::class)
     notifications.isPresent(PROBATION_USER.email!!, ProbationBookingRequestUserEmail::class)
-  }
-
-  @Test
-  fun `should fail to request a clashing probation booking`() {
-    videoBookingRepository.findAll() hasSize 0
-
-    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-
-    val probationBookingRequest = probationBookingRequest(
-      probationTeamCode = BLACKPOOL_MC_PPOC,
-      prisonerNumber = "123456",
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
-    )
-
-    webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
-
-    val probationRequest = requestProbationVideoLinkRequest(
-      probationTeamCode = BLACKPOOL_MC_PPOC,
-      firstName = "John",
-      lastName = "Smith",
-      dateOfBirth = LocalDate.of(1970, 1, 1),
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
-      comments = "integration test court request comments",
-    )
-
-    val error = webTestClient.post()
-      .uri("/video-link-booking/request")
-      .bodyValue(probationRequest)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().is4xxClientError
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(ErrorResponse::class.java)
-      .returnResult().responseBody!!
-
-    with(error) {
-      status isEqualTo 400
-      userMessage isEqualTo "Exception: Unable to request probation booking, booking overlaps with an existing appointment."
-      developerMessage isEqualTo "Unable to request probation booking, booking overlaps with an existing appointment."
-    }
   }
 
   @Test

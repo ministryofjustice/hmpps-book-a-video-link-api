@@ -50,8 +50,8 @@ class AppointmentsService(
     }
   }
 
-  fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
-    val locations = locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
+  private fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
+    locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
 
     appointments.checkCourtAppointmentTypesOnly()
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
@@ -112,7 +112,7 @@ class AppointmentsService(
     if (user !is PrisonUser) require(enabled) { "Prison with code $code is not enabled for self service" }
   }
 
-  fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
+  private fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
     with(appointments.single()) {
       require(type!!.isProbation) {
         "Appointment type $type is not valid for probation appointments"
