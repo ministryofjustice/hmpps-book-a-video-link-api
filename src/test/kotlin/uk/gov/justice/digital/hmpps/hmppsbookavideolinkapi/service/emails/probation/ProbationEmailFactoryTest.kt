@@ -200,6 +200,7 @@ class ProbationEmailFactoryTest {
         appointment = courtBooking.appointments().single(),
         location = birminghamLocation.toModel(),
         contacts = emptySet(),
+        additionalBookingDetail = null,
       )
     }
 
@@ -250,6 +251,7 @@ class ProbationEmailFactoryTest {
       appointment = probationBooking.appointments().single(),
       location = wandsworthLocation.toModel(),
       contacts = setOf(probationBookingContact),
+      additionalBookingDetail = null,
     )
 
     email isInstanceOf prisonEmails[action]!!
@@ -267,6 +269,7 @@ class ProbationEmailFactoryTest {
         appointment = probationBooking.appointments().single(),
         location = birminghamLocation.toModel(),
         contacts = emptySet(),
+        additionalBookingDetail = null,
       )
     }
 

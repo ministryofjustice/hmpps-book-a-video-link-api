@@ -379,7 +379,7 @@ class BookingFacadeTest {
       whenever(videoBookingServiceDelegate.create(request, PROBATION_USER)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
       whenever(emailService.send(any<NewProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<NewProbationBookingPrisonNoProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
-      whenever(additionalBookingDetailRepository.findByVideoBooking(probationBookingAtBirminghamPrison)) doReturn additionalDetails(probationBookingAtBirminghamPrison, "probation officer name", "probation.officer@email.com")
+      whenever(additionalBookingDetailRepository.findByVideoBooking(probationBookingAtBirminghamPrison)) doReturn additionalDetails(probationBookingAtBirminghamPrison, "probation officer name", "probation.officer@email.com", "0114 2345678")
 
       facade.create(request, PROBATION_USER)
 
@@ -410,6 +410,7 @@ class BookingFacadeTest {
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "probation officer name",
           "probationOfficerEmailAddress" to "probation.officer@email.com",
+          "probationOfficerContactNumber" to "0114 2345678",
         )
       }
 

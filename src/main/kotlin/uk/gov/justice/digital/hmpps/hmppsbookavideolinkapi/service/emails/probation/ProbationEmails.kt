@@ -20,6 +20,7 @@ abstract class ProbationEmail(
   prisonVideoUrl: String? = null,
   probationOfficerName: String? = null,
   probationOfficerEmailAddress: String? = null,
+  probationOfficerContactNumber: String? = null,
 ) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
 
   init {
@@ -33,6 +34,7 @@ abstract class ProbationEmail(
     prisonVideoUrl?.let { addPersonalisation("prisonVideoUrl", prisonVideoUrl) }
     probationOfficerName?.let { addPersonalisation("probationOfficerName", probationOfficerName) }
     probationOfficerEmailAddress?.let { addPersonalisation("probationOfficerEmailAddress", probationOfficerEmailAddress) }
+    probationOfficerContactNumber?.let { addPersonalisation("probationOfficerContactNumber", probationOfficerContactNumber) }
   }
 }
 
@@ -141,6 +143,7 @@ class NewProbationBookingUserEmail(
   prisonVideoUrl: String?,
   probationOfficerName: String?,
   probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -156,6 +159,7 @@ class NewProbationBookingUserEmail(
   prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
   probationOfficerName = probationOfficerName ?: "Not yet known",
   probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
 class NewProbationBookingPrisonProbationEmail(
@@ -168,6 +172,10 @@ class NewProbationBookingPrisonProbationEmail(
   probationEmailAddress: String,
   prison: String,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -180,6 +188,10 @@ class NewProbationBookingPrisonProbationEmail(
   prison = prison,
   comments = comments,
   probationEmailAddress = probationEmailAddress,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
 class NewProbationBookingPrisonNoProbationEmail(
