@@ -214,6 +214,10 @@ object ProbationEmailFactory {
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
+            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+            probationOfficerName = additionalBookingDetail?.contactName,
+            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           )
         }
       }
