@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestedAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.UnknownPrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
@@ -207,12 +208,10 @@ fun requestCourtVideoLinkRequest(
   firstName: String = "John",
   lastName: String = "Smith",
   dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
-  locationSuffix: String = "A-1-001",
-  location: Location? = null,
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "court booking comments",
-  appointments: List<Appointment> = emptyList(),
+  appointments: List<RequestedAppointment> = emptyList(),
 ): RequestVideoBookingRequest {
   val prisoner = UnknownPrisonerDetails(
     prisonCode = prisonCode,
@@ -221,9 +220,8 @@ fun requestCourtVideoLinkRequest(
     dateOfBirth = dateOfBirth,
     appointments = appointments.ifEmpty {
       listOf(
-        Appointment(
+        RequestedAppointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = location?.key ?: "$prisonCode-$locationSuffix",
           date = tomorrow(),
           startTime = startTime,
           endTime = endTime,
@@ -288,12 +286,10 @@ fun requestProbationVideoLinkRequest(
   firstName: String = "John",
   lastName: String = "Smith",
   dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
-  locationSuffix: String = "A-1-001",
-  location: Location? = null,
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "probation booking comments",
-  appointments: List<Appointment> = emptyList(),
+  appointments: List<RequestedAppointment> = emptyList(),
 ): RequestVideoBookingRequest {
   val prisoner = UnknownPrisonerDetails(
     prisonCode = prisonCode,
@@ -302,9 +298,8 @@ fun requestProbationVideoLinkRequest(
     dateOfBirth = dateOfBirth,
     appointments = appointments.ifEmpty {
       listOf(
-        Appointment(
+        RequestedAppointment(
           type = AppointmentType.VLB_PROBATION,
-          locationKey = location?.key ?: "$prisonCode-$locationSuffix",
           date = tomorrow(),
           startTime = startTime,
           endTime = endTime,
