@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
@@ -921,6 +922,49 @@ class GovNotifyEmailServiceTest {
         "prison" to "the prison",
         "appointmentInfo" to "bobs appointment info",
         "probationEmailAddress" to "jim@probation.com",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison no probation email new booking email and return a notification ID`() {
+    val result = service.send(
+      NewProbationBookingPrisonNoProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "newProbationBookingPrisonNoProbationEmail")
+
+    verify(client).sendEmail(
+      "newProbationBookingPrisonNoProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
         "prisonVideoUrl" to "prison-video-url",
         "probationOfficerName" to "probation officer name",

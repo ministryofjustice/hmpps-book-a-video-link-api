@@ -203,6 +203,10 @@ class NewProbationBookingPrisonNoProbationEmail(
   probationTeam: String,
   prison: String,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -214,6 +218,10 @@ class NewProbationBookingPrisonNoProbationEmail(
   probationTeam = probationTeam,
   prison = prison,
   comments = comments,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
 class AmendedProbationBookingUserEmail(
