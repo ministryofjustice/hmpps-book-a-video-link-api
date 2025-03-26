@@ -46,6 +46,7 @@ object ProbationEmailFactory {
         prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
         probationOfficerName = additionalBookingDetail?.contactName,
         probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+        probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
       )
 
       BookingAction.AMEND -> AmendedProbationBookingUserEmail(
@@ -173,6 +174,7 @@ object ProbationEmailFactory {
     location: Location,
     action: BookingAction,
     contacts: Collection<BookingContact>,
+    additionalBookingDetail: AdditionalBookingDetail?,
   ): Email? {
     booking.requireIsProbationBooking()
 
@@ -196,6 +198,10 @@ object ProbationEmailFactory {
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
             probationEmailAddress = primaryProbationContact.email!!,
+            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+            probationOfficerName = additionalBookingDetail?.contactName,
+            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           )
         } else {
           NewProbationBookingPrisonNoProbationEmail(

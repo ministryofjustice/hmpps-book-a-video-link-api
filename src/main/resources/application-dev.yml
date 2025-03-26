@@ -7,3 +7,4 @@ notify:
     probation:
       new-booking:
         user: "31d92a30-e67b-4bd8-856c-415b57ba0f7b"
+        prison-probation-email: "1d1e4265-7c58-4597-a0eb-1d77ec26ac5f"
