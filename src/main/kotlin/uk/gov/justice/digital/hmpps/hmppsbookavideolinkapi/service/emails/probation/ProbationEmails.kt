@@ -560,12 +560,7 @@ class ProbationBookingRequestPrisonProbationTeamEmail(
   probationOfficerName = probationOfficerName ?: "Not yet known",
   probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
   probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
-) {
-  // TODO: This field is required for legacy emails until they have been removed, it has been renamed to `probationEmailAddress` in the new emails
-  init {
-    addPersonalisation("probationTeamEmailAddress", probationTeamEmailAddress)
-  }
-}
+)
 
 class ProbationBookingRequestPrisonNoProbationTeamEmail(
   address: String,
