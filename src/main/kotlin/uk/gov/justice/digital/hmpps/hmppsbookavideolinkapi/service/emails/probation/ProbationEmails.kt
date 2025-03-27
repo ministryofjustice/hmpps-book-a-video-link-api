@@ -8,12 +8,13 @@ abstract class ProbationEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
-  prisonerNumber: String,
   probationTeam: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
   prison: String,
   comments: String?,
+  prisonerNumber: String? = null,
+  meetingType: String? = null,
   userName: String? = null,
   probationEmailAddress: String? = null,
   dateOfBirth: LocalDate? = null,
@@ -24,10 +25,11 @@ abstract class ProbationEmail(
 ) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
 
   init {
-    addPersonalisation("offenderNo", prisonerNumber)
     addPersonalisation("probationTeam", probationTeam)
     addPersonalisation("prison", prison)
     addPersonalisation("appointmentInfo", appointmentInfo)
+    prisonerNumber?.let { addPersonalisation("offenderNo", prisonerNumber) }
+    meetingType?.let { addPersonalisation("meetingType", meetingType) }
     userName?.let { addPersonalisation("userName", userName) }
     probationEmailAddress?.let { addPersonalisation("probationEmailAddress", probationEmailAddress) }
     dateOfBirth?.let { addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle()) }
@@ -508,16 +510,25 @@ class ProbationBookingRequestUserEmail(
   meetingType: String,
   appointmentInfo: String,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
-  init {
-    addPersonalisation("userName", userName)
-    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
-    addPersonalisation("probationTeam", probationTeam)
-    addPersonalisation("prison", prison)
-    addPersonalisation("meetingType", meetingType)
-    addPersonalisation("appointmentInfo", appointmentInfo)
-  }
-}
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  probationTeam = probationTeam,
+  appointmentDate = date,
+  appointmentInfo = appointmentInfo,
+  prison = prison,
+  comments = comments,
+  userName = userName,
+  dateOfBirth = dateOfBirth,
+  meetingType = meetingType,
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+)
 
 class ProbationBookingRequestPrisonProbationTeamEmail(
   address: String,
@@ -531,14 +542,28 @@ class ProbationBookingRequestPrisonProbationTeamEmail(
   meetingType: String,
   appointmentInfo: String,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  probationTeam = probationTeam,
+  appointmentDate = date,
+  appointmentInfo = appointmentInfo,
+  prison = prison,
+  comments = comments,
+  dateOfBirth = dateOfBirth,
+  meetingType = meetingType,
+  probationEmailAddress = probationTeamEmailAddress,
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+) {
+  // TODO: This field is required for legacy emails until they have been removed, it has been renamed to `probationEmailAddress` in the new emails
   init {
-    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("probationTeamEmailAddress", probationTeamEmailAddress)
-    addPersonalisation("probationTeam", probationTeam)
-    addPersonalisation("prison", prison)
-    addPersonalisation("meetingType", meetingType)
-    addPersonalisation("appointmentInfo", appointmentInfo)
   }
 }
 
@@ -553,12 +578,21 @@ class ProbationBookingRequestPrisonNoProbationTeamEmail(
   meetingType: String,
   appointmentInfo: String,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
-  init {
-    addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
-    addPersonalisation("probationTeam", probationTeam)
-    addPersonalisation("prison", prison)
-    addPersonalisation("meetingType", meetingType)
-    addPersonalisation("appointmentInfo", appointmentInfo)
-  }
-}
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  probationTeam = probationTeam,
+  appointmentDate = date,
+  appointmentInfo = appointmentInfo,
+  prison = prison,
+  comments = comments,
+  dateOfBirth = dateOfBirth,
+  meetingType = meetingType,
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+)

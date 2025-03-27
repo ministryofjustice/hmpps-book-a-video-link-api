@@ -707,6 +707,9 @@ class GovNotifyEmailServiceTest {
         appointmentInfo = "bobs appointment info",
         probationTeam = "the probation team",
         prison = "the prison",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
       ),
     )
 
@@ -726,6 +729,9 @@ class GovNotifyEmailServiceTest {
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
       ),
       null,
     )
@@ -746,6 +752,9 @@ class GovNotifyEmailServiceTest {
         probationTeam = "the probation team",
         probationTeamEmailAddress = "probationteam@emailaddress.com",
         prison = "the prison",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
       ),
     )
 
@@ -760,11 +769,15 @@ class GovNotifyEmailServiceTest {
         "dateOfBirth" to "1 Jan 1970",
         "comments" to "comments for bob",
         "probationTeam" to "the probation team",
+        "probationEmailAddress" to "probationteam@emailaddress.com",
         "probationTeamEmailAddress" to "probationteam@emailaddress.com",
         "prison" to "the prison",
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
       ),
       null,
     )
@@ -784,6 +797,9 @@ class GovNotifyEmailServiceTest {
         appointmentInfo = "bobs appointment info",
         probationTeam = "the probation team",
         prison = "the prison",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
       ),
     )
 
@@ -802,6 +818,9 @@ class GovNotifyEmailServiceTest {
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
       ),
       null,
     )
