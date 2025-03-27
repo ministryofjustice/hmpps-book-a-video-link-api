@@ -60,6 +60,10 @@ object ProbationEmailFactory {
         prisonerFirstName = prisoner.firstName,
         prisonerLastName = prisoner.lastName,
         prison = prison.name,
+        prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+        probationOfficerName = additionalBookingDetail?.contactName,
+        probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+        probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
       )
 
       BookingAction.CANCEL -> {
@@ -91,6 +95,7 @@ object ProbationEmailFactory {
     appointment: PrisonAppointment,
     location: Location,
     action: BookingAction,
+    additionalBookingDetail: AdditionalBookingDetail?,
   ): Email? {
     booking.requireIsProbationBooking()
 
@@ -109,6 +114,10 @@ object ProbationEmailFactory {
         comments = booking.comments,
         appointmentInfo = appointment.appointmentInformation(location),
         prison = prison.name,
+        prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+        probationOfficerName = additionalBookingDetail?.contactName,
+        probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+        probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
       )
 
       BookingAction.CANCEL -> {
@@ -235,6 +244,10 @@ object ProbationEmailFactory {
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
             probationEmailAddress = primaryProbationContact.email!!,
+            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+            probationOfficerName = additionalBookingDetail?.contactName,
+            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           )
         } else {
           AmendedProbationBookingPrisonNoProbationEmail(
@@ -247,6 +260,10 @@ object ProbationEmailFactory {
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
+            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+            probationOfficerName = additionalBookingDetail?.contactName,
+            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           )
         }
       }
