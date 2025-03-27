@@ -251,7 +251,7 @@ class TimeSlotAvailabilityServiceTest {
     }
 
     @Test
-    fun `should return 20 available afternoon times for location 1 when on blocked out booking`() {
+    fun `should return 17 available afternoon times for location 1 when on blocked out booking`() {
       whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
@@ -268,7 +268,7 @@ class TimeSlotAvailabilityServiceTest {
         ),
       )
 
-      response.locations hasSize 20
+      response.locations hasSize 17
 
       response.locations containsExactly listOf(
         availableLocation(location1, time(12, 0), time(13, 0), LocationUsage.SHARED),
@@ -288,14 +288,11 @@ class TimeSlotAvailabilityServiceTest {
         availableLocation(location1, time(15, 30), time(16, 30), LocationUsage.SHARED),
         availableLocation(location1, time(15, 45), time(16, 45), LocationUsage.SHARED),
         availableLocation(location1, time(16, 0), time(17, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(16, 15), time(17, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(16, 30), time(17, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(16, 45), time(17, 45), LocationUsage.SHARED),
       )
     }
 
     @Test
-    fun `should return 18 available morning and afternoon times for location 1 when two block out bookings`() {
+    fun `should return 15 available morning and afternoon times for location 1 when two block out bookings`() {
       whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(location1)
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(
@@ -315,7 +312,7 @@ class TimeSlotAvailabilityServiceTest {
         ),
       )
 
-      response.locations hasSize 18
+      response.locations hasSize 15
 
       response.locations containsExactly listOf(
         availableLocation(location1, time(9, 0), time(10, 0), LocationUsage.SHARED),
@@ -333,9 +330,6 @@ class TimeSlotAvailabilityServiceTest {
         availableLocation(location1, time(15, 30), time(16, 30), LocationUsage.SHARED),
         availableLocation(location1, time(15, 45), time(16, 45), LocationUsage.SHARED),
         availableLocation(location1, time(16, 0), time(17, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(16, 15), time(17, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(16, 30), time(17, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(16, 45), time(17, 45), LocationUsage.SHARED),
       )
     }
   }
@@ -373,7 +367,7 @@ class TimeSlotAvailabilityServiceTest {
     @BeforeEach
     fun before() {
       whenever(prisonRegime.startOfDay(WANDSWORTH)) doReturn LocalTime.of(9, 0)
-      whenever(prisonRegime.endOfDay(WANDSWORTH)) doReturn LocalTime.of(9, 30)
+      whenever(prisonRegime.endOfDay(WANDSWORTH)) doReturn LocalTime.of(9, 45)
     }
 
     @Test
