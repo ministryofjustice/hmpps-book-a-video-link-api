@@ -234,6 +234,10 @@ class AmendedProbationBookingUserEmail(
   probationTeam: String,
   prison: String,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -244,6 +248,10 @@ class AmendedProbationBookingUserEmail(
   appointmentDate = appointmentDate,
   probationTeam = probationTeam,
   prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
   comments = comments,
   userName = userName,
 )
@@ -257,6 +265,10 @@ class AmendedProbationBookingProbationEmail(
   prison: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -267,6 +279,10 @@ class AmendedProbationBookingProbationEmail(
   appointmentDate = appointmentDate,
   probationTeam = probationTeam,
   prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
   comments = comments,
 )
 
@@ -280,6 +296,10 @@ class AmendedProbationBookingPrisonProbationEmail(
   prison: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -292,6 +312,10 @@ class AmendedProbationBookingPrisonProbationEmail(
   prison = prison,
   comments = comments,
   probationEmailAddress = probationEmailAddress,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
 class AmendedProbationBookingPrisonNoProbationEmail(
@@ -303,6 +327,10 @@ class AmendedProbationBookingPrisonNoProbationEmail(
   prison: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -313,6 +341,10 @@ class AmendedProbationBookingPrisonNoProbationEmail(
   appointmentDate = appointmentDate,
   probationTeam = probationTeam,
   prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
   comments = comments,
 )
 

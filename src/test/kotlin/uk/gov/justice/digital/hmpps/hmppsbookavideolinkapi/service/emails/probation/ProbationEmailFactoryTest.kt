@@ -218,6 +218,7 @@ class ProbationEmailFactoryTest {
       prison = prison,
       appointment = probationBooking.appointments().single(),
       location = wandsworthLocation.toModel(),
+      additionalBookingDetail = null,
     )
 
     email isInstanceOf probationEmails[action]!!
@@ -234,6 +235,7 @@ class ProbationEmailFactoryTest {
       prison = prison,
       appointment = probationBooking.appointments().single(),
       location = wandsworthLocation.toModel(),
+      additionalBookingDetail = null,
     )
 
     email isEqualTo null
