@@ -254,6 +254,9 @@ class RequestBookingService(
     meetingType = meetingType.description,
     appointmentInfo = appointment.appointmentInformation(),
     comments = request.comments,
+    probationOfficerName = request.additionalBookingDetails?.contactName,
+    probationOfficerEmailAddress = request.additionalBookingDetails?.contactEmail,
+    probationOfficerContactNumber = request.additionalBookingDetails?.contactNumber,
   )
 
   private fun createProbationPrisonEmail(
@@ -279,6 +282,9 @@ class RequestBookingService(
         meetingType = meetingType.description,
         appointmentInfo = appointment.appointmentInformation(),
         comments = request.comments,
+        probationOfficerName = request.additionalBookingDetails?.contactName,
+        probationOfficerEmailAddress = request.additionalBookingDetails?.contactEmail,
+        probationOfficerContactNumber = request.additionalBookingDetails?.contactNumber,
       )
     } else {
       ProbationBookingRequestPrisonNoProbationTeamEmail(
@@ -292,6 +298,9 @@ class RequestBookingService(
         meetingType = meetingType.description,
         appointmentInfo = appointment.appointmentInformation(),
         comments = request.comments,
+        probationOfficerName = request.additionalBookingDetails?.contactName,
+        probationOfficerEmailAddress = request.additionalBookingDetails?.contactEmail,
+        probationOfficerContactNumber = request.additionalBookingDetails?.contactNumber,
       )
     }
   }

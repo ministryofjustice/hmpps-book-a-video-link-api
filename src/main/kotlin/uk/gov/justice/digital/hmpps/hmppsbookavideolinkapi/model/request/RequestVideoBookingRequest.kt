@@ -46,6 +46,15 @@ data class RequestVideoBookingRequest(
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
   @Schema(description = "The video link for the appointment.", example = "https://video.here.com")
   val videoLinkUrl: String?,
+
+  @Schema(
+    description = """
+      The additional booking details for the booking. Additional details are only applicable to probation bookings. Will
+      be ignored if not a probation booking.
+      """,
+  )
+  @field:Valid
+  val additionalBookingDetails: AdditionalBookingDetails? = null,
 ) {
 
   @JsonIgnore

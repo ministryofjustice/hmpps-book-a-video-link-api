@@ -315,6 +315,11 @@ fun requestProbationVideoLinkRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = "https://video.link.com",
+    additionalBookingDetails = AdditionalBookingDetails(
+      contactName = "probation officer name",
+      contactEmail = "probation.officer@email.address",
+      contactNumber = "123456",
+    ),
   )
 }
 

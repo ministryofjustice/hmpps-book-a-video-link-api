@@ -9,3 +9,7 @@ notify:
         user: "31d92a30-e67b-4bd8-856c-415b57ba0f7b"
         prison-probation-email: "1d1e4265-7c58-4597-a0eb-1d77ec26ac5f"
         prison-no-probation-email: "a39260ea-6cdc-42e1-8c9d-4018f50b2cc5"
+      booking-request:
+        user: "4fcd9f4a-00d3-43e7-ac84-7eb3a19b2773"
+        prison-probation-team-email: "f24a4953-1cc9-47af-b30f-0b418a329b14"
+        prison-no-probation-team-email: "68615073-9bb1-43db-9795-d6e1ef48e6a1"
