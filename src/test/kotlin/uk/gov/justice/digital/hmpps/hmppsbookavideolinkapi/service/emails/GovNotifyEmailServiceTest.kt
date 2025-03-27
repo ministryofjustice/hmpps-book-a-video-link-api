@@ -770,7 +770,6 @@ class GovNotifyEmailServiceTest {
         "comments" to "comments for bob",
         "probationTeam" to "the probation team",
         "probationEmailAddress" to "probationteam@emailaddress.com",
-        "probationTeamEmailAddress" to "probationteam@emailaddress.com",
         "prison" to "the prison",
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
