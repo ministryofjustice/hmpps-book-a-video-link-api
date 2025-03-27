@@ -26,6 +26,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
@@ -985,6 +989,194 @@ class GovNotifyEmailServiceTest {
         "prison" to "the prison",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send amend probation user amend booking email and return a notification ID`() {
+    val result = service.send(
+      AmendedProbationBookingUserEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        userName = "username",
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedProbationBookingUser")
+
+    verify(client).sendEmail(
+      "amendedProbationBookingUser",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "userName" to "username",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send amend probation booking email and return a notification ID`() {
+    val result = service.send(
+      AmendedProbationBookingProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedProbationBookingProbationEmail")
+
+    verify(client).sendEmail(
+      "amendedProbationBookingProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send amend probation booking prison probation email and return a notification ID`() {
+    val result = service.send(
+      AmendedProbationBookingPrisonProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        probationEmailAddress = "probation.team@email.address",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedProbationBookingPrisonProbationEmail")
+
+    verify(client).sendEmail(
+      "amendedProbationBookingPrisonProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "probationEmailAddress" to "probation.team@email.address",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send amend probation booking prison no probation email and return a notification ID`() {
+    val result = service.send(
+      AmendedProbationBookingPrisonNoProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedProbationBookingPrisonNoProbationEmail")
+
+    verify(client).sendEmail(
+      "amendedProbationBookingPrisonNoProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
         "prisonVideoUrl" to "prison-video-url",
         "probationOfficerName" to "probation officer name",
         "probationOfficerEmailAddress" to "probation.officer@email.address",
