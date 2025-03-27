@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.av
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrBefore
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilityStatus
@@ -49,7 +50,7 @@ class TimeSlotAvailabilityService(
         var meetingStartTime = startOfDay
         var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
-        while (meetingStartTime.isBefore(endOfDay)) {
+        while (meetingEndTime.isOnOrBefore(endOfDay)) {
           if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime) && request.fallsWithinSlotTime(meetingStartTime)) {
             add(
               availabilityStatus = location.allowsByAnyRuleOrSchedule(request, meetingStartTime),
