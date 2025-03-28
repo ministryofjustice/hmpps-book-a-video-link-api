@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AppointmentDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingUserEmail
@@ -40,6 +41,7 @@ import uk.gov.service.notify.NotificationClient
 import uk.gov.service.notify.NotificationClientException
 import uk.gov.service.notify.SendEmailResponse
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.UUID
 
 class GovNotifyEmailServiceTest {
@@ -105,9 +107,9 @@ class GovNotifyEmailServiceTest {
         appointmentDate = today,
         userName = "username",
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(10, 0), LocalTime.of(10, 15), "pre-prison-video-url"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(10, 15), LocalTime.of(10, 30), "main-prison-video-url"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(10, 30), LocalTime.of(10, 45), "post-prison-video-url"),
         court = "the court",
         prison = "the prison",
         courtHearingLink = "https://video.link.com",
@@ -127,11 +129,13 @@ class GovNotifyEmailServiceTest {
         "userName" to "username",
         "court" to "the court",
         "prison" to "the prison",
-        "preAppointmentInfo" to "bobs pre-appointment info",
-        "mainAppointmentInfo" to "bobs main appointment info",
-        "postAppointmentInfo" to "bob post appointment info",
+        "preAppointmentInfo" to "pre - 10:00 to 10:15",
+        "mainAppointmentInfo" to "main - 10:15 to 10:30",
+        "postAppointmentInfo" to "post - 10:30 to 10:45",
         "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-prison-video-url",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-prison-video-url",
       ),
       null,
     )
@@ -148,9 +152,9 @@ class GovNotifyEmailServiceTest {
         appointmentDate = today,
         userName = "username",
         comments = null,
-        preAppointmentInfo = null,
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = null,
+        preAppointmentDetails = null,
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(10, 15), LocalTime.of(10, 30), null),
+        postAppointmentDetails = null,
         court = "the court",
         prison = "the prison",
         courtHearingLink = null,
@@ -171,10 +175,12 @@ class GovNotifyEmailServiceTest {
         "court" to "the court",
         "prison" to "the prison",
         "preAppointmentInfo" to "Not required",
-        "mainAppointmentInfo" to "bobs main appointment info",
+        "mainAppointmentInfo" to "main - 10:15 to 10:30",
         "postAppointmentInfo" to "Not required",
         "courtHearingLink" to "Not yet known",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "",
+        "postPrisonVideoUrl" to "",
       ),
       null,
     )
@@ -850,9 +856,9 @@ class GovNotifyEmailServiceTest {
         appointmentDate = LocalDate.now(),
         userName = "username",
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(10, 0), LocalTime.of(10, 15), null),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(10, 15), LocalTime.of(10, 30), null),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(10, 30), LocalTime.of(10, 45), null),
         court = "the court",
         prison = "the prison",
         courtHearingLink = "https://video.link.com",

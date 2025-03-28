@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtEmailFactory.prisonVideoUrl
 import java.util.UUID
 
 object CourtEmailFactory {
@@ -42,9 +43,9 @@ object CourtEmailFactory {
         court = booking.court!!.description,
         prison = prison.name,
         appointmentDate = main.appointmentDate,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
+        preAppointmentDetails = pre?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
+        mainAppointmentDetails = AppointmentDetails(locations.room(main), main.startTime, main.endTime, locations.prisonVideoUrl(main)),
+        postAppointmentDetails = post?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
         comments = booking.comments,
         courtHearingLink = booking.videoUrl,
       )
@@ -418,6 +419,10 @@ object CourtEmailFactory {
   private fun PrisonAppointment.appointmentInformation(locations: Map<UUID, Location>) = "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Map<UUID, Location>.room(id: UUID) = this[id]?.description ?: ""
+
+  private fun Map<UUID, Location>.room(pa: PrisonAppointment) = this[pa.prisonLocationId]?.description ?: ""
+
+  private fun Map<UUID, Location>.prisonVideoUrl(pa: PrisonAppointment) = this[pa.prisonLocationId]?.extraAttributes?.prisonVideoUrl
 
   private fun Collection<BookingContact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
 
