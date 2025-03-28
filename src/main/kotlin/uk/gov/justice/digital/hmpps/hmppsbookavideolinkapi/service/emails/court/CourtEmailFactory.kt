@@ -43,9 +43,9 @@ object CourtEmailFactory {
         court = booking.court!!.description,
         prison = prison.name,
         appointmentDate = main.appointmentDate,
-        preAppointmentDetails = pre?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
-        mainAppointmentDetails = AppointmentDetails(locations.room(main), main.startTime, main.endTime, locations.prisonVideoUrl(main)),
-        postAppointmentDetails = post?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
+        preAppointmentDetails = pre?.appointmentDetails(locations),
+        mainAppointmentDetails = main.appointmentDetails(locations),
+        postAppointmentDetails = post?.appointmentDetails(locations),
         comments = booking.comments,
         courtHearingLink = booking.videoUrl,
       )
@@ -58,9 +58,9 @@ object CourtEmailFactory {
         court = booking.court!!.description,
         prison = prison.name,
         appointmentDate = main.appointmentDate,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
+        preAppointmentDetails = pre?.appointmentDetails(locations),
+        mainAppointmentDetails = main.appointmentDetails(locations),
+        postAppointmentDetails = post?.appointmentDetails(locations),
         comments = booking.comments,
         courtHearingLink = booking.videoUrl,
       )
@@ -114,9 +114,9 @@ object CourtEmailFactory {
         court = booking.court!!.description,
         prison = prison.name,
         appointmentDate = main.appointmentDate,
-        preAppointmentDetails = pre?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
-        mainAppointmentDetails = AppointmentDetails(locations.room(main), main.startTime, main.endTime, locations.prisonVideoUrl(main)),
-        postAppointmentDetails = post?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
+        preAppointmentDetails = pre?.appointmentDetails(locations),
+        mainAppointmentDetails = main.appointmentDetails(locations),
+        postAppointmentDetails = post?.appointmentDetails(locations),
         comments = booking.comments,
         courtHearingLink = booking.videoUrl,
       )
@@ -129,9 +129,9 @@ object CourtEmailFactory {
         appointmentDate = main.appointmentDate,
         court = booking.court!!.description,
         prison = prison.name,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
+        preAppointmentDetails = pre?.appointmentDetails(locations),
+        mainAppointmentDetails = main.appointmentDetails(locations),
+        postAppointmentDetails = post?.appointmentDetails(locations),
         comments = booking.comments,
         courtHearingLink = booking.videoUrl,
       )
@@ -242,9 +242,9 @@ object CourtEmailFactory {
             courtEmailAddress = primaryCourtContact.email!!,
             prison = prison.name,
             appointmentDate = main.appointmentDate,
-            preAppointmentDetails = pre?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
-            mainAppointmentDetails = AppointmentDetails(locations.room(main), main.startTime, main.endTime, locations.prisonVideoUrl(main)),
-            postAppointmentDetails = post?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
+            preAppointmentDetails = pre?.appointmentDetails(locations),
+            mainAppointmentDetails = main.appointmentDetails(locations),
+            postAppointmentDetails = post?.appointmentDetails(locations),
             comments = booking.comments,
             courtHearingLink = booking.videoUrl,
           )
@@ -257,9 +257,9 @@ object CourtEmailFactory {
             court = booking.court!!.description,
             prison = prison.name,
             appointmentDate = main.appointmentDate,
-            preAppointmentDetails = pre?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
-            mainAppointmentDetails = AppointmentDetails(locations.room(main), main.startTime, main.endTime, locations.prisonVideoUrl(main)),
-            postAppointmentDetails = post?.let { AppointmentDetails(locations.room(it), it.startTime, it.endTime, locations.prisonVideoUrl(it)) },
+            preAppointmentDetails = pre?.appointmentDetails(locations),
+            mainAppointmentDetails = main.appointmentDetails(locations),
+            postAppointmentDetails = post?.appointmentDetails(locations),
             comments = booking.comments,
             courtHearingLink = booking.videoUrl,
           )
@@ -277,9 +277,9 @@ object CourtEmailFactory {
             courtEmailAddress = primaryCourtContact.email!!,
             prison = prison.name,
             appointmentDate = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
+            preAppointmentDetails = pre?.appointmentDetails(locations),
+            mainAppointmentDetails = main.appointmentDetails(locations),
+            postAppointmentDetails = post?.appointmentDetails(locations),
             comments = booking.comments,
             courtHearingLink = booking.videoUrl,
           )
@@ -292,9 +292,9 @@ object CourtEmailFactory {
             court = booking.court!!.description,
             prison = prison.name,
             appointmentDate = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
+            preAppointmentDetails = pre?.appointmentDetails(locations),
+            mainAppointmentDetails = main.appointmentDetails(locations),
+            postAppointmentDetails = post?.appointmentDetails(locations),
             comments = booking.comments,
             courtHearingLink = booking.videoUrl,
           )
@@ -415,6 +415,8 @@ object CourtEmailFactory {
       else -> null
     }
   }
+
+  private fun PrisonAppointment.appointmentDetails(locations: Map<UUID, Location>) = AppointmentDetails(locations.room(this), startTime, endTime, locations.prisonVideoUrl(this))
 
   private fun PrisonAppointment.appointmentInformation(locations: Map<UUID, Location>) = "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
