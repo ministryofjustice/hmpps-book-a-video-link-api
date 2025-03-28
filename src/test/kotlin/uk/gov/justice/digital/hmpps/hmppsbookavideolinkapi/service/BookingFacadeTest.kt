@@ -943,6 +943,8 @@ class BookingFacadeTest {
           "comments" to "Court hearing comments",
           "prison" to "Wandsworth",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
       with(emailCaptor.secondValue) {
@@ -959,6 +961,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
 
@@ -1038,6 +1042,8 @@ class BookingFacadeTest {
           "comments" to "Court hearing comments",
           "prison" to "Wandsworth",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
       with(emailCaptor.secondValue) {
@@ -1054,6 +1060,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
 
