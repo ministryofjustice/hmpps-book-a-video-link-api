@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AppointmentDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingUserEmail
@@ -26,6 +27,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
@@ -36,6 +41,7 @@ import uk.gov.service.notify.NotificationClient
 import uk.gov.service.notify.NotificationClientException
 import uk.gov.service.notify.SendEmailResponse
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.UUID
 
 class GovNotifyEmailServiceTest {
@@ -101,9 +107,9 @@ class GovNotifyEmailServiceTest {
         appointmentDate = today,
         userName = "username",
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(10, 0), LocalTime.of(10, 15), "pre-prison-video-url"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(10, 15), LocalTime.of(10, 30), "main-prison-video-url"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(10, 30), LocalTime.of(10, 45), "post-prison-video-url"),
         court = "the court",
         prison = "the prison",
         courtHearingLink = "https://video.link.com",
@@ -123,11 +129,13 @@ class GovNotifyEmailServiceTest {
         "userName" to "username",
         "court" to "the court",
         "prison" to "the prison",
-        "preAppointmentInfo" to "bobs pre-appointment info",
-        "mainAppointmentInfo" to "bobs main appointment info",
-        "postAppointmentInfo" to "bob post appointment info",
+        "preAppointmentInfo" to "pre - 10:00 to 10:15",
+        "mainAppointmentInfo" to "main - 10:15 to 10:30",
+        "postAppointmentInfo" to "post - 10:30 to 10:45",
         "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-prison-video-url",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-prison-video-url",
       ),
       null,
     )
@@ -144,9 +152,9 @@ class GovNotifyEmailServiceTest {
         appointmentDate = today,
         userName = "username",
         comments = null,
-        preAppointmentInfo = null,
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = null,
+        preAppointmentDetails = null,
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(10, 15), LocalTime.of(10, 30), null),
+        postAppointmentDetails = null,
         court = "the court",
         prison = "the prison",
         courtHearingLink = null,
@@ -167,10 +175,12 @@ class GovNotifyEmailServiceTest {
         "court" to "the court",
         "prison" to "the prison",
         "preAppointmentInfo" to "Not required",
-        "mainAppointmentInfo" to "bobs main appointment info",
+        "mainAppointmentInfo" to "main - 10:15 to 10:30",
         "postAppointmentInfo" to "Not required",
         "courtHearingLink" to "Not yet known",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "",
+        "postPrisonVideoUrl" to "",
       ),
       null,
     )
@@ -186,9 +196,9 @@ class GovNotifyEmailServiceTest {
         prisonerNumber = "123456",
         appointmentDate = today,
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
         court = "the court",
         prison = "the prison",
         courtHearingLink = "https://video.link.com",
@@ -207,11 +217,13 @@ class GovNotifyEmailServiceTest {
         "comments" to "comments for bob",
         "court" to "the court",
         "prison" to "the prison",
-        "preAppointmentInfo" to "bobs pre-appointment info",
-        "mainAppointmentInfo" to "bobs main appointment info",
-        "postAppointmentInfo" to "bob post appointment info",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
         "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
       ),
       null,
     )
@@ -227,9 +239,9 @@ class GovNotifyEmailServiceTest {
         prisonerNumber = "123456",
         appointmentDate = today,
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), null),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), null),
         court = "the court",
         courtEmailAddress = "court@emailaddress.com",
         prison = "the prison",
@@ -250,11 +262,13 @@ class GovNotifyEmailServiceTest {
         "court" to "the court",
         "courtEmailAddress" to "court@emailaddress.com",
         "prison" to "the prison",
-        "preAppointmentInfo" to "bobs pre-appointment info",
-        "mainAppointmentInfo" to "bobs main appointment info",
-        "postAppointmentInfo" to "bob post appointment info",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
         "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "",
+        "postPrisonVideoUrl" to "",
       ),
       null,
     )
@@ -270,9 +284,9 @@ class GovNotifyEmailServiceTest {
         prisonerNumber = "123456",
         appointmentDate = today,
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
         court = "the court",
         prison = "the prison",
         courtHearingLink = "https://video.link.com",
@@ -291,11 +305,13 @@ class GovNotifyEmailServiceTest {
         "comments" to "comments for bob",
         "court" to "the court",
         "prison" to "the prison",
-        "preAppointmentInfo" to "bobs pre-appointment info",
-        "mainAppointmentInfo" to "bobs main appointment info",
-        "postAppointmentInfo" to "bob post appointment info",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
         "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
       ),
       null,
     )
@@ -312,9 +328,9 @@ class GovNotifyEmailServiceTest {
         userName = "username",
         appointmentDate = today,
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
         court = "the court",
         prison = "the prison",
         courtHearingLink = "https://video.link.com",
@@ -334,11 +350,13 @@ class GovNotifyEmailServiceTest {
         "userName" to "username",
         "court" to "the court",
         "prison" to "the prison",
-        "preAppointmentInfo" to "bobs pre-appointment info",
-        "mainAppointmentInfo" to "bobs main appointment info",
-        "postAppointmentInfo" to "bob post appointment info",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
         "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
       ),
       null,
     )
@@ -354,9 +372,9 @@ class GovNotifyEmailServiceTest {
         prisonerNumber = "123456",
         appointmentDate = today,
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
         court = "the court",
         courtEmailAddress = "court@emailaddress.com",
         prison = "the prison",
@@ -377,11 +395,13 @@ class GovNotifyEmailServiceTest {
         "court" to "the court",
         "courtEmailAddress" to "court@emailaddress.com",
         "prison" to "the prison",
-        "preAppointmentInfo" to "bobs pre-appointment info",
-        "mainAppointmentInfo" to "bobs main appointment info",
-        "postAppointmentInfo" to "bob post appointment info",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
         "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
       ),
       null,
     )
@@ -397,9 +417,9 @@ class GovNotifyEmailServiceTest {
         prisonerNumber = "123456",
         appointmentDate = today,
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
         court = "the court",
         prison = "the prison",
         courtHearingLink = "https://video.link.com",
@@ -418,11 +438,13 @@ class GovNotifyEmailServiceTest {
         "comments" to "comments for bob",
         "court" to "the court",
         "prison" to "the prison",
-        "preAppointmentInfo" to "bobs pre-appointment info",
-        "mainAppointmentInfo" to "bobs main appointment info",
-        "postAppointmentInfo" to "bob post appointment info",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
         "courtHearingLink" to "https://video.link.com",
         "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
       ),
       null,
     )
@@ -703,6 +725,9 @@ class GovNotifyEmailServiceTest {
         appointmentInfo = "bobs appointment info",
         probationTeam = "the probation team",
         prison = "the prison",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
       ),
     )
 
@@ -722,6 +747,9 @@ class GovNotifyEmailServiceTest {
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
       ),
       null,
     )
@@ -742,6 +770,9 @@ class GovNotifyEmailServiceTest {
         probationTeam = "the probation team",
         probationTeamEmailAddress = "probationteam@emailaddress.com",
         prison = "the prison",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
       ),
     )
 
@@ -756,11 +787,14 @@ class GovNotifyEmailServiceTest {
         "dateOfBirth" to "1 Jan 1970",
         "comments" to "comments for bob",
         "probationTeam" to "the probation team",
-        "probationTeamEmailAddress" to "probationteam@emailaddress.com",
+        "probationEmailAddress" to "probationteam@emailaddress.com",
         "prison" to "the prison",
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
       ),
       null,
     )
@@ -780,6 +814,9 @@ class GovNotifyEmailServiceTest {
         appointmentInfo = "bobs appointment info",
         probationTeam = "the probation team",
         prison = "the prison",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
       ),
     )
 
@@ -798,6 +835,9 @@ class GovNotifyEmailServiceTest {
         "meetingType" to "Recall report",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
       ),
       null,
     )
@@ -828,9 +868,9 @@ class GovNotifyEmailServiceTest {
         appointmentDate = LocalDate.now(),
         userName = "username",
         comments = "comments for bob",
-        preAppointmentInfo = "bobs pre-appointment info",
-        mainAppointmentInfo = "bobs main appointment info",
-        postAppointmentInfo = "bob post appointment info",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(10, 0), LocalTime.of(10, 15), null),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(10, 15), LocalTime.of(10, 30), null),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(10, 30), LocalTime.of(10, 45), null),
         court = "the court",
         prison = "the prison",
         courtHearingLink = "https://video.link.com",
@@ -966,6 +1006,194 @@ class GovNotifyEmailServiceTest {
         "prison" to "the prison",
         "appointmentInfo" to "bobs appointment info",
         "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send amend probation user amend booking email and return a notification ID`() {
+    val result = service.send(
+      AmendedProbationBookingUserEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        userName = "username",
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedProbationBookingUser")
+
+    verify(client).sendEmail(
+      "amendedProbationBookingUser",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "userName" to "username",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send amend probation booking email and return a notification ID`() {
+    val result = service.send(
+      AmendedProbationBookingProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedProbationBookingProbationEmail")
+
+    verify(client).sendEmail(
+      "amendedProbationBookingProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send amend probation booking prison probation email and return a notification ID`() {
+    val result = service.send(
+      AmendedProbationBookingPrisonProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        probationEmailAddress = "probation.team@email.address",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedProbationBookingPrisonProbationEmail")
+
+    verify(client).sendEmail(
+      "amendedProbationBookingPrisonProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "probationEmailAddress" to "probation.team@email.address",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send amend probation booking prison no probation email and return a notification ID`() {
+    val result = service.send(
+      AmendedProbationBookingPrisonNoProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "amendedProbationBookingPrisonNoProbationEmail")
+
+    verify(client).sendEmail(
+      "amendedProbationBookingPrisonNoProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
         "prisonVideoUrl" to "prison-video-url",
         "probationOfficerName" to "probation officer name",
         "probationOfficerEmailAddress" to "probation.officer@email.address",

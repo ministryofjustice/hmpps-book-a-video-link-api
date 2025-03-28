@@ -232,6 +232,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
       with(emailCaptor.secondValue) {
@@ -248,6 +250,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
 
@@ -320,6 +324,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
       with(emailCaptor.secondValue) {
@@ -336,6 +342,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
 
@@ -935,6 +943,8 @@ class BookingFacadeTest {
           "comments" to "Court hearing comments",
           "prison" to "Wandsworth",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
       with(emailCaptor.secondValue) {
@@ -951,6 +961,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
 
@@ -1030,6 +1042,8 @@ class BookingFacadeTest {
           "comments" to "Court hearing comments",
           "prison" to "Wandsworth",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
       with(emailCaptor.secondValue) {
@@ -1046,6 +1060,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
 
@@ -1115,6 +1131,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
       with(emailCaptor.secondValue) {
@@ -1128,6 +1148,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
 
@@ -1197,6 +1221,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
       with(emailCaptor.secondValue) {
@@ -1210,6 +1238,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
 

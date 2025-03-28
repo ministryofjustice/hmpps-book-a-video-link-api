@@ -54,7 +54,6 @@ class RequestBookingServiceTest {
   private val notificationCaptor = argumentCaptor<Notification>()
   private val emailService: EmailService = mock()
   private val contactsService: ContactsService = mock()
-  private val appointmentsService: AppointmentsService = mock()
   private val courtRepository: CourtRepository = mock()
   private val probationTeamRepository: ProbationTeamRepository = mock()
   private val prisonRepository: PrisonRepository = mock()
@@ -289,6 +288,9 @@ class RequestBookingServiceTest {
         "meetingType" to "Pre-sentence report",
         "appointmentInfo" to "11:00 to 11:30",
         "comments" to "probation booking comments",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
       )
     }
     with(emailCaptor.secondValue) {
@@ -303,6 +305,9 @@ class RequestBookingServiceTest {
         "meetingType" to "Pre-sentence report",
         "appointmentInfo" to "11:00 to 11:30",
         "comments" to "probation booking comments",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
       )
     }
 

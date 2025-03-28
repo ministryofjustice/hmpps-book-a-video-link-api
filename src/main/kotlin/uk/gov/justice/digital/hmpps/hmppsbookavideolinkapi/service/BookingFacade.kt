@@ -190,7 +190,7 @@ class BookingFacade(
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType, additionalBookingDetail).takeIf { user is PrisonUser || user is ExternalUser }
-        ContactType.PROBATION -> ProbationEmailFactory.probation(contact, prisoner, booking, prison, appointment, location, eventType).takeIf { user is PrisonUser || user is ServiceUser }
+        ContactType.PROBATION -> ProbationEmailFactory.probation(contact, prisoner, booking, prison, appointment, location, eventType, additionalBookingDetail).takeIf { user is PrisonUser || user is ServiceUser }
         ContactType.PRISON -> ProbationEmailFactory.prison(contact, prisoner, booking, prison, appointment, location, eventType, contacts, additionalBookingDetail)
         else -> null
       }

@@ -1,10 +1,13 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import java.time.LocalDate
+import java.time.LocalTime
 
-abstract class CourtEmail(
+@Deprecated(message = "Deprecated", replaceWith = ReplaceWith("CourtEmail"))
+abstract class DeprecatedCourtEmail(
   address: String,
   prisonerFirstName: String,
   prisonerLastName: String,
@@ -33,6 +36,41 @@ abstract class CourtEmail(
   }
 }
 
+abstract class CourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  appointmentDate: LocalDate = LocalDate.now(),
+  court: String,
+  prison: String,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
+  comments: String?,
+  courtHearingLink: String?,
+  userName: String? = null,
+  courtEmailAddress: String? = null,
+) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+  init {
+    addPersonalisation("offenderNo", prisonerNumber)
+    addPersonalisation("court", court)
+    addPersonalisation("prison", prison)
+    addPersonalisation("preAppointmentInfo", preAppointmentDetails?.toString() ?: "Not required")
+    addPersonalisation("prePrisonVideoUrl", preAppointmentDetails?.prisonVideoUrl?.let { "Pre-court hearing link (PVL): $it" } ?: "")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentDetails.toString())
+    addPersonalisation("postAppointmentInfo", postAppointmentDetails?.toString() ?: "Not required")
+    addPersonalisation("postPrisonVideoUrl", postAppointmentDetails?.prisonVideoUrl?.let { "Post-court hearing link (PVL): $it" } ?: "")
+    addPersonalisation("courtHearingLink", courtHearingLink ?: "Not yet known")
+    userName?.let { addPersonalisation("userName", userName) }
+    courtEmailAddress?.let { addPersonalisation("courtEmailAddress", courtEmailAddress) }
+  }
+}
+
+data class AppointmentDetails(val description: String, val startTime: LocalTime, val endTime: LocalTime, val prisonVideoUrl: String?) {
+  override fun toString() = "$description - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
+}
+
 class NewCourtBookingUserEmail(
   address: String,
   prisonerFirstName: String,
@@ -42,9 +80,9 @@ class NewCourtBookingUserEmail(
   userName: String,
   court: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
 ) : CourtEmail(
@@ -56,9 +94,9 @@ class NewCourtBookingUserEmail(
   userName = userName,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -71,9 +109,9 @@ class NewCourtBookingCourtEmail(
   appointmentDate: LocalDate = LocalDate.now(),
   court: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
 ) : CourtEmail(
@@ -84,9 +122,9 @@ class NewCourtBookingCourtEmail(
   appointmentDate = appointmentDate,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -100,9 +138,9 @@ class NewCourtBookingPrisonCourtEmail(
   court: String,
   courtEmailAddress: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
 ) : CourtEmail(
@@ -114,9 +152,9 @@ class NewCourtBookingPrisonCourtEmail(
   court = court,
   courtEmailAddress = courtEmailAddress,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -129,9 +167,9 @@ class NewCourtBookingPrisonNoCourtEmail(
   appointmentDate: LocalDate = LocalDate.now(),
   court: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
 ) : CourtEmail(
@@ -142,9 +180,9 @@ class NewCourtBookingPrisonNoCourtEmail(
   appointmentDate = appointmentDate,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -158,9 +196,9 @@ class AmendedCourtBookingUserEmail(
   userName: String,
   court: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
 ) : CourtEmail(
@@ -172,9 +210,9 @@ class AmendedCourtBookingUserEmail(
   userName = userName,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -187,9 +225,9 @@ class AmendedCourtBookingCourtEmail(
   appointmentDate: LocalDate = LocalDate.now(),
   court: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
 ) : CourtEmail(
@@ -200,9 +238,9 @@ class AmendedCourtBookingCourtEmail(
   appointmentDate = appointmentDate,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -216,9 +254,9 @@ class AmendedCourtBookingPrisonCourtEmail(
   court: String,
   courtEmailAddress: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
 ) : CourtEmail(
@@ -230,9 +268,9 @@ class AmendedCourtBookingPrisonCourtEmail(
   court = court,
   courtEmailAddress = courtEmailAddress,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -245,9 +283,9 @@ class AmendedCourtBookingPrisonNoCourtEmail(
   appointmentDate: LocalDate = LocalDate.now(),
   court: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
 ) : CourtEmail(
@@ -258,9 +296,9 @@ class AmendedCourtBookingPrisonNoCourtEmail(
   appointmentDate = appointmentDate,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -279,7 +317,7 @@ class CancelledCourtBookingUserEmail(
   postAppointmentInfo: String?,
   comments: String?,
   courtHearingLink: String?,
-) : CourtEmail(
+) : DeprecatedCourtEmail(
   address = address,
   prisonerFirstName = prisonerFirstName,
   prisonerLastName = prisonerLastName,
@@ -308,7 +346,7 @@ class CancelledCourtBookingCourtEmail(
   postAppointmentInfo: String?,
   comments: String?,
   courtHearingLink: String?,
-) : CourtEmail(
+) : DeprecatedCourtEmail(
   address = address,
   prisonerFirstName = prisonerFirstName,
   prisonerLastName = prisonerLastName,
@@ -337,7 +375,7 @@ class CancelledCourtBookingPrisonCourtEmail(
   postAppointmentInfo: String?,
   comments: String?,
   courtHearingLink: String?,
-) : CourtEmail(
+) : DeprecatedCourtEmail(
   address = address,
   prisonerFirstName = prisonerFirstName,
   prisonerLastName = prisonerLastName,
@@ -366,7 +404,7 @@ class CancelledCourtBookingPrisonNoCourtEmail(
   postAppointmentInfo: String?,
   comments: String?,
   courtHearingLink: String?,
-) : CourtEmail(
+) : DeprecatedCourtEmail(
   address = address,
   prisonerFirstName = prisonerFirstName,
   prisonerLastName = prisonerLastName,
@@ -629,7 +667,7 @@ class CourtHearingLinkReminderEmail(
   postAppointmentInfo: String?,
   comments: String?,
   bookingId: String,
-) : CourtEmail(
+) : DeprecatedCourtEmail(
   address = address,
   prisonerFirstName = prisonerFirstName,
   prisonerLastName = prisonerLastName,
