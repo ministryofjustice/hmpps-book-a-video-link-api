@@ -4,6 +4,9 @@ spring:
 
 notify:
   templates:
+    court:
+      new-booking:
+        user: "1405711e-1f30-4999-b336-27061d58fdb6"
     probation:
       new-booking:
         user: "31d92a30-e67b-4bd8-856c-415b57ba0f7b"

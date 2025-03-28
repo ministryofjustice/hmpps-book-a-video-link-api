@@ -232,6 +232,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
       with(emailCaptor.secondValue) {
@@ -320,6 +322,8 @@ class BookingFacadeTest {
           "postAppointmentInfo" to "Not required",
           "comments" to "Court hearing comments",
           "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
         )
       }
       with(emailCaptor.secondValue) {
