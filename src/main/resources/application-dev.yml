@@ -7,6 +7,9 @@ notify:
     court:
       new-booking:
         user: "1405711e-1f30-4999-b336-27061d58fdb6"
+        court: "b0036fb5-7552-4b6e-b555-23b2a659c24f"
+        prison-court-email: "b35416aa-1055-4c05-ab31-c11c055b6105"
+        prison-no-court-email: "945f7863-1f72-4032-b8cb-a37ab8bf0925"
     probation:
       new-booking:
         user: "31d92a30-e67b-4bd8-856c-415b57ba0f7b"

@@ -44,9 +44,9 @@ abstract class CourtEmail(
   appointmentDate: LocalDate = LocalDate.now(),
   court: String,
   prison: String,
-  preAppointmentInfo: AppointmentDetails?,
-  mainAppointmentInfo: AppointmentDetails,
-  postAppointmentInfo: AppointmentDetails?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
   userName: String? = null,
@@ -56,11 +56,11 @@ abstract class CourtEmail(
     addPersonalisation("offenderNo", prisonerNumber)
     addPersonalisation("court", court)
     addPersonalisation("prison", prison)
-    addPersonalisation("preAppointmentInfo", preAppointmentInfo?.toString() ?: "Not required")
-    addPersonalisation("prePrisonVideoUrl", preAppointmentInfo?.prisonVideoUrl?.let { "Pre-court hearing link (PVL): $it" } ?: "")
-    addPersonalisation("mainAppointmentInfo", mainAppointmentInfo.toString())
-    addPersonalisation("postAppointmentInfo", postAppointmentInfo?.toString() ?: "Not required")
-    addPersonalisation("postPrisonVideoUrl", postAppointmentInfo?.prisonVideoUrl?.let { "Post-court hearing link (PVL): $it" } ?: "")
+    addPersonalisation("preAppointmentInfo", preAppointmentDetails?.toString() ?: "Not required")
+    addPersonalisation("prePrisonVideoUrl", preAppointmentDetails?.prisonVideoUrl?.let { "Pre-court hearing link (PVL): $it" } ?: "")
+    addPersonalisation("mainAppointmentInfo", mainAppointmentDetails.toString())
+    addPersonalisation("postAppointmentInfo", postAppointmentDetails?.toString() ?: "Not required")
+    addPersonalisation("postPrisonVideoUrl", postAppointmentDetails?.prisonVideoUrl?.let { "Post-court hearing link (PVL): $it" } ?: "")
     addPersonalisation("courtHearingLink", courtHearingLink ?: "Not yet known")
     userName?.let { addPersonalisation("userName", userName) }
     courtEmailAddress?.let { addPersonalisation("courtEmailAddress", courtEmailAddress) }
@@ -94,9 +94,9 @@ class NewCourtBookingUserEmail(
   userName = userName,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentDetails,
-  mainAppointmentInfo = mainAppointmentDetails,
-  postAppointmentInfo = postAppointmentDetails,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -109,12 +109,12 @@ class NewCourtBookingCourtEmail(
   appointmentDate: LocalDate = LocalDate.now(),
   court: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
-) : DeprecatedCourtEmail(
+) : CourtEmail(
   address = address,
   prisonerFirstName = prisonerFirstName,
   prisonerLastName = prisonerLastName,
@@ -122,9 +122,9 @@ class NewCourtBookingCourtEmail(
   appointmentDate = appointmentDate,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -138,12 +138,12 @@ class NewCourtBookingPrisonCourtEmail(
   court: String,
   courtEmailAddress: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
-) : DeprecatedCourtEmail(
+) : CourtEmail(
   address = address,
   prisonerFirstName = prisonerFirstName,
   prisonerLastName = prisonerLastName,
@@ -152,9 +152,9 @@ class NewCourtBookingPrisonCourtEmail(
   court = court,
   courtEmailAddress = courtEmailAddress,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
@@ -167,12 +167,12 @@ class NewCourtBookingPrisonNoCourtEmail(
   appointmentDate: LocalDate = LocalDate.now(),
   court: String,
   prison: String,
-  preAppointmentInfo: String?,
-  mainAppointmentInfo: String,
-  postAppointmentInfo: String?,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
   comments: String?,
   courtHearingLink: String?,
-) : DeprecatedCourtEmail(
+) : CourtEmail(
   address = address,
   prisonerFirstName = prisonerFirstName,
   prisonerLastName = prisonerLastName,
@@ -180,9 +180,9 @@ class NewCourtBookingPrisonNoCourtEmail(
   appointmentDate = appointmentDate,
   court = court,
   prison = prison,
-  preAppointmentInfo = preAppointmentInfo,
-  mainAppointmentInfo = mainAppointmentInfo,
-  postAppointmentInfo = postAppointmentInfo,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
   comments = comments,
   courtHearingLink = courtHearingLink,
 )
