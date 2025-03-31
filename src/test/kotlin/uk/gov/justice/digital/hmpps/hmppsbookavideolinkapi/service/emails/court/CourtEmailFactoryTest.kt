@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 import java.time.LocalDate
 import java.time.LocalTime
 
-class DeprecatedCourtEmailFactoryTest {
+class CourtEmailFactoryTest {
 
   private val userBookingContact = bookingContact(
     contactType = ContactType.USER,

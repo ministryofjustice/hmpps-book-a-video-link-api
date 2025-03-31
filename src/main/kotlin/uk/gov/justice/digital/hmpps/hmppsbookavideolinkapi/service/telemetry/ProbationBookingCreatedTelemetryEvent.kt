@@ -15,8 +15,7 @@ class ProbationBookingCreatedTelemetryEvent(private val booking: VideoBooking) :
     }
   }
 
-  // Probation bookings are only created by probation users
-  override fun properties() = booking.commonProperties().plus("created_by" to "probation")
+  override fun properties() = booking.commonProperties().plus("created_by" to if (booking.createdByPrison) "prison" else "probation")
 
   override fun metrics() = mapOf(booking.hoursBeforeStartTimeMetric())
 }
