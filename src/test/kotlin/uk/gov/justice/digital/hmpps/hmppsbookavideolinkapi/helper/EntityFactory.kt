@@ -95,11 +95,11 @@ fun VideoBooking.withMainCourtPrisonAppointment(
   endTime = endTime,
 )
 
-fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType: ProbationMeetingType = ProbationMeetingType.PSR) = VideoBooking.newProbationBooking(
+fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType: ProbationMeetingType = ProbationMeetingType.PSR, createdBy: User? = null) = VideoBooking.newProbationBooking(
   probationTeam = probationTeam,
   probationMeetingType = meetingType.name,
   comments = "Probation meeting comments",
-  createdBy = PROBATION_USER,
+  createdBy = createdBy ?: PROBATION_USER,
 )
 
 /**

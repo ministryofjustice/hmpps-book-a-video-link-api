@@ -35,6 +35,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
@@ -74,6 +75,7 @@ class EmailTemplatesTest {
     ReleasedCourtBookingPrisonCourtEmail::class.java to "releaseCourtBookingPrisonCourtEmail",
     ReleasedCourtBookingPrisonNoCourtEmail::class.java to "releaseCourtBookingPrisonNoCourtEmail",
     NewProbationBookingUserEmail::class.java to "newProbationBookingUser",
+    NewProbationBookingProbationEmail::class.java to "newProbationBookingProbation",
     NewProbationBookingPrisonProbationEmail::class.java to "newProbationBookingPrisonProbationEmail",
     NewProbationBookingPrisonNoProbationEmail::class.java to "newProbationBookingPrisonNoProbationEmail",
     AmendedProbationBookingUserEmail::class.java to "amendedProbationBookingUser",
@@ -119,6 +121,7 @@ class EmailTemplatesTest {
     releaseCourtBookingPrisonCourtEmail = "releaseCourtBookingPrisonCourtEmail",
     releaseCourtBookingPrisonNoCourtEmail = "releaseCourtBookingPrisonNoCourtEmail",
     newProbationBookingUser = "newProbationBookingUser",
+    newProbationBookingProbation = "newProbationBookingProbation",
     newProbationBookingPrisonProbationEmail = "newProbationBookingPrisonProbationEmail",
     newProbationBookingPrisonNoProbationEmail = "newProbationBookingPrisonNoProbationEmail",
     amendedProbationBookingUser = "amendedProbationBookingUser",
@@ -175,6 +178,7 @@ class EmailTemplatesTest {
       "w",
       "x",
       "y",
+      "y.y",
       "z",
       "1",
       "2",
@@ -221,6 +225,7 @@ class EmailTemplatesTest {
         "w",
         "x",
         "y",
+        "y.y",
         "z",
         "1",
         "2",

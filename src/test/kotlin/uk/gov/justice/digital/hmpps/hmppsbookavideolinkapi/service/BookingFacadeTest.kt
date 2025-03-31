@@ -75,6 +75,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
@@ -168,6 +169,17 @@ class BookingFacadeTest {
     )
 
   private val probationBookingAtBirminghamPrison = probationBooking()
+    .addAppointment(
+      prison = prison(prisonCode = BIRMINGHAM),
+      prisonerNumber = "654321",
+      appointmentType = AppointmentType.VLB_PROBATION.name,
+      locationId = birminghamLocation.id,
+      date = tomorrow(),
+      startTime = LocalTime.MIDNIGHT,
+      endTime = LocalTime.MIDNIGHT.plusHours(1),
+    )
+
+  private val probationBookingAtBirminghamPrisonCreatedByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM)
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "654321",
@@ -459,6 +471,100 @@ class BookingFacadeTest {
 
       with(telemetryCaptor.firstValue as ProbationBookingCreatedTelemetryEvent) {
         properties()["created_by"] isEqualTo "probation"
+      }
+    }
+
+    @Test
+    fun `should send events and emails on creation of probation booking by prison user`() {
+      setupProbationPrimaryContacts(PRISON_USER_BIRMINGHAM)
+
+      val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
+
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+
+      val request = probationBookingRequest(
+        prisonCode = prisoner.prisonId!!,
+        prisonerNumber = prisoner.prisonerNumber,
+        appointmentDate = tomorrow(),
+        startTime = LocalTime.MIDNIGHT,
+        endTime = LocalTime.MIDNIGHT.plusHours(1),
+      )
+
+      whenever(videoBookingServiceDelegate.create(request, PRISON_USER_BIRMINGHAM)) doReturn Pair(probationBookingAtBirminghamPrisonCreatedByPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
+      whenever(emailService.send(any<NewProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
+      whenever(emailService.send(any<NewProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
+      whenever(additionalBookingDetailRepository.findByVideoBooking(probationBookingAtBirminghamPrison)) doReturn additionalDetails(probationBookingAtBirminghamPrison, "probation officer name", "probation.officer@email.com", "0114 2345678")
+
+      facade.create(request, PRISON_USER_BIRMINGHAM)
+
+      inOrder(videoBookingServiceDelegate, outboundEventsService, emailService, notificationRepository, telemetryService) {
+        verify(videoBookingServiceDelegate).create(request, PRISON_USER_BIRMINGHAM)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, probationBookingAtBirminghamPrison.videoBookingId)
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+      }
+
+      emailCaptor.allValues hasSize 2
+
+      with(emailCaptor.firstValue) {
+        this isInstanceOf NewProbationBookingUserEmail::class.java
+        address isEqualTo PRISON_USER_BIRMINGHAM.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "userName" to PRISON_USER_BIRMINGHAM.name,
+          "probationTeam" to "probation team description",
+          "prison" to "Birmingham",
+          "offenderNo" to "654321",
+          "prisonerName" to "Bob Builder",
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "probation officer name",
+          "probationOfficerEmailAddress" to "probation.officer@email.com",
+          "probationOfficerContactNumber" to "0114 2345678",
+        )
+      }
+
+      with(emailCaptor.secondValue) {
+        this isInstanceOf NewProbationBookingProbationEmail::class.java
+        address isEqualTo PROBATION_USER.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "probationTeam" to "probation team description",
+          "prison" to "Birmingham",
+          "offenderNo" to "654321",
+          "prisonerName" to "Bob Builder",
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "probation officer name",
+          "probationOfficerEmailAddress" to "probation.officer@email.com",
+          "probationOfficerContactNumber" to "0114 2345678",
+        )
+      }
+
+      notificationCaptor.allValues hasSize 2
+      with(notificationCaptor.firstValue) {
+        email isEqualTo PRISON_USER_BIRMINGHAM.email
+        templateName isEqualTo "user template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo probationBookingAtBirminghamPrison
+        reason isEqualTo "CREATE"
+      }
+
+      with(notificationCaptor.secondValue) {
+        email isEqualTo PROBATION_USER.email
+        templateName isEqualTo "probation template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo probationBookingAtBirminghamPrison
+        reason isEqualTo "CREATE"
+      }
+
+      with(telemetryCaptor.firstValue as ProbationBookingCreatedTelemetryEvent) {
+        properties()["created_by"] isEqualTo "prison"
       }
     }
 

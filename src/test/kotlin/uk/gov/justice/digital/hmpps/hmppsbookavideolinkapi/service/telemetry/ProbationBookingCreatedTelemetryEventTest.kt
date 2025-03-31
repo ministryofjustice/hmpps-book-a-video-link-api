@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
@@ -22,7 +23,7 @@ import java.time.temporal.ChronoUnit
 class ProbationBookingCreatedTelemetryEventTest {
 
   @Test
-  fun `should raise a probation booking created telemetry event`() {
+  fun `should raise a probation booking created telemetry event by a probation team`() {
     val booking = VideoBooking.newProbationBooking(
       probationTeam = probationTeam(BLACKPOOL_MC_PPOC),
       probationMeetingType = "PSR",
@@ -43,6 +44,45 @@ class ProbationBookingCreatedTelemetryEventTest {
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
         "created_by" to "probation",
+        "team_code" to BLACKPOOL_MC_PPOC,
+        "meeting_type" to "PSR",
+        "prison_code" to BIRMINGHAM,
+        "location_id" to birminghamLocation.id.toString(),
+        "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
+        "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+      )
+
+      metrics() containsEntriesExactlyInAnyOrder mapOf(
+        "hoursBeforeStartTime" to hoursBetween(
+          booking.createdTime,
+          tomorrow().atTime(LocalTime.of(14, 0)),
+        ).toDouble(),
+      )
+    }
+  }
+
+  @Test
+  fun `should raise a probation booking created telemetry event by a prison`() {
+    val booking = VideoBooking.newProbationBooking(
+      probationTeam = probationTeam(BLACKPOOL_MC_PPOC),
+      probationMeetingType = "PSR",
+      createdBy = PRISON_USER_BIRMINGHAM,
+      comments = null,
+    ).addAppointment(
+      prison = prison(BIRMINGHAM),
+      prisonerNumber = "ABC123",
+      appointmentType = "VLB_PROBATION",
+      date = tomorrow(),
+      startTime = LocalTime.of(14, 0),
+      endTime = LocalTime.of(15, 0),
+      locationId = birminghamLocation.id,
+    )
+
+    with(ProbationBookingCreatedTelemetryEvent(booking)) {
+      eventType isEqualTo "BVLS-probation-booking-created"
+      properties() containsEntriesExactlyInAnyOrder mapOf(
+        "video_booking_id" to "0",
+        "created_by" to "prison",
         "team_code" to BLACKPOOL_MC_PPOC,
         "meeting_type" to "PSR",
         "prison_code" to BIRMINGHAM,
