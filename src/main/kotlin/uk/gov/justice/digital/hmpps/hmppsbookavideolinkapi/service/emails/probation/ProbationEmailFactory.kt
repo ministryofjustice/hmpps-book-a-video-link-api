@@ -104,6 +104,22 @@ object ProbationEmailFactory {
     }
 
     return when (action) {
+      BookingAction.CREATE -> NewProbationBookingProbationEmail(
+        address = contact.email!!,
+        prisonerNumber = prisoner.prisonerNumber,
+        probationTeam = booking.probationTeam!!.description,
+        appointmentDate = appointment.appointmentDate,
+        appointmentInfo = appointment.appointmentInformation(location),
+        comments = booking.comments,
+        prisonerFirstName = prisoner.firstName,
+        prisonerLastName = prisoner.lastName,
+        prison = prison.name,
+        prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+        probationOfficerName = additionalBookingDetail?.contactName,
+        probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+        probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
+      )
+
       BookingAction.AMEND -> AmendedProbationBookingProbationEmail(
         address = contact.email!!,
         prisonerNumber = prisoner.prisonerNumber,

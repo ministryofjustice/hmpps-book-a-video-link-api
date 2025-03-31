@@ -87,6 +87,7 @@ class ProbationEmailFactoryTest {
   )
 
   private val probationEmails = mapOf(
+    BookingAction.CREATE to NewProbationBookingProbationEmail::class.java,
     BookingAction.AMEND to AmendedProbationBookingProbationEmail::class.java,
     BookingAction.CANCEL to CancelledProbationBookingProbationEmail::class.java,
     BookingAction.RELEASED to ReleasedProbationBookingProbationEmail::class.java,
@@ -112,10 +113,10 @@ class ProbationEmailFactoryTest {
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED, BookingAction.COURT_HEARING_LINK_REMINDER)
 
     @JvmStatic
-    fun supportedPrisonBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED)
+    fun supportedPrisonBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED)
 
     @JvmStatic
-    fun unsupportedProbationBookingActions() = setOf(BookingAction.CREATE, BookingAction.COURT_HEARING_LINK_REMINDER)
+    fun unsupportedProbationBookingActions() = setOf(BookingAction.COURT_HEARING_LINK_REMINDER)
   }
 
   @ParameterizedTest

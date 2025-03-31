@@ -164,6 +164,36 @@ class NewProbationBookingUserEmail(
   probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
+class NewProbationBookingProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  appointmentDate: LocalDate,
+  probationTeam: String,
+  prison: String,
+  appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+  comments: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  comments = comments,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+)
+
 class NewProbationBookingPrisonProbationEmail(
   address: String,
   prisonerFirstName: String,
