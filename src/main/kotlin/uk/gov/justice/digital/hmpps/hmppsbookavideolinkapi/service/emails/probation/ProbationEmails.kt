@@ -621,3 +621,32 @@ class ProbationBookingRequestPrisonNoProbationTeamEmail(
   probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
   probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
+
+class ProbationOfficerDetailsReminderEmail(
+  address: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  meetingType: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  comments: String?,
+  bookingId: String,
+) : ProbationEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  probationTeam = probationTeam,
+  appointmentDate = appointmentDate,
+  appointmentInfo = appointmentInfo,
+  prison = prison,
+  comments = comments,
+  meetingType = meetingType,
+) {
+  init {
+    addPersonalisation("bookingId", bookingId)
+  }
+}

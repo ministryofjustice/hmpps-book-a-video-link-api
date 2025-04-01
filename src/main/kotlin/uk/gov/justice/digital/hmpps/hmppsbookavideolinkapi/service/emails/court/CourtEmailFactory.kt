@@ -98,7 +98,7 @@ object CourtEmailFactory {
     post: PrisonAppointment?,
     locations: Map<UUID, Location>,
     action: BookingAction,
-  ): Email {
+  ): Email? {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.COURT) {
@@ -207,6 +207,8 @@ object CourtEmailFactory {
         comments = booking.comments,
         bookingId = booking.videoBookingId.toString(),
       )
+
+      else -> null
     }
   }
 

@@ -186,6 +186,22 @@ object ProbationEmailFactory {
         )
       }
 
+      BookingAction.PROBATION_OFFICER_DETAILS_REMINDER -> {
+        ProbationOfficerDetailsReminderEmail(
+          address = contact.email!!,
+          prisonerNumber = prisoner.prisonerNumber,
+          prisonerFirstName = prisoner.firstName,
+          prisonerLastName = prisoner.lastName,
+          appointmentDate = appointment.appointmentDate,
+          probationTeam = booking.probationTeam!!.description,
+          meetingType = booking.probationMeetingType!!,
+          prison = prison.name,
+          appointmentInfo = appointment.appointmentInformation(location),
+          comments = booking.comments,
+          bookingId = booking.videoBookingId.toString(),
+        )
+      }
+
       else -> null
     }
   }

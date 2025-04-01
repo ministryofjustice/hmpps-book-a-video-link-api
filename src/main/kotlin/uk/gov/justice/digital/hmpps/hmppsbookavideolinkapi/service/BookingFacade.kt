@@ -119,6 +119,13 @@ class BookingFacade(
     sendBookingEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
+  fun sendProbationOfficerDetailsReminder(videoBooking: VideoBooking, user: ServiceUser) {
+    require(videoBooking.isBookingType(PROBATION)) { "Video booking with id ${videoBooking.videoBookingId} is not a probation booking" }
+    require(videoBooking.probationTeam!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled probation team" }
+    require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} has already taken place" }
+    sendProbationBookingEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
+  }
+
   fun prisonerTransferred(videoBookingId: Long, user: ServiceUser) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
@@ -233,6 +240,7 @@ enum class BookingAction {
   AMEND,
   CANCEL,
   COURT_HEARING_LINK_REMINDER,
+  PROBATION_OFFICER_DETAILS_REMINDER,
   RELEASED,
   TRANSFERRED,
 }

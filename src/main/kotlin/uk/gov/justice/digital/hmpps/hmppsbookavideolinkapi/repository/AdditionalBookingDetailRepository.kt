@@ -6,4 +6,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 
 interface AdditionalBookingDetailRepository : JpaRepository<AdditionalBookingDetail, Long> {
   fun findByVideoBooking(booking: VideoBooking): AdditionalBookingDetail?
+
+  fun existsByVideoBooking(booking: VideoBooking): Boolean
 }
