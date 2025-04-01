@@ -1,31 +1,3 @@
 spring:
   flyway:
     locations: classpath:/migrations/common,classpath:/migrations/dev
-
-notify:
-  templates:
-    court:
-      new-booking:
-        user: "1405711e-1f30-4999-b336-27061d58fdb6"
-        court: "b0036fb5-7552-4b6e-b555-23b2a659c24f"
-        prison-court-email: "b35416aa-1055-4c05-ab31-c11c055b6105"
-        prison-no-court-email: "945f7863-1f72-4032-b8cb-a37ab8bf0925"
-      amended-booking:
-        user: "db450ddc-308a-456b-badb-4871d6ef92dc"
-        court: "79ae4589-1511-4b25-976b-18c149cb04ff"
-        prison-court-email: "267a3f0d-0ee5-46a9-a5aa-c971652896f9"
-        prison-no-court-email: "db924bc9-6ea1-43fa-95fe-01d466c82ffb"
-    probation:
-      new-booking:
-        user: "31d92a30-e67b-4bd8-856c-415b57ba0f7b"
-        prison-probation-email: "1d1e4265-7c58-4597-a0eb-1d77ec26ac5f"
-        prison-no-probation-email: "a39260ea-6cdc-42e1-8c9d-4018f50b2cc5"
-      amended-booking:
-        user: "cd864c20-249a-4301-a5f7-21821a215895"
-        probation: "c4d66183-1a81-46d0-9248-da7d0e6d4c9b"
-        prison-probation-email: "26ef42c1-e09c-44b2-a5cf-eb4a8c2589e2"
-        prison-no-probation-email: "8e4b04a5-7811-4498-9689-1d914b095b33"
-      booking-request:
-        user: "4fcd9f4a-00d3-43e7-ac84-7eb3a19b2773"
-        prison-probation-team-email: "f24a4953-1cc9-47af-b30f-0b418a329b14"
-        prison-no-probation-team-email: "68615073-9bb1-43db-9795-d6e1ef48e6a1"
