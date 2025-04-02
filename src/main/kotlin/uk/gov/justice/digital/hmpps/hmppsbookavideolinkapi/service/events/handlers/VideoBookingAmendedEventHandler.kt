@@ -3,12 +3,14 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingAmendedEvent
+import kotlin.math.abs
 
 @Component
 class VideoBookingAmendedEventHandler(
@@ -25,15 +27,23 @@ class VideoBookingAmendedEventHandler(
   @Transactional
   override fun handle(event: VideoBookingAmendedEvent) {
     videoBookingRepository
-      .findById(event.additionalInformation.videoBookingId)
+      .findById(abs(event.additionalInformation.videoBookingId))
       .ifPresentOrElse(
         { booking ->
-
           // Get the previous history row - the one before the one just added (which should always exist)
           val history = bookingHistoryService.getByVideoBookingId(booking.videoBookingId)
             .sortedByDescending { history -> history.createdTime }
             .let {
-              it[1]
+              if (event.additionalInformation.videoBookingId < 0) {
+                require(booking.isBookingType(BookingType.PROBATION)) { "Booking type must be probation" }
+                log.info("Processing negative videoBookingId ${event.additionalInformation.videoBookingId}")
+
+                it[0]
+              } else {
+                log.info("Processing positive videoBookingId ${event.additionalInformation.videoBookingId}")
+
+                it[1]
+              }
             }
 
           // Cancel the appointments related to the previous state from history rows
