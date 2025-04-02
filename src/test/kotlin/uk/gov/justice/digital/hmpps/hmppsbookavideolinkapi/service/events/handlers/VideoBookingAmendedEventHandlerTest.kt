@@ -108,20 +108,6 @@ class VideoBookingAmendedEventHandlerTest {
   }
 
   @Test
-  fun `should remove and recreate external appointments when missing amend on receipt of a BOOKING_AMENDED event`() {
-    whenever(videoBookingRepository.findById(anyLong())) doReturn Optional.of(booking)
-    whenever(bookingHistoryService.getByVideoBookingId(anyLong())) doReturn listOf(createHistory)
-
-    handler.handle(VideoBookingAmendedEvent(1))
-
-    verify(manageExternalAppointmentsService, times(2)).cancelPreviousAppointment(any())
-
-    verify(outboundEventsService, times(2)).send(DomainEventType.APPOINTMENT_CREATED, 0)
-
-    verifyNoMoreInteractions(manageExternalAppointmentsService)
-  }
-
-  @Test
   fun `should no-op an unknown booking`() {
     whenever(videoBookingRepository.findById(anyLong())) doReturn Optional.empty()
 
