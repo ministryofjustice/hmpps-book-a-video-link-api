@@ -33,8 +33,7 @@ class VideoBookingAmendedEventHandler(
           val history = bookingHistoryService.getByVideoBookingId(booking.videoBookingId)
             .sortedByDescending { history -> history.createdTime }
             .let {
-              // Temporary workaround to migrate existing bookings without an amend history
-              if (it.size == 1) it[0] else it[1]
+              it[1]
             }
 
           // Cancel the appointments related to the previous state from history rows
