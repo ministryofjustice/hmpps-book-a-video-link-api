@@ -632,6 +632,7 @@ class ProbationOfficerDetailsReminderEmail(
   meetingType: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
   comments: String?,
   bookingId: String,
 ) : ProbationEmail(
@@ -642,6 +643,7 @@ class ProbationOfficerDetailsReminderEmail(
   probationTeam = probationTeam,
   appointmentDate = appointmentDate,
   appointmentInfo = appointmentInfo,
+  prisonVideoUrl = prisonVideoUrl,
   prison = prison,
   comments = comments,
   meetingType = meetingType,

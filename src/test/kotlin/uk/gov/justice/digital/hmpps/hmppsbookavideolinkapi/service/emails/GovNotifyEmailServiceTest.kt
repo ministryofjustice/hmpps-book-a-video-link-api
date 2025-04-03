@@ -37,6 +37,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerDetailsReminderEmail
 import uk.gov.service.notify.NotificationClient
 import uk.gov.service.notify.NotificationClientException
 import uk.gov.service.notify.SendEmailResponse
@@ -93,6 +94,7 @@ class GovNotifyEmailServiceTest {
     transferProbationBookingPrisonProbationEmail = "transferProbationBookingPrisonProbationEmail",
     transferProbationBookingPrisonNoProbationEmail = "transferProbationBookingPrisonNoProbationEmail",
     courtHearingLinkReminderEmail = "courtHearingLinkReminderEmail",
+    probationOfficerDetailsReminderEmail = "probationOfficerDetailsReminderEmail",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates, "http://localhost:3000")
@@ -1100,9 +1102,6 @@ class GovNotifyEmailServiceTest {
         "probationOfficerEmailAddress" to "probation.officer@email.address",
         "probationOfficerContactNumber" to "123456",
         "prisonVideoUrl" to "prison-video-url",
-        "probationOfficerName" to "probation officer name",
-        "probationOfficerEmailAddress" to "probation.officer@email.address",
-        "probationOfficerContactNumber" to "123456",
       ),
       null,
     )
@@ -1149,9 +1148,6 @@ class GovNotifyEmailServiceTest {
         "probationOfficerEmailAddress" to "probation.officer@email.address",
         "probationOfficerContactNumber" to "123456",
         "prisonVideoUrl" to "prison-video-url",
-        "probationOfficerName" to "probation officer name",
-        "probationOfficerEmailAddress" to "probation.officer@email.address",
-        "probationOfficerContactNumber" to "123456",
       ),
       null,
     )
@@ -1196,9 +1192,49 @@ class GovNotifyEmailServiceTest {
         "probationOfficerEmailAddress" to "probation.officer@email.address",
         "probationOfficerContactNumber" to "123456",
         "prisonVideoUrl" to "prison-video-url",
-        "probationOfficerName" to "probation officer name",
-        "probationOfficerEmailAddress" to "probation.officer@email.address",
-        "probationOfficerContactNumber" to "123456",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send probation officer details missing reminder email and return a notification ID`() {
+    val result = service.send(
+      ProbationOfficerDetailsReminderEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        meetingType = "PSR",
+        bookingId = "1",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "probationOfficerDetailsReminderEmail")
+
+    verify(client).sendEmail(
+      "probationOfficerDetailsReminderEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "prisonVideoUrl" to "prison-video-url",
+        "bookingId" to "1",
+        "frontendDomain" to "http://localhost:3000",
+        "meetingType" to "PSR",
       ),
       null,
     )

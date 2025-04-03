@@ -48,6 +48,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
@@ -1762,7 +1763,13 @@ class BookingFacadeTest {
     @Test
     fun `should throw an exception if the booking is not a court booking`() {
       val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(probationBookingAtBirminghamPrison, SERVICE_USER) }
-      error.message isEqualTo "Video booking with id 0 is not a court booking"
+      error.message isEqualTo "Video booking with id 0 must be an active court booking"
+    }
+
+    @Test
+    fun `should throw an exception if the booking is not a active`() {
+      val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(courtBooking.cancel(COURT_USER), SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 must be an active court booking"
     }
 
     @Test
@@ -1774,7 +1781,7 @@ class BookingFacadeTest {
     @Test
     fun `should throw an exception if booking has already taken place`() {
       val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(courtBookingInThePast, SERVICE_USER) }
-      error.message isEqualTo "Video booking with id 0 has already taken place"
+      error.message isEqualTo "Video booking with id 0 must be after today"
     }
   }
 
@@ -1818,6 +1825,7 @@ class BookingFacadeTest {
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
           "bookingId" to "0",
+          "prisonVideoUrl" to "birmingham-video-url",
         )
       }
 
@@ -1834,7 +1842,13 @@ class BookingFacadeTest {
     @Test
     fun `should throw an exception if the booking is not a probation booking`() {
       val error = assertThrows<IllegalArgumentException> { facade.sendProbationOfficerDetailsReminder(courtBooking, SERVICE_USER) }
-      error.message isEqualTo "Video booking with id 0 is not a probation booking"
+      error.message isEqualTo "Video booking with id 0 must be an active probation booking"
+    }
+
+    @Test
+    fun `should throw an exception if the booking is not an active probation booking`() {
+      val error = assertThrows<IllegalArgumentException> { facade.sendProbationOfficerDetailsReminder(probationBooking().cancel(PROBATION_USER), SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 must be an active probation booking"
     }
 
     @Test
@@ -1845,8 +1859,11 @@ class BookingFacadeTest {
 
     @Test
     fun `should throw an exception if probation booking has already taken place`() {
-      val error = assertThrows<IllegalArgumentException> { facade.sendProbationOfficerDetailsReminder(probationBooking().withProbationPrisonAppointment(yesterday()), SERVICE_USER) }
-      error.message isEqualTo "Video booking with id 0 has already taken place"
+      assertThrows<IllegalArgumentException> { facade.sendProbationOfficerDetailsReminder(probationBooking().withProbationPrisonAppointment(yesterday()), SERVICE_USER) }
+        .message isEqualTo "Video booking with id 0 must be after today"
+
+      assertThrows<IllegalArgumentException> { facade.sendProbationOfficerDetailsReminder(probationBooking().withProbationPrisonAppointment(today()), SERVICE_USER) }
+        .message isEqualTo "Video booking with id 0 must be after today"
     }
   }
 
