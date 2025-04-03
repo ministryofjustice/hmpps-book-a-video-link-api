@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PR
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
@@ -112,17 +113,17 @@ class BookingFacade(
   }
 
   fun courtHearingLinkReminder(videoBooking: VideoBooking, user: ServiceUser) {
-    require(videoBooking.isBookingType(COURT)) { "Video booking with id ${videoBooking.videoBookingId} is not a court booking" }
+    require(videoBooking.isBookingType(COURT) && videoBooking.isStatus(StatusCode.ACTIVE)) { "Video booking with id ${videoBooking.videoBookingId} must be an active court booking" }
     require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
-    require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} has already taken place" }
+    require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
     require(videoBooking.videoUrl == null) { "Video booking with id ${videoBooking.videoBookingId} already has a court hearing link" }
     sendBookingEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
   fun sendProbationOfficerDetailsReminder(videoBooking: VideoBooking, user: ServiceUser) {
-    require(videoBooking.isBookingType(PROBATION)) { "Video booking with id ${videoBooking.videoBookingId} is not a probation booking" }
+    require(videoBooking.isBookingType(PROBATION) && videoBooking.isStatus(StatusCode.ACTIVE)) { "Video booking with id ${videoBooking.videoBookingId} must be an active probation booking" }
     require(videoBooking.probationTeam!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled probation team" }
-    require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} has already taken place" }
+    require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
     sendProbationBookingEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 

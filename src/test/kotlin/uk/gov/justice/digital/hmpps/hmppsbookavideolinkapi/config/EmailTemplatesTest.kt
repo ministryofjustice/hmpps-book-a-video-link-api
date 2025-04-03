@@ -40,6 +40,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerDetailsReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
@@ -93,6 +94,7 @@ class EmailTemplatesTest {
     TransferredProbationBookingPrisonProbationEmail::class.java to "transferProbationBookingPrisonProbationEmail",
     TransferredProbationBookingPrisonNoProbationEmail::class.java to "transferProbationBookingPrisonNoProbationEmail",
     CourtHearingLinkReminderEmail::class.java to "courtHearingLinkReminderEmail",
+    ProbationOfficerDetailsReminderEmail::class.java to "probationOfficerDetailsReminderEmail",
   )
 
   private val templates = EmailTemplates(
@@ -139,6 +141,7 @@ class EmailTemplatesTest {
     transferProbationBookingPrisonProbationEmail = "transferProbationBookingPrisonProbationEmail",
     transferProbationBookingPrisonNoProbationEmail = "transferProbationBookingPrisonNoProbationEmail",
     courtHearingLinkReminderEmail = "courtHearingLinkReminderEmail",
+    probationOfficerDetailsReminderEmail = "probationOfficerDetailsReminderEmail",
   )
 
   @Test
@@ -196,6 +199,7 @@ class EmailTemplatesTest {
       "14",
       "15",
       courtHearingLinkReminderEmail = "16",
+      probationOfficerDetailsReminderEmail = "17",
     )
 
     val error = assertThrows<IllegalArgumentException> {
@@ -243,6 +247,7 @@ class EmailTemplatesTest {
         "duplicate",
         "duplicate",
         courtHearingLinkReminderEmail = "14",
+        probationOfficerDetailsReminderEmail = "15",
       )
     }
 

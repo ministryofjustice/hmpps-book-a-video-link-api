@@ -197,6 +197,7 @@ object ProbationEmailFactory {
           meetingType = booking.probationMeetingType!!,
           prison = prison.name,
           appointmentInfo = appointment.appointmentInformation(location),
+          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
           comments = booking.comments,
           bookingId = booking.videoBookingId.toString(),
         )

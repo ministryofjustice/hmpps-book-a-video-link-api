@@ -38,3 +38,4 @@ generic-prometheus-alerts:
 
 cron:
   courtHearingLinkReminderJob: "0 11 * * 1-5"
+  probationOfficerDetailsReminderJob: "0 11 * * 1-5"

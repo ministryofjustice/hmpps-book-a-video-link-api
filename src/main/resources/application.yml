@@ -179,6 +179,8 @@ notify:
         probation: "33cad270-00ae-4490-aecb-49d9607e74e4"
         prison-probation-email: "094b0fcb-e34b-4fc8-b06a-a5b80ca49c55"
         prison-no-probation-email: "333b332c-1b45-406a-8f58-6ae61b96d027"
+      probation-officer-details-reminder:
+        probation: "459a1bff-466f-42ed-bf6d-ad7206342fbb"
 
 
 springdoc:
