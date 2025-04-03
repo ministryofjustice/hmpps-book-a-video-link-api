@@ -47,8 +47,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
@@ -77,6 +79,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerDetailsReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonProbationEmail
@@ -1773,11 +1776,77 @@ class BookingFacadeTest {
       val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(courtBookingInThePast, SERVICE_USER) }
       error.message isEqualTo "Video booking with id 0 has already taken place"
     }
+  }
+
+  @Nested
+  @DisplayName("Probation officer details reminder")
+  inner class ProbationOfficerDetailsReminder {
+    @Test
+    fun `should send an email to the probation contact to remind them to add missing probation officer details`() {
+      val prisoner = Prisoner(
+        prisonerNumber = probationBookingAtBirminghamPrison.prisoner(),
+        prisonId = "WWI",
+        firstName = "Bob",
+        lastName = "Builder",
+        dateOfBirth = LocalDate.EPOCH,
+        lastPrisonId = BIRMINGHAM,
+      )
+
+      setupCourtPrimaryContactsFor(SERVICE_USER)
+
+      whenever(prisonerSearchClient.getPrisoner(probationBookingAtBirminghamPrison.prisoner())) doReturn prisoner
+      whenever(emailService.send(any<ProbationOfficerDetailsReminderEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
+
+      facade.sendProbationOfficerDetailsReminder(probationBookingAtBirminghamPrison, SERVICE_USER)
+
+      inOrder(emailService, notificationRepository) {
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      }
+
+      emailCaptor.allValues hasSize 1
+      with(emailCaptor.firstValue) {
+        this isInstanceOf ProbationOfficerDetailsReminderEmail::class.java
+        address isEqualTo PROBATION_USER.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "prison" to "Birmingham",
+          "offenderNo" to "654321",
+          "prisonerName" to "Bob Builder",
+          "probationTeam" to "probation team description",
+          "meetingType" to "PSR",
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "Probation meeting comments",
+          "bookingId" to "0",
+        )
+      }
+
+      notificationCaptor.allValues hasSize 1
+      with(notificationCaptor.firstValue) {
+        email isEqualTo PROBATION_USER.email
+        templateName isEqualTo "probation template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo courtBooking
+        reason isEqualTo "PROBATION_OFFICER_DETAILS_REMINDER"
+      }
+    }
 
     @Test
-    fun `should throw an exception if booking already has a court hearing link`() {
-      val error = assertThrows<IllegalArgumentException> { facade.courtHearingLinkReminder(courtBooking, SERVICE_USER) }
-      error.message isEqualTo "Video booking with id 0 already has a court hearing link"
+    fun `should throw an exception if the booking is not a probation booking`() {
+      val error = assertThrows<IllegalArgumentException> { facade.sendProbationOfficerDetailsReminder(courtBooking, SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 is not a probation booking"
+    }
+
+    @Test
+    fun `should throw an exception if the probation team is not enabled`() {
+      val error = assertThrows<IllegalArgumentException> { facade.sendProbationOfficerDetailsReminder(probationBooking(probationTeam(enabled = false)), SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 is not with an enabled probation team"
+    }
+
+    @Test
+    fun `should throw an exception if probation booking has already taken place`() {
+      val error = assertThrows<IllegalArgumentException> { facade.sendProbationOfficerDetailsReminder(probationBooking().withProbationPrisonAppointment(yesterday()), SERVICE_USER) }
+      error.message isEqualTo "Video booking with id 0 has already taken place"
     }
   }
 
@@ -1811,6 +1880,7 @@ class BookingFacadeTest {
         bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
         bookingContact(contactType = ContactType.COURT, email = COURT_USER.email, name = COURT_USER.name).takeUnless { it.email == mayBeEmail },
+        bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name).takeUnless { it.email == mayBeEmail },
       )
     }
   }
