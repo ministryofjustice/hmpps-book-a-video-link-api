@@ -173,6 +173,10 @@ object ProbationEmailFactory {
           probationTeam = booking.probationTeam!!.description,
           prison = prison.name,
           appointmentInfo = appointment.appointmentInformation(location),
+          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+          probationOfficerName = additionalBookingDetail?.contactName,
+          probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+          probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           comments = booking.comments,
         )
       }
@@ -363,6 +367,10 @@ object ProbationEmailFactory {
             probationEmailAddress = primaryProbationContact.email!!,
             prison = prison.name,
             appointmentInfo = appointment.appointmentInformation(location),
+            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+            probationOfficerName = additionalBookingDetail?.contactName,
+            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
             comments = booking.comments,
           )
         } else {
@@ -376,6 +384,10 @@ object ProbationEmailFactory {
             probationTeam = booking.probationTeam!!.description,
             prison = prison.name,
             appointmentInfo = appointment.appointmentInformation(location),
+            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+            probationOfficerName = additionalBookingDetail?.contactName,
+            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
             comments = booking.comments,
           )
         }
