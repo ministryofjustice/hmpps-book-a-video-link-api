@@ -422,6 +422,10 @@ class TransferredProbationBookingProbationEmail(
   prisonerNumber: String,
   appointmentDate: LocalDate = LocalDate.now(),
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -434,6 +438,10 @@ class TransferredProbationBookingProbationEmail(
   prison = prison,
   comments = comments,
   dateOfBirth = dateOfBirth,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
 class TransferredProbationBookingPrisonProbationEmail(
@@ -447,6 +455,10 @@ class TransferredProbationBookingPrisonProbationEmail(
   prisonerNumber: String,
   appointmentDate: LocalDate = LocalDate.now(),
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -460,6 +472,10 @@ class TransferredProbationBookingPrisonProbationEmail(
   prison = prison,
   comments = comments,
   dateOfBirth = dateOfBirth,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
 class TransferredProbationBookingPrisonNoProbationEmail(
@@ -472,6 +488,10 @@ class TransferredProbationBookingPrisonNoProbationEmail(
   prisonerNumber: String,
   appointmentDate: LocalDate = LocalDate.now(),
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -484,6 +504,10 @@ class TransferredProbationBookingPrisonNoProbationEmail(
   prison = prison,
   comments = comments,
   dateOfBirth = dateOfBirth,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
 class ReleasedProbationBookingProbationEmail(
