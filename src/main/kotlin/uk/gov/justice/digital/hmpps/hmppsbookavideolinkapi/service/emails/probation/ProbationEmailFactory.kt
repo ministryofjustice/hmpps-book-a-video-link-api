@@ -79,6 +79,10 @@ object ProbationEmailFactory {
           probationTeam = booking.probationTeam!!.description,
           appointmentDate = appointment.appointmentDate,
           appointmentInfo = appointment.appointmentInformation(location),
+          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+          probationOfficerName = additionalBookingDetail?.contactName,
+          probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+          probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           comments = booking.comments,
         )
       }
@@ -148,6 +152,10 @@ object ProbationEmailFactory {
           probationTeam = booking.probationTeam!!.description,
           prison = prison.name,
           appointmentInfo = appointment.appointmentInformation(location),
+          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+          probationOfficerName = additionalBookingDetail?.contactName,
+          probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+          probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           comments = booking.comments,
         )
       }
@@ -316,6 +324,10 @@ object ProbationEmailFactory {
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
             probationEmailAddress = primaryProbationContact.email!!,
+            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+            probationOfficerName = additionalBookingDetail?.contactName,
+            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           )
         } else {
           CancelledProbationBookingPrisonNoProbationEmail(
@@ -328,6 +340,10 @@ object ProbationEmailFactory {
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
+            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
+            probationOfficerName = additionalBookingDetail?.contactName,
+            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
+            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
           )
         }
       }

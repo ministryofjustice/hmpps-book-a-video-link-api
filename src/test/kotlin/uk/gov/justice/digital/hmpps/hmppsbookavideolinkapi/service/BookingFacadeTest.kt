@@ -835,6 +835,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
 
@@ -849,6 +853,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
 
@@ -909,6 +917,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
 
@@ -923,6 +935,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
 
@@ -983,6 +999,10 @@ class BookingFacadeTest {
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
           "comments" to "Probation meeting comments",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
         )
       }
 
