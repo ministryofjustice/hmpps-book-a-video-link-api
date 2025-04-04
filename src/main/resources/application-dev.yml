@@ -10,4 +10,7 @@ notify:
         probation: "df97c314-cb5d-48ce-9241-7d94ea98e323"
         prison-probation-email: "8bdf8c4e-c15c-4621-9469-035fa14c9daa"
         prison-no-probation-email: "b090bedf-58da-495a-8d94-76e4f64aedf8"
-  
+      release-booking:
+        probation: "b2948a5f-303b-47f3-828c-0584a0528013"
+        prison-probation-email: "030b6136-9b32-4099-b398-0676118afb82"
+        prison-no-probation-email: "d915e106-7317-4aa6-a6ea-2776b1dbee83"
