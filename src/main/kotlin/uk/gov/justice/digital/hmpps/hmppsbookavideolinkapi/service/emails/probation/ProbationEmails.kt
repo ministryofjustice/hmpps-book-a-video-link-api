@@ -50,6 +50,10 @@ class CancelledProbationBookingUserEmail(
   probationTeam: String,
   prison: String,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -61,6 +65,10 @@ class CancelledProbationBookingUserEmail(
   appointmentDate = appointmentDate,
   probationTeam = probationTeam,
   prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
   comments = comments,
 )
 
@@ -73,6 +81,10 @@ class CancelledProbationBookingProbationEmail(
   prison: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -83,6 +95,10 @@ class CancelledProbationBookingProbationEmail(
   appointmentDate = appointmentDate,
   probationTeam = probationTeam,
   prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
   comments = comments,
 )
 
@@ -96,6 +112,10 @@ class CancelledProbationBookingPrisonProbationEmail(
   prison: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -107,6 +127,10 @@ class CancelledProbationBookingPrisonProbationEmail(
   probationTeam = probationTeam,
   probationEmailAddress = probationEmailAddress,
   prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
   comments = comments,
 )
 
@@ -119,6 +143,10 @@ class CancelledProbationBookingPrisonNoProbationEmail(
   prison: String,
   appointmentDate: LocalDate,
   appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
   comments: String?,
 ) : ProbationEmail(
   address = address,
@@ -129,6 +157,10 @@ class CancelledProbationBookingPrisonNoProbationEmail(
   appointmentDate = appointmentDate,
   probationTeam = probationTeam,
   prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
   comments = comments,
 )
 
