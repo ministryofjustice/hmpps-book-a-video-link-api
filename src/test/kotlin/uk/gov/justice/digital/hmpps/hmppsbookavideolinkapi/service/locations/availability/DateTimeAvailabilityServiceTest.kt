@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_P
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
@@ -31,16 +33,19 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.DateTimeAvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.Optional
 
 class DateTimeAvailabilityServiceTest {
   private val locationsService: LocationsService = mock()
   private val bookedLocationsService: BookedLocationsService = mock()
   private val locationAttributesService: LocationAttributesAvailableService = mock()
+  private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
 
   @Test
   fun `should fail when request date and start time is in the past`() {
@@ -290,8 +295,152 @@ class DateTimeAvailabilityServiceTest {
     }
   }
 
+  @Nested
+  inner class AmendmentRequests {
+    private val location1 = risleyLocation.toModel()
+    private val location2 = risleyLocation2.toModel()
+
+    @Test
+    fun `should return 2 available morning times when date and time of appointment is the same as request`() {
+      val booking = courtBooking().withMainCourtPrisonAppointment(date = today(), startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), prisonCode = RISLEY, location = risleyLocation2)
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(booking.appointments().single())
+      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1, location2)
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1, location2), booking.videoBookingId))) doReturn BookedLocations(
+        listOf(
+          BookedLocation(
+            location2,
+            startTime = LocalTime.of(10, 0),
+            endTime = LocalTime.of(11, 0),
+          ),
+        ),
+      )
+
+      val response = service { LocalDate.now().atStartOfDay() }.findAvailable(
+        DateTimeAvailabilityRequest(
+          prisonCode = RISLEY,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = today(),
+          startTime = LocalTime.of(10, 0),
+          endTime = LocalTime.of(11, 0),
+          appointmentToExclude = 1,
+        ),
+      )
+
+      response.locations hasSize 2
+
+      response.locations containsExactly listOf(
+        availableLocation(location1, time(10, 0), time(11, 0), LocationUsage.SHARED),
+        availableLocation(location2, time(10, 0), time(11, 0), LocationUsage.SHARED),
+      )
+    }
+
+    @Test
+    fun `should return 1 available morning times when date of appointment does not match request`() {
+      val booking = courtBooking().withMainCourtPrisonAppointment(date = yesterday(), startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), prisonCode = RISLEY, location = risleyLocation2)
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(booking.appointments().single())
+      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1, location2)
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1, location2), booking.videoBookingId))) doReturn BookedLocations(
+        listOf(
+          BookedLocation(
+            location2,
+            startTime = LocalTime.of(10, 0),
+            endTime = LocalTime.of(11, 0),
+          ),
+        ),
+      )
+
+      val response = service { LocalDate.now().atStartOfDay() }.findAvailable(
+        DateTimeAvailabilityRequest(
+          prisonCode = RISLEY,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = today(),
+          startTime = LocalTime.of(10, 0),
+          endTime = LocalTime.of(11, 0),
+          appointmentToExclude = 1,
+        ),
+      )
+
+      response.locations hasSize 1
+
+      response.locations containsExactly listOf(
+        availableLocation(location1, time(10, 0), time(11, 0), LocationUsage.SHARED),
+      )
+    }
+
+    @Test
+    fun `should return 1 available morning times when start time of appointment does not match request`() {
+      val booking = courtBooking().withMainCourtPrisonAppointment(date = today(), startTime = LocalTime.of(10, 1), endTime = LocalTime.of(11, 0), prisonCode = RISLEY, location = risleyLocation2)
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(booking.appointments().single())
+      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1, location2)
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1, location2), booking.videoBookingId))) doReturn BookedLocations(
+        listOf(
+          BookedLocation(
+            location2,
+            startTime = LocalTime.of(10, 0),
+            endTime = LocalTime.of(11, 0),
+          ),
+        ),
+      )
+
+      val response = service { LocalDate.now().atStartOfDay() }.findAvailable(
+        DateTimeAvailabilityRequest(
+          prisonCode = RISLEY,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = today(),
+          startTime = LocalTime.of(10, 0),
+          endTime = LocalTime.of(11, 0),
+          appointmentToExclude = 1,
+        ),
+      )
+
+      response.locations hasSize 1
+
+      response.locations containsExactly listOf(
+        availableLocation(location1, time(10, 0), time(11, 0), LocationUsage.SHARED),
+      )
+    }
+
+    @Test
+    fun `should return 1 available morning times when end time of appointment does not match request`() {
+      val booking = courtBooking().withMainCourtPrisonAppointment(date = today(), startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 1), prisonCode = RISLEY, location = risleyLocation2)
+      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(booking.appointments().single())
+      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1, location2)
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1, location2), booking.videoBookingId))) doReturn BookedLocations(
+        listOf(
+          BookedLocation(
+            location2,
+            startTime = LocalTime.of(10, 0),
+            endTime = LocalTime.of(11, 0),
+          ),
+        ),
+      )
+
+      val response = service { LocalDate.now().atStartOfDay() }.findAvailable(
+        DateTimeAvailabilityRequest(
+          prisonCode = RISLEY,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = today(),
+          startTime = LocalTime.of(10, 0),
+          endTime = LocalTime.of(11, 0),
+          appointmentToExclude = 1,
+        ),
+      )
+
+      response.locations hasSize 1
+
+      response.locations containsExactly listOf(
+        availableLocation(location1, time(10, 0), time(11, 0), LocationUsage.SHARED),
+      )
+    }
+  }
+
   private fun service(timeSource: TimeSource = TimeSource { LocalDateTime.now() }) = DateTimeAvailabilityService(
     locationsService,
+    prisonAppointmentRepository,
     bookedLocationsService,
     locationAttributesService,
     timeSource,
