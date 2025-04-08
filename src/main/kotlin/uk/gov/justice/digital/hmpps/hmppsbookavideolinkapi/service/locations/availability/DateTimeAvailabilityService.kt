@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability
 
+import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilityStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -12,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.DateTim
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.time.LocalTime
 
@@ -24,6 +27,7 @@ import java.time.LocalTime
 @Transactional
 class DateTimeAvailabilityService(
   locationsService: LocationsService,
+  private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val bookedLocationsService: BookedLocationsService,
   private val locationAttributesService: LocationAttributesAvailableService,
   private val timeSource: TimeSource,
@@ -39,26 +43,44 @@ class DateTimeAvailabilityService(
     }
 
     val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode!!)
-    val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date, prisonVideoLinkLocations, request.vlbIdToExclude))
+    val mayBeExistingAppointment = request.appointmentToExclude?.let { prisonAppointmentRepository.findById(it).orElseThrow { EntityNotFoundException("Prison appointment with ID $it not found.") } }
+    val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date, prisonVideoLinkLocations, mayBeExistingAppointment?.videoBooking?.videoBookingId ?: request.vlbIdToExclude))
 
     val availableLocationsBuilder = DateTimeLocationsBuilder.builder {
       prisonVideoLinkLocations.forEach { location ->
         val meetingStartTime = request.startTime
         val meetingEndTime = request.endTime!!
 
-        if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime)) {
+        if (mayBeExistingAppointment != null && isTheSame(request, location, mayBeExistingAppointment)) {
           add(
-            availabilityStatus = location.allowsByAnyRuleOrSchedule(request, meetingStartTime),
+            availabilityStatus = AvailabilityStatus.SHARED,
             availableLocation = AvailableLocation(
               name = location.description ?: location.key,
               startTime = meetingStartTime,
               endTime = meetingEndTime,
               dpsLocationId = location.dpsLocationId,
               dpsLocationKey = location.key,
-              usage = location.extraAttributes?.locationUsage?.let { LocationUsage.valueOf(it.name) } ?: LocationUsage.SHARED,
+              usage = location.extraAttributes?.locationUsage?.let { LocationUsage.valueOf(it.name) }
+                ?: LocationUsage.SHARED,
               timeSlot = slot(meetingStartTime),
             ),
           )
+        } else {
+          if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime)) {
+            add(
+              availabilityStatus = location.allowsByAnyRuleOrSchedule(request, meetingStartTime),
+              availableLocation = AvailableLocation(
+                name = location.description ?: location.key,
+                startTime = meetingStartTime,
+                endTime = meetingEndTime,
+                dpsLocationId = location.dpsLocationId,
+                dpsLocationKey = location.key,
+                usage = location.extraAttributes?.locationUsage?.let { LocationUsage.valueOf(it.name) }
+                  ?: LocationUsage.SHARED,
+                timeSlot = slot(meetingStartTime),
+              ),
+            )
+          }
         }
       }
     }
@@ -68,6 +90,10 @@ class DateTimeAvailabilityService(
         .build()
         .also { log.info("DATE TIME AVAILABLE LOCATIONS: found ${it.size} available locations matching request $request") },
     )
+  }
+
+  private fun isTheSame(request: DateTimeAvailabilityRequest, location: Location, prisonAppointment: PrisonAppointment) = run {
+    location.dpsLocationId == prisonAppointment.prisonLocationId && prisonAppointment.startTime == request.startTime && prisonAppointment.endTime == request.endTime
   }
 
   protected fun Location.allowsByAnyRuleOrSchedule(request: DateTimeAvailabilityRequest, time: LocalTime): AvailabilityStatus {
