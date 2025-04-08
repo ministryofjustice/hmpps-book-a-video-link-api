@@ -139,7 +139,6 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
           WireMock.equalToJson(
             mapper.writeValueAsString(
               AppointmentSearchRequest(
-                appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
                 startDate = date,
                 prisonerNumbers = listOf(prisonerNumber),
               ),

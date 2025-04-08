@@ -87,7 +87,6 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     .uri("/appointments/{prisonCode}/search", prisonCode)
     .bodyValue(
       AppointmentSearchRequest(
-        appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL,
         startDate = onDate,
         prisonerNumbers = listOf(prisonerNumber),
       ),
@@ -132,7 +131,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
 
   private fun getPrisonAppointments(prisonCode: String, onDate: LocalDate) = activitiesAppointmentsApiWebClient.post()
     .uri("/appointments/{prisonCode}/search", prisonCode)
-    .bodyValue(AppointmentSearchRequest(appointmentType = AppointmentSearchRequest.AppointmentType.INDIVIDUAL, startDate = onDate))
+    .bodyValue(AppointmentSearchRequest(startDate = onDate))
     .retrieve()
     .bodyToMono(typeReference<List<AppointmentSearchResult>>())
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
