@@ -93,7 +93,7 @@ class DateTimeAvailabilityService(
   }
 
   private fun isTheSame(request: DateTimeAvailabilityRequest, location: Location, prisonAppointment: PrisonAppointment) = run {
-    location.dpsLocationId == prisonAppointment.prisonLocationId && prisonAppointment.startTime == request.startTime && prisonAppointment.endTime == request.endTime
+    location.dpsLocationId == prisonAppointment.prisonLocationId && prisonAppointment.appointmentDate == request.date && prisonAppointment.startTime == request.startTime && prisonAppointment.endTime == request.endTime
   }
 
   protected fun Location.allowsByAnyRuleOrSchedule(request: DateTimeAvailabilityRequest, time: LocalTime): AvailabilityStatus {
