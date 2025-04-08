@@ -171,10 +171,18 @@ class LocationAttribute private constructor(
     return when {
       // If there aren't any schedules which fall on the requested date and time then default to SHARED
       schedules.isEmpty() -> AvailabilityStatus.SHARED
-      // If there are schedules fall on the date and time look and see if any match the following
-      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
+
+      // If there are schedules falling on the date and time look and see if any match the following
+
+      // Block appointments within BLOCKED periods except those whose start time is the same as BLOCKED end-time - lenient at the time borders
+      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) && schedule.endTime != dateAndTime.toLocalTime() } -> AvailabilityStatus.NONE
+
+      // Determine if this schedule is specifically allowed for this team
       schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) } -> AvailabilityStatus.PROBATION_ROOM
+
+      // Determine if this schedule allows any probation team
       schedules.any { schedule -> schedule.isForAnyProbationTeam() } -> AvailabilityStatus.PROBATION_ANY
+
       // If there are no matches above then it is not available
       else -> AvailabilityStatus.NONE
     }
@@ -207,10 +215,18 @@ class LocationAttribute private constructor(
     return when {
       // If there aren't any schedules which fall on the requested date and time then default to SHARED
       schedules.isEmpty() -> AvailabilityStatus.SHARED
-      // If there are schedules fall on the date and time look and see if any match the following
-      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
+
+      // If there are schedules falling on the date and time look and see if any match the following
+
+      // Block appointments within BLOCKED periods except those whose start time is the same as BLOCKED end-time - lenient at the time borders
+      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) && schedule.endTime != dateAndTime.toLocalTime() } -> AvailabilityStatus.NONE
+
+      // Determine if this schedule is specifically allowed for this court
       schedules.any { schedule -> schedule.isForCourt(court) } -> AvailabilityStatus.COURT_ROOM
+
+      // Determine if this schedule is allowed for any court
       schedules.any { schedule -> schedule.isForAnyCourt() } -> AvailabilityStatus.COURT_ANY
+
       // If there are no matches above then it is not available
       else -> AvailabilityStatus.NONE
     }
