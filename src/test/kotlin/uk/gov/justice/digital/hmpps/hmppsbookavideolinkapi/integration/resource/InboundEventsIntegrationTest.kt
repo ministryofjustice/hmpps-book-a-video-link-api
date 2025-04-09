@@ -43,16 +43,22 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.ReleasedCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.ReleasedCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentScheduleInformation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentsChangedInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Identifier
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.InboundEventsListener
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.MergeInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PersonReference
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerAppointmentsChangedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerMergedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReleasedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerVideoAppointmentCancelledEvent
@@ -88,6 +94,92 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   private lateinit var telemetryService: TelemetryService
 
   private val telemetryCaptor = argumentCaptor<PrisonerMergedTelemetryEvent>()
+
+  @Test
+  fun `should cancel a video booking and send release emails on receipt of a appointments changed event and last movement REL`() {
+    videoBookingRepository.findAll() hasSize 0
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE, lastMovementTypeCode = "REL")
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
+      date = tomorrow(),
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      comments = "integration test court booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+    videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
+
+    inboundEventsListener.onMessage(
+      raw(
+        PrisonerAppointmentsChangedEvent(
+          personReference = PersonReference(listOf(Identifier("NOMS", "123456"))),
+          additionalInformation = AppointmentsChangedInformation(
+            action = "YES",
+            prisonId = PENTONVILLE,
+            user = "SOME_USER",
+          ),
+        ),
+      ),
+    )
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.CANCELLED }
+
+    with(notificationRepository.findAll()) {
+      isPresent("b@b.com", ReleasedCourtBookingCourtEmail::class, persistedBooking)
+      isPresent("j@j.com", ReleasedCourtBookingCourtEmail::class, persistedBooking)
+      isPresent("g@g.com", ReleasedCourtBookingPrisonCourtEmail::class, persistedBooking)
+      isPresent("p@p.com", ReleasedCourtBookingPrisonCourtEmail::class, persistedBooking)
+    }
+  }
+
+  @Test
+  fun `should cancel a video booking and send transfer emails on receipt of a appointments changed event and last movement TRN`() {
+    videoBookingRepository.findAll() hasSize 0
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE, lastMovementTypeCode = "TRN")
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
+      date = tomorrow(),
+      startTime = LocalTime.of(9, 30),
+      endTime = LocalTime.of(20, 0),
+      comments = "integration test court booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+    videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
+
+    inboundEventsListener.onMessage(
+      raw(
+        PrisonerAppointmentsChangedEvent(
+          personReference = PersonReference(listOf(Identifier("NOMS", "123456"))),
+          additionalInformation = AppointmentsChangedInformation(
+            action = "YES",
+            prisonId = PENTONVILLE,
+            user = "SOME_USER",
+          ),
+        ),
+      ),
+    )
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.CANCELLED }
+
+    with(notificationRepository.findAll()) {
+      isPresent("b@b.com", TransferredCourtBookingCourtEmail::class, persistedBooking)
+      isPresent("j@j.com", TransferredCourtBookingCourtEmail::class, persistedBooking)
+      isPresent("g@g.com", TransferredCourtBookingPrisonCourtEmail::class, persistedBooking)
+      isPresent("p@p.com", TransferredCourtBookingPrisonCourtEmail::class, persistedBooking)
+    }
+  }
 
   @Test
   fun `should cancel a video booking on receipt of a permanent release event`() {
@@ -446,6 +538,10 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   }
 
   private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
-    single { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
+    val match = singleOrNull { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
+
+    requireNotNull(match) {
+      "Notification not present: email '$email', template '${template.simpleName}'"
+    }
   }
 }
