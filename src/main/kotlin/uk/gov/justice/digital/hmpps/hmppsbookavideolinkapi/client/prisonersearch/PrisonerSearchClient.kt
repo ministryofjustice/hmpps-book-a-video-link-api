@@ -40,5 +40,4 @@ data class Prisoner(
   val dateOfBirth: LocalDate,
   val bookingId: String? = null,
   val lastPrisonId: String? = null,
-  val lastMovementTypeCode: String? = null,
 )
