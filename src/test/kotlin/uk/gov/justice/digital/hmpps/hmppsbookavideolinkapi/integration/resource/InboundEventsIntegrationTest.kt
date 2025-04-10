@@ -139,6 +139,49 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `should not cancel a video booking and send release emails when appointments changed event is not cancel`() {
+    videoBookingRepository.findAll() hasSize 0
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE, lastMovementTypeCode = "REL")
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
+      date = tomorrow(),
+      startTime = LocalTime.of(9, 30),
+      endTime = LocalTime.of(10, 0),
+      comments = "integration test court booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+    videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
+
+    inboundEventsListener.onMessage(
+      raw(
+        PrisonerAppointmentsChangedEvent(
+          personReference = PersonReference(listOf(Identifier("NOMS", "123456"))),
+          additionalInformation = AppointmentsChangedInformation(
+            action = "NO",
+            prisonId = PENTONVILLE,
+            user = "SOME_USER",
+          ),
+        ),
+      ),
+    )
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.ACTIVE }
+
+    with(notificationRepository.findAll()) {
+      isNotPresent(ReleasedCourtBookingCourtEmail::class, persistedBooking)
+      isNotPresent(ReleasedCourtBookingCourtEmail::class, persistedBooking)
+      isNotPresent(ReleasedCourtBookingPrisonCourtEmail::class, persistedBooking)
+      isNotPresent(ReleasedCourtBookingPrisonCourtEmail::class, persistedBooking)
+    }
+  }
+
+  @Test
   fun `should cancel a video booking and send transfer emails on receipt of a appointments changed event and last movement TRN`() {
     videoBookingRepository.findAll() hasSize 0
     prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE, lastMovementTypeCode = "TRN")
@@ -542,6 +585,14 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
     requireNotNull(match) {
       "Notification not present: email '$email', template '${template.simpleName}'"
+    }
+  }
+
+  private fun <T : Email> Collection<Notification>.isNotPresent(template: KClass<T>, booking: VideoBooking? = null) {
+    val noMatch = none { it.templateName == template.simpleName && it.videoBooking == booking }
+
+    require(noMatch) {
+      "Unexpected notification present: template '${template.simpleName}'"
     }
   }
 }

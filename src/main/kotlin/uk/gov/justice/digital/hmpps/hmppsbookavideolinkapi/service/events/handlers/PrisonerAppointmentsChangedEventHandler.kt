@@ -38,7 +38,9 @@ class PrisonerAppointmentsChangedEventHandler(
         .distinct()
 
       if (bookings.isNotEmpty()) {
-        val prisoner = prisonerSearchClient.getPrisoner(event.prisonerNumber()).throwNullPointerIfNotFound { "Unable to find prisoner ${event.prisonerNumber()}" }
+        val prisoner = prisonerSearchClient.getPrisoner(event.prisonerNumber()).throwNullPointerIfNotFound { "PRISONER_APPOINTMENTS_CHANGED_EVENT: unable to find prisoner ${event.prisonerNumber()}" }
+
+        log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: ${prisoner.prisonerNumber}, last prison code: ${prisoner.lastPrisonId}, last movement type code ${prisoner.lastMovementTypeCode}")
 
         when (prisoner.lastMovementTypeCode) {
           RELEASED -> {
