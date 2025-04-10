@@ -44,7 +44,7 @@ class DateTimeAvailabilityService(
 
     val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode!!)
     val mayBeExistingAppointment = request.appointmentToExclude?.let { prisonAppointmentRepository.findById(it).orElseThrow { EntityNotFoundException("Prison appointment with ID $it not found.") } }
-    val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date, prisonVideoLinkLocations, mayBeExistingAppointment?.videoBooking?.videoBookingId ?: request.vlbIdToExclude))
+    val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date, prisonVideoLinkLocations, mayBeExistingAppointment?.videoBooking?.videoBookingId))
 
     val availableLocationsBuilder = DateTimeLocationsBuilder.builder {
       prisonVideoLinkLocations.forEach { location ->
