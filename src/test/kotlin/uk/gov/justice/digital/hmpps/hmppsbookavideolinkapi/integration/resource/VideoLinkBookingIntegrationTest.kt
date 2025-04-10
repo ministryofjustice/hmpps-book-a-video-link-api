@@ -203,7 +203,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     }
 
     waitUntil {
-      verify(manageExternalAppointmentsService).createAppointment(persistedAppointment.prisonAppointmentId)
+      verify(manageExternalAppointmentsService).createAppointment(persistedAppointment)
     }
   }
 
@@ -286,7 +286,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     }
 
     waitUntil {
-      verify(manageExternalAppointmentsService).createAppointment(persistedAppointment.prisonAppointmentId)
+      verify(manageExternalAppointmentsService).createAppointment(persistedAppointment)
     }
   }
 

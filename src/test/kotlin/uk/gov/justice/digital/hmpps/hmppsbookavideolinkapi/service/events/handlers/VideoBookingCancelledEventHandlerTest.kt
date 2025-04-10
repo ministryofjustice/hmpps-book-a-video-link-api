@@ -1,14 +1,15 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers
 
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -51,7 +52,7 @@ class VideoBookingCancelledEventHandlerTest {
 
     handler.handle(VideoBookingCancelledEvent(1))
 
-    verify(manageExternalAppointmentsService, times(2)).cancelCurrentAppointment(anyLong())
+    verify(manageExternalAppointmentsService, times(2)).cancelAppointment(any<PrisonAppointment>())
     verifyNoMoreInteractions(manageExternalAppointmentsService)
   }
 

@@ -45,6 +45,17 @@ class ActivitiesAndAppointmentsService(
     activitiesAppointmentsClient.cancelAppointment(appointmentId, deleteOnCancel)
   }
 
+  fun patchAppointment(appointmentId: Long, appointment: PrisonAppointment) {
+    activitiesAppointmentsClient.patchAppointment(
+      appointmentId = appointmentId,
+      startDate = appointment.appointmentDate,
+      startTime = appointment.startTime,
+      endTime = appointment.endTime,
+      internalLocationId = nomisMappingService.getNomisLocationId(appointment.prisonLocationId)!!,
+      comments = appointment.comments,
+    )
+  }
+
   private inner class AppointmentsMatcher {
     fun findMatchingAppointments(appointment: PrisonAppointment): Collection<Long> = run {
       activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(

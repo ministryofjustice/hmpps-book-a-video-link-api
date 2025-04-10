@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import java.time.DayOfWeek
@@ -73,6 +74,17 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
   comments = "Court hearing comments",
   videoUrl = "https://court.hearing.link",
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
+)
+
+fun bookingHistory(historyType: HistoryType, createdBy: String = "court_user", createdByPrison: Boolean = false, court: Court = court()) = BookingHistory(
+  bookingHistoryId = 1L,
+  videoBookingId = 1L,
+  historyType = historyType,
+  courtId = court.courtId,
+  hearingType = CourtHearingType.TRIBUNAL.name,
+  videoUrl = "https://edited.video.url",
+  comments = "Edited comment",
+  createdBy = (if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy)).username,
 )
 
 /**

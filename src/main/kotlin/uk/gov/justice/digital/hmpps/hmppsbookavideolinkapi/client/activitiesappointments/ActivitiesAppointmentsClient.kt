@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentUpdateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
@@ -114,6 +115,30 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
   }
+
+  fun patchAppointment(
+    appointmentId: Long,
+    startDate: LocalDate,
+    startTime: LocalTime,
+    endTime: LocalTime,
+    internalLocationId: Long,
+    comments: String?,
+  ): AppointmentSeries? = activitiesAppointmentsApiWebClient.patch()
+    .uri("/appointments/$appointmentId")
+    .bodyValue(
+      AppointmentUpdateRequest(
+        applyTo = AppointmentUpdateRequest.ApplyTo.THIS_APPOINTMENT,
+        isPropertyUpdate = true,
+        startDate = startDate,
+        startTime = startTime.toHourMinuteStyle(),
+        endTime = endTime.toHourMinuteStyle(),
+        internalLocationId = internalLocationId,
+        extraInformation = comments,
+      ),
+    )
+    .retrieve()
+    .bodyToMono(AppointmentSeries::class.java)
+    .block()
 
   /**
    * Returns all matching appointment types for a prison, not just video link bookings. It will however filter down to

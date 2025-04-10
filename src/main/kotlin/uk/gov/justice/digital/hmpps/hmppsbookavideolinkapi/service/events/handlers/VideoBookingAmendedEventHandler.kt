@@ -46,14 +46,15 @@ class VideoBookingAmendedEventHandler(
               }
             }
 
-          // Cancel the appointments related to the previous state from history rows
-          history.appointments().forEach {
-            manageExternalAppointmentsService.cancelPreviousAppointment(it)
-          }
+          val appointmentTypesForPrisoner = (history.appointments().map { it.prisonerNumber to it.appointmentType } + booking.appointments().map { it.prisonerNumber to it.appointmentType }).toSet()
+          appointmentTypesForPrisoner.forEach { (prisonerNumber, type) ->
+            val oldAppointment = history.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
+            val newAppointment = booking.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
 
-          // Recreate appointments for the current state by sending APPOINTMENT_CREATED for each ID.
-          booking.appointments().forEach {
-            outboundEventsService.send(DomainEventType.APPOINTMENT_CREATED, it.prisonAppointmentId)
+            manageExternalAppointmentsService.patchAppointment(oldAppointment, newAppointment) {
+              requireNotNull(newAppointment) { "Cannot publish APPOINTMENT_CREATED event for a null appointment on booking with id ${booking.videoBookingId}" }
+              outboundEventsService.send(DomainEventType.APPOINTMENT_CREATED, newAppointment.prisonAppointmentId)
+            }
           }
 
           log.info("Processed BOOKING_AMENDED event for videoBookingId ${booking.videoBookingId}")

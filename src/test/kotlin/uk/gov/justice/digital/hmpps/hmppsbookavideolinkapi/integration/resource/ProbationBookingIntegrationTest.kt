@@ -12,7 +12,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendeeSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCategorySummary
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentLocationSummary
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
@@ -53,6 +58,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHis
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -263,6 +269,13 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasProbationTeam(persistedBooking.probationTeam!!)
       .also { it.appointments() hasSize 1 }
 
+    activitiesAppointmentsClient.stub {
+      on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true
+      on { getPrisonersAppointmentsAtLocations(prisonCode = BIRMINGHAM, prisonerNumber = "123456", onDate = tomorrow(), 1) } doReturn listOf(
+        appointmentSearchResult(date = tomorrow(), startTime = LocalTime.of(11, 0), endTime = LocalTime.of(12, 30), prisonCode = BIRMINGHAM, prisonerNumber = "123456", locationId = 1, appointmentType = SupportedAppointmentTypes.Type.PROBATION),
+      )
+    }
+
     webTestClient.amendBooking(
       persistedBooking.videoBookingId,
       amendProbationBookingRequest(
@@ -284,15 +297,13 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     waitUntil {
-      verify(activitiesAppointmentsClient).createAppointment(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = "123456",
+      verify(activitiesAppointmentsClient).patchAppointment(
+        appointmentId = 99,
         startDate = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
         internalLocationId = 1,
         comments = "rr integration test probation booking comments",
-        appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
     }
 
@@ -388,6 +399,13 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .also { it.contactEmail isEqualTo "other_probation_contact@email.com" }
       .also { it.contactNumber isEqualTo null }
 
+    activitiesAppointmentsClient.stub {
+      on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true
+      on { getPrisonersAppointmentsAtLocations(prisonCode = BIRMINGHAM, prisonerNumber = "654321", onDate = tomorrow(), 1) } doReturn listOf(
+        appointmentSearchResult(date = tomorrow(), startTime = LocalTime.of(14, 0), endTime = LocalTime.of(15, 30), prisonCode = BIRMINGHAM, prisonerNumber = "654321", locationId = 1, appointmentType = SupportedAppointmentTypes.Type.PROBATION),
+      )
+    }
+
     webTestClient.amendBooking(
       persistedBooking.videoBookingId,
       amendProbationBookingRequest(
@@ -405,15 +423,13 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     waitUntil {
-      verify(activitiesAppointmentsClient).createAppointment(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = "654321",
+      verify(activitiesAppointmentsClient).patchAppointment(
+        appointmentId = 99,
         startDate = tomorrow(),
         startTime = LocalTime.of(14, 30),
         endTime = LocalTime.of(15, 30),
         internalLocationId = 1,
         comments = "other integration test probation booking comments",
-        appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
     }
 
@@ -517,4 +533,32 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
     .expectBody(Long::class.java)
     .returnResult().responseBody!!
+
+  private fun appointmentSearchResult(date: LocalDate, startTime: LocalTime, endTime: LocalTime, prisonCode: String, prisonerNumber: String, locationId: Long, appointmentType: SupportedAppointmentTypes.Type) = run {
+    AppointmentSearchResult(
+      appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+      startDate = date,
+      startTime = startTime.toHourMinuteStyle(),
+      endTime = endTime.toHourMinuteStyle(),
+      isCancelled = false,
+      isExpired = false,
+      isEdited = false,
+      appointmentId = 99,
+      appointmentSeriesId = 1,
+      appointmentName = "appointment name",
+      attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
+      category = AppointmentCategorySummary(appointmentType.code, "video link booking"),
+      inCell = false,
+      isRepeat = false,
+      maxSequenceNumber = 1,
+      prisonCode = prisonCode,
+      sequenceNumber = 1,
+      internalLocation = AppointmentLocationSummary(
+        locationId,
+        prisonCode,
+        "VIDEO LINK",
+      ),
+      timeSlot = AppointmentSearchResult.TimeSlot.AM,
+    )
+  }
 }
