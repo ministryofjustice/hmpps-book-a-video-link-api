@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearch
 
 class PrisonerSearchApiMockServer : MockServer(8092) {
 
-  fun stubGetPrisoner(prisonerNumber: String, prisonCode: String = "WWI", lastPrisonCode: String? = null) {
+  fun stubGetPrisoner(prisonerNumber: String, prisonCode: String = "WWI", lastPrisonCode: String? = null, lastMovementTypeCode: String? = null) {
     stubFor(
       get("/prisoner/$prisonerNumber")
         .willReturn(
@@ -22,6 +22,7 @@ class PrisonerSearchApiMockServer : MockServer(8092) {
                   prisonerNumber = prisonerNumber,
                   prisonCode = prisonCode,
                   lastPrisonCode = lastPrisonCode,
+                  lastMovementTypeCode = lastMovementTypeCode,
                 ),
               ),
             )

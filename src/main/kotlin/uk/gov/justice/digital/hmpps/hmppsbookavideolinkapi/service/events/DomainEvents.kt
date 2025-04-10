@@ -98,6 +98,17 @@ data class AppointmentScheduleInformation(
   val agencyLocationId: String,
 ) : AdditionalInformation
 
+class PrisonerAppointmentsChangedEvent(
+  val personReference: PersonReference,
+  additionalInformation: AppointmentsChangedInformation,
+) : DomainEvent<AppointmentsChangedInformation>(DomainEventType.PRISONER_APPOINTMENTS_CHANGED, additionalInformation) {
+  fun prisonerNumber() = personReference.identifiers.first { it.type == "NOMS" }.value
+  fun prisonCode() = additionalInformation.prisonId
+  fun isCancelAppointments() = additionalInformation.action == "YES"
+}
+
+data class AppointmentsChangedInformation(val action: String, val prisonId: String, val user: String) : AdditionalInformation
+
 enum class DomainEventType(val eventType: String, val description: String = "") {
   VIDEO_BOOKING_CREATED(
     "book-a-video-link.video-booking.created",
@@ -131,6 +142,9 @@ enum class DomainEventType(val eventType: String, val description: String = "") 
   },
   PRISONER_VIDEO_APPOINTMENT_CANCELLED("prison-offender-events.prisoner.video-appointment.cancelled") {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) = mapper.readValue<PrisonerVideoAppointmentCancelledEvent>(message)
+  },
+  PRISONER_APPOINTMENTS_CHANGED("prison-offender-events.prisoner.appointments-changed") {
+    override fun toInboundEvent(mapper: ObjectMapper, message: String) = mapper.readValue<PrisonerAppointmentsChangedEvent>(message)
   },
   ;
 

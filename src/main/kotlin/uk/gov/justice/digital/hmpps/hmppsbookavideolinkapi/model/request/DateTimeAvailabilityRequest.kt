@@ -47,12 +47,6 @@ data class DateTimeAvailabilityRequest(
   @JsonFormat(pattern = "HH:mm")
   val endTime: LocalTime?,
 
-  @Deprecated(message = "Use appointmentToExclude instead")
-  @Schema(
-    description = "Exclude the video link booking with this ID from the availability check. Useful when checking availability during the amending of a booking.",
-  )
-  val vlbIdToExclude: Long? = null,
-
   @Schema(
     description = "Exclude the appointment with this ID from the availability check. Useful when checking availability during the amending of a booking.",
   )
