@@ -2,16 +2,17 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement.MovementType.REL
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement.MovementType.TRN
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerAppointmentsChangedEvent
-
-private const val RELEASED = "REL"
-private const val TRANSFERRED = "TRN"
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.PrisonerAppointmentsCancelledByPrisonTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 
 /**
  * This event is raised on the back of a prison user deciding what to do with a prisoners appointments on the back of a
@@ -20,9 +21,10 @@ private const val TRANSFERRED = "TRN"
 @Component
 class PrisonerAppointmentsChangedEventHandler(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
-  private val prisonerSearchClient: PrisonerSearchClient,
+  private val prisonApiClient: PrisonApiClient,
   private val bookingFacade: BookingFacade,
   private val timeSource: TimeSource,
+  private val telemetryService: TelemetryService,
 ) : DomainEventHandler<PrisonerAppointmentsChangedEvent> {
 
   companion object {
@@ -38,21 +40,21 @@ class PrisonerAppointmentsChangedEventHandler(
         .distinct()
 
       if (bookings.isNotEmpty()) {
-        val prisoner = prisonerSearchClient.getPrisoner(event.prisonerNumber()).throwNullPointerIfNotFound { "PRISONER_APPOINTMENTS_CHANGED_EVENT: unable to find prisoner ${event.prisonerNumber()}" }
+        val movementType = prisonApiClient.getLatestPrisonerMovementOnDate(event.prisonerNumber(), now.toLocalDate())
 
-        log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: ${prisoner.prisonerNumber}, last prison code: ${prisoner.lastPrisonId}, last movement type code ${prisoner.lastMovementTypeCode}")
-
-        when (prisoner.lastMovementTypeCode) {
-          RELEASED -> {
+        when (movementType) {
+          REL -> {
             log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: processing release for prisoner ${event.prisonerNumber()} - $event")
             bookings.forEach { bookingFacade.prisonerReleased(it, UserService.getServiceAsUser()) }
+            captureTelemetry(event.prisonCode(), event.prisonerNumber(), movementType)
           }
-          TRANSFERRED -> {
+          TRN -> {
             log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: processing transfer for prisoner ${event.prisonerNumber()} - $event")
             bookings.forEach { bookingFacade.prisonerTransferred(it, UserService.getServiceAsUser()) }
+            captureTelemetry(event.prisonCode(), event.prisonerNumber(), movementType)
           }
           null -> log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: no-op - last movement type is null for prisoner ${event.prisonerNumber()} - $event")
-          else -> log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: no-op - last movement type ${prisoner.lastMovementTypeCode} for prisoner ${event.prisonerNumber()} - $event")
+          else -> log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: no-op - last movement type ${movementType.value} for prisoner ${event.prisonerNumber()} - $event")
         }
 
         return
@@ -62,11 +64,7 @@ class PrisonerAppointmentsChangedEventHandler(
     log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: no action taken for prisoner ${event.prisonerNumber()} - $event.")
   }
 
-  private fun Prisoner?.throwNullPointerIfNotFound(lazyMessage: () -> String): Prisoner {
-    if (this == null) {
-      throw NullPointerException(lazyMessage())
-    }
-
-    return this
+  private fun captureTelemetry(prisonCode: String, prisonerNumber: String, movementType: Movement.MovementType) {
+    telemetryService.track(PrisonerAppointmentsCancelledByPrisonTelemetryEvent(prisonCode, prisonerNumber, movementType.name))
   }
 }

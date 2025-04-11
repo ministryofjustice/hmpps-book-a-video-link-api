@@ -20,14 +20,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.Optional
 import java.util.UUID
 
 class ManageExternalAppointmentsServiceTest {
-  private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val activitiesService: ActivitiesAndAppointmentsService = mock()
   private val prisonService: PrisonService = mock()
   private val birminghamLocation = Location(locationId = 123456, locationType = "VLB", "VIDEO LINK", BIRMINGHAM)
@@ -42,14 +39,13 @@ class ManageExternalAppointmentsServiceTest {
     endTime = LocalTime.of(11, 30),
     locationId = UUID.randomUUID(),
   )
-  private val service = ManageExternalAppointmentsService(prisonAppointmentRepository, activitiesService, prisonService)
+  private val service = ManageExternalAppointmentsService(activitiesService, prisonService)
 
   @Nested
   @DisplayName("Create appointment")
   inner class CreateAppointment {
     @Test
     fun `should create court appointment via activities client when appointments rolled out`() {
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(activitiesService.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
       whenever(activitiesService.findMatchingAppointments(courtAppointment)) doReturn emptyList()
 
@@ -60,7 +56,6 @@ class ManageExternalAppointmentsServiceTest {
 
     @Test
     fun `should not create court appointment via activities client when appointment already exists`() {
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(activitiesService.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn true
       whenever(activitiesService.findMatchingAppointments(courtAppointment)) doReturn listOf(99)
 
@@ -71,7 +66,6 @@ class ManageExternalAppointmentsServiceTest {
 
     @Test
     fun `should create court appointment via prison api client when appointments not rolled out`() {
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(activitiesService.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
 
       service.createAppointment(courtAppointment)
@@ -82,7 +76,6 @@ class ManageExternalAppointmentsServiceTest {
 
     @Test
     fun `should not create appointment via prison api client when appointment already exists`() {
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(activitiesService.isAppointmentsRolledOutAt(BIRMINGHAM)) doReturn false
       whenever(prisonService.findMatchingAppointments(courtAppointment)) doReturn listOf(birminghamLocation.locationId)
 
@@ -97,7 +90,6 @@ class ManageExternalAppointmentsServiceTest {
 
     @Test
     fun `should cancel court appointment via activities client when appointments rolled out`() {
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
       whenever(activitiesService.findMatchingAppointments(courtAppointment)) doReturn listOf(99)
 
@@ -108,7 +100,6 @@ class ManageExternalAppointmentsServiceTest {
 
     @Test
     fun `should not cancel appointment via activities client when appointments rolled out but matching appointment not found`() {
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
       whenever(activitiesService.findMatchingAppointments(courtAppointment)) doReturn emptyList()
 
@@ -119,7 +110,6 @@ class ManageExternalAppointmentsServiceTest {
 
     @Test
     fun `should cancel court appointment via prison api client when appointments not rolled out`() {
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
       whenever(prisonService.findMatchingAppointments(courtAppointment)) doReturn listOf(99)
 
@@ -177,7 +167,6 @@ class ManageExternalAppointmentsServiceTest {
       val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
 
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(prisonService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn listOf(99)
 
       service.patchAppointment(bookingHistory.appointments().first(), null) { mockCallback() }
@@ -193,7 +182,6 @@ class ManageExternalAppointmentsServiceTest {
       val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
 
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
-      whenever(prisonAppointmentRepository.findById(1)) doReturn Optional.of(courtAppointment)
       whenever(prisonService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn listOf(99)
 
       service.patchAppointment(bookingHistory.appointments().first(), courtAppointment) { mockCallback() }

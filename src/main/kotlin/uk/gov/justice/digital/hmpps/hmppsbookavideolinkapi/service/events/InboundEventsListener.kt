@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
-import io.opentelemetry.api.trace.SpanKind
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -24,7 +22,6 @@ class InboundEventsListener(
   }
 
   @SqsListener("bvls", factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "hmpps-book-a-video-link-hmpps_book_a_video_link_queue", kind = SpanKind.SERVER)
   fun onMessage(rawMessage: String) {
     val message: Message = mapper.readValue(rawMessage)
 

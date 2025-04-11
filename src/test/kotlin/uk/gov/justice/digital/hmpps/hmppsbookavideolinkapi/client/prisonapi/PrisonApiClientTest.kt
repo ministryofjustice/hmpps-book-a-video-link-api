@@ -4,12 +4,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiMockServer
 import java.time.LocalDate
@@ -83,6 +85,20 @@ class PrisonApiClientTest {
     client.getScheduledAppointments(BIRMINGHAM, tomorrow(), setOf(1000)).map { it.locationId } containsExactly listOf(1000)
     client.getScheduledAppointments(BIRMINGHAM, tomorrow(), setOf(1000, 3000)).map { it.locationId } containsExactlyInAnyOrder listOf(1000, 3000)
     client.getScheduledAppointments(BIRMINGHAM, tomorrow(), setOf(2000, 3000)).map { it.locationId } containsExactlyInAnyOrder listOf(2000, 3000)
+  }
+
+  @Test
+  fun `should get latest prisoner movement type`() {
+    server.stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.TRN)
+
+    client.getLatestPrisonerMovementOnDate("123456", today()) isEqualTo Movement.MovementType.TRN
+  }
+
+  @Test
+  fun `should be null latest prisoner movement type for future date`() {
+    server.stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.TRN)
+
+    client.getLatestPrisonerMovementOnDate("123456", tomorrow()) isEqualTo null
   }
 
   @AfterEach

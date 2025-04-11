@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 
 /**
  * This service is responsible for create/update/cancel of appointments relating to BVLS bookings in
@@ -17,7 +16,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppo
  */
 @Service
 class ManageExternalAppointmentsService(
-  private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val activitiesService: ActivitiesAndAppointmentsService,
   private val prisonService: PrisonService,
 ) {
@@ -25,6 +23,7 @@ class ManageExternalAppointmentsService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  @Transactional
   fun createAppointment(appointment: PrisonAppointment) {
     log.info("EXTERNAL APPOINTMENTS: creating appointment for prison appointment ID ${appointment.prisonAppointmentId}")
 

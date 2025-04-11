@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.util.UriBuilder
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
@@ -122,6 +123,21 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
         .block() ?: emptyList()
       ).filter { appointment -> locationIds.isEmpty() || appointment.locationId in locationIds }
   }
+
+  fun getLatestPrisonerMovementOnDate(prisonerNumber: String, date: LocalDate) = run {
+    if (date.isAfter(LocalDate.now())) return null
+
+    prisonApiWebClient.get()
+      .uri { uriBuilder: UriBuilder ->
+        uriBuilder
+          .path("/api/movements/offender/{prisonerNumber}")
+          .queryParam("movementsAfter", date)
+          .build(prisonerNumber)
+      }
+      .retrieve()
+      .bodyToMono(typeReference<List<Movement>>())
+      .block()?.filter { it.movementDate == date }?.maxByOrNull { it.movementDateTime() }?.movementType
+  }
 }
 
 // Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
@@ -167,3 +183,5 @@ data class ScheduledAppointment(
   fun isTheSameTime(appointment: PrisonAppointment) = startTime == appointment.appointmentDate.atTime(appointment.startTime) &&
     appointment.appointmentDate.atTime(appointment.endTime) == endTime
 }
+
+fun Movement.movementDateTime(): LocalDateTime = movementDate.atTime(LocalTime.parse(movementTime))
