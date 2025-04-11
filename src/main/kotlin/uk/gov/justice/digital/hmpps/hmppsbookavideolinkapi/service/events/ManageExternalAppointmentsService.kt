@@ -53,7 +53,7 @@ class ManageExternalAppointmentsService(
   }
 
   @Transactional
-  fun cancelAppointment(appointment: PrisonAppointment) {
+  fun cancelCurrentAppointment(appointment: PrisonAppointment) {
     log.info("EXTERNAL APPOINTMENTS: deleting appointment for prison appointment ID ${appointment.prisonAppointmentId}")
 
     if (activitiesService.isAppointmentsRolledOutAt(appointment.prisonCode())) {
@@ -72,47 +72,44 @@ class ManageExternalAppointmentsService(
   }
 
   @Transactional
-  fun patchAppointment(
-    oldAppointment: BookingHistoryAppointment?,
-    newAppointment: PrisonAppointment?,
-    createAppointmentCallback: () -> Unit,
-  ) {
-    val prisonCode = oldAppointment?.prisonCode ?: requireNotNull(newAppointment) { "EXTERNAL APPOINTMENTS: newAppointment must not be null if oldAppointment is also null" }.prisonCode()
+  fun cancelPreviousAppointment(bha: BookingHistoryAppointment) {
+    log.info("EXTERNAL APPOINTMENTS: deleting previous appointment for booking history appointment ID ${bha.bookingHistoryAppointmentId}")
 
-    if (activitiesService.isAppointmentsRolledOutAt(prisonCode)) {
-      when {
-        oldAppointment == null -> {
-          createAppointmentCallback()
-        }
-
-        newAppointment == null -> {
-          activitiesService.findMatchingAppointments(oldAppointment).forEach { matchingId ->
-            log.info("EXTERNAL APPOINTMENTS: hard deleting $oldAppointment from activities and appointments")
-            activitiesService.cancelAppointment(matchingId, deleteOnCancel = true)
-            log.info("EXTERNAL APPOINTMENTS: hard deleted $matchingId from activities and appointments")
-          }
-        }
-
-        else -> {
-          activitiesService.findMatchingAppointments(oldAppointment).forEach { matchingId ->
-            log.info("EXTERNAL APPOINTMENTS: patching $oldAppointment in activities and appointments")
-            activitiesService.patchAppointment(matchingId, newAppointment)
-            log.info("EXTERNAL APPOINTMENTS: patched $matchingId in activities and appointments")
-          }
-        }
+    if (activitiesService.isAppointmentsRolledOutAt(bha.prisonCode)) {
+      activitiesService.findMatchingAppointments(bha).forEach { matchingAppointmentId ->
+        log.info("EXTERNAL APPOINTMENTS: hard deleting video booking appointment $bha from activities and appointments")
+        activitiesService.cancelAppointment(matchingAppointmentId, deleteOnCancel = true)
+        log.info("EXTERNAL APPOINTMENTS: hard deleted matching appointment $matchingAppointmentId from activities and appointments")
       }
     } else {
-      oldAppointment?.let {
-        prisonService.findMatchingAppointments(it).forEach { matchingId ->
-          log.info("EXTERNAL APPOINTMENTS: deleting $it from prison-api")
-          prisonService.cancelAppointment(matchingId)
-          log.info("EXTERNAL APPOINTMENTS: deleted $matchingId from prison-api")
-        }
+      prisonService.findMatchingAppointments(bha).forEach { matchingAppointmentId ->
+        log.info("EXTERNAL APPOINTMENTS: deleting video booking appointment $bha from prison-api")
+        prisonService.cancelAppointment(matchingAppointmentId)
+        log.info("EXTERNAL APPOINTMENTS: deleted matching appointment $matchingAppointmentId from prison-api")
+      }
+    }
+  }
+
+  @Transactional
+  fun amendAppointment(
+    oldAppointment: BookingHistoryAppointment,
+    newAppointment: PrisonAppointment,
+  ) {
+    if (activitiesService.isAppointmentsRolledOutAt(oldAppointment.prisonCode)) {
+      activitiesService.findMatchingAppointments(oldAppointment).forEach { matchingId ->
+        log.info("EXTERNAL APPOINTMENTS: patching $oldAppointment in activities and appointments")
+        activitiesService.patchAppointment(matchingId, newAppointment)
+        log.info("EXTERNAL APPOINTMENTS: patched $matchingId in activities and appointments")
+      }
+    } else {
+      // Prison API has no endpoint available to patch an appointment, so in this case we delete the appointment and recreate it
+      prisonService.findMatchingAppointments(oldAppointment).forEach { matchingId ->
+        log.info("EXTERNAL APPOINTMENTS: deleting $oldAppointment from prison-api")
+        prisonService.cancelAppointment(matchingId)
+        log.info("EXTERNAL APPOINTMENTS: deleted $matchingId from prison-api")
       }
 
-      if (newAppointment != null) {
-        createAppointmentCallback()
-      }
+      this.createAppointment(newAppointment)
     }
   }
 }

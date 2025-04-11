@@ -93,7 +93,7 @@ class ManageExternalAppointmentsServiceTest {
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
       whenever(activitiesService.findMatchingAppointments(courtAppointment)) doReturn listOf(99)
 
-      service.cancelAppointment(courtAppointment)
+      service.cancelCurrentAppointment(courtAppointment)
 
       verify(activitiesService).cancelAppointment(99)
     }
@@ -103,7 +103,7 @@ class ManageExternalAppointmentsServiceTest {
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
       whenever(activitiesService.findMatchingAppointments(courtAppointment)) doReturn emptyList()
 
-      service.cancelAppointment(courtAppointment)
+      service.cancelCurrentAppointment(courtAppointment)
 
       verify(activitiesService, never()).cancelAppointment(anyLong(), any())
     }
@@ -113,82 +113,77 @@ class ManageExternalAppointmentsServiceTest {
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
       whenever(prisonService.findMatchingAppointments(courtAppointment)) doReturn listOf(99)
 
-      service.cancelAppointment(courtAppointment)
+      service.cancelCurrentAppointment(courtAppointment)
 
       verify(prisonService).cancelAppointment(99)
-    }
-
-    @Test
-    fun `should create a new appointment when A&A is rolled out`() {
-      val mockCallback = mock<() -> Unit>()
-
-      whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
-
-      service.patchAppointment(null, courtAppointment) { mockCallback() }
-
-      verify(activitiesService, never()).cancelAppointment(any(), any())
-      verifyNoInteractions(prisonService)
-      verify(mockCallback).invoke()
     }
 
     @Test
     fun `should cancel previous appointment via A&A API when A&A is rolled out`() {
-      val mockCallback = mock<() -> Unit>()
       val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
 
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
       whenever(activitiesService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn listOf(99)
 
-      service.patchAppointment(bookingHistory.appointments().first(), null) { mockCallback() }
+      service.cancelPreviousAppointment(bookingHistory.appointments().first())
 
       verify(activitiesService).cancelAppointment(99, true)
       verifyNoInteractions(prisonService)
-      verify(mockCallback, never()).invoke()
-    }
-
-    @Test
-    fun `should patch previous appointment via A&A API when A&A is rolled out`() {
-      val mockCallback = mock<() -> Unit>()
-      val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
-
-      whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
-      whenever(activitiesService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn listOf(99)
-
-      service.patchAppointment(bookingHistory.appointments().first(), courtAppointment) { mockCallback() }
-
-      verify(activitiesService).patchAppointment(99, courtAppointment)
-      verifyNoInteractions(prisonService)
-      verify(mockCallback, never()).invoke()
     }
 
     @Test
     fun `should cancel previous appointment via Prison API when A&A is not rolled out`() {
-      val mockCallback = mock<() -> Unit>()
       val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
 
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
       whenever(prisonService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn listOf(99)
 
-      service.patchAppointment(bookingHistory.appointments().first(), null) { mockCallback() }
+      service.cancelPreviousAppointment(bookingHistory.appointments().first())
 
       verify(activitiesService, never()).cancelAppointment(anyLong(), any())
       verify(prisonService).cancelAppointment(99)
-      verify(mockCallback, never()).invoke()
+    }
+  }
+
+  @Nested
+  @DisplayName("Amend appointment")
+  inner class AmendAppointment {
+
+    @Test
+    fun `should patch court appointment via activities client when appointments rolled out`() {
+      val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
+
+      whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
+      whenever(activitiesService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn listOf(99)
+
+      service.amendAppointment(bookingHistory.appointments().first(), courtAppointment)
+
+      verify(activitiesService).patchAppointment(99, courtAppointment)
     }
 
     @Test
-    fun `should cancel previous appointment and recreate via Prison API when A&A is not rolled out`() {
-      val mockCallback = mock<() -> Unit>()
+    fun `should not patch appointment via activities client when appointments rolled out but matching appointment not found`() {
+      val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
+
+      whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn true
+      whenever(activitiesService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn emptyList()
+
+      service.amendAppointment(bookingHistory.appointments().first(), courtAppointment)
+
+      verify(activitiesService, never()).patchAppointment(anyLong(), any())
+    }
+
+    @Test
+    fun `should cancel and recreate court appointment via prison api client when appointments not rolled out`() {
       val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
 
       whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
       whenever(prisonService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn listOf(99)
 
-      service.patchAppointment(bookingHistory.appointments().first(), courtAppointment) { mockCallback() }
+      service.amendAppointment(bookingHistory.appointments().first(), courtAppointment)
 
-      verify(activitiesService, never()).cancelAppointment(anyLong(), any())
       verify(prisonService).cancelAppointment(99)
-      verify(mockCallback).invoke()
+      verify(prisonService).createAppointment(courtAppointment)
     }
   }
 

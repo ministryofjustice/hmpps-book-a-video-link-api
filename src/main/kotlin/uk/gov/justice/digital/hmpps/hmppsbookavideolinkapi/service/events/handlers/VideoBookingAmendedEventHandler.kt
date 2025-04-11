@@ -6,9 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingAmendedEvent
 import kotlin.math.abs
 
@@ -16,7 +14,6 @@ import kotlin.math.abs
 class VideoBookingAmendedEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
   private val bookingHistoryService: BookingHistoryService,
-  private val outboundEventsService: OutboundEventsService,
   private val manageExternalAppointmentsService: ManageExternalAppointmentsService,
 ) : DomainEventHandler<VideoBookingAmendedEvent> {
 
@@ -51,9 +48,18 @@ class VideoBookingAmendedEventHandler(
             val oldAppointment = history.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
             val newAppointment = booking.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
 
-            manageExternalAppointmentsService.patchAppointment(oldAppointment, newAppointment) {
-              requireNotNull(newAppointment) { "Cannot publish APPOINTMENT_CREATED event for a null appointment on booking with id ${booking.videoBookingId}" }
-              outboundEventsService.send(DomainEventType.APPOINTMENT_CREATED, newAppointment.prisonAppointmentId)
+            when {
+              oldAppointment == null -> {
+                manageExternalAppointmentsService.createAppointment(newAppointment!!)
+              }
+
+              newAppointment == null -> {
+                manageExternalAppointmentsService.cancelPreviousAppointment(oldAppointment)
+              }
+
+              else -> {
+                manageExternalAppointmentsService.amendAppointment(oldAppointment, newAppointment)
+              }
             }
           }
 

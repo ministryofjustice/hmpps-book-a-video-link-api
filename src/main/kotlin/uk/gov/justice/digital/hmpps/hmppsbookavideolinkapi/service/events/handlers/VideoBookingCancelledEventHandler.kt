@@ -22,7 +22,7 @@ class VideoBookingCancelledEventHandler(
     videoBookingRepository.findById(event.additionalInformation.videoBookingId).ifPresentOrElse(
       { booking ->
         booking.appointments().forEach {
-          manageExternalAppointmentsService.cancelAppointment(it)
+          manageExternalAppointmentsService.cancelCurrentAppointment(it)
         }
       },
       {
