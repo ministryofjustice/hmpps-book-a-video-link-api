@@ -9,10 +9,13 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.NewAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -140,6 +143,45 @@ class PrisonApiMockServer : MockServer(8094) {
                     )
                   }
                 },
+              ),
+            )
+            .withStatus(200),
+        ),
+    )
+  }
+
+  fun stubGetLatestPrisonerMovement(
+    prisonerNumber: String,
+    date: LocalDate,
+    movementType: Movement.MovementType,
+  ) {
+    stubFor(
+      WireMock.get("/api/movements/offender/$prisonerNumber?movementsAfter=${date.toIsoDate()}")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              mapper.writeValueAsString(
+                listOf(
+                  Movement(
+                    offenderNo = prisonerNumber,
+                    createDateTime = LocalDateTime.now().toIsoDateTime(),
+                    movementType = movementType,
+                    movementTypeDescription = "movement description",
+                    directionCode = "movement direction code",
+                    movementDate = today(),
+                    movementTime = LocalTime.now().toHourMinuteStyle(),
+                    movementReason = "movement-reason",
+                    movementReasonCode = "movement-reason-code",
+                    fromAgency = "from-agency",
+                    fromAgencyDescription = "from-agency-description",
+                    toAgency = "to-agency",
+                    toAgencyDescription = "to-agency-description",
+                    fromCity = "from-city",
+                    toCity = "to-city",
+                    commentText = "comment-text",
+                  ),
+                ),
               ),
             )
             .withStatus(200),
