@@ -46,7 +46,7 @@ class PrisonerAppointmentsChangedEventHandlerTest {
     verify(telemetryService).track(telemetryCaptor.capture())
 
     with(telemetryCaptor.firstValue) {
-      properties() containsEntriesExactlyInAnyOrder mapOf("prisoner_code" to PENTONVILLE, "prisoner_number" to "123456", "reason" to "TRN")
+      properties() containsEntriesExactlyInAnyOrder mapOf("prison_code" to PENTONVILLE, "prisoner_number" to "123456", "reason" to "TRN")
     }
   }
 
@@ -70,7 +70,7 @@ class PrisonerAppointmentsChangedEventHandlerTest {
     verify(telemetryService).track(telemetryCaptor.capture())
 
     with(telemetryCaptor.firstValue) {
-      properties() containsEntriesExactlyInAnyOrder mapOf("prisoner_code" to RISLEY, "prisoner_number" to "54321", "reason" to "REL")
+      properties() containsEntriesExactlyInAnyOrder mapOf("prison_code" to RISLEY, "prisoner_number" to "54321", "reason" to "REL")
     }
   }
 

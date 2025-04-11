@@ -5,5 +5,5 @@ class PrisonerAppointmentsCancelledByPrisonTelemetryEvent(
   private val prisonerNumber: String,
   private val reason: String,
 ) : StandardTelemetryEvent("BVLS-prisoner-appointments-cancelled-by-prison") {
-  override fun properties(): Map<String, String> = mapOf("prisoner_code" to prisonCode, "prisoner_number" to prisonerNumber, "reason" to reason)
+  override fun properties(): Map<String, String> = mapOf("prison_code" to prisonCode, "prisoner_number" to prisonerNumber, "reason" to reason)
 }
