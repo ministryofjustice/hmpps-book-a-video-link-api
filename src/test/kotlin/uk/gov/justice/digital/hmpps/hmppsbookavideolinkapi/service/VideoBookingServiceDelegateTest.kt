@@ -19,12 +19,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 class VideoBookingServiceDelegateTest {
   private val createVideoBookingService: CreateVideoBookingService = mock()
   private val createProbationBookingService: CreateProbationBookingService = mock()
-  private val amendVideoBookingService: AmendVideoBookingService = mock()
+  private val amendCourtBookingService: AmendCourtBookingService = mock()
   private val amendProbationBookingService: AmendProbationBookingService = mock()
   private val cancelVideoBookingService: CancelVideoBookingService = mock()
   private val featureSwitches: FeatureSwitches = mock()
   private val delegate =
-    VideoBookingServiceDelegate(createVideoBookingService, createProbationBookingService, amendVideoBookingService, amendProbationBookingService, cancelVideoBookingService, featureSwitches)
+    VideoBookingServiceDelegate(createVideoBookingService, createProbationBookingService, amendCourtBookingService, amendProbationBookingService, cancelVideoBookingService, featureSwitches)
 
   private val courtBookingRequest = courtBookingRequest()
   private val probationBookingRequest = probationBookingRequest()
@@ -62,10 +62,10 @@ class VideoBookingServiceDelegateTest {
     whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn false
 
     delegate.amend(1, amendCourtBookingRequest, COURT_USER)
-    verify(amendVideoBookingService).amend(1, amendCourtBookingRequest, COURT_USER)
+    verify(amendCourtBookingService).amend(1, amendCourtBookingRequest, COURT_USER)
 
     delegate.amend(2, amendProbationBookingRequest, PROBATION_USER)
-    verify(amendVideoBookingService).amend(2, amendProbationBookingRequest, PROBATION_USER)
+    verify(amendCourtBookingService).amend(2, amendProbationBookingRequest, PROBATION_USER)
 
     verifyNoInteractions(createVideoBookingService, createProbationBookingService, amendProbationBookingService)
   }
@@ -75,7 +75,7 @@ class VideoBookingServiceDelegateTest {
     whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
 
     delegate.amend(1, amendCourtBookingRequest, COURT_USER)
-    verify(amendVideoBookingService).amend(1, amendCourtBookingRequest, COURT_USER)
+    verify(amendCourtBookingService).amend(1, amendCourtBookingRequest, COURT_USER)
 
     delegate.amend(2, amendProbationBookingRequest, PROBATION_USER)
     verify(amendProbationBookingService).amend(2, amendProbationBookingRequest, PROBATION_USER)
@@ -88,6 +88,6 @@ class VideoBookingServiceDelegateTest {
     delegate.cancel(1, COURT_USER)
     verify(cancelVideoBookingService).cancel(1, COURT_USER)
 
-    verifyNoInteractions(createVideoBookingService, createProbationBookingService, amendVideoBookingService)
+    verifyNoInteractions(createVideoBookingService, createProbationBookingService, amendCourtBookingService)
   }
 }
