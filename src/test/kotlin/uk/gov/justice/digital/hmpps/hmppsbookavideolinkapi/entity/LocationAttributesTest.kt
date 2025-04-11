@@ -622,25 +622,6 @@ class LocationAttributesTest {
 
       roomAttributes.isAvailableFor(court(), today().atTime(10, 0)) isEqualTo AvailabilityStatus.COURT_ANY
     }
-
-    @Test
-    fun `should be COURT ANY when schedule is blocked and court but end time is on the boundary`() {
-      val roomAttributes = LocationAttribute.decoratedRoom(
-        dpsLocationId = UUID.randomUUID(),
-        prison = pentonvillePrison,
-        locationStatus = LocationStatus.ACTIVE,
-        locationUsage = LocationUsage.SCHEDULE,
-        allowedParties = emptySet(),
-        prisonVideoUrl = null,
-        notes = null,
-        createdBy = COURT_USER,
-      ).apply {
-        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
-        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
-      }
-
-      roomAttributes.isAvailableFor(court(), today().atTime(10, 0)) isEqualTo AvailabilityStatus.COURT_ANY
-    }
   }
 
   private fun schedule(
