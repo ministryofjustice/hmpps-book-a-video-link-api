@@ -1,10 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
+import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -20,12 +21,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPri
 import java.time.LocalDateTime.now
 
 @Service
-class AmendVideoBookingService(
+class AmendCourtBookingService(
   private val videoBookingRepository: VideoBookingRepository,
   private val prisonRepository: PrisonRepository,
   private val appointmentsService: AppointmentsService,
   private val bookingHistoryService: BookingHistoryService,
-  private val prisonerValidator: PrisonerValidator,
+  private val prisonerSearchClient: PrisonerSearchClient,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -64,6 +65,7 @@ class AmendVideoBookingService(
       .also { thisBooking -> log.info("BOOKINGS: court booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 
+  @Deprecated("This is now un-used, to be removed with the VLPM feature toggle")
   private fun amendProbation(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     val prisoner = request.prisoner().validate()
 
@@ -87,6 +89,6 @@ class AmendVideoBookingService(
     // We are not checking if the prison is enabled here as we need to support prison users also.
     // Our UI should not be sending disabled prisons though.
     prisonRepository.findByCode(prisonCode!!) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
-    return prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode).toPrisonerDetails()
+    return prisonerSearchClient.getPrisoner(prisonerNumber!!)?.toPrisonerDetails() ?: throw ValidationException("Prisoner $prisonerNumber not found.")
   }
 }

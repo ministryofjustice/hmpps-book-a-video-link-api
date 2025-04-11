@@ -48,6 +48,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 @Sql(
   "classpath:test_data/clean-all-data.sql",
   "classpath:test_data/seed-contacts.sql",
+  "classpath:test_data/seed-video-booking-user-preferences.sql",
 )
 abstract class IntegrationTestBase {
 

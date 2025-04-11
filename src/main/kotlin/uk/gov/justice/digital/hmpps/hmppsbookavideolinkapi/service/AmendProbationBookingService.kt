@@ -1,10 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
+import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AdditionalBookingDetail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
@@ -29,7 +30,7 @@ class AmendProbationBookingService(
   private val prisonRepository: PrisonRepository,
   private val appointmentsService: AppointmentsService,
   private val bookingHistoryService: BookingHistoryService,
-  private val prisonerValidator: PrisonerValidator,
+  private val prisonerSearchClient: PrisonerSearchClient,
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,
 ) {
   companion object {
@@ -73,7 +74,7 @@ class AmendProbationBookingService(
     // We are not checking if the prison is enabled here as we need to support prison users also.
     // Our UI should not be sending disabled prisons though.
     prisonRepository.findByCode(prisonCode!!) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
-    return prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode).toPrisonerDetails()
+    return prisonerSearchClient.getPrisoner(prisonerNumber!!)?.toPrisonerDetails() ?: throw ValidationException("Prisoner $prisonerNumber not found.")
   }
 
   private fun AmendVideoBookingRequest.saveAdditionalDetailsFor(booking: VideoBooking) {
