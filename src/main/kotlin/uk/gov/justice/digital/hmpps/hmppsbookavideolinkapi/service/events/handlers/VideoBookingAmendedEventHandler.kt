@@ -6,9 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingAmendedEvent
 import kotlin.math.abs
 
@@ -16,7 +14,6 @@ import kotlin.math.abs
 class VideoBookingAmendedEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
   private val bookingHistoryService: BookingHistoryService,
-  private val outboundEventsService: OutboundEventsService,
   private val manageExternalAppointmentsService: ManageExternalAppointmentsService,
 ) : DomainEventHandler<VideoBookingAmendedEvent> {
 
@@ -46,14 +43,24 @@ class VideoBookingAmendedEventHandler(
               }
             }
 
-          // Cancel the appointments related to the previous state from history rows
-          history.appointments().forEach {
-            manageExternalAppointmentsService.cancelPreviousAppointment(it)
-          }
+          val appointmentTypesForPrisoner = (history.appointments().map { it.prisonerNumber to it.appointmentType } + booking.appointments().map { it.prisonerNumber to it.appointmentType }).toSet()
+          appointmentTypesForPrisoner.forEach { (prisonerNumber, type) ->
+            val oldAppointment = history.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
+            val newAppointment = booking.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
 
-          // Recreate appointments for the current state by sending APPOINTMENT_CREATED for each ID.
-          booking.appointments().forEach {
-            outboundEventsService.send(DomainEventType.APPOINTMENT_CREATED, it.prisonAppointmentId)
+            when {
+              oldAppointment == null -> {
+                manageExternalAppointmentsService.createAppointment(newAppointment!!)
+              }
+
+              newAppointment == null -> {
+                manageExternalAppointmentsService.cancelPreviousAppointment(oldAppointment)
+              }
+
+              else -> {
+                manageExternalAppointmentsService.amendAppointment(oldAppointment, newAppointment)
+              }
+            }
           }
 
           log.info("Processed BOOKING_AMENDED event for videoBookingId ${booking.videoBookingId}")
