@@ -13,6 +13,9 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetweenExclusiveEnd
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetweenExclusiveStart
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrBefore
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -144,9 +147,9 @@ class LocationAttribute private constructor(
   override fun toString(): String = this::class.simpleName +
     "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
 
-  fun isAvailableFor(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(probationTeam, startingOnDateTime)
+  fun isAvailableFor(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = check(probationTeam, onDate, startTime, endTime)
 
-  private fun check(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus {
+  private fun check(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
     if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
     return when (locationUsage) {
@@ -157,7 +160,7 @@ class LocationAttribute private constructor(
         else -> AvailabilityStatus.NONE
       }
 
-      LocationUsage.SCHEDULE -> getScheduleAvailability(probationTeam, startingOnDateTime)
+      LocationUsage.SCHEDULE -> getScheduleAvailability(probationTeam, onDate, startTime, endTime)
       else -> return AvailabilityStatus.NONE
     }
   }
@@ -165,8 +168,8 @@ class LocationAttribute private constructor(
   /**
    * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
    */
-  private fun getScheduleAvailability(probationTeam: ProbationTeam, dateAndTime: LocalDateTime): AvailabilityStatus {
-    val schedules = locationSchedule.filter { it.fallsOn(dateAndTime) }
+  private fun getScheduleAvailability(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
+    val schedules = getSchedules(onDate, startTime, endTime)
 
     return when {
       // If there aren't any schedules which fall on the requested date and time then default to SHARED
@@ -174,23 +177,22 @@ class LocationAttribute private constructor(
 
       // If there are schedules falling on the date and time look and see if any match the following
 
-      // Block appointments within BLOCKED periods except those whose start time is the same as BLOCKED end-time - lenient at the time borders
-      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) && schedule.endTime != dateAndTime.toLocalTime() } -> AvailabilityStatus.NONE
+      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
 
-      // Determine if this schedule is specifically allowed for this team
-      schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) } -> AvailabilityStatus.PROBATION_ROOM
+      // Determine if this schedule is specifically allowed for this team whose end time is within the schedules end time
+      schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) && endTime.isOnOrBefore(schedule.endTime) } -> AvailabilityStatus.PROBATION_ROOM
 
-      // Determine if this schedule allows any probation team
-      schedules.any { schedule -> schedule.isForAnyProbationTeam() } -> AvailabilityStatus.PROBATION_ANY
+      // Determine if this schedule allows any probation team whose end time is within the schedules end time
+      schedules.any { schedule -> schedule.isForAnyProbationTeam() && endTime.isOnOrBefore(schedule.endTime) } -> AvailabilityStatus.PROBATION_ANY
 
       // If there are no matches above then it is not available
       else -> AvailabilityStatus.NONE
     }
   }
 
-  fun isAvailableFor(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(court, startingOnDateTime)
+  fun isAvailableFor(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = check(court, onDate, startTime, endTime)
 
-  private fun check(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus {
+  private fun check(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
     if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
     return when (locationUsage) {
@@ -201,7 +203,7 @@ class LocationAttribute private constructor(
         else -> AvailabilityStatus.NONE
       }
 
-      LocationUsage.SCHEDULE -> getScheduleAvailability(court, startingOnDateTime)
+      LocationUsage.SCHEDULE -> getScheduleAvailability(court, onDate, startTime, endTime)
       else -> return AvailabilityStatus.NONE
     }
   }
@@ -209,8 +211,8 @@ class LocationAttribute private constructor(
   /**
    * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
    */
-  private fun getScheduleAvailability(court: Court, dateAndTime: LocalDateTime): AvailabilityStatus {
-    val schedules = locationSchedule.filter { it.fallsOn(dateAndTime) }
+  private fun getScheduleAvailability(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
+    val schedules = getSchedules(onDate, startTime, endTime)
 
     return when {
       // If there aren't any schedules which fall on the requested date and time then default to SHARED
@@ -218,18 +220,23 @@ class LocationAttribute private constructor(
 
       // If there are schedules falling on the date and time look and see if any match the following
 
-      // Block appointments within BLOCKED periods except those whose start time is the same as BLOCKED end-time - lenient at the time borders
-      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) && schedule.endTime != dateAndTime.toLocalTime() } -> AvailabilityStatus.NONE
+      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
 
-      // Determine if this schedule is specifically allowed for this court
-      schedules.any { schedule -> schedule.isForCourt(court) } -> AvailabilityStatus.COURT_ROOM
+      // Determine if this schedule is specifically allowed for this court whose end time is within the schedules end time
+      schedules.any { schedule -> schedule.isForCourt(court) && endTime.isOnOrBefore(schedule.endTime) } -> AvailabilityStatus.COURT_ROOM
 
-      // Determine if this schedule is allowed for any court
-      schedules.any { schedule -> schedule.isForAnyCourt() } -> AvailabilityStatus.COURT_ANY
+      // Determine if this schedule is allowed for any court whose end time is within the schedules end time
+      schedules.any { schedule -> schedule.isForAnyCourt() && endTime.isOnOrBefore(schedule.endTime) } -> AvailabilityStatus.COURT_ANY
 
       // If there are no matches above then it is not available
       else -> AvailabilityStatus.NONE
     }
+  }
+
+  private fun getSchedules(onDate: LocalDate, startTime: LocalTime, endTime: LocalTime) = run {
+    locationSchedule
+      .filter { it.fallsOn(onDate.atTime(startTime)) || it.fallsOn(onDate.atTime(endTime)) }
+      .filter { startTime.isBetweenExclusiveEnd(it.startTime, it.endTime) || endTime.isBetweenExclusiveStart(it.startTime, it.endTime) }
   }
 
   private fun isPartyAllowed(party: String) = allowedParties.orEmpty().replace(" ", "").split(",").contains(party)

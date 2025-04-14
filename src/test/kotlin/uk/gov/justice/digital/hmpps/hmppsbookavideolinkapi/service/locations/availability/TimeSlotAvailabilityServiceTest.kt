@@ -383,8 +383,8 @@ class TimeSlotAvailabilityServiceTest {
         ),
       ) doReturn BookedLocations(emptyList())
 
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn AvailabilityStatus.PROBATION_ANY
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -418,10 +418,10 @@ class TimeSlotAvailabilityServiceTest {
         ),
       ) doReturn BookedLocations(emptyList())
 
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn AvailabilityStatus.PROBATION_ANY
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.SHARED
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.SHARED
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -455,10 +455,10 @@ class TimeSlotAvailabilityServiceTest {
         ),
       ) doReturn BookedLocations(emptyList())
 
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn AvailabilityStatus.NONE
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.SHARED
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.SHARED
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.NONE
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -492,10 +492,10 @@ class TimeSlotAvailabilityServiceTest {
         ),
       ) doReturn BookedLocations(emptyList())
 
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn AvailabilityStatus.PROBATION_ANY
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.SHARED
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.SHARED
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -529,8 +529,8 @@ class TimeSlotAvailabilityServiceTest {
         ),
       ) doReturn BookedLocations(emptyList())
 
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 0)))) doReturn AvailabilityStatus.NONE
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow().atTime(9, 15)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(

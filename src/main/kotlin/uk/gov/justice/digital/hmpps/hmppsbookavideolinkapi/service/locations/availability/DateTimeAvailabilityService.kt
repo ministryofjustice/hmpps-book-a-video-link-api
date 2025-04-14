@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Availa
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
-import java.time.LocalTime
 
 /**
  * This provides a snapshot (date and time) of available rooms at time of calling. Note this does not guarantee the
@@ -68,7 +67,7 @@ class DateTimeAvailabilityService(
         } else {
           if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime)) {
             add(
-              availabilityStatus = location.allowsByAnyRuleOrSchedule(request, meetingStartTime),
+              availabilityStatus = location.allowsByAnyRuleOrSchedule(request),
               availableLocation = AvailableLocation(
                 name = location.description ?: location.key,
                 startTime = meetingStartTime,
@@ -96,21 +95,25 @@ class DateTimeAvailabilityService(
     location.dpsLocationId == prisonAppointment.prisonLocationId && prisonAppointment.appointmentDate == request.date && prisonAppointment.startTime == request.startTime && prisonAppointment.endTime == request.endTime
   }
 
-  protected fun Location.allowsByAnyRuleOrSchedule(request: DateTimeAvailabilityRequest, time: LocalTime): AvailabilityStatus {
+  protected fun Location.allowsByAnyRuleOrSchedule(request: DateTimeAvailabilityRequest): AvailabilityStatus {
     if (extraAttributes != null) {
       return when (request.bookingType!!) {
         BookingType.COURT -> locationAttributesService.isLocationAvailableFor(
           LocationAvailableRequest.court(
             extraAttributes.attributeId,
             request.courtCode!!,
-            request.date!!.atTime(time),
+            request.date!!,
+            request.startTime!!,
+            request.endTime!!,
           ),
         )
         BookingType.PROBATION -> locationAttributesService.isLocationAvailableFor(
           LocationAvailableRequest.probation(
             extraAttributes.attributeId,
             request.probationTeamCode!!,
-            request.date!!.atTime(time),
+            request.date!!,
+            request.startTime!!,
+            request.endTime!!,
           ),
         )
       }
