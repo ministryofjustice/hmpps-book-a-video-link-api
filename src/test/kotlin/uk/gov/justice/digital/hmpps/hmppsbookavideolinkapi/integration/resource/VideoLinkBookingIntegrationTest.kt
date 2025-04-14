@@ -83,6 +83,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
@@ -1184,9 +1186,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
-  @Sql("classpath:integration-test-data/seed-video-booking-user-preferences.sql")
   @Test
-  fun `should fail to amend a court booking when prisoner not at prison`() {
+  fun `should amend a court booking when prisoner has been transferred to a different prison`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
@@ -1216,22 +1217,15 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(12, 30),
     )
 
-    val error = webTestClient.put()
-      .uri("/video-link-booking/id/$videoBookingId")
-      .bodyValue(amendBookingRequest)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = COURT_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().is4xxClientError
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(ErrorResponse::class.java)
-      .returnResult().responseBody!!
+    notificationRepository.deleteAll()
+    webTestClient.amendBooking(videoBookingId, amendBookingRequest, COURT_USER)
 
-    with(error) {
-      status isEqualTo 400
-      userMessage isEqualTo "Validation failure: Prisoner 123456 not found at prison BMI"
-      developerMessage isEqualTo "Prisoner 123456 not found at prison BMI"
-    }
+    val persistedBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
+
+    // There should be a user email
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+    notifications.isPresent("a@a.com", AmendedCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, AmendedCourtBookingUserEmail::class, persistedBooking)
   }
 
   @Test
@@ -1427,7 +1421,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should fail to amend a probation booking when prisoner not at prison`() {
+  fun `should amend a probation booking when prisoner has been transferred to a different prison`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
@@ -1459,22 +1453,15 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       comments = "integration test probation booking comments",
     )
 
-    val error = webTestClient.put()
-      .uri("/video-link-booking/id/$videoBookingId")
-      .bodyValue(amendBookingRequest)
-      .accept(MediaType.APPLICATION_JSON)
-      .headers(setAuthorisation(user = PROBATION_USER.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-      .exchange()
-      .expectStatus().is4xxClientError
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(ErrorResponse::class.java)
-      .returnResult().responseBody!!
+    notificationRepository.deleteAll()
+    webTestClient.amendBooking(videoBookingId, amendBookingRequest, PROBATION_USER)
 
-    with(error) {
-      status isEqualTo 400
-      userMessage isEqualTo "Validation failure: Prisoner 123456 not found at prison BMI"
-      developerMessage isEqualTo "Prisoner 123456 not found at prison BMI"
-    }
+    val persistedBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
+
+    // There should be a user email
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+    notifications.isPresent("a@a.com", AmendedProbationBookingPrisonProbationEmail::class, persistedBooking)
+    notifications.isPresent(PROBATION_USER.email!!, AmendedProbationBookingUserEmail::class, persistedBooking)
   }
 
   @Test

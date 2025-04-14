@@ -13,7 +13,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
@@ -58,7 +58,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
 
-class AmendVideoBookingServiceTest {
+class AmendCourtBookingServiceTest {
 
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val prisonRepository: PrisonRepository = mock()
@@ -68,16 +68,16 @@ class AmendVideoBookingServiceTest {
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val locationValidator: LocationValidator = mock()
-  private val prisonerValidator: PrisonerValidator = mock()
+  private val prisonerSearchClient: PrisonerSearchClient = mock()
 
   private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationsInsidePrisonClient, locationValidator)
 
-  private val service = AmendVideoBookingService(
+  private val service = AmendCourtBookingService(
     videoBookingRepository,
     prisonRepository,
     appointmentsService,
     bookingHistoryService,
-    prisonerValidator,
+    prisonerSearchClient,
   )
 
   private var amendedBookingCaptor = argumentCaptor<VideoBooking>()
@@ -169,7 +169,7 @@ class AmendVideoBookingServiceTest {
     }
 
     verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
-    verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
+    verify(prisonerSearchClient).getPrisoner(prisonerNumber)
     verify(bookingHistoryService).createBookingHistory(any(), any())
   }
 
@@ -544,7 +544,7 @@ class AmendVideoBookingServiceTest {
     }
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
-    verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
+    verify(prisonerSearchClient).getPrisoner(prisonerNumber)
     verify(bookingHistoryService).createBookingHistory(any(), any())
   }
 
@@ -682,6 +682,6 @@ class AmendVideoBookingServiceTest {
 
   private fun withPrisonPrisonerFixture(prisonCode: String, prisonerNumber: String) {
     whenever(prisonRepository.findByCode(prisonCode)) doReturn prison(prisonCode)
-    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
+    whenever(prisonerSearchClient.getPrisoner(prisonerNumber)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
   }
 }
