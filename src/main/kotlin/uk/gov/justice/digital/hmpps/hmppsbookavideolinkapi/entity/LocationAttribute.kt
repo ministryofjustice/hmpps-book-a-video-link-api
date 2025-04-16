@@ -144,9 +144,9 @@ class LocationAttribute private constructor(
   override fun toString(): String = this::class.simpleName +
     "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
 
-  fun isAvailableFor(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(probationTeam, startingOnDateTime)
+  fun isAvailableFor(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = check(probationTeam, onDate, startTime, endTime)
 
-  private fun check(probationTeam: ProbationTeam, startingOnDateTime: LocalDateTime): AvailabilityStatus {
+  private fun check(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
     if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
     return when (locationUsage) {
@@ -157,7 +157,7 @@ class LocationAttribute private constructor(
         else -> AvailabilityStatus.NONE
       }
 
-      LocationUsage.SCHEDULE -> getScheduleAvailability(probationTeam, startingOnDateTime)
+      LocationUsage.SCHEDULE -> getScheduleAvailability(probationTeam, onDate, startTime, endTime)
       else -> return AvailabilityStatus.NONE
     }
   }
@@ -165,24 +165,22 @@ class LocationAttribute private constructor(
   /**
    * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
    */
-  private fun getScheduleAvailability(probationTeam: ProbationTeam, dateAndTime: LocalDateTime): AvailabilityStatus {
-    val schedules = locationSchedule.filter { it.fallsOn(dateAndTime) }
-
+  private fun getScheduleAvailability(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     return when {
-      // If there aren't any schedules which fall on the requested date and time then default to SHARED
-      schedules.isEmpty() -> AvailabilityStatus.SHARED
-      // If there are schedules fall on the date and time look and see if any match the following
-      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
-      schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) } -> AvailabilityStatus.PROBATION_ROOM
-      schedules.any { schedule -> schedule.isForAnyProbationTeam() } -> AvailabilityStatus.PROBATION_ANY
-      // If there are no matches above then it is not available
-      else -> AvailabilityStatus.NONE
+      // The order in which the checks are carried out is important and must be maintained.
+      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      locationSchedule.any { it.isSatisfiedBy(ProbationTeamSpecification(probationTeam, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.PROBATION_ROOM
+      locationSchedule.any { it.isSatisfiedBy(ProbationAnySpecification(onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.PROBATION_ANY
+      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      locationSchedule.any { it.isSatisfiedBy(OverlappingRoomSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+
+      else -> AvailabilityStatus.SHARED
     }
   }
 
-  fun isAvailableFor(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus = check(court, startingOnDateTime)
+  fun isAvailableFor(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = check(court, onDate, startTime, endTime)
 
-  private fun check(court: Court, startingOnDateTime: LocalDateTime): AvailabilityStatus {
+  private fun check(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
     if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
     return when (locationUsage) {
@@ -193,7 +191,7 @@ class LocationAttribute private constructor(
         else -> AvailabilityStatus.NONE
       }
 
-      LocationUsage.SCHEDULE -> getScheduleAvailability(court, startingOnDateTime)
+      LocationUsage.SCHEDULE -> getScheduleAvailability(court, onDate, startTime, endTime)
       else -> return AvailabilityStatus.NONE
     }
   }
@@ -201,18 +199,16 @@ class LocationAttribute private constructor(
   /**
    * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
    */
-  private fun getScheduleAvailability(court: Court, dateAndTime: LocalDateTime): AvailabilityStatus {
-    val schedules = locationSchedule.filter { it.fallsOn(dateAndTime) }
-
+  private fun getScheduleAvailability(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     return when {
-      // If there aren't any schedules which fall on the requested date and time then default to SHARED
-      schedules.isEmpty() -> AvailabilityStatus.SHARED
-      // If there are schedules fall on the date and time look and see if any match the following
-      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
-      schedules.any { schedule -> schedule.isForCourt(court) } -> AvailabilityStatus.COURT_ROOM
-      schedules.any { schedule -> schedule.isForAnyCourt() } -> AvailabilityStatus.COURT_ANY
-      // If there are no matches above then it is not available
-      else -> AvailabilityStatus.NONE
+      // The order in which the checks are carried out is important and must be maintained.
+      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      locationSchedule.any { it.isSatisfiedBy(CourtRoomSpecification(court, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.COURT_ROOM
+      locationSchedule.any { it.isSatisfiedBy(CourtAnySpecification(onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.COURT_ANY
+      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      locationSchedule.any { it.isSatisfiedBy(OverlappingRoomSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+
+      else -> AvailabilityStatus.SHARED
     }
   }
 

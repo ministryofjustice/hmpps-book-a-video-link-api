@@ -13,34 +13,47 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import java.time.DayOfWeek
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
 class LocationScheduleTest {
-  private val mondayNoon = LocalDate.of(2025, 2, 24).atTime(12, 0)
-  private val tuesdayNoon = mondayNoon.plusDays(1)
-  private val wednesdayNoon = mondayNoon.plusDays(2)
-  private val thursdayNoon = mondayNoon.plusDays(3)
-  private val fridayNoon = mondayNoon.plusDays(4)
 
-  @Test
-  fun `should fall on date and time`() {
-    schedule(start = DayOfWeek.MONDAY).fallsOn(mondayNoon) isBool true
-    schedule(start = DayOfWeek.TUESDAY).fallsOn(tuesdayNoon) isBool true
-    schedule(start = DayOfWeek.WEDNESDAY).fallsOn(wednesdayNoon) isBool true
-    schedule(start = DayOfWeek.THURSDAY).fallsOn(thursdayNoon) isBool true
-    schedule(start = DayOfWeek.FRIDAY).fallsOn(fridayNoon) isBool true
-  }
+  private val daysOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
 
-  @Test
-  fun `should not fall on date and time`() {
-    schedule(start = DayOfWeek.MONDAY).fallsOn(tuesdayNoon) isBool false
-    schedule(start = DayOfWeek.MONDAY).fallsOn(wednesdayNoon) isBool false
-    schedule(start = DayOfWeek.MONDAY).fallsOn(thursdayNoon) isBool false
-    schedule(start = DayOfWeek.MONDAY).fallsOn(fridayNoon) isBool false
-  }
+  private val probationTeamSchedule = schedule(
+    locationUsage = LocationScheduleUsage.PROBATION,
+    allowedParties = setOf("PROBATION_TEAM"),
+    start = DayOfWeek.MONDAY,
+    end = DayOfWeek.SUNDAY,
+    startTime = LocalTime.of(9, 0),
+    endTime = LocalTime.of(10, 0),
+  )
+
+  private val probationAnySchedule = schedule(
+    locationUsage = LocationScheduleUsage.PROBATION,
+    start = DayOfWeek.MONDAY,
+    end = DayOfWeek.SUNDAY,
+    startTime = LocalTime.of(9, 0),
+    endTime = LocalTime.of(10, 0),
+  )
+
+  private val courtSchedule = schedule(
+    locationUsage = LocationScheduleUsage.COURT,
+    allowedParties = setOf("COURT"),
+    start = DayOfWeek.MONDAY,
+    end = DayOfWeek.SUNDAY,
+    startTime = LocalTime.of(9, 0),
+    endTime = LocalTime.of(10, 0),
+  )
+
+  private val courtAnySchedule = schedule(
+    locationUsage = LocationScheduleUsage.COURT,
+    start = DayOfWeek.MONDAY,
+    end = DayOfWeek.SUNDAY,
+    startTime = LocalTime.of(9, 0),
+    endTime = LocalTime.of(10, 0),
+  )
 
   @Test
   fun `should fail if end day before start day`() {
@@ -176,32 +189,41 @@ class LocationScheduleTest {
   @DisplayName("Probation tests")
   @Nested
   inner class Probation {
+
     @Test
     fun `should be for probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
-
-      schedule.isForProbationTeam(probationTeam(code = "PROBATION_TEAM")) isBool true
+      daysOfWeek.forEach { day ->
+        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+      }
     }
 
     @Test
-    fun `should not be for probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
-
-      schedule.isForProbationTeam(probationTeam(code = "DIFFERENT_PROBATION_TEAM")) isBool false
+    fun `should not be for different probation team`() {
+      daysOfWeek.forEach { day ->
+        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool false
+        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool false
+        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+        probationTeamSchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+      }
     }
 
     @Test
     fun `should be for any probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION)
-
-      schedule.isForAnyProbationTeam() isBool true
+      daysOfWeek.forEach { day ->
+        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+      }
     }
 
     @Test
     fun `should not be for any probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.COURT)
-
-      schedule.isForAnyProbationTeam() isBool false
+      daysOfWeek.forEach { day ->
+        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(8, 0), LocalTime.of(9, 30))) isBool false
+        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 30))) isBool false
+      }
     }
   }
 
@@ -209,31 +231,39 @@ class LocationScheduleTest {
   @Nested
   inner class Court {
     @Test
-    fun `should be for probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
-
-      schedule.isForCourt(court(code = "COURT")) isBool true
+    fun `should be for court room`() {
+      daysOfWeek.forEach { day ->
+        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+      }
     }
 
     @Test
-    fun `should not be for probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
-
-      schedule.isForCourt(court(code = "DIFFERENT_COURT")) isBool false
+    fun `should not be for court room`() {
+      daysOfWeek.forEach { day ->
+        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool false
+        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool false
+        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+        courtSchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+      }
     }
 
     @Test
-    fun `should be for any probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.COURT)
-
-      schedule.isForAnyCourt() isBool true
+    fun `should be for any court`() {
+      daysOfWeek.forEach { day ->
+        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+      }
     }
 
     @Test
-    fun `should not be for any probation team`() {
-      val schedule = schedule(locationUsage = LocationScheduleUsage.PROBATION)
-
-      schedule.isForAnyCourt() isBool false
+    fun `should not be for any court`() {
+      daysOfWeek.forEach { day ->
+        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(8, 0), LocalTime.of(9, 30))) isBool false
+        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 30))) isBool false
+      }
     }
   }
 

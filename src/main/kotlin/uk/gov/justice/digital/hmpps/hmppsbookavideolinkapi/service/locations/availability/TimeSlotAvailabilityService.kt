@@ -108,14 +108,18 @@ class TimeSlotAvailabilityService(
           LocationAvailableRequest.court(
             extraAttributes.attributeId,
             request.courtCode!!,
-            request.date!!.atTime(time),
+            request.date!!,
+            time,
+            time.plusMinutes(request.bookingDuration!!.toLong()),
           ),
         )
         BookingType.PROBATION -> locationAttributesService.isLocationAvailableFor(
           LocationAvailableRequest.probation(
             extraAttributes.attributeId,
             request.probationTeamCode!!,
-            request.date!!.atTime(time),
+            request.date!!,
+            time,
+            time.plusMinutes(request.bookingDuration!!.toLong()),
           ),
         )
       }

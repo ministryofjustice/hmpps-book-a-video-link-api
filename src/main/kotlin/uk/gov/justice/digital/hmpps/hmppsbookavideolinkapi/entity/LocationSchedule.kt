@@ -12,8 +12,11 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetween
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrAfter
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrBefore
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
+import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -76,17 +79,9 @@ class LocationSchedule private constructor(
     "(locationScheduleId = $locationScheduleId, startDay = $startDayOfWeek, endDay = $endDayOfWeek " +
     "startTime = $startTime, endTime = $endTime)"
 
-  fun fallsOn(dateTime: LocalDateTime) = dateTime.dayOfWeek.between(startDayOfWeek, endDayOfWeek) && dateTime.toLocalTime().isBetween(startTime, endTime)
-
-  fun isForProbationTeam(team: ProbationTeam) = locationUsage == LocationScheduleUsage.PROBATION && allowedParties.orEmpty().split(",").contains(team.code)
-
-  fun isForAnyProbationTeam() = locationUsage == LocationScheduleUsage.PROBATION && allowedParties.isNullOrBlank()
-
-  fun isForCourt(court: Court) = locationUsage == LocationScheduleUsage.COURT && allowedParties.orEmpty().split(",").contains(court.code)
-
-  fun isForAnyCourt() = locationUsage == LocationScheduleUsage.COURT && allowedParties.isNullOrBlank()
-
   fun isUsage(usage: LocationScheduleUsage) = locationUsage == usage
+
+  fun isSatisfiedBy(specification: Specification) = specification.predicate(this)
 
   fun amend(
     locationUsage: LocationScheduleUsage,
@@ -159,4 +154,88 @@ enum class LocationScheduleUsage {
   COURT,
   PROBATION,
   BLOCKED,
+}
+
+fun interface Specification {
+  fun predicate(schedule: LocationSchedule): Boolean
+}
+
+class OverlappingSpecification(
+  private val usage: LocationScheduleUsage,
+  private val dayOfWeek: DayOfWeek,
+  private val startTime: LocalTime,
+  private val endTime: LocalTime,
+) : Specification {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    schedule.isUsage(usage) && dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) && isTimesOverlap(startTime, endTime, schedule.startTime, schedule.endTime)
+  }
+}
+
+class OverlappingRoomSpecification(
+  private val usage: LocationScheduleUsage,
+  private val dayOfWeek: DayOfWeek,
+  private val startTime: LocalTime,
+  private val endTime: LocalTime,
+) : Specification {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    schedule.isUsage(usage) && dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) && isTimesOverlap(startTime, endTime, schedule.startTime, schedule.endTime) && !schedule.allowedParties.isNullOrEmpty()
+  }
+}
+
+class CourtRoomSpecification(
+  private val court: Court,
+  private val dayOfWeek: DayOfWeek,
+  private val startTime: LocalTime,
+  private val endTime: LocalTime,
+) : Specification {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    schedule.isUsage(LocationScheduleUsage.COURT) &&
+      dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) &&
+      schedule.allowedParties.orEmpty().split(",").contains(court.code) &&
+      startTime.isOnOrAfter(schedule.startTime) &&
+      endTime.isOnOrBefore(schedule.endTime)
+  }
+}
+
+class CourtAnySpecification(
+  private val dayOfWeek: DayOfWeek,
+  private val startTime: LocalTime,
+  private val endTime: LocalTime,
+) : Specification {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    schedule.isUsage(LocationScheduleUsage.COURT) &&
+      dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) &&
+      schedule.allowedParties.isNullOrBlank() &&
+      startTime.isOnOrAfter(schedule.startTime) &&
+      endTime.isOnOrBefore(schedule.endTime)
+  }
+}
+
+class ProbationTeamSpecification(
+  private val probationTeam: ProbationTeam,
+  private val dayOfWeek: DayOfWeek,
+  private val startTime: LocalTime,
+  private val endTime: LocalTime,
+) : Specification {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    schedule.isUsage(LocationScheduleUsage.PROBATION) &&
+      dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) &&
+      schedule.allowedParties.orEmpty().split(",").contains(probationTeam.code) &&
+      startTime.isOnOrAfter(schedule.startTime) &&
+      endTime.isOnOrBefore(schedule.endTime)
+  }
+}
+
+class ProbationAnySpecification(
+  private val dayOfWeek: DayOfWeek,
+  private val startTime: LocalTime,
+  private val endTime: LocalTime,
+) : Specification {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    schedule.isUsage(LocationScheduleUsage.PROBATION) &&
+      dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) &&
+      schedule.allowedParties.isNullOrBlank() &&
+      startTime.isOnOrAfter(schedule.startTime) &&
+      endTime.isOnOrBefore(schedule.endTime)
+  }
 }

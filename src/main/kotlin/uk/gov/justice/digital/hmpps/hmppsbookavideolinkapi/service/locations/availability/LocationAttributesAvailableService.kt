@@ -7,7 +7,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilitySt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
-import java.time.LocalDateTime
+import java.time.LocalDate
+import java.time.LocalTime
 
 @Service
 @Transactional(readOnly = true)
@@ -24,13 +25,17 @@ class LocationAttributesAvailableService(
       LocationAvailableRequest.Type.COURT -> {
         attribute.isAvailableFor(
           courtRepository.findByCode(request.code) ?: throw EntityNotFoundException("Court code ${request.code} not found"),
-          request.onDateTime,
+          request.onDate,
+          request.startTime,
+          request.endTime,
         )
       }
       LocationAvailableRequest.Type.PROBATION -> {
         attribute.isAvailableFor(
           probationTeamRepository.findByCode(request.code) ?: throw EntityNotFoundException("Probation team ${request.code} not found"),
-          request.onDateTime,
+          request.onDate,
+          request.startTime,
+          request.endTime,
         )
       }
     }
@@ -41,7 +46,9 @@ class LocationAvailableRequest private constructor(
   val attributeId: Long,
   val type: Type,
   val code: String,
-  val onDateTime: LocalDateTime,
+  val onDate: LocalDate,
+  val startTime: LocalTime,
+  val endTime: LocalTime,
 ) {
   enum class Type {
     COURT,
@@ -49,9 +56,9 @@ class LocationAvailableRequest private constructor(
   }
 
   companion object {
-    fun court(attributeId: Long, courtCode: String, onDateTime: LocalDateTime) = LocationAvailableRequest(attributeId, Type.COURT, courtCode, onDateTime)
+    fun court(attributeId: Long, courtCode: String, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime) = LocationAvailableRequest(attributeId, Type.COURT, courtCode, onDate, startTime, endTime)
 
-    fun probation(attributeId: Long, probationTeamCode: String, onDateTime: LocalDateTime) = LocationAvailableRequest(attributeId, Type.PROBATION, probationTeamCode, onDateTime)
+    fun probation(attributeId: Long, probationTeamCode: String, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime) = LocationAvailableRequest(attributeId, Type.PROBATION, probationTeamCode, onDate, startTime, endTime)
   }
 
   override fun equals(other: Any?): Boolean {
@@ -63,7 +70,9 @@ class LocationAvailableRequest private constructor(
     if (attributeId != other.attributeId) return false
     if (type != other.type) return false
     if (code != other.code) return false
-    if (onDateTime != other.onDateTime) return false
+    if (onDate != other.onDate) return false
+    if (startTime != other.startTime) return false
+    if (endTime != other.endTime) return false
 
     return true
   }

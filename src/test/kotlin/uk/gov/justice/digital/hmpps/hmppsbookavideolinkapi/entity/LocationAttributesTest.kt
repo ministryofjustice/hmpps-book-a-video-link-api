@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPrison
 import java.time.DayOfWeek
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
@@ -200,7 +199,7 @@ class LocationAttributesTest {
         createdBy = PROBATION_USER,
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ANY
+      roomAttributes.isAvailableFor(probationTeam(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.PROBATION_ANY
     }
 
     @Test
@@ -216,7 +215,7 @@ class LocationAttributesTest {
         createdBy = PROBATION_USER,
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(probationTeam(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -234,7 +233,9 @@ class LocationAttributesTest {
 
       roomAttributes.isAvailableFor(
         probationTeam(code = "TEAM_CODE"),
-        LocalDateTime.now(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
       ) isEqualTo AvailabilityStatus.PROBATION_ROOM
     }
 
@@ -253,7 +254,9 @@ class LocationAttributesTest {
 
       roomAttributes.isAvailableFor(
         probationTeam(code = "DIFFERENT_TEAM_CODE"),
-        today().atTime(12, 0),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
       ) isEqualTo AvailabilityStatus.NONE
     }
 
@@ -270,7 +273,12 @@ class LocationAttributesTest {
         createdBy = COURT_USER,
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -289,7 +297,12 @@ class LocationAttributesTest {
         schedule(this, locationUsage = LocationScheduleUsage.BLOCKED)
       }
 
-      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -305,7 +318,12 @@ class LocationAttributesTest {
         createdBy = PROBATION_USER,
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.SHARED
     }
 
     @Test
@@ -321,7 +339,12 @@ class LocationAttributesTest {
         createdBy = PROBATION_USER,
       )
 
-      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.SHARED
     }
 
     @Test
@@ -337,7 +360,12 @@ class LocationAttributesTest {
         createdBy = PROBATION_USER,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION) }
 
-      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ANY
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.PROBATION_ANY
     }
 
     @Test
@@ -355,7 +383,58 @@ class LocationAttributesTest {
         schedule(this, locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
       }
 
-      roomAttributes.isAvailableFor(probationTeam(code = "PROBATION_TEAM"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.PROBATION_ROOM
+      roomAttributes.isAvailableFor(
+        probationTeam(code = "PROBATION_TEAM"),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.PROBATION_ROOM
+    }
+
+    @Test
+    fun `should be NONE for probation when schedule blocked and start time is not blocked but end time is`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(8, 30),
+        LocalTime.of(9, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be NONE for probation when schedule blocked and start time is blocked but end time is not`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(9, 30),
+        LocalTime.of(10, 30),
+      ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -371,7 +450,152 @@ class LocationAttributesTest {
         createdBy = PROBATION_USER,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.COURT) }
 
-      roomAttributes.isAvailableFor(probationTeam(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be PROBATION ANY when schedule is blocked and probation but start time is on the boundary`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = PROBATION_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.PROBATION)
+      }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(10, 0),
+        LocalTime.of(11, 0),
+      ) isEqualTo AvailabilityStatus.PROBATION_ANY
+    }
+
+    @Test
+    fun `should be PROBATION ANY when schedule is blocked and court but end time is on the boundary`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.PROBATION)
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(9, 0),
+        LocalTime.of(10, 0),
+      ) isEqualTo AvailabilityStatus.PROBATION_ANY
+    }
+
+    @Test
+    fun `should be NONE for specific probation schedule when the end time is out of bounds`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = setOf("PROBATION"),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = PROBATION_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION"))
+      }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(code = "PROBATION"),
+        today(),
+        LocalTime.of(10, 30),
+        LocalTime.of(11, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be SHARED for any probation schedule when the end time is out of bounds`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = PROBATION_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.PROBATION)
+      }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(10, 30),
+        LocalTime.of(11, 30),
+      ) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be SHARED for blocked schedule when the start time matches the schedule end time`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = PROBATION_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(11, 0),
+        LocalTime.of(11, 30),
+      ) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be SHARED for blocked schedule when the end time matches the schedule start time`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = PROBATION_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(),
+        today(),
+        LocalTime.of(9, 0),
+        LocalTime.of(10, 0),
+      ) isEqualTo AvailabilityStatus.SHARED
     }
   }
 
@@ -390,7 +614,12 @@ class LocationAttributesTest {
         createdBy = COURT_USER,
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT_ANY
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.COURT_ANY
     }
 
     @Test
@@ -417,7 +646,12 @@ class LocationAttributesTest {
         )
       }
 
-      roomAttributes.isAvailableFor(court(), LocalDate.now().atTime(12, 0)) isEqualTo AvailabilityStatus.COURT_ANY
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.COURT_ANY
     }
 
     @Test
@@ -433,7 +667,12 @@ class LocationAttributesTest {
         createdBy = COURT_USER,
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -449,7 +688,12 @@ class LocationAttributesTest {
         createdBy = PROBATION_USER,
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -465,7 +709,12 @@ class LocationAttributesTest {
         allowedParties = setOf("COURT"),
       )
 
-      roomAttributes.isAvailableFor(court(code = "COURT"), LocalDateTime.now()) isEqualTo AvailabilityStatus.COURT_ROOM
+      roomAttributes.isAvailableFor(
+        court(code = "COURT"),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.COURT_ROOM
     }
 
     @Test
@@ -481,7 +730,12 @@ class LocationAttributesTest {
         allowedParties = setOf("COURT"),
       )
 
-      roomAttributes.isAvailableFor(court(code = "DIFFERENT_COURT"), LocalDateTime.now()) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(
+        court(code = "DIFFERENT_COURT"),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
@@ -497,7 +751,12 @@ class LocationAttributesTest {
         createdBy = COURT_USER,
       )
 
-      roomAttributes.isAvailableFor(court(), LocalDateTime.now()) isEqualTo AvailabilityStatus.SHARED
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.SHARED
     }
 
     @Test
@@ -513,7 +772,12 @@ class LocationAttributesTest {
         createdBy = COURT_USER,
       )
 
-      roomAttributes.isAvailableFor(court(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.SHARED
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.SHARED
     }
 
     @Test
@@ -529,7 +793,12 @@ class LocationAttributesTest {
         createdBy = COURT_USER,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.COURT) }
 
-      roomAttributes.isAvailableFor(court(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.COURT_ANY
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.COURT_ANY
     }
 
     @Test
@@ -547,7 +816,12 @@ class LocationAttributesTest {
         schedule(this, locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
       }
 
-      roomAttributes.isAvailableFor(court(code = "COURT"), today().atTime(12, 0)) isEqualTo AvailabilityStatus.COURT_ROOM
+      roomAttributes.isAvailableFor(
+        court(code = "COURT"),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.COURT_ROOM
     }
 
     @Test
@@ -566,11 +840,62 @@ class LocationAttributesTest {
         schedule(this, locationUsage = LocationScheduleUsage.BLOCKED)
       }
 
-      roomAttributes.isAvailableFor(court(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test
-    fun `should be NONE for court schedule`() {
+    fun `should be NONE for a court when schedule blocked and start time is not blocked but end time is`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(8, 30),
+        LocalTime.of(9, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be NONE for a court when schedule blocked and start time is blocked but end time is not`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(9, 30),
+        LocalTime.of(10, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be NONE for probation schedule`() {
       val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
         prison = pentonvillePrison,
@@ -582,7 +907,250 @@ class LocationAttributesTest {
         createdBy = COURT_USER,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION) }
 
-      roomAttributes.isAvailableFor(court(), today().atTime(12, 0)) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be COURT ANY when schedule is blocked and court but start time is on the boundary`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.COURT)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(10, 0),
+        LocalTime.of(11, 0),
+      ) isEqualTo AvailabilityStatus.COURT_ANY
+    }
+
+    @Test
+    fun `should be COURT ANY when schedule is blocked and court but end time is on the boundary`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(9, 0),
+        LocalTime.of(10, 0),
+      ) isEqualTo AvailabilityStatus.COURT_ANY
+    }
+
+    @Test
+    fun `should be NONE for specific court schedule when the end time is out bounds`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = setOf("COURT"),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
+      }
+
+      roomAttributes.isAvailableFor(
+        court(code = "COURT"),
+        today(),
+        LocalTime.of(10, 30),
+        LocalTime.of(11, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be SHARED for any court schedule when the end time is out bounds`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.COURT)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(10, 30),
+        LocalTime.of(11, 30),
+      ) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be SHARED for blocked schedule when the start time matches the schedule end time`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(11, 0),
+        LocalTime.of(11, 30),
+      ) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be SHARED for blocked schedule when the end time matches the schedule start time`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(9, 0),
+        LocalTime.of(10, 0),
+      ) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be NONE when blocked by overlapping probation schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(8, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+        schedule(this, startTime = LocalTime.of(14, 0), endTime = LocalTime.of(16, 0), locationUsage = LocationScheduleUsage.PROBATION)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(13, 30),
+        LocalTime.of(14, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be SHARED when end time matches start of probation schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(8, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+        schedule(this, startTime = LocalTime.of(14, 0), endTime = LocalTime.of(16, 0), locationUsage = LocationScheduleUsage.PROBATION)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(13, 30),
+        LocalTime.of(14, 0),
+      ) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be SHARED when start time matches end of probation schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(8, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+        schedule(this, startTime = LocalTime.of(14, 0), endTime = LocalTime.of(16, 0), locationUsage = LocationScheduleUsage.PROBATION)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(16, 30),
+        LocalTime.of(17, 0),
+      ) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be NONE when start and end time overlaps blocked schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(9, 0),
+        LocalTime.of(13, 0),
+      ) isEqualTo AvailabilityStatus.NONE
     }
   }
 
