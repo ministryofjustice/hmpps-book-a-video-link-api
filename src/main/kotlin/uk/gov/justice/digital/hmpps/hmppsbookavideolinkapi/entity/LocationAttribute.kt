@@ -165,14 +165,24 @@ class LocationAttribute private constructor(
   /**
    * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
    */
-  private fun getScheduleAvailability(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
+  private fun getScheduleAvailability(team: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
+    val blocked = OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)
+    val freeForProbationTeam = ProbationTeamSpecification(team, onDate.dayOfWeek, startTime, endTime)
+    val freeForAnyProbationTeam = ProbationAnySpecification(onDate.dayOfWeek, startTime, endTime)
+    val overlapsWithCourtSlot = OverlappingSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)
+    val overlapsWithOtherProbationTeamSlot = OverlappingRoomSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)
+
+    // The order in which the checks are carried out is important and must be maintained.
     return when {
-      // The order in which the checks are carried out is important and must be maintained.
-      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
-      locationSchedule.any { it.isSatisfiedBy(ProbationTeamSpecification(probationTeam, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.PROBATION_ROOM
-      locationSchedule.any { it.isSatisfiedBy(ProbationAnySpecification(onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.PROBATION_ANY
-      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
-      locationSchedule.any { it.isSatisfiedBy(OverlappingRoomSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      isSlot(blocked) -> AvailabilityStatus.NONE
+      isSlot(freeForProbationTeam) -> AvailabilityStatus.PROBATION_ROOM
+      isSlot(freeForAnyProbationTeam) -> AvailabilityStatus.PROBATION_ANY
+
+      // If none of the above match we need to make sure the requested probation slot date and times to not overlap any court schedules
+      isSlot(overlapsWithCourtSlot) -> AvailabilityStatus.NONE
+
+      // If none of the above match we need to make sure the requested probation slot date and times to not overlap any other probation team room schedules
+      isSlot(overlapsWithOtherProbationTeamSlot) -> AvailabilityStatus.NONE
 
       else -> AvailabilityStatus.SHARED
     }
@@ -200,17 +210,29 @@ class LocationAttribute private constructor(
    * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
    */
   private fun getScheduleAvailability(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
+    val blocked = OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)
+    val freeForCourtRoom = CourtRoomSpecification(court, onDate.dayOfWeek, startTime, endTime)
+    val freeForAnyCourtRoom = CourtAnySpecification(onDate.dayOfWeek, startTime, endTime)
+    val overlapsWithProbationSlot = OverlappingSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)
+    val overlapsWithOtherCourtRoomSlot = OverlappingRoomSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)
+
+    // The order in which the checks are carried out is important and must be maintained.
     return when {
-      // The order in which the checks are carried out is important and must be maintained.
-      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
-      locationSchedule.any { it.isSatisfiedBy(CourtRoomSpecification(court, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.COURT_ROOM
-      locationSchedule.any { it.isSatisfiedBy(CourtAnySpecification(onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.COURT_ANY
-      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
-      locationSchedule.any { it.isSatisfiedBy(OverlappingRoomSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      isSlot(blocked) -> AvailabilityStatus.NONE
+      isSlot(freeForCourtRoom) -> AvailabilityStatus.COURT_ROOM
+      isSlot(freeForAnyCourtRoom) -> AvailabilityStatus.COURT_ANY
+
+      // If none of the above match we need to make sure the requested court slot date and times to not overlap any probation schedules
+      isSlot(overlapsWithProbationSlot) -> AvailabilityStatus.NONE
+
+      // If none of the above match we need to make sure the requested court slot date and times to not overlap any other court room schedules
+      isSlot(overlapsWithOtherCourtRoomSlot) -> AvailabilityStatus.NONE
 
       else -> AvailabilityStatus.SHARED
     }
   }
+
+  private fun isSlot(specification: Specification) = locationSchedule.any { it.isSlot(specification) }
 
   private fun isPartyAllowed(party: String) = allowedParties.orEmpty().replace(" ", "").split(",").contains(party)
 

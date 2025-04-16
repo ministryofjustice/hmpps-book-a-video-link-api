@@ -81,7 +81,7 @@ class LocationSchedule private constructor(
 
   fun isUsage(usage: LocationScheduleUsage) = locationUsage == usage
 
-  fun isSatisfiedBy(specification: Specification) = specification.predicate(this)
+  fun isSlot(specification: Specification) = specification.predicate(this)
 
   fun amend(
     locationUsage: LocationScheduleUsage,
@@ -160,6 +160,9 @@ fun interface Specification {
   fun predicate(schedule: LocationSchedule): Boolean
 }
 
+/**
+ * Returns true if same location usage and there is any overlap with the supplied start and end times and the schedules.
+ */
 class OverlappingSpecification(
   private val usage: LocationScheduleUsage,
   private val dayOfWeek: DayOfWeek,
@@ -171,6 +174,9 @@ class OverlappingSpecification(
   }
 }
 
+/**
+ * Returns true if same location usage and there is any overlap with the supplied start and end times and the schedule has allowed parties.
+ */
 class OverlappingRoomSpecification(
   private val usage: LocationScheduleUsage,
   private val dayOfWeek: DayOfWeek,
@@ -182,6 +188,9 @@ class OverlappingRoomSpecification(
   }
 }
 
+/**
+ * Returns true if court location usage, the supplied start and end times are between the schedules and the court matches allowed parties.
+ */
 class CourtRoomSpecification(
   private val court: Court,
   private val dayOfWeek: DayOfWeek,
@@ -197,6 +206,9 @@ class CourtRoomSpecification(
   }
 }
 
+/**
+ * Returns true if court location usage and the supplied start and end times are between the schedules.
+ */
 class CourtAnySpecification(
   private val dayOfWeek: DayOfWeek,
   private val startTime: LocalTime,
@@ -211,6 +223,9 @@ class CourtAnySpecification(
   }
 }
 
+/**
+ * Returns true if same location usage, the supplied start and end times are between the schedules and the probation team matches allowed parties.
+ */
 class ProbationTeamSpecification(
   private val probationTeam: ProbationTeam,
   private val dayOfWeek: DayOfWeek,
@@ -226,6 +241,9 @@ class ProbationTeamSpecification(
   }
 }
 
+/**
+ * Returns true if probation team usage and the supplied start and end times are between the schedules.
+ */
 class ProbationAnySpecification(
   private val dayOfWeek: DayOfWeek,
   private val startTime: LocalTime,

@@ -193,36 +193,36 @@ class LocationScheduleTest {
     @Test
     fun `should be for probation team`() {
       daysOfWeek.forEach { day ->
-        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
-        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
-        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+        probationTeamSchedule.isSlot(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        probationTeamSchedule.isSlot(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        probationTeamSchedule.isSlot(ProbationTeamSpecification(probationTeam(code = "PROBATION_TEAM"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
       }
     }
 
     @Test
     fun `should not be for different probation team`() {
       daysOfWeek.forEach { day ->
-        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool false
-        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool false
-        probationTeamSchedule.isSatisfiedBy(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
-        probationTeamSchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+        probationTeamSchedule.isSlot(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool false
+        probationTeamSchedule.isSlot(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool false
+        probationTeamSchedule.isSlot(ProbationTeamSpecification(probationTeam(code = "DIFFERENT_PROBATION_TEAM"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+        probationTeamSchedule.isSlot(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
       }
     }
 
     @Test
     fun `should be for any probation team`() {
       daysOfWeek.forEach { day ->
-        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
-        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
-        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+        probationAnySchedule.isSlot(ProbationAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        probationAnySchedule.isSlot(ProbationAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        probationAnySchedule.isSlot(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
       }
     }
 
     @Test
     fun `should not be for any probation team`() {
       daysOfWeek.forEach { day ->
-        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(8, 0), LocalTime.of(9, 30))) isBool false
-        probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 30))) isBool false
+        probationAnySchedule.isSlot(ProbationAnySpecification(day, LocalTime.of(8, 0), LocalTime.of(9, 30))) isBool false
+        probationAnySchedule.isSlot(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 30))) isBool false
       }
     }
   }
@@ -233,36 +233,36 @@ class LocationScheduleTest {
     @Test
     fun `should be for court room`() {
       daysOfWeek.forEach { day ->
-        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
-        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
-        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+        courtSchedule.isSlot(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        courtSchedule.isSlot(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        courtSchedule.isSlot(CourtRoomSpecification(court(code = "COURT"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
       }
     }
 
     @Test
     fun `should not be for court room`() {
       daysOfWeek.forEach { day ->
-        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool false
-        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool false
-        courtSchedule.isSatisfiedBy(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
-        courtSchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+        courtSchedule.isSlot(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool false
+        courtSchedule.isSlot(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool false
+        courtSchedule.isSlot(CourtRoomSpecification(court(code = "DIFFERENT_COURT"), day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+        courtSchedule.isSlot(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
       }
     }
 
     @Test
     fun `should be for any court`() {
       daysOfWeek.forEach { day ->
-        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
-        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
-        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+        courtAnySchedule.isSlot(CourtAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        courtAnySchedule.isSlot(CourtAnySpecification(day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        courtAnySchedule.isSlot(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
       }
     }
 
     @Test
     fun `should not be for any court`() {
       daysOfWeek.forEach { day ->
-        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(8, 0), LocalTime.of(9, 30))) isBool false
-        courtAnySchedule.isSatisfiedBy(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 30))) isBool false
+        courtAnySchedule.isSlot(CourtAnySpecification(day, LocalTime.of(8, 0), LocalTime.of(9, 30))) isBool false
+        courtAnySchedule.isSlot(CourtAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 30))) isBool false
       }
     }
   }
