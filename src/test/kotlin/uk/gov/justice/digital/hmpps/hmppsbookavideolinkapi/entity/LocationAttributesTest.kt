@@ -530,7 +530,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should be NONE for any probation schedule when the end time is out of bounds`() {
+    fun `should be SHARED for any probation schedule when the end time is out of bounds`() {
       val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
         prison = pentonvillePrison,
@@ -549,7 +549,7 @@ class LocationAttributesTest {
         today(),
         LocalTime.of(10, 30),
         LocalTime.of(11, 30),
-      ) isEqualTo AvailabilityStatus.NONE
+      ) isEqualTo AvailabilityStatus.SHARED
     }
 
     @Test
@@ -987,7 +987,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should be NONE for any court schedule when the end time is out bounds`() {
+    fun `should be SHARED for any court schedule when the end time is out bounds`() {
       val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
         prison = pentonvillePrison,
@@ -1006,7 +1006,7 @@ class LocationAttributesTest {
         today(),
         LocalTime.of(10, 30),
         LocalTime.of(11, 30),
-      ) isEqualTo AvailabilityStatus.NONE
+      ) isEqualTo AvailabilityStatus.SHARED
     }
 
     @Test
@@ -1128,6 +1128,29 @@ class LocationAttributesTest {
         LocalTime.of(16, 30),
         LocalTime.of(17, 0),
       ) isEqualTo AvailabilityStatus.SHARED
+    }
+
+    @Test
+    fun `should be NONE when start and end time overlaps blocked schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply {
+        schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
+      }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(9, 0),
+        LocalTime.of(13, 0),
+      ) isEqualTo AvailabilityStatus.NONE
     }
   }
 

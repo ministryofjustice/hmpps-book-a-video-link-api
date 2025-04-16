@@ -13,9 +13,6 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetweenExclusiveEnd
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isBetweenExclusiveStart
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrBefore
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -168,25 +165,16 @@ class LocationAttribute private constructor(
   /**
    * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
    */
-  private fun getScheduleAvailability(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
-    val schedules = getSchedules(onDate, startTime, endTime)
-
+  private fun getScheduleAvailability(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     return when {
-      // If there aren't any schedules which fall on the requested date and time then default to SHARED
-      schedules.isEmpty() -> AvailabilityStatus.SHARED
+      // The order in which the checks are carried out is important and must be maintained.
+      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      locationSchedule.any { it.isSatisfiedBy(ProbationTeamSpecification(probationTeam, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.PROBATION_ROOM
+      locationSchedule.any { it.isSatisfiedBy(ProbationAnySpecification(onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.PROBATION_ANY
+      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      locationSchedule.any { it.isSatisfiedBy(OverlappingRoomSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
 
-      // If there are schedules falling on the date and time look and see if any match the following
-
-      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
-
-      // Determine if this schedule is specifically allowed for this team whose end time is within the schedules end time
-      schedules.any { schedule -> schedule.isForProbationTeam(probationTeam) && endTime.isOnOrBefore(schedule.endTime) } -> AvailabilityStatus.PROBATION_ROOM
-
-      // Determine if this schedule allows any probation team whose end time is within the schedules end time
-      schedules.any { schedule -> schedule.isForAnyProbationTeam() && endTime.isOnOrBefore(schedule.endTime) } -> AvailabilityStatus.PROBATION_ANY
-
-      // If there are no matches above then it is not available
-      else -> AvailabilityStatus.NONE
+      else -> AvailabilityStatus.SHARED
     }
   }
 
@@ -211,32 +199,17 @@ class LocationAttribute private constructor(
   /**
    * We need to look at the schedules as a whole to determine availability. A schedule on its own is not enough.
    */
-  private fun getScheduleAvailability(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
-    val schedules = getSchedules(onDate, startTime, endTime)
-
+  private fun getScheduleAvailability(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     return when {
-      // If there aren't any schedules which fall on the requested date and time then default to SHARED
-      schedules.isEmpty() -> AvailabilityStatus.SHARED
+      // The order in which the checks are carried out is important and must be maintained.
+      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      locationSchedule.any { it.isSatisfiedBy(CourtRoomSpecification(court, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.COURT_ROOM
+      locationSchedule.any { it.isSatisfiedBy(CourtAnySpecification(onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.COURT_ANY
+      locationSchedule.any { it.isSatisfiedBy(OverlappingSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
+      locationSchedule.any { it.isSatisfiedBy(OverlappingRoomSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)) } -> AvailabilityStatus.NONE
 
-      // If there are schedules falling on the date and time look and see if any match the following
-
-      schedules.any { schedule -> schedule.isUsage(LocationScheduleUsage.BLOCKED) } -> AvailabilityStatus.NONE
-
-      // Determine if this schedule is specifically allowed for this court whose end time is within the schedules end time
-      schedules.any { schedule -> schedule.isForCourt(court) && endTime.isOnOrBefore(schedule.endTime) } -> AvailabilityStatus.COURT_ROOM
-
-      // Determine if this schedule is allowed for any court whose end time is within the schedules end time
-      schedules.any { schedule -> schedule.isForAnyCourt() && endTime.isOnOrBefore(schedule.endTime) } -> AvailabilityStatus.COURT_ANY
-
-      // If there are no matches above then it is not available
-      else -> AvailabilityStatus.NONE
+      else -> AvailabilityStatus.SHARED
     }
-  }
-
-  private fun getSchedules(onDate: LocalDate, startTime: LocalTime, endTime: LocalTime) = run {
-    locationSchedule
-      .filter { it.fallsOn(onDate.atTime(startTime)) || it.fallsOn(onDate.atTime(endTime)) }
-      .filter { startTime.isBetweenExclusiveEnd(it.startTime, it.endTime) || endTime.isBetweenExclusiveStart(it.startTime, it.endTime) }
   }
 
   private fun isPartyAllowed(party: String) = allowedParties.orEmpty().replace(" ", "").split(",").contains(party)

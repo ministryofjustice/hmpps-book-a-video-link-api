@@ -4,12 +4,6 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-fun LocalTime.isBetween(from: LocalTime, to: LocalTime) = this.isOnOrAfter(from) && this.isOnOrBefore(to)
-
-fun LocalTime.isBetweenExclusiveEnd(from: LocalTime, to: LocalTime) = this.isOnOrAfter(from) && this.isBefore(to)
-
-fun LocalTime.isBetweenExclusiveStart(from: LocalTime, to: LocalTime) = this.isAfter(from) && this.isOnOrBefore(to)
-
 fun LocalTime.toMinutePrecision(): LocalTime = this.truncatedTo(ChronoUnit.MINUTES)
 
 fun LocalTime.isOnOrBefore(other: LocalTime) = this <= other
