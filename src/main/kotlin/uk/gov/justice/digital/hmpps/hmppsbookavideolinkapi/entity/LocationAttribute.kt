@@ -174,15 +174,15 @@ class LocationAttribute private constructor(
 
     // The order in which the checks are carried out is important and must be maintained.
     return when {
-      isSlot(blocked) -> AvailabilityStatus.NONE
-      isSlot(freeForProbationTeam) -> AvailabilityStatus.PROBATION_ROOM
-      isSlot(freeForAnyProbationTeam) -> AvailabilityStatus.PROBATION_ANY
+      fallsWithin(blocked) -> AvailabilityStatus.NONE
+      fallsWithin(freeForProbationTeam) -> AvailabilityStatus.PROBATION_ROOM
+      fallsWithin(freeForAnyProbationTeam) -> AvailabilityStatus.PROBATION_ANY
 
       // If none of the above match we need to make sure the requested probation slot date and times to not overlap any court schedules
-      isSlot(overlapsWithCourtSlot) -> AvailabilityStatus.NONE
+      fallsWithin(overlapsWithCourtSlot) -> AvailabilityStatus.NONE
 
       // If none of the above match we need to make sure the requested probation slot date and times to not overlap any other probation team room schedules
-      isSlot(overlapsWithOtherProbationTeamSlot) -> AvailabilityStatus.NONE
+      fallsWithin(overlapsWithOtherProbationTeamSlot) -> AvailabilityStatus.NONE
 
       else -> AvailabilityStatus.SHARED
     }
@@ -218,21 +218,21 @@ class LocationAttribute private constructor(
 
     // The order in which the checks are carried out is important and must be maintained.
     return when {
-      isSlot(blocked) -> AvailabilityStatus.NONE
-      isSlot(freeForCourtRoom) -> AvailabilityStatus.COURT_ROOM
-      isSlot(freeForAnyCourtRoom) -> AvailabilityStatus.COURT_ANY
+      fallsWithin(blocked) -> AvailabilityStatus.NONE
+      fallsWithin(freeForCourtRoom) -> AvailabilityStatus.COURT_ROOM
+      fallsWithin(freeForAnyCourtRoom) -> AvailabilityStatus.COURT_ANY
 
       // If none of the above match we need to make sure the requested court slot date and times to not overlap any probation schedules
-      isSlot(overlapsWithProbationSlot) -> AvailabilityStatus.NONE
+      fallsWithin(overlapsWithProbationSlot) -> AvailabilityStatus.NONE
 
       // If none of the above match we need to make sure the requested court slot date and times to not overlap any other court room schedules
-      isSlot(overlapsWithOtherCourtRoomSlot) -> AvailabilityStatus.NONE
+      fallsWithin(overlapsWithOtherCourtRoomSlot) -> AvailabilityStatus.NONE
 
       else -> AvailabilityStatus.SHARED
     }
   }
 
-  private fun isSlot(specification: Specification) = locationSchedule.any { it.isSlot(specification) }
+  private fun fallsWithin(specification: Specification) = locationSchedule.any { it.isSatisfiedBy(specification) }
 
   private fun isPartyAllowed(party: String) = allowedParties.orEmpty().replace(" ", "").split(",").contains(party)
 

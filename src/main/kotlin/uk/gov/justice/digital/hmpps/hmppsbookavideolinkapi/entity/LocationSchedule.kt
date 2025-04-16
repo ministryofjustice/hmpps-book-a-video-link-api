@@ -81,7 +81,7 @@ class LocationSchedule private constructor(
 
   fun isUsage(usage: LocationScheduleUsage) = locationUsage == usage
 
-  fun isSlot(specification: Specification) = specification.predicate(this)
+  fun isSatisfiedBy(specification: Specification) = specification.predicate(this)
 
   fun amend(
     locationUsage: LocationScheduleUsage,
