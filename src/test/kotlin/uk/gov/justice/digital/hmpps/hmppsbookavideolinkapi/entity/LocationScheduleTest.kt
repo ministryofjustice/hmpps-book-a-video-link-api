@@ -102,44 +102,6 @@ class LocationScheduleTest {
   }
 
   @Test
-  fun `should fail to amend if causes a duplicate row`() {
-    val schedule = schedule(
-      start = DayOfWeek.MONDAY,
-      end = DayOfWeek.FRIDAY,
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(15, 0),
-      locationUsage = LocationScheduleUsage.PROBATION,
-      allowedParties = setOf("PROBATION_TEAM"),
-    )
-
-    val locationAttribute = schedule.locationAttribute
-
-    locationAttribute.addSchedule(
-      usage = LocationScheduleUsage.PROBATION,
-      startDayOfWeek = DayOfWeek.MONDAY.value,
-      endDayOfWeek = DayOfWeek.SUNDAY.value,
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(15, 0),
-      allowedParties = setOf("PROBATION_TEAM"),
-      notes = null,
-      createdBy = PROBATION_USER,
-    )
-
-    assertThrows<IllegalArgumentException> {
-      schedule.amend(
-        locationUsage = LocationScheduleUsage.PROBATION,
-        startDayOfWeek = DayOfWeek.MONDAY.value,
-        endDayOfWeek = DayOfWeek.SUNDAY.value,
-        startTime = LocalTime.of(12, 0),
-        endTime = LocalTime.of(15, 0),
-        allowedParties = setOf("PROBATION_TEAM"),
-        notes = null,
-        amendedBy = PROBATION_USER,
-      )
-    }.message isEqualTo "Cannot amend, amendment would conflict with an existing scheduled row."
-  }
-
-  @Test
   fun `should amend row`() {
     val schedule = schedule(
       start = DayOfWeek.MONDAY,

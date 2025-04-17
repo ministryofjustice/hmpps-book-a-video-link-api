@@ -97,8 +97,7 @@ class LocationSchedule private constructor(
     require(startTime.isBefore(endTime)) { "The end time must come after the start time." }
 
     if (
-      locationAttribute.schedule().any {
-        it.locationScheduleId != locationScheduleId
+      locationAttribute.schedule().filterNot { it.locationScheduleId == this.locationScheduleId }.any {
         it.locationUsage == locationUsage &&
           it.startDayOfWeek == startDayOfWeek &&
           it.endDayOfWeek == endDayOfWeek &&
