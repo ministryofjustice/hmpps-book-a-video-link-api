@@ -1,0 +1,20 @@
+spring:
+  flyway:
+    locations: classpath:/migrations/common,classpath:/migrations/dev
+
+notify:
+  templates:
+    probation:
+      cancelled-booking:
+        user: "c0f0834d-7343-4af4-8df2-bfd3c970e836"
+        probation: "df97c314-cb5d-48ce-9241-7d94ea98e323"
+        prison-probation-email: "8bdf8c4e-c15c-4621-9469-035fa14c9daa"
+        prison-no-probation-email: "b090bedf-58da-495a-8d94-76e4f64aedf8"
+      release-booking:
+        probation: "b2948a5f-303b-47f3-828c-0584a0528013"
+        prison-probation-email: "030b6136-9b32-4099-b398-0676118afb82"
+        prison-no-probation-email: "d915e106-7317-4aa6-a6ea-2776b1dbee83"
+      transfer-booking:
+        probation: "afc9afe2-9d85-473d-aed0-4c542802fc88"
+        prison-probation-email: "d7fee28a-345e-4515-b377-04a6facdfcb8"
+        prison-no-probation-email: "816437b5-4d4b-4245-87db-91f3297c78a9"
