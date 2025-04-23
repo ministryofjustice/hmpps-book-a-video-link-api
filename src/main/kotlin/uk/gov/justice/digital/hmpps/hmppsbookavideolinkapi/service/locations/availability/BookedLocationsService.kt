@@ -55,6 +55,8 @@ class BookedLocationsService(
 
     return when (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
       true -> activitiesAppointmentsClient.getScheduledAppointments(prisonCode, date, nomisToDpsLocations.keys)
+        // Do not consider cancelled appointments
+        .filterNot { it.isCancelled }
         .mapNotNull { result ->
           // Only include if result does not match existing BVLS appointment
           if (existingAppointments.none { existing -> result.matches(existing) }) {

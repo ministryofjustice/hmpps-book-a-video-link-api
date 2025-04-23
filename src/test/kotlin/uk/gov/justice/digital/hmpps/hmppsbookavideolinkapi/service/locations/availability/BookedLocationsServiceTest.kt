@@ -183,6 +183,69 @@ class BookedLocationsServiceTest {
       booked.isBooked(wandsworthLocation2.toModel(), LocalTime.of(12, 0), LocalTime.of(13, 0)) isBool false
     }
 
+    @Test
+    fun `should check that cancelled appointments are ignored from the A&A appointment list`() {
+      whenever(videoBookingRepository.findById(1)) doReturn Optional.of(
+        courtBooking().withMainCourtPrisonAppointment(
+          date = tomorrow(),
+          prisonCode = WANDSWORTH,
+          prisonerNumber = "123456",
+          startTime = LocalTime.of(11, 0),
+          endTime = LocalTime.of(12, 0),
+        ),
+      )
+
+      activitiesAppointmentsClient.stub {
+        on {
+          getScheduledAppointments(
+            prisonCode = WANDSWORTH,
+            onDate = tomorrow(),
+            locationIds = setOf(1, 2),
+          )
+        } doReturn listOf(
+          searchResult(
+            prisonCode = WANDSWORTH,
+            date = tomorrow(),
+            startTime = LocalTime.of(10, 0),
+            endTime = LocalTime.of(11, 0),
+            prisonerNumber = "123456",
+            locationId = 1,
+          ),
+          searchResult(
+            prisonCode = WANDSWORTH,
+            date = tomorrow(),
+            startTime = LocalTime.of(11, 0),
+            endTime = LocalTime.of(12, 0),
+            prisonerNumber = "123456",
+            locationId = 2,
+            isCancelled = true,
+          ),
+        )
+      }
+
+      val booked = service.findBooked(
+        BookedLookup(
+          prisonCode = WANDSWORTH,
+          date = tomorrow(),
+          locations = listOf(wandsworthLocation.toModel(), wandsworthLocation2.toModel()),
+        ),
+      )
+
+      // location 1 times are available, except for the existing A&A appointment between 10am-11am
+      booked.isBooked(wandsworthLocation.toModel(), LocalTime.of(9, 0), LocalTime.of(10, 0)) isBool false
+      booked.isBooked(wandsworthLocation.toModel(), LocalTime.of(9, 15), LocalTime.of(10, 15)) isBool true
+      booked.isBooked(wandsworthLocation.toModel(), LocalTime.of(10, 0), LocalTime.of(11, 0)) isBool true
+      booked.isBooked(wandsworthLocation.toModel(), LocalTime.of(10, 15), LocalTime.of(11, 15)) isBool true
+      booked.isBooked(wandsworthLocation.toModel(), LocalTime.of(11, 0), LocalTime.of(12, 0)) isBool false
+
+      // location 2 - the existing appointment is cancelled in A&A so should be ignored and show the room as not booked 10-11am
+      booked.isBooked(wandsworthLocation2.toModel(), LocalTime.of(10, 0), LocalTime.of(11, 0)) isBool false
+      booked.isBooked(wandsworthLocation2.toModel(), LocalTime.of(10, 15), LocalTime.of(11, 15)) isBool false
+      booked.isBooked(wandsworthLocation2.toModel(), LocalTime.of(11, 0), LocalTime.of(12, 0)) isBool false
+      booked.isBooked(wandsworthLocation2.toModel(), LocalTime.of(11, 45), LocalTime.of(12, 45)) isBool false
+      booked.isBooked(wandsworthLocation2.toModel(), LocalTime.of(12, 0), LocalTime.of(13, 0)) isBool false
+    }
+
     private fun searchResult(
       prisonCode: String,
       date: LocalDate,
@@ -190,12 +253,13 @@ class BookedLocationsServiceTest {
       endTime: LocalTime,
       prisonerNumber: String,
       locationId: Long,
+      isCancelled: Boolean = false,
     ) = AppointmentSearchResult(
       appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
       startDate = date,
       startTime = startTime.toHourMinuteStyle(),
       endTime = endTime.toHourMinuteStyle(),
-      isCancelled = false,
+      isCancelled = isCancelled,
       isExpired = false,
       isEdited = false,
       appointmentId = 99,
