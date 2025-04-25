@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -40,6 +41,7 @@ class ScheduleServiceTest {
     date: LocalDate = today(),
     start: LocalTime,
     end: LocalTime,
+    appointmentType: AppointmentType = AppointmentType.VLB_COURT_MAIN,
   ) = ScheduleItem(
     videoBookingId = vlbId,
     prisonAppointmentId = appId,
@@ -59,7 +61,7 @@ class ScheduleServiceTest {
     prisonCode = PENTONVILLE,
     prisonName = "Werrington",
     prisonerNumber = "A1234AA",
-    appointmentType = AppointmentType.VLB_COURT_MAIN.name,
+    appointmentType = appointmentType.name,
     appointmentTypeDescription = "Court main hearing",
     appointmentComments = null,
     prisonLocationId = pentonvilleLocation.id,
@@ -115,16 +117,19 @@ class ScheduleServiceTest {
     updatedBy = "AMENDER",
   )
 
+  private val eight = LocalTime.of(8, 0)
   private val nine = LocalTime.of(9, 0)
   private val ten = LocalTime.of(10, 0)
   private val eleven = LocalTime.of(11, 0)
   private val twelve = LocalTime.of(12, 0)
 
   private val courtItems = listOf(
-    courtItem(vlbId = 1L, appId = 1L, start = nine, end = ten),
-    courtItem(vlbId = 2L, appId = 2L, start = ten, end = eleven),
-    courtItem(vlbId = 3L, appId = 3L, start = eleven, end = twelve),
-    courtItem(vlbId = 4L, appId = 4L, start = eleven, end = twelve, status = BookingStatus.CANCELLED),
+    courtItem(vlbId = 1L, appId = 1L, start = eight, end = nine, appointmentType = AppointmentType.VLB_COURT_PRE),
+    courtItem(vlbId = 1L, appId = 2L, start = nine, end = ten),
+    courtItem(vlbId = 1L, appId = 3L, start = ten, end = eleven, appointmentType = AppointmentType.VLB_COURT_POST),
+    courtItem(vlbId = 2L, appId = 4L, start = ten, end = eleven),
+    courtItem(vlbId = 3L, appId = 5L, start = eleven, end = twelve),
+    courtItem(vlbId = 4L, appId = 6L, start = eleven, end = twelve, status = BookingStatus.CANCELLED),
   )
 
   private val probationItems = listOf(
@@ -168,7 +173,7 @@ class ScheduleServiceTest {
   fun `Returns the list of scheduled court items`() {
     val response = service.getScheduleForCourt(courtCode, LocalDate.now(), false)
     assertThat(response).isNotNull
-    assertThat(response).hasSize(3)
+    assertThat(response).hasSize(5)
     response.map { item ->
       assertThat(item.courtCode).isEqualTo(courtCode)
       assertThat(item.courtDescription).isEqualTo("Derby Justice Centre")
@@ -176,7 +181,15 @@ class ScheduleServiceTest {
       assertThat(item.probationTeamCode).isNull()
       assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
       assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
-      assertThat(item.videoUrl).isEqualTo("http://video.url")
+
+      // if appointment type is main then should be the CVP link, otherwise it should be the room link.
+      when (item.appointmentType) {
+        AppointmentType.VLB_COURT_PRE -> assertThat(item.videoUrl).isEqualTo("decorated-video-link-url")
+        AppointmentType.VLB_COURT_MAIN -> assertThat(item.videoUrl).isEqualTo("http://video.url")
+        AppointmentType.VLB_COURT_POST -> assertThat(item.videoUrl).isEqualTo("decorated-video-link-url")
+        else -> fail { "Unexpected appointment type for court item ${item.appointmentType}" }
+      }
+
       assertThat(item.createdTime).isEqualTo(yesterday().atStartOfDay())
       assertThat(item.createdBy).isEqualTo("CREATOR")
       assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
@@ -219,7 +232,7 @@ class ScheduleServiceTest {
   fun `Returns the list of scheduled court items including cancelled`() {
     val response = service.getScheduleForCourt(courtCode, LocalDate.now(), true)
     assertThat(response).isNotNull
-    assertThat(response).hasSize(4)
+    assertThat(response).hasSize(6)
   }
 
   @Test
