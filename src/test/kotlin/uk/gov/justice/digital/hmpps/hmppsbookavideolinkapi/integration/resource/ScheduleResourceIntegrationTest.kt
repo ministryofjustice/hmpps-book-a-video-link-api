@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
@@ -19,6 +20,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLoc
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -28,6 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Outbou
 import java.time.LocalDate
 import java.time.LocalTime
 
+@TestPropertySource(properties = ["feature.master.vlpm.types=true"])
 class ScheduleResourceIntegrationTest : IntegrationTestBase() {
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
@@ -278,6 +281,11 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         endTime = LocalTime.of(9, 30),
         appointmentType = AppointmentType.VLB_PROBATION,
         location = pentonvilleLocation,
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "probation contact name",
+          contactEmail = "probation.contact@email.com",
+          contactNumber = null,
+        ),
       )
 
       webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -300,6 +308,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         assertThat(appointmentDate).isEqualTo(tomorrow())
         assertThat(startTime).isEqualTo(LocalTime.of(9, 0))
         assertThat(endTime).isEqualTo(LocalTime.of(9, 30))
+        assertThat(probationOfficerName).isEqualTo("probation contact name")
+        assertThat(probationOfficerEmailAddress).isEqualTo("probation.contact@email.com")
       }
     }
   }

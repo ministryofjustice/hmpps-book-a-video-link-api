@@ -122,4 +122,10 @@ data class ScheduleItem(
 
   @Schema(description = "The username of the person who updated the booking", example = "amender@email.com")
   val updatedBy: String? = null,
+
+  @Schema(description = "The name of the probation officer if this is a probation booking and present", example = "Jane Doe")
+  val probationOfficerName: String? = null,
+
+  @Schema(description = "The email address of the probation officer if this is a probation booking and present", example = "jane.doe@somewhere.com")
+  val probationOfficerEmailAddress: String? = null,
 )

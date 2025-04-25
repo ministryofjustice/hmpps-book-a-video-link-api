@@ -74,6 +74,8 @@ class ScheduleServiceTest {
     createdBy = "CREATOR",
     updatedTime = today().atStartOfDay(),
     updatedBy = "AMENDER",
+    probationOfficerName = null,
+    probationOfficerEmailAddress = null,
   )
 
   private fun probationItem(
@@ -115,6 +117,8 @@ class ScheduleServiceTest {
     createdBy = "CREATOR",
     updatedTime = today().atStartOfDay(),
     updatedBy = "AMENDER",
+    probationOfficerName = "Jane Doe",
+    probationOfficerEmailAddress = "jane@doe.com",
   )
 
   private val eight = LocalTime.of(8, 0)
@@ -214,6 +218,8 @@ class ScheduleServiceTest {
       assertThat(item.createdBy).isEqualTo("CREATOR")
       assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
       assertThat(item.updatedBy).isEqualTo("AMENDER")
+      assertThat(item.probationOfficerName).isEqualTo("Jane Doe")
+      assertThat(item.probationOfficerEmailAddress).isEqualTo("jane@doe.com")
     }
   }
 
