@@ -139,6 +139,7 @@ class PrisonApiMockServer : MockServer(8094) {
                         endTime = LocalDateTime.now(),
                         firstName = "firstname-$index",
                         lastName = "lastname-$index",
+                        eventStatus = "SCH",
                       ),
                     )
                   }

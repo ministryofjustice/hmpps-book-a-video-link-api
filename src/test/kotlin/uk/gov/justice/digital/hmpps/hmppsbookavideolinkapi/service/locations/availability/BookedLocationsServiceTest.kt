@@ -309,6 +309,7 @@ class BookedLocationsServiceTest {
             endTime = LocalTime.of(11, 0),
             prisonerNumber = "123456",
             locationId = 1,
+            eventStatus = "SCH",
           ),
           scheduledAppointment(
             prisonCode = RISLEY,
@@ -317,6 +318,16 @@ class BookedLocationsServiceTest {
             endTime = LocalTime.of(12, 0),
             prisonerNumber = "123456",
             locationId = 2,
+            eventStatus = "SCH",
+          ),
+          scheduledAppointment(
+            prisonCode = RISLEY,
+            date = tomorrow(),
+            startTime = LocalTime.of(12, 0),
+            endTime = LocalTime.of(13, 0),
+            prisonerNumber = "123456",
+            locationId = 2,
+            eventStatus = "CANC",
           ),
         )
       }
@@ -414,9 +425,10 @@ class BookedLocationsServiceTest {
       endTime: LocalTime,
       prisonerNumber: String,
       locationId: Long,
+      eventStatus: String = "SCH",
     ): ScheduledAppointment = ScheduledAppointment(
       id = locationId,
-      agencyId = prisonerNumber,
+      agencyId = prisonCode,
       locationId = locationId,
       locationDescription = "location description $locationId",
       appointmentTypeCode = "VLB",
@@ -427,6 +439,7 @@ class BookedLocationsServiceTest {
       firstName = "first name $locationId",
       lastName = "last name $locationId",
       createUserId = "user id",
+      eventStatus = eventStatus,
     )
   }
 }
