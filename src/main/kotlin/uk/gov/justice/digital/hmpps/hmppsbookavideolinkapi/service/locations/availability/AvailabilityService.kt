@@ -179,11 +179,13 @@ class ExternalAppointmentsService(
 ) {
   /**
    * Get the prison appointments on a date at a specific internal location ID in the prison
+   * - filter any prison API appointments that are cancelled
    * - filter any appointments where the end-time is null (we cannot infer the duration)
-   * - filter any VLB appointment types as these will be retrieved from BVLS itself for checking.
+   * - filter any BVLS-mastered appointment types as these will be retrieved from BVLS itself for checking.
    */
   fun getAppointmentSlots(prisonCode: String, date: LocalDate, location: UUID) = nomisMappingClient.getNomisLocationMappingBy(location)
     ?.let { prisonApiClient.getScheduledAppointments(prisonCode, date, it.nomisLocationId) }
+    ?.filterNot { it.eventStatus == "CANC" }
     ?.filter { it.endTime != null }
     ?.filterNot { supportedAppointmentTypes.isSupported(it.appointmentTypeCode) }
     ?.map { ExternalAppointmentSlot(location, it.offenderNo, it.startTime.toLocalDate(), it.startTime.toLocalTime(), it.endTime!!.toLocalTime()) }

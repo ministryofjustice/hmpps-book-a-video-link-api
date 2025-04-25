@@ -177,6 +177,7 @@ data class ScheduledAppointment(
   val firstName: String,
   val lastName: String,
   val createUserId: String,
+  val eventStatus: String,
 ) {
   fun isTheSameAppointmentType(appointmentType: SupportedAppointmentTypes.Type) = appointmentTypeCode == appointmentType.code
 

@@ -72,6 +72,7 @@ class BookedLocationsService(
         .let { BookedLocations(it) }
 
       false -> prisonApiClient.getScheduledAppointments(prisonCode, date, nomisToDpsLocations.keys)
+        .filterNot { it.eventStatus == "CANC" }
         .mapNotNull { result ->
           // Only include if result does not match existing BVLS appointment
           if (existingAppointments.none { existing -> result.matches(existing) }) {
