@@ -14,7 +14,7 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   prisonAppointmentId = prisonAppointmentId,
   bookingType = BookingType.valueOf(bookingType),
   statusCode = BookingStatus.valueOf(statusCode),
-  videoUrl = if (courtCode != null) videoUrl else locations.find { it.dpsLocationId == prisonLocationId }?.extraAttributes?.prisonVideoUrl,
+  videoUrl = if (courtCode != null && appointmentType == "VLB_COURT_MAIN") videoUrl else locations.find { it.dpsLocationId == prisonLocationId }?.extraAttributes?.prisonVideoUrl,
   bookingComments = bookingComments,
   createdByPrison = createdByPrison,
   courtId = courtId,
