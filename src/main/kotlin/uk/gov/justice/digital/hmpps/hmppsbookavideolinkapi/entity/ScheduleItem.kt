@@ -81,4 +81,8 @@ data class ScheduleItem(
   val updatedTime: LocalDateTime?,
 
   val updatedBy: String?,
+
+  val probationOfficerName: String?,
+
+  val probationOfficerEmailAddress: String?,
 )

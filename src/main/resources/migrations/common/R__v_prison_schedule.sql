@@ -31,7 +31,9 @@ select
     vlb.created_time,
     vlb.amended_time as updated_time,
     vlb.created_by,
-    vlb.amended_by as updated_by
+    vlb.amended_by as updated_by,
+    abd.contact_name as probation_officer_name,
+    abd.contact_email as probation_officer_email_address
 from video_booking vlb
   left join court c on c.court_id = vlb.court_id
   left join probation_team pt on pt.probation_team_id = vlb.probation_team_id
@@ -40,4 +42,5 @@ from video_booking vlb
   left join reference_code rc1 on rc1.group_code = 'COURT_HEARING_TYPE' and rc1.code = vlb.hearing_type
   left join reference_code rc2 on rc2.group_code = 'BOOKING_TYPE' and rc2.code = vlb.booking_type
   left join reference_code rc3 on rc3.group_code = 'APPOINTMENT_TYPE' and rc3.code = pa.appointment_type
-  left join reference_code rc4 on rc4.group_code = 'PROBATION_MEETING_TYPE' and rc4.code = vlb.probation_meeting_type;
+  left join reference_code rc4 on rc4.group_code = 'PROBATION_MEETING_TYPE' and rc4.code = vlb.probation_meeting_type
+  left join additional_booking_detail abd on abd.video_booking_id = vlb.video_booking_id;
