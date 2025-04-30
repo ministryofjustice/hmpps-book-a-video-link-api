@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
@@ -748,22 +747,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       status isEqualTo 400
       userMessage isEqualTo "Exception: Prison with code RSI is not enabled for self service"
       developerMessage isEqualTo "Prison with code RSI is not enabled for self service"
-    }
-  }
-
-  @Test
-  fun `should fail to create a probation booking when user is prison user`() {
-    val error = webTestClient.createBookingFails(probationBookingRequest(), PRISON_USER_BIRMINGHAM)
-      .expectStatus().isBadRequest
-      .expectStatus().is4xxClientError
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody(ErrorResponse::class.java)
-      .returnResult().responseBody!!
-
-    with(error) {
-      status isEqualTo 400
-      userMessage isEqualTo "Exception: Only probation users can create probation bookings."
-      developerMessage isEqualTo "Only probation users can create probation bookings."
     }
   }
 

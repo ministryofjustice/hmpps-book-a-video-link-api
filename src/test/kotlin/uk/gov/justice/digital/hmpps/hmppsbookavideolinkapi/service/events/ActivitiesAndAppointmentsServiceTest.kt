@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -16,8 +15,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
@@ -37,8 +34,7 @@ private const val VLPM = "VLPM"
 class ActivitiesAndAppointmentsServiceTest {
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val nomisMappingService: NomisMappingService = mock()
-  private val featureSwitches: FeatureSwitches = mock()
-  private val supportedAppointmentTypes = SupportedAppointmentTypes(featureSwitches)
+  private val supportedAppointmentTypes = SupportedAppointmentTypes()
   private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, nomisMappingService, supportedAppointmentTypes)
 
   private val birminghamLocation = Location(
@@ -71,61 +67,8 @@ class ActivitiesAndAppointmentsServiceTest {
   )
 
   @Nested
-  @DisplayName("Map correct appointment type for bookings when probation VLPM feature is not live")
-  inner class MapToCourtAppointmentType {
-
-    @BeforeEach
-    fun before() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn false
-    }
-
-    @Test
-    fun `should create VLB court appointment`() {
-      whenever(nomisMappingService.getNomisLocationId(courtAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
-
-      service.createAppointment(courtAppointment)
-
-      verify(nomisMappingService).getNomisLocationId(courtAppointment.prisonLocationId)
-      verify(activitiesAppointmentsClient).createAppointment(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = "123456",
-        startDate = LocalDate.of(2100, 1, 1),
-        startTime = LocalTime.of(11, 0),
-        endTime = LocalTime.of(11, 30),
-        internalLocationId = 123456,
-        comments = "Court hearing comments",
-        appointmentType = SupportedAppointmentTypes.Type.COURT,
-      )
-    }
-
-    @Test
-    fun `should create VLB probation appointment`() {
-      whenever(nomisMappingService.getNomisLocationId(probationAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
-
-      service.createAppointment(probationAppointment)
-
-      verify(nomisMappingService).getNomisLocationId(probationAppointment.prisonLocationId)
-      verify(activitiesAppointmentsClient).createAppointment(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = "654321",
-        startDate = LocalDate.of(2100, 1, 1),
-        startTime = LocalTime.of(11, 0),
-        endTime = LocalTime.of(11, 30),
-        internalLocationId = 123456,
-        comments = "Probation meeting comments",
-        appointmentType = SupportedAppointmentTypes.Type.COURT,
-      )
-    }
-  }
-
-  @Nested
   @DisplayName("Map correct appointment type for bookings when probation VLPM feature is live")
   inner class MapToCourtAndProbationAppointmentType {
-
-    @BeforeEach
-    fun before() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
-    }
 
     @Test
     fun `should create VLB court appointment`() {
@@ -170,7 +113,7 @@ class ActivitiesAndAppointmentsServiceTest {
   @DisplayName("Matching appointments")
   inner class MatchingAppointments {
     @Test
-    fun `should find matching court VLB appointment when not supported VLPM appointment type`() {
+    fun `should find matching court VLB appointment`() {
       val matchingAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, VLB)
 
       whenever(
@@ -188,27 +131,7 @@ class ActivitiesAndAppointmentsServiceTest {
     }
 
     @Test
-    fun `should find matching court VLB appointment when supported VLPM appointment type`() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
-
-      val matchingAppointment = appointmentSearchResult(courtAppointment, birminghamLocation, VLB)
-
-      whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-          prisonCode = courtAppointment.prisonCode(),
-          prisonerNumber = courtAppointment.prisonerNumber,
-          onDate = courtAppointment.appointmentDate,
-          birminghamLocation.locationId,
-        ),
-      ) doReturn listOf(matchingAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(courtAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
-
-      service.findMatchingAppointments(courtAppointment) containsExactly listOf(matchingAppointment.appointmentId)
-    }
-
-    @Test
-    fun `should find matching probation VLB appointment when not supported VLPM appointment type`() {
+    fun `should find matching probation VLB appointment`() {
       val matchingAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLB)
 
       whenever(
@@ -226,29 +149,7 @@ class ActivitiesAndAppointmentsServiceTest {
     }
 
     @Test
-    fun `should find matching probation VLB appointment when supported VLPM appointment type`() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
-
-      val matchingAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLB)
-
-      whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-          prisonCode = probationAppointment.prisonCode(),
-          prisonerNumber = probationAppointment.prisonerNumber,
-          onDate = probationAppointment.appointmentDate,
-          birminghamLocation.locationId,
-        ),
-      ) doReturn listOf(matchingAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(probationAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
-
-      service.findMatchingAppointments(probationAppointment) containsExactly listOf(matchingAppointment.appointmentId)
-    }
-
-    @Test
-    fun `should find matching VLPM appointment when supported VLPM appointment type`() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
-
+    fun `should find matching VLPM appointment`() {
       val matchingAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLPM)
 
       whenever(
@@ -320,9 +221,7 @@ class ActivitiesAndAppointmentsServiceTest {
     }
 
     @Test
-    fun `should not find matching appointment when supported VLPM appointment type`() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn true
-
+    fun `should not find matching VLPM appointment`() {
       val vlpmAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLPM)
 
       whenever(
@@ -337,26 +236,6 @@ class ActivitiesAndAppointmentsServiceTest {
       whenever(nomisMappingService.getNomisLocationId(probationAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
 
       service.findMatchingAppointments(probationAppointment) containsExactly listOf(vlpmAppointment.appointmentId)
-    }
-
-    @Test
-    fun `should not find matching appointment when unsupported VLPM appointment type`() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_MASTER_VLPM_TYPES)) doReturn false
-
-      val vlpmAppointment = appointmentSearchResult(probationAppointment, birminghamLocation, VLPM)
-
-      whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
-          prisonCode = probationAppointment.prisonCode(),
-          prisonerNumber = probationAppointment.prisonerNumber,
-          onDate = probationAppointment.appointmentDate,
-          birminghamLocation.locationId,
-        ),
-      ) doReturn listOf(vlpmAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(probationAppointment.prisonLocationId)) doReturn birminghamLocation.locationId
-
-      service.findMatchingAppointments(courtAppointment).isEmpty() isBool true
     }
   }
 

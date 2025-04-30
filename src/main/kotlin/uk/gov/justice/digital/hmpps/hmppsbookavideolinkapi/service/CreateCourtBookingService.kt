@@ -14,15 +14,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkCaseLoadAccess
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
 
 @Service
-class CreateVideoBookingService(
+class CreateCourtBookingService(
   private val courtRepository: CourtRepository,
-  private val probationTeamRepository: ProbationTeamRepository,
   private val videoBookingRepository: VideoBookingRepository,
   private val appointmentsService: AppointmentsService,
   private val bookingHistoryService: BookingHistoryService,
@@ -34,9 +32,12 @@ class CreateVideoBookingService(
   }
 
   @Transactional
-  fun create(booking: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> = when (booking.bookingType!!) {
-    BookingType.COURT -> createCourt(booking, createdBy)
-    BookingType.PROBATION -> createProbation(booking, createdBy)
+  fun create(booking: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> = run {
+    require(booking.bookingType == BookingType.COURT) {
+      "CREATE COURT BOOKING: booking type is not court"
+    }
+
+    createCourt(booking, createdBy)
   }
 
   private fun createCourt(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
@@ -63,30 +64,7 @@ class CreateVideoBookingService(
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner(), createdBy) }
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
       .also { booking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, booking) }
-      .also { log.info("BOOKINGS: court booking with id ${it.videoBookingId} created") } to prisoner
-  }
-
-  private fun createProbation(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
-    require(createdBy is ExternalUser && createdBy.isProbationUser) {
-      "Only probation users can create probation bookings."
-    }
-
-    val probationTeam = probationTeamRepository.findByCode(request.probationTeamCode!!)
-      ?.also { require(it.enabled) { "Probation team with code ${it.code} is not enabled" } }
-      ?: throw EntityNotFoundException("Probation team with code ${request.probationTeamCode} not found")
-
-    val prisoner = request.prisoner().validate()
-
-    return VideoBooking.newProbationBooking(
-      probationTeam = probationTeam,
-      probationMeetingType = request.probationMeetingType!!.name,
-      comments = request.comments,
-      createdBy = createdBy,
-    )
-      .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), createdBy) }
-      .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
-      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, thisBooking) }
-      .also { thisBooking -> log.info("BOOKINGS: probation team booking ${thisBooking.videoBookingId} created") } to prisoner
+      .also { log.info("CREATE COURT BOOKING: court booking with id ${it.videoBookingId} created") } to prisoner
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.

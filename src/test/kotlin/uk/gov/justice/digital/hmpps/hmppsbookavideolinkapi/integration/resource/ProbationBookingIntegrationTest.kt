@@ -7,7 +7,6 @@ import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -63,7 +62,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
-@TestPropertySource(properties = ["feature.master.vlpm.types=true"])
 @Sql("classpath:integration-test-data/seed-probation-team-user-access.sql")
 class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 

@@ -34,6 +34,10 @@ class AmendCourtBookingService(
 
   @Transactional
   fun amend(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
+    require(request.bookingType == BookingType.COURT) {
+      "AMEND COURT BOOKING: booking type is not court"
+    }
+
     val booking = videoBookingRepository.findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
       .also { checkVideoBookingAccess(amendedBy, it) }
@@ -42,10 +46,7 @@ class AmendCourtBookingService(
       .also { require(it.statusCode != StatusCode.CANCELLED) { "Video booking $videoBookingId is already cancelled, and so cannot be amended" } }
       .also { require(it.appointments().all { a -> a.start().isAfter(now()) }) { "Video booking $videoBookingId has already started, and so cannot be amended" } }
 
-    return when (BookingType.valueOf(booking.bookingType.name)) {
-      BookingType.COURT -> amendCourt(booking, request, amendedBy)
-      BookingType.PROBATION -> amendProbation(booking, request, amendedBy)
-    }
+    return amendCourt(booking, request, amendedBy)
   }
 
   private fun amendCourt(existingBooking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
@@ -62,24 +63,7 @@ class AmendCourtBookingService(
       .also { thisBooking -> appointmentsService.createAppointmentsForCourt(thisBooking, request.prisoner(), amendedBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
       .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking) }
-      .also { thisBooking -> log.info("BOOKINGS: court booking ${thisBooking.videoBookingId} amended") } to prisoner
-  }
-
-  @Deprecated("This is now un-used, to be removed with the VLPM feature toggle")
-  private fun amendProbation(booking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
-    val prisoner = request.prisoner().validate()
-
-    return booking.apply {
-      probationMeetingType = request.probationMeetingType!!.name
-      comments = request.comments
-      this.amendedBy = amendedBy.username
-      amendedTime = now()
-    }
-      .also { thisBooking -> thisBooking.removeAllAppointments() }
-      .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), amendedBy) }
-      .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
-      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking) }
-      .also { thisBooking -> log.info("BOOKINGS: probation team booking ${thisBooking.videoBookingId} amended") } to prisoner
+      .also { thisBooking -> log.info("AMEND COURT BOOKING: court booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.

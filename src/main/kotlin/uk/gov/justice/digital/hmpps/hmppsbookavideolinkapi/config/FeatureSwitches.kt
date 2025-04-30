@@ -28,5 +28,5 @@ class FeatureSwitches(private val environment: Environment) {
 }
 
 enum class Feature(val label: String) {
-  FEATURE_MASTER_VLPM_TYPES("feature.master.vlpm.types"),
+  FEATURE_PLACEHOLDER("feature.placeholder.example"),
 }

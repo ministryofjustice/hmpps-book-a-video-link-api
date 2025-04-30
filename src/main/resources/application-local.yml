@@ -35,11 +35,3 @@ api:
 bvls:
   frontend:
     url: http://localhost:3000
-
-feature:
-  check:
-    external-availability:
-      enabled: true
-  master:
-    vlpm:
-      types: true

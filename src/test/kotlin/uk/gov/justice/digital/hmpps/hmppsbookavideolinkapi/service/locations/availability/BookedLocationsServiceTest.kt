@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.Pris
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -42,8 +41,7 @@ class BookedLocationsServiceTest {
   private val prisonApiClient: PrisonApiClient = mock()
   private val nomisMappingClient: NomisMappingClient = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
-  private val featureSwitches: FeatureSwitches = mock()
-  private val supportedAppointmentTypes = SupportedAppointmentTypes(featureSwitches)
+  private val supportedAppointmentTypes = SupportedAppointmentTypes()
 
   private val service = BookedLocationsService(
     activitiesAppointmentsClient,

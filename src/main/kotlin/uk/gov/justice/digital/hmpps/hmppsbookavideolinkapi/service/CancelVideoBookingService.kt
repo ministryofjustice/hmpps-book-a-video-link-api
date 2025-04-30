@@ -35,6 +35,6 @@ class CancelVideoBookingService(
     return booking.cancel(cancelledBy)
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
       .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.CANCEL, thisBooking) }
-      .also { thisBooking -> log.info("BOOKINGS: Booking ID ${thisBooking.videoBookingId} cancelled") }
+      .also { thisBooking -> log.info("CANCELLED BOOKING: Booking ID ${thisBooking.videoBookingId} cancelled") }
   }
 }

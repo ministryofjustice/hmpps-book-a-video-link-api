@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
@@ -30,7 +29,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Outbou
 import java.time.LocalDate
 import java.time.LocalTime
 
-@TestPropertySource(properties = ["feature.master.vlpm.types=true"])
 class ScheduleResourceIntegrationTest : IntegrationTestBase() {
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
