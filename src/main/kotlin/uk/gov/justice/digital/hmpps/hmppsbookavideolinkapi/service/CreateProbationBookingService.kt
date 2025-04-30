@@ -35,7 +35,7 @@ class CreateProbationBookingService(
   @Transactional
   fun create(request: CreateVideoBookingRequest, createdBy: User): Pair<VideoBooking, Prisoner> {
     require(request.bookingType == BookingType.PROBATION) {
-      "PROBATION BOOKINGS: booking type is not probation"
+      "CREATE PROBATION BOOKING: booking type is not probation"
     }
 
     require((createdBy is ExternalUser && createdBy.isProbationUser) || createdBy is PrisonUser) {
@@ -57,7 +57,7 @@ class CreateProbationBookingService(
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
       .also { thisBooking -> request.saveAdditionalDetailsFor(thisBooking) }
       .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, thisBooking) }
-      .also { thisBooking -> log.info("PROBATION BOOKING: booking ${thisBooking.videoBookingId} created") } to prisoner
+      .also { thisBooking -> log.info("CREATE PROBATION BOOKING: booking ${thisBooking.videoBookingId} created") } to prisoner
   }
 
   private fun CreateVideoBookingRequest.saveAdditionalDetailsFor(booking: VideoBooking) {

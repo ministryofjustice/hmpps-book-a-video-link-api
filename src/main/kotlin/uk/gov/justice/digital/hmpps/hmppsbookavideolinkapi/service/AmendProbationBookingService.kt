@@ -40,7 +40,7 @@ class AmendProbationBookingService(
   @Transactional
   fun amend(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     require(request.bookingType == BookingType.PROBATION) {
-      "PROBATION BOOKINGS: booking type is not probation"
+      "AMEND PROBATION BOOKING: booking type is not probation"
     }
 
     val booking = videoBookingRepository.findById(videoBookingId)
@@ -64,7 +64,7 @@ class AmendProbationBookingService(
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
       .also { thisBooking -> request.saveAdditionalDetailsFor(thisBooking) }
       .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking) }
-      .also { thisBooking -> log.info("BOOKINGS: probation team booking ${thisBooking.videoBookingId} amended") } to prisoner
+      .also { thisBooking -> log.info("AMEND PROBATION BOOKING: probation team booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.
