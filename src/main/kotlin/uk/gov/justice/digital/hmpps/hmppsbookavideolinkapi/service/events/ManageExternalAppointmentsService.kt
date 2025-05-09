@@ -90,26 +90,19 @@ class ManageExternalAppointmentsService(
     }
   }
 
+  /**
+   * Amending of appointments is only supported at rolled out prisons, you cannot amend appointments via prison-api.
+   */
   @Transactional
-  fun amendAppointment(
-    oldAppointment: BookingHistoryAppointment,
-    newAppointment: PrisonAppointment,
-  ) {
-    if (activitiesService.isAppointmentsRolledOutAt(oldAppointment.prisonCode)) {
-      activitiesService.findMatchingAppointments(oldAppointment).forEach { matchingId ->
-        log.info("EXTERNAL APPOINTMENTS: patching $oldAppointment in activities and appointments")
-        activitiesService.patchAppointment(matchingId, newAppointment)
-        log.info("EXTERNAL APPOINTMENTS: patched $matchingId in activities and appointments")
-      }
-    } else {
-      // Prison API has no endpoint available to patch an appointment, so in this case we delete the appointment and recreate it
-      prisonService.findMatchingAppointments(oldAppointment).forEach { matchingId ->
-        log.info("EXTERNAL APPOINTMENTS: deleting $oldAppointment from prison-api")
-        prisonService.cancelAppointment(matchingId)
-        log.info("EXTERNAL APPOINTMENTS: deleted $matchingId from prison-api")
-      }
+  fun amendAppointment(oldAppointment: BookingHistoryAppointment, newAppointment: PrisonAppointment) {
+    require(activitiesService.isAppointmentsRolledOutAt(oldAppointment.prisonCode)) {
+      "EXTERNAL APPOINTMENTS: prison ${oldAppointment.prisonCode} is not rolled out, you can only amend appointments at rolled out prisons."
+    }
 
-      this.createAppointment(newAppointment)
+    activitiesService.findMatchingAppointments(oldAppointment).forEach { matchingId ->
+      log.info("EXTERNAL APPOINTMENTS: patching $oldAppointment in activities and appointments")
+      activitiesService.patchAppointment(matchingId, newAppointment)
+      log.info("EXTERNAL APPOINTMENTS: patched $matchingId in activities and appointments")
     }
   }
 }
