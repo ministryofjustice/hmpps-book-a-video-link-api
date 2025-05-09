@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ActivitiesAndAppointmentsService
@@ -28,13 +30,13 @@ class VideoBookingAmendedEventHandler(
     videoBookingRepository
       .findById(abs(event.additionalInformation.videoBookingId))
       .ifPresentOrElse(
-        { booking ->
+        { amendedBooking ->
           // Get the previous history row - the one before the one just added (which should always exist)
-          val history = bookingHistoryService.getByVideoBookingId(booking.videoBookingId)
+          val oldBooking = bookingHistoryService.getByVideoBookingId(amendedBooking.videoBookingId)
             .sortedByDescending { history -> history.createdTime }
             .let {
               if (event.additionalInformation.videoBookingId < 0) {
-                require(booking.isBookingType(BookingType.PROBATION)) { "Booking type must be probation" }
+                require(amendedBooking.isBookingType(BookingType.PROBATION)) { "Booking type must be probation" }
                 log.info("Processing negative videoBookingId ${event.additionalInformation.videoBookingId}")
 
                 it[0]
@@ -45,43 +47,90 @@ class VideoBookingAmendedEventHandler(
               }
             }
 
-          if (activitiesService.isAppointmentsRolledOutAt(booking.prisonCode())) {
-            val appointmentTypesForPrisoner = (history.appointments().map { it.prisonerNumber to it.appointmentType } + booking.appointments().map { it.prisonerNumber to it.appointmentType }).toSet()
-            appointmentTypesForPrisoner.forEach { (prisonerNumber, type) ->
-              val oldAppointment = history.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
-              val newAppointment = booking.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
+          if (activitiesService.isAppointmentsRolledOutAt(amendedBooking.prisonCode())) {
+            when (amendedBooking.bookingType) {
+              BookingType.COURT -> {
+                val (previousPreHearing, amendedPreHearing) = oldBooking.preHearing() to amendedBooking.preHearing()
+                val (previousMainHearing, amendedMainHearing) = oldBooking.mainHearing() to amendedBooking.mainHearing()!!
+                val (previousPostHearing, amendedPostHearing) = oldBooking.postHearing() to amendedBooking.postHearing()
 
-              when {
-                oldAppointment == null -> {
-                  manageExternalAppointmentsService.createAppointment(newAppointment!!)
-                }
+                // All cancellations must be done first
+                cancelIfRemoved(previousPreHearing, amendedPreHearing)
+                cancelIfRemoved(previousPostHearing, amendedPostHearing)
 
-                newAppointment == null -> {
-                  manageExternalAppointmentsService.cancelPreviousAppointment(oldAppointment)
-                }
-
-                else -> {
-                  manageExternalAppointmentsService.amendAppointment(oldAppointment, newAppointment)
+                if (amendedMainHearing.isTheSameAs(previousMainHearing)) {
+                  amendedPreHearing?.run { createIfNo(previousPreHearing, amendedPreHearing) }
+                  amendedPostHearing?.run { createIfNo(previousPostHearing, amendedPostHearing) }
+                } else {
+                  // The order in which appointments are created or amended depends on if the booking is now earlier or
+                  // later. If the main hearing is now earlier then we process pre, main and then post.
+                  // If the main hearing is now later (or longer) than before then we process post, main and then pre.
+                  if (amendedMainHearing.isEarlierThanBefore(previousMainHearing)) {
+                    amendedPreHearing?.run { createOrAmend(previousPreHearing, amendedPreHearing) }
+                    amendIfNotTheSame(previousMainHearing, amendedMainHearing)
+                    amendedPostHearing?.run { createOrAmend(previousPostHearing, amendedPostHearing) }
+                  } else {
+                    amendedPostHearing?.run { createOrAmend(previousPostHearing, amendedPostHearing) }
+                    amendIfNotTheSame(previousMainHearing, amendedMainHearing)
+                    amendedPreHearing?.run { createOrAmend(previousPreHearing, amendedPreHearing) }
+                  }
                 }
               }
+              BookingType.PROBATION -> amendIfNotTheSame(oldBooking.probationMeeting(), amendedBooking.probationMeeting()!!)
             }
           } else {
+            // All cancellations must be done first so as not to interfere with new appointments
             // There is no ability to amend appointments for non-rolled out prisons so we have to cancel and create
-            history.appointments().forEach {
-              manageExternalAppointmentsService.cancelPreviousAppointment(it)
-            }
-
-            booking.appointments().forEach {
-              manageExternalAppointmentsService.createAppointment(it)
-            }
+            oldBooking.appointments().forEach(manageExternalAppointmentsService::cancelPreviousAppointment)
+            amendedBooking.appointments().forEach(manageExternalAppointmentsService::createAppointment)
           }
 
-          log.info("Processed BOOKING_AMENDED event for videoBookingId ${booking.videoBookingId}")
+          log.info("Processed BOOKING_AMENDED event for videoBookingId ${amendedBooking.videoBookingId}")
         },
         {
           // Ignore, there is nothing we can do if we do not find the booking
           log.warn("Video booking with ID ${event.additionalInformation.videoBookingId} not found")
         },
       )
+  }
+
+  private fun PrisonAppointment?.isTheSameAs(historyAppointment: BookingHistoryAppointment?) = run {
+    this != null &&
+      videoBooking.videoBookingId == historyAppointment?.bookingHistory?.videoBookingId &&
+      appointmentDate == historyAppointment.appointmentDate &&
+      startTime == historyAppointment.startTime &&
+      endTime == historyAppointment.endTime &&
+      prisonerNumber == historyAppointment.prisonerNumber &&
+      prisonLocationId == historyAppointment.prisonLocationId
+  }
+
+  private fun PrisonAppointment.isEarlierThanBefore(historyAppointment: BookingHistoryAppointment) = run {
+    appointmentDate.atTime(startTime).isBefore(historyAppointment.appointmentDate.atTime(historyAppointment.startTime))
+  }
+
+  private fun cancelIfRemoved(old: BookingHistoryAppointment?, new: PrisonAppointment?) {
+    old?.takeIf { new == null }?.run(manageExternalAppointmentsService::cancelPreviousAppointment)
+  }
+
+  private fun createOrAmend(old: BookingHistoryAppointment?, amended: PrisonAppointment) {
+    if (old == null) {
+      manageExternalAppointmentsService.createAppointment(amended)
+    } else {
+      amendIfNotTheSame(old, amended)
+    }
+  }
+
+  private fun createIfNo(old: BookingHistoryAppointment?, amended: PrisonAppointment) {
+    if (old == null) {
+      manageExternalAppointmentsService.createAppointment(amended)
+    }
+  }
+
+  private fun amendIfNotTheSame(old: BookingHistoryAppointment, amended: PrisonAppointment) {
+    if (amended.isTheSameAs(old)) {
+      log.info("No change to meeting date and times, ignoring amend for appointment $amended")
+    } else {
+      manageExternalAppointmentsService.amendAppointment(old, amended)
+    }
   }
 }
