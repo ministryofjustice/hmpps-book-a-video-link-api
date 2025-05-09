@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ActivitiesAndAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingAmendedEvent
 import kotlin.math.abs
@@ -15,6 +16,7 @@ class VideoBookingAmendedEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
   private val bookingHistoryService: BookingHistoryService,
   private val manageExternalAppointmentsService: ManageExternalAppointmentsService,
+  private val activitiesService: ActivitiesAndAppointmentsService,
 ) : DomainEventHandler<VideoBookingAmendedEvent> {
 
   companion object {
@@ -43,23 +45,34 @@ class VideoBookingAmendedEventHandler(
               }
             }
 
-          val appointmentTypesForPrisoner = (history.appointments().map { it.prisonerNumber to it.appointmentType } + booking.appointments().map { it.prisonerNumber to it.appointmentType }).toSet()
-          appointmentTypesForPrisoner.forEach { (prisonerNumber, type) ->
-            val oldAppointment = history.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
-            val newAppointment = booking.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
+          if (activitiesService.isAppointmentsRolledOutAt(booking.prisonCode())) {
+            val appointmentTypesForPrisoner = (history.appointments().map { it.prisonerNumber to it.appointmentType } + booking.appointments().map { it.prisonerNumber to it.appointmentType }).toSet()
+            appointmentTypesForPrisoner.forEach { (prisonerNumber, type) ->
+              val oldAppointment = history.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
+              val newAppointment = booking.appointments().singleOrNull { it.appointmentType == type && it.prisonerNumber == prisonerNumber }
 
-            when {
-              oldAppointment == null -> {
-                manageExternalAppointmentsService.createAppointment(newAppointment!!)
-              }
+              when {
+                oldAppointment == null -> {
+                  manageExternalAppointmentsService.createAppointment(newAppointment!!)
+                }
 
-              newAppointment == null -> {
-                manageExternalAppointmentsService.cancelPreviousAppointment(oldAppointment)
-              }
+                newAppointment == null -> {
+                  manageExternalAppointmentsService.cancelPreviousAppointment(oldAppointment)
+                }
 
-              else -> {
-                manageExternalAppointmentsService.amendAppointment(oldAppointment, newAppointment)
+                else -> {
+                  manageExternalAppointmentsService.amendAppointment(oldAppointment, newAppointment)
+                }
               }
+            }
+          } else {
+            // There is no ability to amend appointments for non-rolled out prisons so we have to cancel and create
+            history.appointments().forEach {
+              manageExternalAppointmentsService.cancelPreviousAppointment(it)
+            }
+
+            booking.appointments().forEach {
+              manageExternalAppointmentsService.createAppointment(it)
             }
           }
 

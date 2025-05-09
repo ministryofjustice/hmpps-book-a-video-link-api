@@ -3,11 +3,13 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.only
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -20,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
@@ -174,16 +177,17 @@ class ManageExternalAppointmentsServiceTest {
     }
 
     @Test
-    fun `should cancel and recreate court appointment via prison api client when appointments not rolled out`() {
+    fun `should fail to amend appointments when prison not rolled out`() {
+      whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
+
       val bookingHistory = buildFakeBookingHistory(courtBooking, courtAppointment)
 
-      whenever(activitiesService.isAppointmentsRolledOutAt(courtAppointment.prisonCode())) doReturn false
-      whenever(prisonService.findMatchingAppointments(bookingHistory.appointments().single())) doReturn listOf(99)
+      val error = assertThrows<IllegalArgumentException> { service.amendAppointment(bookingHistory.appointments().first(), courtAppointment) }
 
-      service.amendAppointment(bookingHistory.appointments().first(), courtAppointment)
+      error.message isEqualTo "EXTERNAL APPOINTMENTS: prison ${courtAppointment.prisonCode()} is not rolled out, you can only amend appointments at rolled out prisons."
 
-      verify(prisonService).cancelAppointment(99)
-      verify(prisonService).createAppointment(courtAppointment)
+      verify(activitiesService, only()).isAppointmentsRolledOutAt(courtAppointment.prisonCode())
+      verifyNoInteractions(prisonService)
     }
   }
 
