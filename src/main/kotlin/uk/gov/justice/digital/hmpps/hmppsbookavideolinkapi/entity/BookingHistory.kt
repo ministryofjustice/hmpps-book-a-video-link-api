@@ -72,6 +72,38 @@ class BookingHistory(
 
   @Override
   override fun toString(): String = this::class.simpleName + "(bookingHistoryId = $bookingHistoryId)"
+
+  fun preHearing() = run {
+    requireNotNull(courtId) {
+      "Not court history"
+    }
+
+    appointments().singleOrNull { it.appointmentType == "VLB_COURT_PRE" }
+  }
+
+  fun mainHearing() = run {
+    requireNotNull(courtId) {
+      "Not court history"
+    }
+
+    appointments().single { it.appointmentType == "VLB_COURT_MAIN" }
+  }
+
+  fun postHearing() = run {
+    requireNotNull(courtId) {
+      "Not court history"
+    }
+
+    appointments().singleOrNull { it.appointmentType == "VLB_COURT_POST" }
+  }
+
+  fun probationMeeting() = run {
+    requireNotNull(probationTeamId) {
+      "Not probation history"
+    }
+
+    appointments().single { it.appointmentType == "VLB_PROBATION" }
+  }
 }
 
 /**

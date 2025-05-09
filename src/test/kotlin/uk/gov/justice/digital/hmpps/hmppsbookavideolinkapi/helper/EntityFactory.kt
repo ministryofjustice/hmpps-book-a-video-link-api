@@ -76,15 +76,16 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
 )
 
-fun bookingHistory(historyType: HistoryType, createdBy: String = "court_user", createdByPrison: Boolean = false, court: Court = court()) = BookingHistory(
+fun bookingHistory(historyType: HistoryType, booking: VideoBooking) = BookingHistory(
   bookingHistoryId = 1L,
-  videoBookingId = 1L,
+  videoBookingId = booking.videoBookingId,
   historyType = historyType,
-  courtId = court.courtId,
+  courtId = booking.court?.courtId,
+  probationTeamId = booking.probationTeam?.probationTeamId,
   hearingType = CourtHearingType.TRIBUNAL.name,
   videoUrl = "https://edited.video.url",
   comments = "Edited comment",
-  createdBy = (if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy)).username,
+  createdBy = booking.createdBy,
 )
 
 /**
@@ -106,6 +107,77 @@ fun VideoBooking.withMainCourtPrisonAppointment(
   startTime = startTime,
   endTime = endTime,
 )
+
+/**
+ * This adds a prison pre and main appointment to meet the basic needs of a test. We don't care about the details of the appointment.
+ */
+fun VideoBooking.withPreMainCourtPrisonAppointment(
+  date: LocalDate = tomorrow(),
+  prisonCode: String = BIRMINGHAM,
+  location: Location = birminghamLocation,
+  prisonerNumber: String = "123456",
+  startTime: LocalTime = LocalTime.of(9, 30),
+  endTime: LocalTime = LocalTime.of(10, 0),
+) = apply {
+  addAppointment(
+    prison = prison(prisonCode = prisonCode),
+    prisonerNumber = prisonerNumber,
+    appointmentType = "VLB_COURT_PRE",
+    locationId = location.id,
+    date = date,
+    startTime = startTime.minusMinutes(15),
+    endTime = endTime.minusMinutes(15),
+  )
+  addAppointment(
+    prison = prison(prisonCode = prisonCode),
+    prisonerNumber = prisonerNumber,
+    appointmentType = "VLB_COURT_MAIN",
+    locationId = location.id,
+    date = date,
+    startTime = startTime,
+    endTime = endTime,
+  )
+}
+
+/**
+ * This adds a prison pre, main and post appointment to meet the basic needs of a test. We don't care about the details of the appointment.
+ */
+fun VideoBooking.withPreMainPostCourtPrisonAppointment(
+  date: LocalDate = tomorrow(),
+  prisonCode: String = BIRMINGHAM,
+  location: Location = birminghamLocation,
+  prisonerNumber: String = "123456",
+  startTime: LocalTime = LocalTime.of(9, 30),
+  endTime: LocalTime = LocalTime.of(10, 0),
+) = apply {
+  addAppointment(
+    prison = prison(prisonCode = prisonCode),
+    prisonerNumber = prisonerNumber,
+    appointmentType = "VLB_COURT_PRE",
+    locationId = location.id,
+    date = date,
+    startTime = startTime.minusMinutes(15),
+    endTime = endTime.minusMinutes(15),
+  )
+  addAppointment(
+    prison = prison(prisonCode = prisonCode),
+    prisonerNumber = prisonerNumber,
+    appointmentType = "VLB_COURT_MAIN",
+    locationId = location.id,
+    date = date,
+    startTime = startTime,
+    endTime = endTime,
+  )
+  addAppointment(
+    prison = prison(prisonCode = prisonCode),
+    prisonerNumber = prisonerNumber,
+    appointmentType = "VLB_COURT_POST",
+    locationId = location.id,
+    date = date,
+    startTime = startTime.plusMinutes(15),
+    endTime = endTime.plusMinutes(15),
+  )
+}
 
 fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType: ProbationMeetingType = ProbationMeetingType.PSR, createdBy: User? = null) = VideoBooking.newProbationBooking(
   probationTeam = probationTeam,
