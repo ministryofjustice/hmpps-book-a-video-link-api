@@ -190,7 +190,7 @@ class VideoBookingAmendedEventHandlerTest {
 
     @Test
     fun `should be no-op when no change to actual appointment date and times for court booking`() {
-      val amendedBooking = courtBooking().withPreMainPostCourtPrisonAppointment(
+      val amendedBooking = courtBooking(comments = "comments").withPreMainPostCourtPrisonAppointment(
         date = LocalDate.of(2100, 1, 1),
         prisonCode = BIRMINGHAM,
         prisonerNumber = "123456",
@@ -199,7 +199,7 @@ class VideoBookingAmendedEventHandlerTest {
         location = birminghamLocation,
       )
 
-      val createHistory = bookingHistory(HistoryType.CREATE, booking = amendedBooking).apply {
+      val createHistory = bookingHistory(HistoryType.CREATE, booking = amendedBooking, comments = "comments").apply {
         addBookingHistoryAppointments(
           listOf(
             BookingHistoryAppointment(
@@ -340,8 +340,8 @@ class VideoBookingAmendedEventHandlerTest {
 
     @Test
     fun `should be no-op when no change to actual appointment date and times for probation booking`() {
-      val amendedBooking = probationBooking().withProbationPrisonAppointment(date = today(), startTime = LocalTime.of(13, 30), endTime = LocalTime.of(14, 30), location = birminghamLocation)
-      val history = bookingHistory(HistoryType.CREATE, booking = amendedBooking).apply {
+      val amendedBooking = probationBooking(comments = "comments").withProbationPrisonAppointment(date = today(), startTime = LocalTime.of(13, 30), endTime = LocalTime.of(14, 30), location = birminghamLocation)
+      val history = bookingHistory(HistoryType.CREATE, booking = amendedBooking, comments = "comments").apply {
         addBookingHistoryAppointments(
           listOf(
             BookingHistoryAppointment(

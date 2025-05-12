@@ -68,15 +68,15 @@ fun probationTeam(code: String = "BLKPPP", enabled: Boolean = true, readOnly: Bo
   createdBy = "Test",
 )
 
-fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = false, court: Court = court()) = VideoBooking.newCourtBooking(
+fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = false, court: Court = court(), comments: String? = "Court hearing comments") = VideoBooking.newCourtBooking(
   court = court,
   hearingType = "TRIBUNAL",
-  comments = "Court hearing comments",
+  comments = comments,
   videoUrl = "https://court.hearing.link",
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
 )
 
-fun bookingHistory(historyType: HistoryType, booking: VideoBooking) = BookingHistory(
+fun bookingHistory(historyType: HistoryType, booking: VideoBooking, comments: String? = "history comments") = BookingHistory(
   bookingHistoryId = 1L,
   videoBookingId = booking.videoBookingId,
   historyType = historyType,
@@ -84,7 +84,7 @@ fun bookingHistory(historyType: HistoryType, booking: VideoBooking) = BookingHis
   probationTeamId = booking.probationTeam?.probationTeamId,
   hearingType = CourtHearingType.TRIBUNAL.name,
   videoUrl = "https://edited.video.url",
-  comments = "Edited comment",
+  comments = comments,
   createdBy = booking.createdBy,
 )
 
@@ -179,10 +179,10 @@ fun VideoBooking.withPreMainPostCourtPrisonAppointment(
   )
 }
 
-fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType: ProbationMeetingType = ProbationMeetingType.PSR, createdBy: User? = null) = VideoBooking.newProbationBooking(
+fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType: ProbationMeetingType = ProbationMeetingType.PSR, createdBy: User? = null, comments: String? = "Probation meeting comments") = VideoBooking.newProbationBooking(
   probationTeam = probationTeam,
   probationMeetingType = meetingType.name,
-  comments = "Probation meeting comments",
+  comments = comments,
   createdBy = createdBy ?: PROBATION_USER,
 )
 

@@ -101,7 +101,8 @@ class VideoBookingAmendedEventHandler(
       startTime == historyAppointment.startTime &&
       endTime == historyAppointment.endTime &&
       prisonerNumber == historyAppointment.prisonerNumber &&
-      prisonLocationId == historyAppointment.prisonLocationId
+      prisonLocationId == historyAppointment.prisonLocationId &&
+      comments == historyAppointment.bookingHistory.comments
   }
 
   private fun PrisonAppointment.isEarlierThanBefore(historyAppointment: BookingHistoryAppointment) = run {
