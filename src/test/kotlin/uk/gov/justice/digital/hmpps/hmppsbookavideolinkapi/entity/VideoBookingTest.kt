@@ -39,6 +39,8 @@ class VideoBookingTest {
       comments = "Some prison user comments",
       videoUrl = "prison-user-video-url",
       createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     with(courtBooking) {
@@ -51,6 +53,8 @@ class VideoBookingTest {
       createdTime isCloseTo now()
       createdByPrison isBool true
       statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
     }
   }
 
@@ -62,6 +66,8 @@ class VideoBookingTest {
       comments = "Some court user comments",
       videoUrl = "court-user-video-url",
       createdBy = COURT_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     with(courtBooking) {
@@ -73,6 +79,8 @@ class VideoBookingTest {
       createdBy isEqualTo COURT_USER.username
       createdByPrison isBool false
       statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
     }
   }
 
@@ -83,6 +91,8 @@ class VideoBookingTest {
       probationMeetingType = "OTHER",
       comments = "Some prison user comments",
       createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     with(probationBooking) {
@@ -94,6 +104,8 @@ class VideoBookingTest {
       createdTime isCloseTo now()
       createdByPrison isBool true
       statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
     }
   }
 
@@ -104,6 +116,8 @@ class VideoBookingTest {
       probationMeetingType = "PSR",
       comments = "Some probation user comments",
       createdBy = PROBATION_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     with(probationBooking) {
@@ -114,6 +128,8 @@ class VideoBookingTest {
       createdBy isEqualTo PROBATION_USER.username
       createdByPrison isBool false
       statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
     }
   }
 
@@ -189,6 +205,8 @@ class VideoBookingTest {
         probationMeetingType = "PSR",
         comments = null,
         createdBy = PROBATION_USER,
+        notesForStaff = null,
+        notesForPrisoners = null,
       )
     }.message isEqualTo "Probation team with code READ_ONLY is read only"
   }
@@ -201,6 +219,8 @@ class VideoBookingTest {
         probationMeetingType = "PSR",
         comments = null,
         createdBy = PROBATION_USER,
+        notesForStaff = null,
+        notesForPrisoners = null,
       )
     }
   }

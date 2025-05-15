@@ -132,6 +132,8 @@ class CreateCourtBookingServiceTest {
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
       createdBy isEqualTo COURT_USER.username
       createdTime isCloseTo LocalDateTime.now()
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
 
       appointments() hasSize 3
 
@@ -170,7 +172,7 @@ class CreateCourtBookingServiceTest {
   }
 
   @Test
-  fun `should create a Birmingham prison court video booking for Risley prison user`() {
+  fun `should fail to create a Birmingham prison court video booking for Risley prison user`() {
     val courtBookingRequest = courtBookingRequest(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",

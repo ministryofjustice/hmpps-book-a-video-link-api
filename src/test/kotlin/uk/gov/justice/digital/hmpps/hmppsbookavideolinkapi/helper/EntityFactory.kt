@@ -74,6 +74,8 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
   comments = comments,
   videoUrl = "https://court.hearing.link",
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
+  notesForStaff = "Some private staff notes",
+  notesForPrisoners = "Some public prisoners notes",
 )
 
 fun bookingHistory(historyType: HistoryType, booking: VideoBooking, comments: String? = "history comments") = BookingHistory(
@@ -184,6 +186,8 @@ fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType
   probationMeetingType = meetingType.name,
   comments = comments,
   createdBy = createdBy ?: PROBATION_USER,
+  notesForStaff = "Some private staff notes",
+  notesForPrisoners = "Some public prisoners notes",
 )
 
 /**

@@ -58,6 +58,11 @@ class AmendCourtBookingService(
       videoUrl = request.videoLinkUrl
       this.amendedBy = amendedBy.username
       amendedTime = now()
+      notesForPrisoners = request.notesForPrisoners
+
+      if (amendedBy is ExternalUser) {
+        notesForStaff = request.notesForStaff
+      }
     }
       .also { thisBooking -> thisBooking.removeAllAppointments() }
       .also { thisBooking -> appointmentsService.createAppointmentsForCourt(thisBooking, request.prisoner(), amendedBy) }

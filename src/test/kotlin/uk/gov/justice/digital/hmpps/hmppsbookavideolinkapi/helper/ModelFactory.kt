@@ -175,6 +175,8 @@ fun courtBookingRequest(
   comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
   videoLinkUrl: String? = "https://video.link.com",
+  notesForStaff: String = "Some private staff notes",
+  notesForPrisoners: String = "Some public prisoners notes",
 ): CreateVideoBookingRequest {
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
@@ -199,6 +201,8 @@ fun courtBookingRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = videoLinkUrl,
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
   )
 }
 
@@ -253,6 +257,8 @@ fun probationBookingRequest(
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "probation booking comments",
   additionalBookingDetails: AdditionalBookingDetails? = null,
+  notesForStaff: String? = "Some private staff notes",
+  notesForPrisoners: String? = "Some public prisoners notes",
 ): CreateVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
@@ -276,6 +282,8 @@ fun probationBookingRequest(
     comments = comments,
     videoLinkUrl = null,
     additionalBookingDetails = additionalBookingDetails,
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
   )
 }
 
@@ -334,6 +342,8 @@ fun amendCourtBookingRequest(
   comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
   appointmentDate: LocalDate = tomorrow(),
+  notesForStaff: String? = "Some private staff notes",
+  notesForPrisoners: String? = "Some public prisoners notes",
 ): AmendVideoBookingRequest {
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
@@ -357,6 +367,8 @@ fun amendCourtBookingRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = "https://video.link.com",
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
   )
 }
 
@@ -372,6 +384,8 @@ fun amendProbationBookingRequest(
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "probation booking comments",
   additionalBookingDetails: AdditionalBookingDetails? = null,
+  notesForStaff: String? = "Some private staff notes",
+  notesForPrisoners: String? = "Some public prisoners notes",
 ): AmendVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
@@ -394,5 +408,7 @@ fun amendProbationBookingRequest(
     comments = comments,
     videoLinkUrl = null,
     additionalBookingDetails = additionalBookingDetails,
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
   )
 }

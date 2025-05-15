@@ -67,6 +67,18 @@ data class VideoLinkBooking(
 
   @Schema(description = "Additional details for the booking if there are any.")
   val additionalBookingDetails: AdditionalBookingDetails? = null,
+
+  @Schema(
+    description = "Private free text notes for the booking. These notes are are only visible to external users.",
+    example = "Legal representation details ...",
+  )
+  val notesForStaff: String?,
+
+  @Schema(
+    description = "Public free text notes for the booking. These notes are visible outside of the service, care should be taken what is entered.",
+    example = "Waiting to hear on legal representation ...",
+  )
+  val notesForPrisoners: String?,
 )
 
 enum class BookingStatus {

@@ -44,6 +44,7 @@ class VideoBooking private constructor(
 
   var probationMeetingType: String?,
 
+  @Deprecated(message = "This is to be superseded by notesForStaff and notesForPrisoners.")
   var comments: String? = null,
 
   var videoUrl: String? = null,
@@ -57,6 +58,10 @@ class VideoBooking private constructor(
   val migratedVideoBookingId: Long? = null,
 
   val migratedDescription: String? = null,
+
+  var notesForStaff: String? = null,
+
+  var notesForPrisoners: String? = null,
 ) {
 
   @OneToMany(mappedBy = "videoBooking", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -151,6 +156,8 @@ class VideoBooking private constructor(
       court: Court,
       hearingType: String,
       comments: String?,
+      notesForStaff: String?,
+      notesForPrisoners: String?,
       videoUrl: String?,
       createdBy: User,
     ): VideoBooking = VideoBooking(
@@ -160,6 +167,8 @@ class VideoBooking private constructor(
       probationTeam = null,
       probationMeetingType = null,
       comments = comments,
+      notesForStaff = notesForStaff,
+      notesForPrisoners = notesForPrisoners,
       videoUrl = videoUrl,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
@@ -169,6 +178,8 @@ class VideoBooking private constructor(
       probationTeam: ProbationTeam,
       probationMeetingType: String,
       comments: String?,
+      notesForStaff: String?,
+      notesForPrisoners: String?,
       createdBy: User,
     ): VideoBooking = VideoBooking(
       bookingType = BookingType.PROBATION,
@@ -177,6 +188,8 @@ class VideoBooking private constructor(
       probationTeam = probationTeam.also { requireNot(probationTeam.readOnly) { "Probation team with code ${it.code} is read only" } },
       probationMeetingType = probationMeetingType,
       comments = comments,
+      notesForStaff = notesForStaff,
+      notesForPrisoners = notesForPrisoners,
       videoUrl = null,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
