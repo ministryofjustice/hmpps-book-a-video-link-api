@@ -39,6 +39,8 @@ class CourtBookingAmendedTelemetryEventTest {
       createdBy = COURT_USER,
       comments = null,
       videoUrl = "http://booking.created.url",
+      notesForStaff = "Some staff notes",
+      notesForPrisoners = "Some prisoners notes",
     ).addAppointment(
       prison = prison(WANDSWORTH),
       prisonerNumber = "ABC123",
@@ -105,6 +107,8 @@ class CourtBookingAmendedTelemetryEventTest {
       createdBy = PRISON_USER_RISLEY,
       comments = null,
       videoUrl = null,
+      notesForStaff = null,
+      notesForPrisoners = null,
     ).addAppointment(
       prison = prison(RISLEY),
       prisonerNumber = "ABC123",

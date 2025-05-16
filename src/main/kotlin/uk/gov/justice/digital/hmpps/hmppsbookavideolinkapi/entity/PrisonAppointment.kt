@@ -34,6 +34,7 @@ class PrisonAppointment private constructor(
 
   val appointmentType: String,
 
+  @Deprecated(message = "This is to be superseded by notesForPrisoners.")
   val comments: String? = null,
 
   val prisonLocationId: UUID,
@@ -43,6 +44,8 @@ class PrisonAppointment private constructor(
   val startTime: LocalTime,
 
   val endTime: LocalTime,
+
+  val notesForPrisoners: String? = null,
 ) {
 
   fun prisonCode() = prison.code
@@ -89,6 +92,7 @@ class PrisonAppointment private constructor(
       endTime = endTime.toMinutePrecision(),
       prisonLocationId = locationId,
       comments = videoBooking.comments,
+      notesForPrisoners = videoBooking.notesForPrisoners,
     )
   }
 }

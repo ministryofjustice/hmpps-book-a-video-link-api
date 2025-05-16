@@ -36,4 +36,6 @@ fun VideoBookingEntity.toModel(
   amendedBy = amendedBy,
   amendedAt = amendedTime,
   additionalBookingDetails = additionalBookingDetails,
+  notesForStaff = notesForStaff,
+  notesForPrisoners = notesForPrisoners,
 )

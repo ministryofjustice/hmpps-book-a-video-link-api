@@ -52,13 +52,14 @@ class AmendCourtBookingService(
   private fun amendCourt(existingBooking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     val prisoner = request.prisoner().validate()
 
-    return existingBooking.apply {
-      hearingType = request.courtHearingType!!.name
-      comments = request.comments
-      videoUrl = request.videoLinkUrl
-      this.amendedBy = amendedBy.username
-      amendedTime = now()
-    }
+    return existingBooking.amendCourtBooking(
+      hearingType = request.courtHearingType!!.name,
+      comments = request.comments,
+      videoUrl = request.videoLinkUrl,
+      amendedBy = amendedBy,
+      notesForStaff = request.notesForStaff,
+      notesForPrisoners = request.notesForPrisoners,
+    )
       .also { thisBooking -> thisBooking.removeAllAppointments() }
       .also { thisBooking -> appointmentsService.createAppointmentsForCourt(thisBooking, request.prisoner(), amendedBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }

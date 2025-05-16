@@ -29,6 +29,8 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
     videoLinkUrl = "https://video.link.com",
+    notesForStaff = "Some private staff notes",
+    notesForPrisoners = "Some public prisoners notes",
   )
 
   private val probationBooking = CreateVideoBookingRequest(
@@ -38,6 +40,8 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
     videoLinkUrl = "https://video.link.com",
+    notesForStaff = "Some private staff notes",
+    notesForPrisoners = "Some public prisoners notes",
   )
 
   @Test

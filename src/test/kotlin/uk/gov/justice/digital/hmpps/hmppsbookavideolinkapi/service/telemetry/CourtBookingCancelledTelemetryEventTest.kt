@@ -32,6 +32,8 @@ class CourtBookingCancelledTelemetryEventTest {
     createdBy = COURT_USER,
     comments = null,
     videoUrl = "http://booking.created.url",
+    notesForStaff = null,
+    notesForPrisoners = null,
   ).addAppointment(
     prison = prison(WANDSWORTH),
     prisonerNumber = "ABC123",

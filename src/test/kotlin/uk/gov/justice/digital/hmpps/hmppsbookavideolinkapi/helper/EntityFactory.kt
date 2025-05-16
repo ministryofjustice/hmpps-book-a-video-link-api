@@ -74,6 +74,8 @@ fun courtBooking(createdBy: String = "court_user", createdByPrison: Boolean = fa
   comments = comments,
   videoUrl = "https://court.hearing.link",
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
+  notesForStaff = "Some private staff notes",
+  notesForPrisoners = "Some public prisoners notes",
 )
 
 fun bookingHistory(historyType: HistoryType, booking: VideoBooking, comments: String? = "history comments") = BookingHistory(
@@ -184,6 +186,8 @@ fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType
   probationMeetingType = meetingType.name,
   comments = comments,
   createdBy = createdBy ?: PROBATION_USER,
+  notesForStaff = "Some private staff notes",
+  notesForPrisoners = "Some public prisoners notes",
 )
 
 /**
@@ -362,6 +366,8 @@ fun VideoBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdT
 fun VideoBooking.hasCreatedByPrison(that: Boolean): VideoBooking = also { it.createdByPrison isBool that }
 fun VideoBooking.hasAmendedBy(that: User): VideoBooking = also { it.amendedBy isEqualTo that.username }
 fun VideoBooking.hasAmendedTimeCloseTo(that: LocalDateTime) = also { it.amendedTime isCloseTo that }
+fun VideoBooking.hasStaffNotes(that: String): VideoBooking = also { it.notesForStaff isEqualTo that }
+fun VideoBooking.hasPrisonersNotes(that: String?): VideoBooking = also { it.notesForPrisoners isEqualTo that }
 
 fun PrisonAppointment.hasPrisonCode(that: String): PrisonAppointment = also { it.prisonCode() isEqualTo that }
 fun PrisonAppointment.hasPrisonerNumber(that: String): PrisonAppointment = also { it.prisonerNumber isEqualTo that }
