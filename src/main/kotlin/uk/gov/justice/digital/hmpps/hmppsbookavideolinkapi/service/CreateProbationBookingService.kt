@@ -52,8 +52,8 @@ class CreateProbationBookingService(
       probationMeetingType = request.probationMeetingType!!.name,
       comments = request.comments,
       createdBy = createdBy,
-      notesForStaff = request.notesForStaff?.takeIf { createdBy is ExternalUser },
-      notesForPrisoners = request.notesForPrisoners,
+      notesForStaff = request.notesForStaff,
+      notesForPrisoners = request.notesForPrisoners?.takeIf { createdBy is ExternalUser },
     )
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), createdBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }

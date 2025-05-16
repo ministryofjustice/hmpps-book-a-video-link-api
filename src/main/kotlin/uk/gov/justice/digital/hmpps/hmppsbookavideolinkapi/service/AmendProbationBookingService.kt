@@ -53,17 +53,13 @@ class AmendProbationBookingService(
 
     val prisoner = request.prisoner().validate()
 
-    return booking.apply {
-      probationMeetingType = request.probationMeetingType!!.name
-      comments = request.comments
-      this.amendedBy = amendedBy.username
-      amendedTime = now()
-      notesForPrisoners = request.notesForPrisoners
-
-      if (amendedBy is ExternalUser) {
-        notesForStaff = request.notesForStaff
-      }
-    }
+    return booking.amendProbationBooking(
+      probationMeetingType = request.probationMeetingType!!.name,
+      comments = request.comments,
+      notesForStaff = request.notesForStaff,
+      notesForPrisoners = request.notesForPrisoners,
+      amendedBy = amendedBy,
+    )
       .also { thisBooking -> thisBooking.removeAllAppointments() }
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), amendedBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }

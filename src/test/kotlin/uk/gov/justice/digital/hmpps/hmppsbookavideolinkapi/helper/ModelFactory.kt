@@ -430,4 +430,4 @@ fun VideoLinkBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.crea
 fun VideoLinkBooking.hasCreatedByPrisonerUser(that: Boolean) = also { it.createdByPrison!! isBool that }
 fun VideoLinkBooking.hasComments(that: String): VideoLinkBooking = also { it.comments isEqualTo that }
 fun VideoLinkBooking.hasStaffNotes(that: String): VideoLinkBooking = also { it.notesForStaff isEqualTo that }
-fun VideoLinkBooking.hasPrisonersNotes(that: String): VideoLinkBooking = also { it.notesForPrisoners isEqualTo that }
+fun VideoLinkBooking.hasPrisonersNotes(that: String?): VideoLinkBooking = also { it.notesForPrisoners isEqualTo that }

@@ -367,7 +367,7 @@ fun VideoBooking.hasCreatedByPrison(that: Boolean): VideoBooking = also { it.cre
 fun VideoBooking.hasAmendedBy(that: User): VideoBooking = also { it.amendedBy isEqualTo that.username }
 fun VideoBooking.hasAmendedTimeCloseTo(that: LocalDateTime) = also { it.amendedTime isCloseTo that }
 fun VideoBooking.hasStaffNotes(that: String): VideoBooking = also { it.notesForStaff isEqualTo that }
-fun VideoBooking.hasPrisonersNotes(that: String): VideoBooking = also { it.notesForPrisoners isEqualTo that }
+fun VideoBooking.hasPrisonersNotes(that: String?): VideoBooking = also { it.notesForPrisoners isEqualTo that }
 
 fun PrisonAppointment.hasPrisonCode(that: String): PrisonAppointment = also { it.prisonCode() isEqualTo that }
 fun PrisonAppointment.hasPrisonerNumber(that: String): PrisonAppointment = also { it.prisonerNumber isEqualTo that }

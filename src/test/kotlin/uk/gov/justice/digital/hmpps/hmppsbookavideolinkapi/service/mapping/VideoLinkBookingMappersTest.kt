@@ -52,7 +52,7 @@ class VideoLinkBookingMappersTest {
       amendedAt = null,
       amendedBy = null,
       notesForStaff = "Some private staff notes",
-      notesForPrisoners = "Some public prisoners notes",
+      notesForPrisoners = null,
     )
   }
 
@@ -89,7 +89,7 @@ class VideoLinkBookingMappersTest {
       amendedAt = null,
       amendedBy = null,
       notesForStaff = "Some private staff notes",
-      notesForPrisoners = "Some public prisoners notes",
+      notesForPrisoners = null,
     )
   }
 
@@ -125,7 +125,7 @@ class VideoLinkBookingMappersTest {
       amendedAt = null,
       amendedBy = null,
       notesForStaff = "Some private staff notes",
-      notesForPrisoners = "Some public prisoners notes",
+      notesForPrisoners = null,
     )
   }
 }

@@ -60,10 +60,7 @@ class VideoBooking private constructor(
   val migratedDescription: String? = null,
 
   var notesForStaff: String? = null,
-
-  var notesForPrisoners: String? = null,
 ) {
-
   @OneToMany(mappedBy = "videoBooking", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val prisonAppointments: MutableList<PrisonAppointment> = mutableListOf()
 
@@ -74,6 +71,9 @@ class VideoBooking private constructor(
   var amendedBy: String? = null
 
   var amendedTime: LocalDateTime? = null
+
+  var notesForPrisoners: String? = null
+    private set
 
   fun isBookingType(bookingType: BookingType) = this.bookingType == bookingType
 
@@ -114,6 +114,50 @@ class VideoBooking private constructor(
     )
   }
 
+  fun amendCourtBooking(
+    hearingType: String,
+    comments: String?,
+    notesForStaff: String?,
+    notesForPrisoners: String?,
+    videoUrl: String?,
+    amendedBy: User,
+  ) = apply {
+    require(bookingType == BookingType.COURT) {
+      "Booking is not a court booking."
+    }
+
+    this.hearingType = hearingType
+    this.comments = comments
+    this.notesForStaff = notesForStaff
+    if (amendedBy is PrisonUser) {
+      this.notesForPrisoners = notesForPrisoners
+    }
+    this.videoUrl = videoUrl
+    this.amendedBy = amendedBy.username
+    amendedTime = now()
+  }
+
+  fun amendProbationBooking(
+    probationMeetingType: String,
+    comments: String?,
+    notesForStaff: String?,
+    notesForPrisoners: String?,
+    amendedBy: User,
+  ) = apply {
+    require(bookingType == BookingType.PROBATION) {
+      "Booking is not a probation booking."
+    }
+
+    this.probationMeetingType = probationMeetingType
+    this.comments = comments
+    this.notesForStaff = notesForStaff
+    if (amendedBy is PrisonUser) {
+      this.notesForPrisoners = notesForPrisoners
+    }
+    this.amendedBy = amendedBy.username
+    amendedTime = now()
+  }
+
   fun removeAllAppointments() = prisonAppointments.clear()
 
   fun cancel(cancelledBy: User) = apply {
@@ -150,6 +194,12 @@ class VideoBooking private constructor(
 
   fun probationMeeting(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_PROBATION" }
 
+  fun prisonerNotes(notes: String?, user: User) {
+    if (user is PrisonUser) {
+      notesForPrisoners = notes
+    }
+  }
+
   companion object {
 
     fun newCourtBooking(
@@ -168,11 +218,12 @@ class VideoBooking private constructor(
       probationMeetingType = null,
       comments = comments,
       notesForStaff = notesForStaff,
-      notesForPrisoners = notesForPrisoners,
       videoUrl = videoUrl,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
-    )
+    ).apply {
+      this.notesForPrisoners = notesForPrisoners?.takeIf { createdBy is PrisonUser }
+    }
 
     fun newProbationBooking(
       probationTeam: ProbationTeam,
@@ -189,11 +240,12 @@ class VideoBooking private constructor(
       probationMeetingType = probationMeetingType,
       comments = comments,
       notesForStaff = notesForStaff,
-      notesForPrisoners = notesForPrisoners,
       videoUrl = null,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
-    )
+    ).apply {
+      this.notesForPrisoners = notesForPrisoners?.takeIf { createdBy is PrisonUser }
+    }
   }
 }
 

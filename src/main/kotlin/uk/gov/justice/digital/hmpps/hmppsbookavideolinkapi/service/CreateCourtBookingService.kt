@@ -60,7 +60,7 @@ class CreateCourtBookingService(
       comments = request.comments,
       videoUrl = request.videoLinkUrl,
       createdBy = createdBy,
-      notesForStaff = request.notesForStaff?.takeIf { createdBy is ExternalUser },
+      notesForStaff = request.notesForStaff,
       notesForPrisoners = request.notesForPrisoners,
     )
       .also { booking -> appointmentsService.createAppointmentsForCourt(booking, request.prisoner(), createdBy) }

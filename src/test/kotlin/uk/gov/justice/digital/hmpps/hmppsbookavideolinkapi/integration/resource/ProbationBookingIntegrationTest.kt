@@ -250,7 +250,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)
       .hasStaffNotes("Some private staff notes")
-      .hasPrisonersNotes("Some public prisoner notes")
+      .hasPrisonersNotes(null)
       .also { it.probationTeam?.code isEqualTo BLACKPOOL_MC_PPOC }
 
     prisonAppointmentRepository

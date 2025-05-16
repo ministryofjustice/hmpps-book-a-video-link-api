@@ -133,7 +133,7 @@ class CreateCourtBookingServiceTest {
       createdBy isEqualTo COURT_USER.username
       createdTime isCloseTo LocalDateTime.now()
       notesForStaff isEqualTo "Some private staff notes"
-      notesForPrisoners isEqualTo "Some public prisoners notes"
+      notesForPrisoners isEqualTo null
 
       appointments() hasSize 3
 

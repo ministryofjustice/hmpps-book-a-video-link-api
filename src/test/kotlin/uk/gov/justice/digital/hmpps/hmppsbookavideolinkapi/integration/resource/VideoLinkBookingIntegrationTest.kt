@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
@@ -846,66 +845,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should redact private staff notes from court booking for prison users`() {
-    videoBookingRepository.findAll() hasSize 0
-
-    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-
-    val courtBookingRequest = courtBookingRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
-      prisonerNumber = "123456",
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
-      startTime = LocalTime.of(13, 0),
-      endTime = LocalTime.of(14, 30),
-      notesForStaff = "Some private staff notes",
-      notesForPrisoners = "Some public prisoner notes",
-    )
-
-    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
-    with(webTestClient.getBookingByIdRequest(bookingId, COURT_USER)) {
-      notesForStaff isEqualTo "Some private staff notes"
-      notesForPrisoners isEqualTo "Some public prisoner notes"
-    }
-
-    with(webTestClient.getBookingByIdRequest(bookingId, PRISON_USER_BIRMINGHAM)) {
-      notesForStaff isEqualTo null
-      notesForPrisoners isEqualTo "Some public prisoner notes"
-    }
-  }
-
-  @Test
-  fun `should redact private staff notes from probation booking for prison users`() {
-    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-
-    val probationBookingRequest = probationBookingRequest(
-      probationTeamCode = BLACKPOOL_MC_PPOC,
-      probationMeetingType = ProbationMeetingType.PSR,
-      prisonerNumber = "123456",
-      prisonCode = BIRMINGHAM,
-      location = birminghamLocation,
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
-      comments = "probation comments",
-      notesForStaff = "Some private probation staff notes",
-      notesForPrisoners = "Some public probation prisoner notes",
-    )
-
-    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
-
-    with(webTestClient.getBookingByIdRequest(bookingId, PROBATION_USER)) {
-      notesForStaff isEqualTo "Some private probation staff notes"
-      notesForPrisoners isEqualTo "Some public probation prisoner notes"
-    }
-
-    with(webTestClient.getBookingByIdRequest(bookingId, PRISON_USER_BIRMINGHAM)) {
-      notesForStaff isEqualTo null
-      notesForPrisoners isEqualTo "Some public probation prisoner notes"
-    }
-  }
-
-  @Test
   fun `should fail to return the details of a court video link booking by ID if the prison is not self service for court user`() {
     val prisonUser = PRISON_USER_RISLEY.also(::stubUser)
     videoBookingRepository.findAll() hasSize 0
@@ -991,7 +930,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasCreatedByPrisonerUser(false)
       .hasComments("probation comments")
       .hasStaffNotes("Some private probation staff notes")
-      .hasPrisonersNotes("Some public probation prisoner notes")
+      .hasPrisonersNotes(null)
       .hasCourt(null)
       .hasCourtHearingType(null)
       .hasCourtDescription(null)
