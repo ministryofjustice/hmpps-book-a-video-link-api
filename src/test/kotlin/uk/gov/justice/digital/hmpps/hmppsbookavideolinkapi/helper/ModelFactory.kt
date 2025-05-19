@@ -21,8 +21,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Probati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestedAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.UnknownPrisonerDetails
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -175,6 +177,8 @@ fun courtBookingRequest(
   comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
   videoLinkUrl: String? = "https://video.link.com",
+  notesForStaff: String = "Some private staff notes",
+  notesForPrisoners: String = "Some public prisoners notes",
 ): CreateVideoBookingRequest {
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
@@ -199,6 +203,8 @@ fun courtBookingRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = videoLinkUrl,
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
   )
 }
 
@@ -253,6 +259,8 @@ fun probationBookingRequest(
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "probation booking comments",
   additionalBookingDetails: AdditionalBookingDetails? = null,
+  notesForStaff: String? = "Some private staff notes",
+  notesForPrisoners: String? = "Some public prisoners notes",
 ): CreateVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
@@ -276,6 +284,8 @@ fun probationBookingRequest(
     comments = comments,
     videoLinkUrl = null,
     additionalBookingDetails = additionalBookingDetails,
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
   )
 }
 
@@ -334,6 +344,8 @@ fun amendCourtBookingRequest(
   comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
   appointmentDate: LocalDate = tomorrow(),
+  notesForStaff: String? = "Some private staff notes",
+  notesForPrisoners: String? = "Some public prisoners notes",
 ): AmendVideoBookingRequest {
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
@@ -357,6 +369,8 @@ fun amendCourtBookingRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = "https://video.link.com",
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
   )
 }
 
@@ -372,6 +386,8 @@ fun amendProbationBookingRequest(
   endTime: LocalTime = LocalTime.now().plusHours(1),
   comments: String = "probation booking comments",
   additionalBookingDetails: AdditionalBookingDetails? = null,
+  notesForStaff: String? = "Some private staff notes",
+  notesForPrisoners: String? = "Some public prisoners notes",
 ): AmendVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
@@ -394,5 +410,24 @@ fun amendProbationBookingRequest(
     comments = comments,
     videoLinkUrl = null,
     additionalBookingDetails = additionalBookingDetails,
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
   )
 }
+
+fun VideoLinkBooking.hasBookingType(that: BookingType) = also { it.bookingType isEqualTo that }
+fun VideoLinkBooking.hasCourt(that: String?) = also { it.courtCode isEqualTo that }
+fun VideoLinkBooking.hasCourtHearingType(that: CourtHearingType?) = also { it.courtHearingType isEqualTo that }
+fun VideoLinkBooking.hasCourtDescription(that: String?) = also { it.courtDescription isEqualTo that }
+fun VideoLinkBooking.hasCourtHearingTypeDescription(that: String?) = also { it.courtHearingTypeDescription isEqualTo that }
+fun VideoLinkBooking.hasProbationTeam(that: String?) = also { it.probationTeamCode isEqualTo that }
+fun VideoLinkBooking.hasProbationTeamDescription(that: String?) = also { it.probationTeamDescription isEqualTo that }
+fun VideoLinkBooking.hasMeetingType(that: ProbationMeetingType?) = also { it.probationMeetingType isEqualTo that }
+fun VideoLinkBooking.hasMeetingTypeDescription(that: String?) = also { it.probationMeetingTypeDescription isEqualTo that }
+fun VideoLinkBooking.hasVideoUrl(that: String) = also { it.videoLinkUrl isEqualTo that }
+fun VideoLinkBooking.hasCreatedBy(that: User) = also { it.createdBy isEqualTo that.username }
+fun VideoLinkBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdAt isCloseTo that }
+fun VideoLinkBooking.hasCreatedByPrisonerUser(that: Boolean) = also { it.createdByPrison!! isBool that }
+fun VideoLinkBooking.hasComments(that: String): VideoLinkBooking = also { it.comments isEqualTo that }
+fun VideoLinkBooking.hasStaffNotes(that: String): VideoLinkBooking = also { it.notesForStaff isEqualTo that }
+fun VideoLinkBooking.hasPrisonersNotes(that: String?): VideoLinkBooking = also { it.notesForPrisoners isEqualTo that }

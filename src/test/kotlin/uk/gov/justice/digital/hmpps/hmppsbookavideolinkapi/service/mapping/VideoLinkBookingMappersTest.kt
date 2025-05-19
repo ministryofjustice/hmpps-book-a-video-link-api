@@ -27,6 +27,8 @@ class VideoLinkBookingMappersTest {
       comments = "some comments for the court booking",
       videoUrl = null,
       createdBy = COURT_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     booking.toModel(locations = setOf(risleyLocation.toModel(locationAttributes().copy(prisonVideoUrl = "prob-video-url"))), courtHearingTypeDescription = "hearing type description") isEqualTo VideoLinkBooking(
@@ -49,6 +51,8 @@ class VideoLinkBookingMappersTest {
       comments = "some comments for the court booking",
       amendedAt = null,
       amendedBy = null,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = null,
     )
   }
 
@@ -60,6 +64,8 @@ class VideoLinkBookingMappersTest {
       comments = "some comments for the court booking",
       videoUrl = "court-video-url",
       createdBy = COURT_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     booking.toModel(locations = setOf(risleyLocation.toModel(locationAttributes().copy(prisonVideoUrl = "prob-video-url"))), courtHearingTypeDescription = "hearing type description") isEqualTo VideoLinkBooking(
@@ -82,6 +88,8 @@ class VideoLinkBookingMappersTest {
       comments = "some comments for the court booking",
       amendedAt = null,
       amendedBy = null,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = null,
     )
   }
 
@@ -92,6 +100,8 @@ class VideoLinkBookingMappersTest {
       probationMeetingType = "PSR",
       comments = "some comments for the probation booking",
       createdBy = PROBATION_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     booking.toModel(locations = setOf(risleyLocation.toModel(locationAttributes().copy(prisonVideoUrl = "prob-video-url"))), probationMeetingTypeDescription = "meeting type description") isEqualTo VideoLinkBooking(
@@ -114,6 +124,8 @@ class VideoLinkBookingMappersTest {
       comments = "some comments for the probation booking",
       amendedAt = null,
       amendedBy = null,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = null,
     )
   }
 }

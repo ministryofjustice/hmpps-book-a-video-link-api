@@ -40,9 +40,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonersNotes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
@@ -112,6 +114,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       contactEmail = "rr_probation_contact@email.com",
       contactNumber = null,
     ),
+    notesForStaff = "Some private staff notes",
+    notesForPrisoners = "Some public prisoner notes",
   )
 
   private val otherProbationBookingRequest = probationBookingRequest(
@@ -212,7 +216,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should amend a pre-sentence report probation booking using the VLPM appointment type`() {
+  fun `should amend a recall report report probation booking using the VLPM appointment type`() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
@@ -245,6 +249,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)
+      .hasStaffNotes("Some private staff notes")
+      .hasPrisonersNotes(null)
       .also { it.probationTeam?.code isEqualTo BLACKPOOL_MC_PPOC }
 
     prisonAppointmentRepository

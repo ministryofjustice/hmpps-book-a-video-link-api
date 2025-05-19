@@ -29,6 +29,8 @@ class ProbationBookingCancelledTelemetryEventTest {
     probationMeetingType = "PSR",
     createdBy = PROBATION_USER,
     comments = null,
+    notesForStaff = null,
+    notesForPrisoners = null,
   ).addAppointment(
     prison = prison(BIRMINGHAM),
     prisonerNumber = "ABC123",

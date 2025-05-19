@@ -42,7 +42,23 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasBookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasComments
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCourt
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCourtDescription
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCourtHearingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCourtHearingTypeDescription
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedBy
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedByPrisonerUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedTimeCloseTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingTypeDescription
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonersNotes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeamDescription
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
@@ -57,6 +73,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -96,6 +113,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoB
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingCreatedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingInformation
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -147,7 +165,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
     with(persistedBooking) {
@@ -368,7 +385,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
     with(persistedBooking) {
@@ -559,7 +575,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
-
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
     with(persistedBooking) {
@@ -767,37 +782,25 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
-    assertThat(bookingId).isGreaterThan(0L)
-
     val bookingDetails = webTestClient.getBookingByIdRequest(bookingId, COURT_USER)
 
-    assertThat(bookingDetails).isNotNull
+    bookingDetails
+      .hasCourt(DERBY_JUSTICE_CENTRE)
+      .hasCourtDescription("Derby Justice Centre")
+      .hasCourtHearingType(CourtHearingType.TRIBUNAL)
+      .hasCourtHearingTypeDescription("Tribunal")
+      .hasProbationTeam(null)
+      .hasMeetingType(null)
+      .hasProbationTeamDescription(null)
+      .hasMeetingTypeDescription(null)
+      .hasCreatedByPrisonerUser(false)
+      .hasVideoUrl("https://video.link.com")
 
-    with(bookingDetails) {
-      // Verify court details present for this court booking
-      assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
-      assertThat(courtDescription).isEqualTo("Derby Justice Centre")
-      assertThat(courtHearingType).isEqualTo(CourtHearingType.TRIBUNAL)
-      assertThat(courtHearingTypeDescription).isEqualTo("Tribunal")
-
-      // Verify probation details are null
-      assertThat(probationTeamCode).isNull()
-      assertThat(probationTeamDescription).isNull()
-      assertThat(probationMeetingType).isNull()
-      assertThat(probationMeetingTypeDescription).isNull()
-
-      assertThat(createdByPrison).isFalse()
-      assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
-
-      // Verify that there is a single appointment
-      assertThat(prisonAppointments).hasSize(1)
-      with(prisonAppointments.first()) {
-        assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
-        assertThat(comments).contains("integration test")
-        assertThat(prisonCode).isEqualTo(PENTONVILLE)
-        assertThat(prisonLocKey).isEqualTo(pentonvilleLocation.key)
-      }
+    with(bookingDetails.prisonAppointments.single()) {
+      assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
+      assertThat(comments).contains("integration test")
+      assertThat(prisonCode).isEqualTo(PENTONVILLE)
+      assertThat(prisonLocKey).isEqualTo(pentonvilleLocation.key)
     }
   }
 
@@ -819,37 +822,25 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
-
-    assertThat(bookingId).isGreaterThan(0L)
-
     val bookingDetails = webTestClient.getBookingByIdRequest(bookingId, prisonUser)
 
-    assertThat(bookingDetails).isNotNull
+    bookingDetails
+      .hasCourt(DERBY_JUSTICE_CENTRE)
+      .hasCourtDescription("Derby Justice Centre")
+      .hasCourtHearingType(CourtHearingType.TRIBUNAL)
+      .hasCourtHearingTypeDescription("Tribunal")
+      .hasProbationTeam(null)
+      .hasMeetingType(null)
+      .hasProbationTeamDescription(null)
+      .hasMeetingTypeDescription(null)
+      .hasCreatedByPrisonerUser(true)
+      .hasVideoUrl("https://video.link.com")
 
-    with(bookingDetails) {
-      // Verify court details present for this court booking
-      assertThat(courtCode).isEqualTo(DERBY_JUSTICE_CENTRE)
-      assertThat(courtDescription).isEqualTo("Derby Justice Centre")
-      assertThat(courtHearingType).isEqualTo(CourtHearingType.TRIBUNAL)
-      assertThat(courtHearingTypeDescription).isEqualTo("Tribunal")
-
-      // Verify probation details are null
-      assertThat(probationTeamCode).isNull()
-      assertThat(probationTeamDescription).isNull()
-      assertThat(probationMeetingType).isNull()
-      assertThat(probationMeetingTypeDescription).isNull()
-
-      assertThat(createdByPrison).isTrue()
-      assertThat(videoLinkUrl).isEqualTo("https://video.link.com")
-
-      // Verify that there is a single appointment
-      assertThat(prisonAppointments).hasSize(1)
-      with(prisonAppointments.first()) {
-        assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
-        assertThat(comments).contains("integration test")
-        assertThat(prisonCode).isEqualTo(RISLEY)
-        assertThat(prisonLocKey).isEqualTo(risleyLocation.key)
-      }
+    with(bookingDetails.prisonAppointments.single()) {
+      assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
+      assertThat(comments).contains("integration test")
+      assertThat(prisonCode).isEqualTo(RISLEY)
+      assertThat(prisonLocKey).isEqualTo(risleyLocation.key)
     }
   }
 
@@ -871,8 +862,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
-
-    assertThat(bookingId).isGreaterThan(0L)
 
     val error = webTestClient.get()
       .uri("/video-link-booking/id/{videoBookingId}", bookingId)
@@ -921,41 +910,37 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = wandsworthLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test probation",
+      comments = "probation comments",
+      notesForStaff = "Some private probation staff notes",
+      notesForPrisoners = "Some public probation prisoner notes",
     )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
-
-    assertThat(bookingId).isGreaterThan(0L)
-
     val bookingDetails = webTestClient.getBookingByIdRequest(bookingId, PROBATION_USER)
 
-    assertThat(bookingDetails).isNotNull
+    bookingDetails
+      .hasBookingType(PROBATION)
+      .hasProbationTeam(BLACKPOOL_MC_PPOC)
+      .hasProbationTeamDescription("Blackpool Magistrates - Probation")
+      .hasMeetingType(ProbationMeetingType.PSR)
+      .hasMeetingTypeDescription("Pre-sentence report")
+      .hasVideoUrl("https://probation-url")
+      .hasCreatedBy(PROBATION_USER)
+      .hasCreatedTimeCloseTo(LocalDateTime.now())
+      .hasCreatedByPrisonerUser(false)
+      .hasComments("probation comments")
+      .hasStaffNotes("Some private probation staff notes")
+      .hasPrisonersNotes(null)
+      .hasCourt(null)
+      .hasCourtHearingType(null)
+      .hasCourtDescription(null)
+      .hasCourtHearingTypeDescription(null)
 
-    with(bookingDetails) {
-      // Verify probation details present
-      assertThat(probationTeamCode).isEqualTo(BLACKPOOL_MC_PPOC)
-      assertThat(probationTeamDescription).isEqualTo("Blackpool Magistrates - Probation")
-      assertThat(probationMeetingType).isEqualTo(ProbationMeetingType.PSR)
-      assertThat(probationMeetingTypeDescription).isEqualTo("Pre-sentence report")
-
-      // Verify court details are null
-      assertThat(courtCode).isNull()
-      assertThat(courtDescription).isNull()
-      assertThat(courtHearingType).isNull()
-      assertThat(courtHearingTypeDescription).isNull()
-
-      assertThat(createdByPrison).isFalse()
-      assertThat(videoLinkUrl).isEqualTo("https://probation-url")
-
-      // Verify that there is a single appointment
-      assertThat(prisonAppointments).hasSize(1)
-      with(prisonAppointments.first()) {
-        assertThat(appointmentType).isEqualTo("VLB_PROBATION")
-        assertThat(comments).contains("integration test")
-        assertThat(prisonCode).isEqualTo(WANDSWORTH)
-        assertThat(prisonLocKey).isEqualTo(wandsworthLocation.key)
-      }
+    with(bookingDetails.prisonAppointments.single()) {
+      assertThat(appointmentType).isEqualTo("VLB_PROBATION")
+      assertThat(comments).contains("probation comments")
+      assertThat(prisonCode).isEqualTo(WANDSWORTH)
+      assertThat(prisonLocKey).isEqualTo(wandsworthLocation.key)
     }
   }
 
@@ -976,9 +961,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
-    assertThat(bookingId).isGreaterThan(0L)
-
     val errorResponse = webTestClient.getBookingByIdNotFound(bookingId + 300, COURT_USER)
 
     assertThat(errorResponse).isNotNull
@@ -1020,8 +1002,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
     with(persistedBooking) {
-      videoBookingId isEqualTo bookingId
-      bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
       comments isEqualTo "amended court booking comments"

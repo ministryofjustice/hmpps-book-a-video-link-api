@@ -44,6 +44,7 @@ class VideoBooking private constructor(
 
   var probationMeetingType: String?,
 
+  @Deprecated(message = "This is to be superseded by notesForStaff and notesForPrisoners.")
   var comments: String? = null,
 
   var videoUrl: String? = null,
@@ -57,8 +58,9 @@ class VideoBooking private constructor(
   val migratedVideoBookingId: Long? = null,
 
   val migratedDescription: String? = null,
-) {
 
+  var notesForStaff: String? = null,
+) {
   @OneToMany(mappedBy = "videoBooking", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val prisonAppointments: MutableList<PrisonAppointment> = mutableListOf()
 
@@ -69,6 +71,9 @@ class VideoBooking private constructor(
   var amendedBy: String? = null
 
   var amendedTime: LocalDateTime? = null
+
+  var notesForPrisoners: String? = null
+    private set
 
   fun isBookingType(bookingType: BookingType) = this.bookingType == bookingType
 
@@ -109,6 +114,50 @@ class VideoBooking private constructor(
     )
   }
 
+  fun amendCourtBooking(
+    hearingType: String,
+    comments: String?,
+    notesForStaff: String?,
+    notesForPrisoners: String?,
+    videoUrl: String?,
+    amendedBy: User,
+  ) = apply {
+    require(bookingType == BookingType.COURT) {
+      "Booking is not a court booking."
+    }
+
+    this.hearingType = hearingType
+    this.comments = comments
+    this.notesForStaff = notesForStaff
+    if (amendedBy is PrisonUser) {
+      this.notesForPrisoners = notesForPrisoners
+    }
+    this.videoUrl = videoUrl
+    this.amendedBy = amendedBy.username
+    amendedTime = now()
+  }
+
+  fun amendProbationBooking(
+    probationMeetingType: String,
+    comments: String?,
+    notesForStaff: String?,
+    notesForPrisoners: String?,
+    amendedBy: User,
+  ) = apply {
+    require(bookingType == BookingType.PROBATION) {
+      "Booking is not a probation booking."
+    }
+
+    this.probationMeetingType = probationMeetingType
+    this.comments = comments
+    this.notesForStaff = notesForStaff
+    if (amendedBy is PrisonUser) {
+      this.notesForPrisoners = notesForPrisoners
+    }
+    this.amendedBy = amendedBy.username
+    amendedTime = now()
+  }
+
   fun removeAllAppointments() = prisonAppointments.clear()
 
   fun cancel(cancelledBy: User) = apply {
@@ -145,12 +194,20 @@ class VideoBooking private constructor(
 
   fun probationMeeting(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_PROBATION" }
 
+  fun prisonerNotes(notes: String?, user: User) {
+    if (user is PrisonUser) {
+      notesForPrisoners = notes
+    }
+  }
+
   companion object {
 
     fun newCourtBooking(
       court: Court,
       hearingType: String,
       comments: String?,
+      notesForStaff: String?,
+      notesForPrisoners: String?,
       videoUrl: String?,
       createdBy: User,
     ): VideoBooking = VideoBooking(
@@ -160,15 +217,20 @@ class VideoBooking private constructor(
       probationTeam = null,
       probationMeetingType = null,
       comments = comments,
+      notesForStaff = notesForStaff,
       videoUrl = videoUrl,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
-    )
+    ).apply {
+      this.notesForPrisoners = notesForPrisoners?.takeIf { createdBy is PrisonUser }
+    }
 
     fun newProbationBooking(
       probationTeam: ProbationTeam,
       probationMeetingType: String,
       comments: String?,
+      notesForStaff: String?,
+      notesForPrisoners: String?,
       createdBy: User,
     ): VideoBooking = VideoBooking(
       bookingType = BookingType.PROBATION,
@@ -177,10 +239,13 @@ class VideoBooking private constructor(
       probationTeam = probationTeam.also { requireNot(probationTeam.readOnly) { "Probation team with code ${it.code} is read only" } },
       probationMeetingType = probationMeetingType,
       comments = comments,
+      notesForStaff = notesForStaff,
       videoUrl = null,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
-    )
+    ).apply {
+      this.notesForPrisoners = notesForPrisoners?.takeIf { createdBy is PrisonUser }
+    }
   }
 }
 

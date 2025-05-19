@@ -42,6 +42,7 @@ data class AmendVideoBookingRequest(
   )
   val probationMeetingType: ProbationMeetingType? = null,
 
+  @Deprecated(message = "This is to be superseded by notesForStaff and notesForPrisoners.")
   @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
   @Schema(
     description = "Free text comments for the video link booking",
@@ -61,6 +62,20 @@ data class AmendVideoBookingRequest(
   )
   @field:Valid
   val additionalBookingDetails: AdditionalBookingDetails? = null,
+
+  @field:Size(max = 400, message = "Notes for staff for the video link booking cannot not exceed {max} characters")
+  @Schema(
+    description = "Private free text notes for the booking. These notes are are only visible to external users.",
+    example = "Legal representation details ...",
+  )
+  val notesForStaff: String?,
+
+  @field:Size(max = 400, message = "Notes for prisoners for the video link booking cannot not exceed {max} characters")
+  @Schema(
+    description = "Public free text notes for the booking. These notes are visible outside of the service, care should be taken what is entered.",
+    example = "Waiting to hear on legal representation ...",
+  )
+  val notesForPrisoners: String?,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The court hearing type is mandatory for court bookings")

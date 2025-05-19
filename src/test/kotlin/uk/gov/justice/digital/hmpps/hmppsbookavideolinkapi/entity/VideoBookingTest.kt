@@ -39,6 +39,8 @@ class VideoBookingTest {
       comments = "Some prison user comments",
       videoUrl = "prison-user-video-url",
       createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     with(courtBooking) {
@@ -51,6 +53,100 @@ class VideoBookingTest {
       createdTime isCloseTo now()
       createdByPrison isBool true
       statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+    }
+  }
+
+  @Test
+  fun `should amend prison created court booking created by court user`() {
+    val courtBooking = VideoBooking.newCourtBooking(
+      court(code = "COURT_CODE"),
+      hearingType = "TRIBUNAL",
+      comments = "Some prison user comments",
+      videoUrl = "prison-user-video-url",
+      createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
+    )
+
+    with(courtBooking) {
+      court isEqualTo court(code = "COURT_CODE")
+      isBookingType(BookingType.COURT) isBool true
+      hearingType isEqualTo "TRIBUNAL"
+      comments isEqualTo "Some prison user comments"
+      videoUrl isEqualTo "prison-user-video-url"
+      createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      createdTime isCloseTo now()
+      createdByPrison isBool true
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+    }
+
+    courtBooking.amendCourtBooking(
+      hearingType = "APPEAL",
+      comments = "Amended comments",
+      notesForStaff = "Amended staff notes",
+      notesForPrisoners = "Amended prisoners notes",
+      videoUrl = "amended-prison-user-video-url",
+      COURT_USER,
+    )
+
+    with(courtBooking) {
+      hearingType isEqualTo "APPEAL"
+      comments isEqualTo "Amended comments"
+      notesForStaff isEqualTo "Amended staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+      videoUrl isEqualTo "amended-prison-user-video-url"
+      amendedBy isEqualTo COURT_USER.username
+      amendedTime isCloseTo now()
+    }
+  }
+
+  @Test
+  fun `should amend prison created court booking created by prison user`() {
+    val courtBooking = VideoBooking.newCourtBooking(
+      court(code = "COURT_CODE"),
+      hearingType = "TRIBUNAL",
+      comments = "Some prison user comments",
+      videoUrl = "prison-user-video-url",
+      createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
+    )
+
+    with(courtBooking) {
+      court isEqualTo court(code = "COURT_CODE")
+      isBookingType(BookingType.COURT) isBool true
+      hearingType isEqualTo "TRIBUNAL"
+      comments isEqualTo "Some prison user comments"
+      videoUrl isEqualTo "prison-user-video-url"
+      createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      createdTime isCloseTo now()
+      createdByPrison isBool true
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+    }
+
+    courtBooking.amendCourtBooking(
+      hearingType = "APPEAL",
+      comments = "Amended comments",
+      notesForStaff = "Amended staff notes",
+      notesForPrisoners = "Amended prisoners notes",
+      videoUrl = "amended-prison-user-video-url",
+      PRISON_USER_BIRMINGHAM,
+    )
+
+    with(courtBooking) {
+      hearingType isEqualTo "APPEAL"
+      comments isEqualTo "Amended comments"
+      notesForStaff isEqualTo "Amended staff notes"
+      notesForPrisoners isEqualTo "Amended prisoners notes"
+      videoUrl isEqualTo "amended-prison-user-video-url"
+      amendedBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      amendedTime isCloseTo now()
     }
   }
 
@@ -62,6 +158,8 @@ class VideoBookingTest {
       comments = "Some court user comments",
       videoUrl = "court-user-video-url",
       createdBy = COURT_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Should be ignored for external user",
     )
 
     with(courtBooking) {
@@ -73,6 +171,98 @@ class VideoBookingTest {
       createdBy isEqualTo COURT_USER.username
       createdByPrison isBool false
       statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo null
+    }
+  }
+
+  @Test
+  fun `should amend court created court booking by court user`() {
+    val courtBooking = VideoBooking.newCourtBooking(
+      court(code = "COURT_CODE"),
+      hearingType = "APPEAL",
+      comments = "Some court user comments",
+      videoUrl = "court-user-video-url",
+      createdBy = COURT_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Should be ignored for external user",
+    )
+
+    with(courtBooking) {
+      court isEqualTo court(code = "COURT_CODE")
+      isBookingType(BookingType.COURT) isBool true
+      hearingType isEqualTo "APPEAL"
+      comments isEqualTo "Some court user comments"
+      videoUrl isEqualTo "court-user-video-url"
+      createdBy isEqualTo COURT_USER.username
+      createdByPrison isBool false
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo null
+    }
+
+    courtBooking.amendCourtBooking(
+      hearingType = "APPEAL",
+      comments = "Amended comments",
+      notesForStaff = "Amended staff notes",
+      notesForPrisoners = "Amended prisoners notes",
+      videoUrl = "amended-prison-user-video-url",
+      COURT_USER,
+    )
+
+    with(courtBooking) {
+      hearingType isEqualTo "APPEAL"
+      comments isEqualTo "Amended comments"
+      notesForStaff isEqualTo "Amended staff notes"
+      notesForPrisoners isEqualTo null
+      videoUrl isEqualTo "amended-prison-user-video-url"
+      amendedBy isEqualTo COURT_USER.username
+      amendedTime isCloseTo now()
+    }
+  }
+
+  @Test
+  fun `should amend court created court booking by prison user`() {
+    val courtBooking = VideoBooking.newCourtBooking(
+      court(code = "COURT_CODE"),
+      hearingType = "APPEAL",
+      comments = "Some court user comments",
+      videoUrl = "court-user-video-url",
+      createdBy = COURT_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Should be ignored for external user",
+    )
+
+    with(courtBooking) {
+      court isEqualTo court(code = "COURT_CODE")
+      isBookingType(BookingType.COURT) isBool true
+      hearingType isEqualTo "APPEAL"
+      comments isEqualTo "Some court user comments"
+      videoUrl isEqualTo "court-user-video-url"
+      createdBy isEqualTo COURT_USER.username
+      createdByPrison isBool false
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo null
+    }
+
+    courtBooking.amendCourtBooking(
+      hearingType = "APPEAL",
+      comments = "Amended comments",
+      notesForStaff = "Amended staff notes",
+      notesForPrisoners = "Amended prisoners notes",
+      videoUrl = "amended-prison-user-video-url",
+      PRISON_USER_BIRMINGHAM,
+    )
+
+    with(courtBooking) {
+      hearingType isEqualTo "APPEAL"
+      comments isEqualTo "Amended comments"
+      notesForStaff isEqualTo "Amended staff notes"
+      notesForPrisoners isEqualTo "Amended prisoners notes"
+      videoUrl isEqualTo "amended-prison-user-video-url"
+      amendedBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      amendedTime isCloseTo now()
     }
   }
 
@@ -83,6 +273,8 @@ class VideoBookingTest {
       probationMeetingType = "OTHER",
       comments = "Some prison user comments",
       createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
     )
 
     with(probationBooking) {
@@ -94,6 +286,134 @@ class VideoBookingTest {
       createdTime isCloseTo now()
       createdByPrison isBool true
       statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+    }
+  }
+
+  @Test
+  fun `should amend prison created probation booking created by prison user`() {
+    val probationBooking = VideoBooking.newProbationBooking(
+      probationTeam(code = "TEAM_CODE"),
+      probationMeetingType = "OTHER",
+      comments = "Some prison user comments",
+      createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
+    )
+
+    with(probationBooking) {
+      probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
+      isBookingType(BookingType.PROBATION) isBool true
+      probationMeetingType isEqualTo "OTHER"
+      comments isEqualTo "Some prison user comments"
+      createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      createdTime isCloseTo now()
+      createdByPrison isBool true
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+    }
+
+    probationBooking.amendProbationBooking(
+      probationMeetingType = "RR",
+      comments = "Amended comments",
+      notesForStaff = "Amended staff notes",
+      notesForPrisoners = "Amended prisoners notes",
+      amendedBy = PRISON_USER_BIRMINGHAM,
+    )
+
+    with(probationBooking) {
+      probationMeetingType isEqualTo "RR"
+      comments isEqualTo "Amended comments"
+      notesForStaff isEqualTo "Amended staff notes"
+      notesForPrisoners isEqualTo "Amended prisoners notes"
+      amendedBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      amendedTime isCloseTo now()
+    }
+  }
+
+  @Test
+  fun `should amend prison created probation booking created by probation user`() {
+    val probationBooking = VideoBooking.newProbationBooking(
+      probationTeam(code = "TEAM_CODE"),
+      probationMeetingType = "OTHER",
+      comments = "Some prison user comments",
+      createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
+    )
+
+    with(probationBooking) {
+      probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
+      isBookingType(BookingType.PROBATION) isBool true
+      probationMeetingType isEqualTo "OTHER"
+      comments isEqualTo "Some prison user comments"
+      createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      createdTime isCloseTo now()
+      createdByPrison isBool true
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+    }
+
+    probationBooking.amendProbationBooking(
+      probationMeetingType = "RR",
+      comments = "Amended comments",
+      notesForStaff = "Amended staff notes",
+      notesForPrisoners = "Amended prisoners notes",
+      amendedBy = PROBATION_USER,
+    )
+
+    with(probationBooking) {
+      probationMeetingType isEqualTo "RR"
+      comments isEqualTo "Amended comments"
+      notesForStaff isEqualTo "Amended staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+      amendedBy isEqualTo PROBATION_USER.username
+      amendedTime isCloseTo now()
+    }
+  }
+
+  @Test
+  fun `should amend probation created probation booking created by probation user`() {
+    val probationBooking = VideoBooking.newProbationBooking(
+      probationTeam(code = "TEAM_CODE"),
+      probationMeetingType = "OTHER",
+      comments = "Some prison user comments",
+      createdBy = PROBATION_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
+    )
+
+    with(probationBooking) {
+      probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
+      isBookingType(BookingType.PROBATION) isBool true
+      probationMeetingType isEqualTo "OTHER"
+      comments isEqualTo "Some prison user comments"
+      createdBy isEqualTo PROBATION_USER.username
+      createdTime isCloseTo now()
+      createdByPrison isBool false
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo null
+    }
+
+    probationBooking.amendProbationBooking(
+      probationMeetingType = "RR",
+      comments = "Amended comments",
+      notesForStaff = "Amended staff notes",
+      notesForPrisoners = "Amended prisoners notes",
+      amendedBy = PROBATION_USER,
+    )
+
+    with(probationBooking) {
+      probationMeetingType isEqualTo "RR"
+      comments isEqualTo "Amended comments"
+      notesForStaff isEqualTo "Amended staff notes"
+      notesForPrisoners isEqualTo null
+      amendedBy isEqualTo PROBATION_USER.username
+      amendedTime isCloseTo now()
     }
   }
 
@@ -104,6 +424,8 @@ class VideoBookingTest {
       probationMeetingType = "PSR",
       comments = "Some probation user comments",
       createdBy = PROBATION_USER,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Should be ignored for external user",
     )
 
     with(probationBooking) {
@@ -114,6 +436,8 @@ class VideoBookingTest {
       createdBy isEqualTo PROBATION_USER.username
       createdByPrison isBool false
       statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo null
     }
   }
 
@@ -189,6 +513,8 @@ class VideoBookingTest {
         probationMeetingType = "PSR",
         comments = null,
         createdBy = PROBATION_USER,
+        notesForStaff = null,
+        notesForPrisoners = null,
       )
     }.message isEqualTo "Probation team with code READ_ONLY is read only"
   }
@@ -201,6 +527,8 @@ class VideoBookingTest {
         probationMeetingType = "PSR",
         comments = null,
         createdBy = PROBATION_USER,
+        notesForStaff = null,
+        notesForPrisoners = null,
       )
     }
   }
