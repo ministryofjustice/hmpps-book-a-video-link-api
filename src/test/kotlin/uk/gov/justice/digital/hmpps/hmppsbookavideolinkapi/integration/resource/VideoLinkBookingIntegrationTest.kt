@@ -987,7 +987,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val amendBookingRequest = amendCourtBookingRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = PENTONVILLE,
       location = pentonvilleLocation,
@@ -1051,7 +1050,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
     val amendBookingRequest = amendCourtBookingRequest(
-      courtCode = CHESTERFIELD_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -1123,7 +1121,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val videoBookingId = webTestClient.createBooking(courtBookingRequest2, COURT_USER)
 
     val clashingBookingRequest = amendCourtBookingRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -1172,7 +1169,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     locationsInsidePrisonApi().stubPostLocationByKeys(listOf(LocationKeyValue(birminghamLocation.key, locationId)), BIRMINGHAM)
 
     val amendBookingRequest = amendCourtBookingRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
@@ -1242,7 +1238,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val videoBookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
 
     val amendBookingRequest = amendCourtBookingRequest(
-      courtCode = DERBY_JUSTICE_CENTRE,
       prisonerNumber = "123456",
       prisonCode = RISLEY,
       location = risleyLocation,

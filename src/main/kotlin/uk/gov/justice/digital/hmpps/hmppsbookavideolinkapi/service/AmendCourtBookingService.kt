@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Toggles
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -27,6 +28,7 @@ class AmendCourtBookingService(
   private val appointmentsService: AppointmentsService,
   private val bookingHistoryService: BookingHistoryService,
   private val prisonerSearchClient: PrisonerSearchClient,
+  private val toggles: Toggles,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -54,11 +56,11 @@ class AmendCourtBookingService(
 
     return existingBooking.amendCourtBooking(
       hearingType = request.courtHearingType!!.name,
-      comments = request.comments,
+      comments = if (toggles.isMasterPublicAndPrivateNotes()) existingBooking.comments else request.comments,
       videoUrl = request.videoLinkUrl,
       amendedBy = amendedBy,
-      notesForStaff = request.notesForStaff,
-      notesForPrisoners = request.notesForPrisoners,
+      notesForStaff = if (toggles.isMasterPublicAndPrivateNotes()) request.notesForStaff else existingBooking.notesForStaff,
+      notesForPrisoners = if (toggles.isMasterPublicAndPrivateNotes()) request.notesForPrisoners else existingBooking.notesForPrisoners,
     )
       .also { thisBooking -> thisBooking.removeAllAppointments() }
       .also { thisBooking -> appointmentsService.createAppointmentsForCourt(thisBooking, request.prisoner(), amendedBy) }

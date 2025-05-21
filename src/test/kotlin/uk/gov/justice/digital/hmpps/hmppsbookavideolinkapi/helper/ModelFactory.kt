@@ -334,7 +334,6 @@ fun requestProbationVideoLinkRequest(
 }
 
 fun amendCourtBookingRequest(
-  courtCode: String = "DRBYMC",
   prisonCode: String = "WWI",
   prisonerNumber: String = "123456",
   locationSuffix: String = "A-1-001",
