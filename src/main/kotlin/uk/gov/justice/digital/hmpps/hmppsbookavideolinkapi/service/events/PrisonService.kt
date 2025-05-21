@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.Pris
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonerSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Toggles
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NomisMappingService
@@ -16,6 +17,7 @@ class PrisonService(
   private val nomisMappingService: NomisMappingService,
   private val supportedAppointmentTypes: SupportedAppointmentTypes,
   private val prisonerSearchClient: PrisonerSearchClient,
+  private val toggles: Toggles,
 ) {
   private val appointmentsMatcher = AppointmentsMatcher()
 
@@ -34,7 +36,7 @@ class PrisonService(
       appointmentDate = appointment.appointmentDate,
       startTime = appointment.startTime,
       endTime = appointment.endTime,
-      comments = appointment.comments,
+      comments = if (toggles.isMasterPublicAndPrivateNotes()) appointment.notesForPrisoners else appointment.comments,
       appointmentType = supportedAppointmentTypes.typeOf(appointment.bookingType()),
     )
   }

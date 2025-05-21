@@ -68,6 +68,7 @@ generic-service:
     sqs-domain-event-dlq-secret:
       HMPPS_SQS_QUEUES_BVLS_DLQ_NAME: "sqs_queue_name"
     feature-toggles:
+      FEATURE_MASTER_PUBLIC_PRIVATE_NOTES: "FEATURE_MASTER_PUBLIC_PRIVATE_NOTES"
 
   allowlist:
     groups:

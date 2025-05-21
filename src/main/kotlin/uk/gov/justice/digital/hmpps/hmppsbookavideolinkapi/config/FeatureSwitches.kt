@@ -27,6 +27,12 @@ class FeatureSwitches(private val environment: Environment) {
   }
 }
 
+@Component
+class Toggles(private val featureSwitches: FeatureSwitches) {
+  fun isMasterPublicAndPrivateNotes() = featureSwitches.isEnabled(Feature.FEATURE_MASTER_PUBLIC_PRIVATE_NOTES)
+}
+
 enum class Feature(val label: String) {
   FEATURE_PLACEHOLDER("feature.placeholder.example"),
+  FEATURE_MASTER_PUBLIC_PRIVATE_NOTES("feature.master.public-private.notes"),
 }

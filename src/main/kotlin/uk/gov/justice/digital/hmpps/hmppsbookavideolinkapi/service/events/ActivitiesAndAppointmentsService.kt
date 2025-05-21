@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Toggles
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NomisMappingService
@@ -17,6 +18,7 @@ class ActivitiesAndAppointmentsService(
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
   private val nomisMappingService: NomisMappingService,
   private val supportedAppointmentTypes: SupportedAppointmentTypes,
+  private val toggles: Toggles,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -36,7 +38,7 @@ class ActivitiesAndAppointmentsService(
       startTime = appointment.startTime,
       endTime = appointment.endTime,
       internalLocationId = nomisMappingService.getNomisLocationId(appointment.prisonLocationId)!!,
-      comments = appointment.comments,
+      comments = if (toggles.isMasterPublicAndPrivateNotes()) appointment.notesForPrisoners else appointment.comments,
       appointmentType = supportedAppointmentTypes.typeOf(appointment.bookingType()),
     )
   }
@@ -52,7 +54,7 @@ class ActivitiesAndAppointmentsService(
       startTime = appointment.startTime,
       endTime = appointment.endTime,
       internalLocationId = nomisMappingService.getNomisLocationId(appointment.prisonLocationId)!!,
-      comments = appointment.comments,
+      comments = if (toggles.isMasterPublicAndPrivateNotes()) appointment.notesForPrisoners else appointment.comments,
     )
   }
 
