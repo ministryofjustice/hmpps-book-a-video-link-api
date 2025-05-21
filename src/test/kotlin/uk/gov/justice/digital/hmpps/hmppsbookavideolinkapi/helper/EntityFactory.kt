@@ -361,22 +361,24 @@ fun additionalDetails(
   contactPhoneNumber = contactNumber,
 )
 
-fun VideoBooking.hasBookingType(that: BookingType): VideoBooking = also { it.bookingType isEqualTo that }
-fun VideoBooking.hasProbationTeam(that: ProbationTeam): VideoBooking = also { it.probationTeam isEqualTo that }
-fun VideoBooking.hasMeetingType(that: ProbationMeetingType): VideoBooking = also { it.probationMeetingType isEqualTo that.name }
-fun VideoBooking.hasComments(that: String): VideoBooking = also { it.comments isEqualTo that }
-fun VideoBooking.hasVideoUrl(that: String): VideoBooking = also { it.videoUrl isEqualTo that }
-fun VideoBooking.hasCreatedBy(that: User): VideoBooking = also { it.createdBy isEqualTo that.username }
+fun VideoBooking.hasBookingType(that: BookingType) = also { it.bookingType isEqualTo that }
+fun VideoBooking.hasHearingType(that: CourtHearingType) = also { it.hearingType isEqualTo that.name }
+fun VideoBooking.hasProbationTeam(that: ProbationTeam) = also { it.probationTeam isEqualTo that }
+fun VideoBooking.hasMeetingType(that: ProbationMeetingType) = also { it.probationMeetingType isEqualTo that.name }
+fun VideoBooking.hasComments(that: String) = also { it.comments isEqualTo that }
+fun VideoBooking.hasVideoUrl(that: String) = also { it.videoUrl isEqualTo that }
+fun VideoBooking.hasCreatedBy(that: User) = also { it.createdBy isEqualTo that.username }
 fun VideoBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdTime isCloseTo that }
-fun VideoBooking.hasCreatedByPrison(that: Boolean): VideoBooking = also { it.createdByPrison isBool that }
-fun VideoBooking.hasAmendedBy(that: User): VideoBooking = also { it.amendedBy isEqualTo that.username }
+fun VideoBooking.hasCreatedByPrison(that: Boolean) = also { it.createdByPrison isBool that }
+fun VideoBooking.hasAmendedBy(that: User) = also { it.amendedBy isEqualTo that.username }
 fun VideoBooking.hasAmendedTimeCloseTo(that: LocalDateTime) = also { it.amendedTime isCloseTo that }
-fun VideoBooking.hasStaffNotes(that: String): VideoBooking = also { it.notesForStaff isEqualTo that }
-fun VideoBooking.hasPrisonersNotes(that: String?): VideoBooking = also { it.notesForPrisoners isEqualTo that }
+fun VideoBooking.hasStaffNotes(that: String) = also { it.notesForStaff isEqualTo that }
+fun VideoBooking.hasPrisonersNotes(that: String?) = also { it.notesForPrisoners isEqualTo that }
 
 fun PrisonAppointment.hasPrisonCode(that: String): PrisonAppointment = also { it.prisonCode() isEqualTo that }
 fun PrisonAppointment.hasPrisonerNumber(that: String): PrisonAppointment = also { it.prisonerNumber isEqualTo that }
 fun PrisonAppointment.hasAppointmentTypeProbation(): PrisonAppointment = also { it.appointmentType isEqualTo "VLB_PROBATION" }
+fun PrisonAppointment.hasAppointmentTypeMain(): PrisonAppointment = also { it.appointmentType isEqualTo "VLB_COURT_MAIN" }
 fun PrisonAppointment.hasAppointmentDate(that: LocalDate): PrisonAppointment = also { it.appointmentDate isEqualTo that }
 fun PrisonAppointment.hasStartTime(that: LocalTime): PrisonAppointment = also { it.startTime isEqualTo that }
 fun PrisonAppointment.hasEndTime(that: LocalTime): PrisonAppointment = also { it.endTime isEqualTo that }
