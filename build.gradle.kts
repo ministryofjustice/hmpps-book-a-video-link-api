@@ -5,10 +5,10 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.1.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.2.0"
   id("org.openapi.generator") version "7.13.0"
-  kotlin("plugin.spring") version "2.1.20"
-  kotlin("plugin.jpa") version "2.1.20"
+  kotlin("plugin.spring") version "2.1.21"
+  kotlin("plugin.jpa") version "2.1.21"
 }
 
 allOpen {
@@ -28,7 +28,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.4.3")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.4.5")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.4")
 
   // CSV dependencies
@@ -39,7 +39,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.7.5")
 
   // OpenAPI
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
 
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
@@ -51,9 +51,9 @@ dependencies {
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
-  testImplementation("net.javacrumbs.json-unit:json-unit:4.1.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-json-path:4.1.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit:4.1.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit-json-path:4.1.1")
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -61,7 +61,7 @@ dependencies {
   testImplementation("org.testcontainers:localstack:1.21.0")
   testImplementation("org.testcontainers:postgresql:1.21.0")
   testImplementation("org.wiremock:wiremock-standalone:3.13.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.26") {
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.28") {
     exclude(group = "io.swagger.core.v3")
   }
 }
