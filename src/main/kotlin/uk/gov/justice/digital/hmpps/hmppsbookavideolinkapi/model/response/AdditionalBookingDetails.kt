@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
+import dev.zacsweers.redacted.annotations.Redacted
 import io.swagger.v3.oas.annotations.media.Schema
 
+@Redacted
 data class AdditionalBookingDetails(
   @Schema(description = "The name of the contact")
   val contactName: String,

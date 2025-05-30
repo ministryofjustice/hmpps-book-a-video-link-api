@@ -216,8 +216,9 @@ fun requestCourtVideoLinkRequest(
   dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
-  comments: String = "court booking comments",
+  comments: String? = null,
   appointments: List<RequestedAppointment> = emptyList(),
+  notesForStaff: String? = null,
 ): RequestVideoBookingRequest {
   val prisoner = UnknownPrisonerDetails(
     prisonCode = prisonCode,
@@ -243,6 +244,7 @@ fun requestCourtVideoLinkRequest(
     prisoners = listOf(prisoner),
     comments = comments,
     videoLinkUrl = "https://video.link.com",
+    notesForStaff = notesForStaff,
   )
 }
 
@@ -298,8 +300,9 @@ fun requestProbationVideoLinkRequest(
   dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
-  comments: String = "probation booking comments",
+  comments: String? = null,
   appointments: List<RequestedAppointment> = emptyList(),
+  notesForStaff: String? = null,
 ): RequestVideoBookingRequest {
   val prisoner = UnknownPrisonerDetails(
     prisonCode = prisonCode,
@@ -330,6 +333,7 @@ fun requestProbationVideoLinkRequest(
       contactEmail = "probation.officer@email.address",
       contactNumber = "123456",
     ),
+    notesForStaff = notesForStaff,
   )
 }
 

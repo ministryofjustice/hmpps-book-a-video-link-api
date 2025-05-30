@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
+import dev.zacsweers.redacted.annotations.Redacted
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.GroupSequence
 import jakarta.validation.Valid
@@ -41,10 +42,12 @@ data class RequestVideoBookingRequest(
 
   @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
   @Schema(description = "Free text comments for the video link booking", example = "Waiting to hear on legal representation")
+  @Redacted
   val comments: String?,
 
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
   @Schema(description = "The video link for the appointment.", example = "https://video.here.com")
+  @Redacted
   val videoLinkUrl: String?,
 
   @Schema(
@@ -55,6 +58,14 @@ data class RequestVideoBookingRequest(
   )
   @field:Valid
   val additionalBookingDetails: AdditionalBookingDetails? = null,
+
+  @field:Size(max = 400, message = "Notes for staff for the video link booking cannot not exceed {max} characters")
+  @Schema(
+    description = "Private free text notes for the booking.",
+    example = "Some notes that will not be visible outside of the service",
+  )
+  @Redacted
+  val notesForStaff: String?,
 ) {
 
   @JsonIgnore

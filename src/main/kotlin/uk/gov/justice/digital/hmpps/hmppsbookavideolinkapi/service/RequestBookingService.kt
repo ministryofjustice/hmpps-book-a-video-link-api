@@ -183,7 +183,7 @@ class RequestBookingService(
     preAppointmentInfo = pre?.appointmentInformation(),
     mainAppointmentInfo = main.appointmentInformation(),
     postAppointmentInfo = post?.appointmentInformation(),
-    comments = request.comments,
+    comments = request.staffNotesOrComments(),
     courtHearingLink = request.videoLinkUrl,
   )
 
@@ -213,7 +213,7 @@ class RequestBookingService(
         preAppointmentInfo = pre?.appointmentInformation(),
         mainAppointmentInfo = main.appointmentInformation(),
         postAppointmentInfo = post?.appointmentInformation(),
-        comments = request.comments,
+        comments = request.staffNotesOrComments(),
         courtHearingLink = request.videoLinkUrl,
       )
     } else {
@@ -229,7 +229,7 @@ class RequestBookingService(
         preAppointmentInfo = pre?.appointmentInformation(),
         mainAppointmentInfo = main.appointmentInformation(),
         postAppointmentInfo = post?.appointmentInformation(),
-        comments = request.comments,
+        comments = request.staffNotesOrComments(),
         courtHearingLink = request.videoLinkUrl,
       )
     }
@@ -253,7 +253,7 @@ class RequestBookingService(
     date = appointment.date!!,
     meetingType = meetingType.description,
     appointmentInfo = appointment.appointmentInformation(),
-    comments = request.comments,
+    comments = request.staffNotesOrComments(),
     probationOfficerName = request.additionalBookingDetails?.contactName,
     probationOfficerEmailAddress = request.additionalBookingDetails?.contactEmail,
     probationOfficerContactNumber = request.additionalBookingDetails?.contactNumber,
@@ -281,7 +281,7 @@ class RequestBookingService(
         date = appointment.date!!,
         meetingType = meetingType.description,
         appointmentInfo = appointment.appointmentInformation(),
-        comments = request.comments,
+        comments = request.staffNotesOrComments(),
         probationOfficerName = request.additionalBookingDetails?.contactName,
         probationOfficerEmailAddress = request.additionalBookingDetails?.contactEmail,
         probationOfficerContactNumber = request.additionalBookingDetails?.contactNumber,
@@ -297,7 +297,7 @@ class RequestBookingService(
         date = appointment.date!!,
         meetingType = meetingType.description,
         appointmentInfo = appointment.appointmentInformation(),
-        comments = request.comments,
+        comments = request.staffNotesOrComments(),
         probationOfficerName = request.additionalBookingDetails?.contactName,
         probationOfficerEmailAddress = request.additionalBookingDetails?.contactEmail,
         probationOfficerContactNumber = request.additionalBookingDetails?.contactNumber,
@@ -323,4 +323,6 @@ class RequestBookingService(
 
   // We will only be requesting appointments for one single prisoner as part of the initial rollout.
   private fun RequestVideoBookingRequest.prisoner() = prisoners.first()
+
+  private fun RequestVideoBookingRequest.staffNotesOrComments() = notesForStaff ?: comments
 }
