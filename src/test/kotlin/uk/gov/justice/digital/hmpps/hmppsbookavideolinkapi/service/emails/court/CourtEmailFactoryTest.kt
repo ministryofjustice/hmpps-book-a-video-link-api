@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntry
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
@@ -48,7 +49,7 @@ class CourtEmailFactoryTest {
     lastName = "Bloggs",
   )
 
-  private val courtBooking = courtBooking()
+  private val courtBookingWithComments = courtBooking(comments = "Court hearing comments")
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
@@ -59,7 +60,18 @@ class CourtEmailFactoryTest {
       locationId = wandsworthLocation.id,
     )
 
-  private val probationBooking = probationBooking()
+  private val courtBookingWithStaffNotes = courtBooking(notesForStaff = "Court hearing staff notes")
+    .addAppointment(
+      prison = prison(prisonCode = BIRMINGHAM),
+      prisonerNumber = "123456",
+      appointmentType = "VLB_COURT_MAIN",
+      date = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      locationId = wandsworthLocation.id,
+    )
+
+  private val probationBookingWithComments = probationBooking(comments = "Probation meeting comments")
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
@@ -100,20 +112,42 @@ class CourtEmailFactoryTest {
 
   @ParameterizedTest
   @MethodSource("supportedUserBookingActions")
-  fun `should return user emails for supported user based actions`(action: BookingAction) {
+  fun `should return user emails for supported user based actions using comments`(action: BookingAction) {
     val email = CourtEmailFactory.user(
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL) courtBooking.cancel(COURT_USER) else courtBooking,
+      booking = if (action == BookingAction.CANCEL) courtBookingWithComments.cancel(COURT_USER) else courtBookingWithComments,
       prison = prison,
       pre = null,
-      main = courtBooking.appointments().single(),
+      main = courtBookingWithComments.appointments().single(),
       post = null,
       locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
     )
 
     email isInstanceOf userEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Court hearing comments")
+  }
+
+  @ParameterizedTest
+  @MethodSource("supportedUserBookingActions")
+  fun `should return user emails for supported user based actions using staff notes`(action: BookingAction) {
+    val email = CourtEmailFactory.user(
+      action = action,
+      contact = userBookingContact,
+      prisoner = prisoner,
+      booking = if (action == BookingAction.CANCEL) courtBookingWithStaffNotes.cancel(COURT_USER) else courtBookingWithStaffNotes,
+      prison = prison,
+      pre = null,
+      main = courtBookingWithComments.appointments().single(),
+      post = null,
+      locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
+    )
+
+    email isInstanceOf userEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Court hearing staff notes")
   }
 
   @ParameterizedTest
@@ -123,10 +157,10 @@ class CourtEmailFactoryTest {
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
-      booking = courtBooking,
+      booking = courtBookingWithComments,
       prison = prison,
       pre = null,
-      main = courtBooking.appointments().single(),
+      main = courtBookingWithComments.appointments().single(),
       post = null,
       locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
     )
@@ -141,10 +175,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = prisonBookingContact,
         prisoner = prisoner,
-        booking = courtBooking,
+        booking = courtBookingWithComments,
         prison = prison,
         pre = null,
-        main = courtBooking.appointments().single(),
+        main = courtBookingWithComments.appointments().single(),
         post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
       )
@@ -160,10 +194,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
-        booking = probationBooking,
+        booking = probationBookingWithComments,
         prison = prison,
         pre = null,
-        main = probationBooking.appointments().single(),
+        main = probationBookingWithComments.appointments().single(),
         post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
       )
@@ -174,20 +208,42 @@ class CourtEmailFactoryTest {
 
   @ParameterizedTest
   @MethodSource("supportedCourtBookingActions")
-  fun `should return court emails for supported court based actions`(action: BookingAction) {
+  fun `should return court emails for supported court based actions with comments`(action: BookingAction) {
     val email = CourtEmailFactory.court(
       action = action,
       contact = courtBookingContact,
       prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) courtBooking.apply { cancel(COURT_USER) } else courtBooking,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) courtBookingWithComments.apply { cancel(COURT_USER) } else courtBookingWithComments,
       prison = prison,
       pre = null,
-      main = courtBooking.appointments().single(),
+      main = courtBookingWithComments.appointments().single(),
       post = null,
       locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
     )
 
     email isInstanceOf courtEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Court hearing comments")
+  }
+
+  @ParameterizedTest
+  @MethodSource("supportedCourtBookingActions")
+  fun `should return court emails for supported court based actions with staff notes`(action: BookingAction) {
+    val email = CourtEmailFactory.court(
+      action = action,
+      contact = courtBookingContact,
+      prisoner = prisoner,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) courtBookingWithStaffNotes.apply { cancel(COURT_USER) } else courtBookingWithStaffNotes,
+      prison = prison,
+      pre = null,
+      main = courtBookingWithComments.appointments().single(),
+      post = null,
+      locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
+    )
+
+    email isInstanceOf courtEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Court hearing staff notes")
   }
 
   @Test
@@ -197,10 +253,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
-        booking = courtBooking,
+        booking = courtBookingWithComments,
         prison = prison,
         pre = null,
-        main = courtBooking.appointments().single(),
+        main = courtBookingWithComments.appointments().single(),
         post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
       )
@@ -216,10 +272,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
-        booking = probationBooking,
+        booking = probationBookingWithComments,
         prison = prison,
         pre = null,
-        main = probationBooking.appointments().single(),
+        main = probationBookingWithComments.appointments().single(),
         post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
       )
@@ -235,10 +291,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
-        booking = courtBooking,
+        booking = courtBookingWithComments,
         prison = prison,
         pre = null,
-        main = courtBooking.appointments().single(),
+        main = courtBookingWithComments.appointments().single(),
         post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),
@@ -255,10 +311,10 @@ class CourtEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
-        booking = probationBooking,
+        booking = probationBookingWithComments,
         prison = prison,
         pre = null,
-        main = probationBooking.appointments().single(),
+        main = probationBookingWithComments.appointments().single(),
         post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),

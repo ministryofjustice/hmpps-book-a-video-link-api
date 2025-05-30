@@ -17,6 +17,10 @@ internal inline infix fun <reified K, V> Map<K, V>.containsEntriesExactlyInAnyOr
   assertThat(this).containsExactlyInAnyOrderEntriesOf(value)
 }
 
+internal inline infix fun <reified K, V> Map<K, V>.containsEntry(entry: Pair<K, V>) {
+  assertThat(this).containsEntry(entry.first, entry.second)
+}
+
 internal infix fun <T> Collection<T>.hasSize(size: Int) {
   assertThat(this).hasSize(size)
 }

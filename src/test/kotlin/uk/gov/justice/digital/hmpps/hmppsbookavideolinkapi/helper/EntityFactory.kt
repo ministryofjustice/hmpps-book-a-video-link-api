@@ -73,14 +73,16 @@ fun courtBooking(
   createdByPrison: Boolean = false,
   court: Court = court(),
   comments: String? = "Court hearing comments",
+  notesForStaff: String? = null,
+  notesForPrisoners: String? = null,
 ) = VideoBooking.newCourtBooking(
   court = court,
   hearingType = "TRIBUNAL",
   comments = comments,
   videoUrl = "https://court.hearing.link",
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
-  notesForStaff = "Some private staff notes",
-  notesForPrisoners = "Some public prisoners notes",
+  notesForStaff = notesForStaff,
+  notesForPrisoners = notesForPrisoners,
 )
 
 fun bookingHistory(historyType: HistoryType, booking: VideoBooking, comments: String? = "history comments") = BookingHistory(
@@ -186,13 +188,20 @@ fun VideoBooking.withPreMainPostCourtPrisonAppointment(
   )
 }
 
-fun probationBooking(probationTeam: ProbationTeam = probationTeam(), meetingType: ProbationMeetingType = ProbationMeetingType.PSR, createdBy: User? = null, comments: String? = "Probation meeting comments") = VideoBooking.newProbationBooking(
+fun probationBooking(
+  probationTeam: ProbationTeam = probationTeam(),
+  meetingType: ProbationMeetingType = ProbationMeetingType.PSR,
+  createdBy: User? = null,
+  comments: String? = "Probation meeting comments",
+  notesForStaff: String? = null,
+  notesForPrisoners: String? = null,
+) = VideoBooking.newProbationBooking(
   probationTeam = probationTeam,
   probationMeetingType = meetingType.name,
   comments = comments,
   createdBy = createdBy ?: PROBATION_USER,
-  notesForStaff = "Some private staff notes",
-  notesForPrisoners = "Some public prisoners notes",
+  notesForStaff = notesForStaff,
+  notesForPrisoners = notesForPrisoners,
 )
 
 /**
@@ -372,7 +381,7 @@ fun VideoBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdT
 fun VideoBooking.hasCreatedByPrison(that: Boolean) = also { it.createdByPrison isBool that }
 fun VideoBooking.hasAmendedBy(that: User) = also { it.amendedBy isEqualTo that.username }
 fun VideoBooking.hasAmendedTimeCloseTo(that: LocalDateTime) = also { it.amendedTime isCloseTo that }
-fun VideoBooking.hasStaffNotes(that: String) = also { it.notesForStaff isEqualTo that }
+fun VideoBooking.hasStaffNotes(that: String?) = also { it.notesForStaff isEqualTo that }
 fun VideoBooking.hasPrisonersNotes(that: String?) = also { it.notesForPrisoners isEqualTo that }
 
 fun PrisonAppointment.hasPrisonCode(that: String): PrisonAppointment = also { it.prisonCode() isEqualTo that }

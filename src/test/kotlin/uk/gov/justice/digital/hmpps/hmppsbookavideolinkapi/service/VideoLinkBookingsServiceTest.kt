@@ -139,7 +139,7 @@ class VideoLinkBookingsServiceTest {
         comments isEqualTo "Court hearing comments"
         videoLinkUrl isEqualTo "https://court.hearing.link"
         additionalBookingDetails isEqualTo AdditionalBookingDetails("court contact", "court@email.com", "0114 2345678")
-        notesForStaff isEqualTo "Some private staff notes"
+        notesForStaff isEqualTo null
         notesForPrisoners isEqualTo null
 
         // Should be null for a court booking

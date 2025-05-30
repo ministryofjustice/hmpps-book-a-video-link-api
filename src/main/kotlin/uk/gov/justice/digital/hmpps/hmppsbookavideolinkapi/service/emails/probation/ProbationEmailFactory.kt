@@ -39,7 +39,7 @@ object ProbationEmailFactory {
         probationTeam = booking.probationTeam!!.description,
         appointmentDate = appointment.appointmentDate,
         appointmentInfo = appointment.appointmentInformation(location),
-        comments = booking.comments,
+        comments = booking.staffNotesOrElseComments(),
         prisonerFirstName = prisoner.firstName,
         prisonerLastName = prisoner.lastName,
         prison = prison.name,
@@ -56,7 +56,7 @@ object ProbationEmailFactory {
         probationTeam = booking.probationTeam!!.description,
         appointmentDate = appointment.appointmentDate,
         appointmentInfo = appointment.appointmentInformation(location),
-        comments = booking.comments,
+        comments = booking.staffNotesOrElseComments(),
         prisonerFirstName = prisoner.firstName,
         prisonerLastName = prisoner.lastName,
         prison = prison.name,
@@ -83,7 +83,7 @@ object ProbationEmailFactory {
           probationOfficerName = additionalBookingDetail?.contactName,
           probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
           probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          comments = booking.comments,
+          comments = booking.staffNotesOrElseComments(),
         )
       }
 
@@ -114,7 +114,7 @@ object ProbationEmailFactory {
         probationTeam = booking.probationTeam!!.description,
         appointmentDate = appointment.appointmentDate,
         appointmentInfo = appointment.appointmentInformation(location),
-        comments = booking.comments,
+        comments = booking.staffNotesOrElseComments(),
         prisonerFirstName = prisoner.firstName,
         prisonerLastName = prisoner.lastName,
         prison = prison.name,
@@ -131,7 +131,7 @@ object ProbationEmailFactory {
         prisonerLastName = prisoner.lastName,
         appointmentDate = appointment.appointmentDate,
         probationTeam = booking.probationTeam!!.description,
-        comments = booking.comments,
+        comments = booking.staffNotesOrElseComments(),
         appointmentInfo = appointment.appointmentInformation(location),
         prison = prison.name,
         prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
@@ -156,7 +156,7 @@ object ProbationEmailFactory {
           probationOfficerName = additionalBookingDetail?.contactName,
           probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
           probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          comments = booking.comments,
+          comments = booking.staffNotesOrElseComments(),
         )
       }
 
@@ -177,7 +177,7 @@ object ProbationEmailFactory {
           probationOfficerName = additionalBookingDetail?.contactName,
           probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
           probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          comments = booking.comments,
+          comments = booking.staffNotesOrElseComments(),
         )
       }
 
@@ -198,7 +198,7 @@ object ProbationEmailFactory {
           probationOfficerName = additionalBookingDetail?.contactName,
           probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
           probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          comments = booking.comments,
+          comments = booking.staffNotesOrElseComments(),
         )
       }
 
@@ -214,7 +214,7 @@ object ProbationEmailFactory {
           prison = prison.name,
           appointmentInfo = appointment.appointmentInformation(location),
           prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-          comments = booking.comments,
+          comments = booking.staffNotesOrElseComments(),
           bookingId = booking.videoBookingId.toString(),
         )
       }
@@ -251,7 +251,7 @@ object ProbationEmailFactory {
             probationTeam = booking.probationTeam!!.description,
             appointmentDate = appointment.appointmentDate,
             appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
@@ -268,7 +268,7 @@ object ProbationEmailFactory {
             probationTeam = booking.probationTeam!!.description,
             appointmentDate = appointment.appointmentDate,
             appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
@@ -288,7 +288,7 @@ object ProbationEmailFactory {
             probationTeam = booking.probationTeam!!.description,
             appointmentDate = appointment.appointmentDate,
             appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
@@ -305,7 +305,7 @@ object ProbationEmailFactory {
             probationTeam = booking.probationTeam!!.description,
             appointmentDate = appointment.appointmentDate,
             appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
@@ -327,7 +327,7 @@ object ProbationEmailFactory {
             probationTeam = booking.probationTeam!!.description,
             appointmentDate = appointment.appointmentDate,
             appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
@@ -344,7 +344,7 @@ object ProbationEmailFactory {
             probationTeam = booking.probationTeam!!.description,
             appointmentDate = appointment.appointmentDate,
             appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
             prisonerFirstName = prisoner.firstName,
             prisonerLastName = prisoner.lastName,
             prison = prison.name,
@@ -375,7 +375,7 @@ object ProbationEmailFactory {
             probationOfficerName = additionalBookingDetail?.contactName,
             probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
             probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
           )
         } else {
           ReleasedProbationBookingPrisonNoProbationEmail(
@@ -392,7 +392,7 @@ object ProbationEmailFactory {
             probationOfficerName = additionalBookingDetail?.contactName,
             probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
             probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
           )
         }
       }
@@ -416,7 +416,7 @@ object ProbationEmailFactory {
             probationOfficerName = additionalBookingDetail?.contactName,
             probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
             probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
           )
         } else {
           TransferredProbationBookingPrisonNoProbationEmail(
@@ -433,7 +433,7 @@ object ProbationEmailFactory {
             probationOfficerName = additionalBookingDetail?.contactName,
             probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
             probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-            comments = booking.comments,
+            comments = booking.staffNotesOrElseComments(),
           )
         }
       }
@@ -453,4 +453,6 @@ object ProbationEmailFactory {
   private fun PrisonAppointment.appointmentInformation(location: Location) = "${location.description} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Collection<BookingContact>.primaryProbationContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
+
+  private fun VideoBooking.staffNotesOrElseComments() = notesForStaff ?: comments
 }
