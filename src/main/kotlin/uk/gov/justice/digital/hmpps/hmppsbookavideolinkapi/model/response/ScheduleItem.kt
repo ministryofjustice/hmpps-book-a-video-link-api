@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import dev.zacsweers.redacted.annotations.Redacted
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -29,6 +30,7 @@ data class ScheduleItem(
   val videoUrl: String?,
 
   @Schema(description = "The comments provided for the booking", example = "Free text comment")
+  @Redacted
   val bookingComments: String?,
 
   @Schema(description = "True if the booking was made by a prison user", allowableValues = ["true", "false"], example = "false")
@@ -80,6 +82,7 @@ data class ScheduleItem(
   val appointmentTypeDescription: String?,
 
   @Schema(description = "The appointment comments", example = "This is a free text comment")
+  @Redacted
   val appointmentComments: String?,
 
   @Schema(
@@ -128,4 +131,16 @@ data class ScheduleItem(
 
   @Schema(description = "The email address of the probation officer if this is a probation booking and present", example = "jane.doe@somewhere.com")
   val probationOfficerEmailAddress: String? = null,
+
+  @Schema(
+    description = "Private free text notes for the booking.",
+    example = "Legal representation details ...",
+  )
+  val notesForStaff: String?,
+
+  @Schema(
+    description = "Public free text notes for the booking.",
+    example = "Please arrive 10 minutes early",
+  )
+  val notesForPrisoners: String?,
 )

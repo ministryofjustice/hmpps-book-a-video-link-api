@@ -89,12 +89,13 @@ class RequestBookingServiceTest {
   }
 
   @Test
-  fun `should send emails to the requester and to the prison on a court booking request`() {
+  fun `should send emails with comments to the requester and to the prison on a court booking request`() {
     val bookingRequest = requestCourtVideoLinkRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
       prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
+      comments = "court booking comments",
     )
 
     val notificationId = UUID.randomUUID()
@@ -144,6 +145,81 @@ class RequestBookingServiceTest {
         "mainAppointmentInfo" to "11:00 to 11:30",
         "postAppointmentInfo" to "Not required",
         "comments" to "court booking comments",
+        "courtHearingLink" to "https://video.link.com",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 2
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@somewhere.com"
+      templateName isEqualTo "court template id"
+      govNotifyNotificationId isEqualTo notificationId
+    }
+    with(notificationCaptor.secondValue) {
+      email isEqualTo "jon@prison.com"
+      templateName isEqualTo "prison template id"
+      govNotifyNotificationId isEqualTo notificationId
+    }
+  }
+
+  @Test
+  fun `should send emails with notes for staff to the requester and to the prison on a court booking request`() {
+    val bookingRequest = requestCourtVideoLinkRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonCode = WANDSWORTH,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      comments = "court booking comments",
+      notesForStaff = "court notes for staff",
+    )
+
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(any<CourtBookingRequestUserEmail>())) doReturn Result.success(notificationId to "court template id")
+    whenever(emailService.send(any<CourtBookingRequestPrisonNoCourtEmail>())) doReturn Result.success(notificationId to "prison template id")
+
+    service.request(bookingRequest, courtUser("court user"))
+
+    inOrder(emailService, notificationRepository) {
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
+
+    emailCaptor.allValues hasSize 2
+    with(emailCaptor.firstValue) {
+      this isInstanceOf CourtBookingRequestUserEmail::class.java
+      address isEqualTo "jon@somewhere.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "userName" to "Jon",
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Wandsworth",
+        "prisonerName" to "John Smith",
+        "dateOfBirth" to "1 Jan 1970",
+        "date" to tomorrow().toMediumFormatStyle(),
+        "hearingType" to "Tribunal",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "court notes for staff",
+        "courtHearingLink" to "https://video.link.com",
+      )
+    }
+    with(emailCaptor.secondValue) {
+      this isInstanceOf CourtBookingRequestPrisonNoCourtEmail::class.java
+      address isEqualTo "jon@prison.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "court" to DERBY_JUSTICE_CENTRE,
+        "prison" to "Wandsworth",
+        "prisonerName" to "John Smith",
+        "dateOfBirth" to "1 Jan 1970",
+        "date" to tomorrow().toMediumFormatStyle(),
+        "hearingType" to "Tribunal",
+        "preAppointmentInfo" to "Not required",
+        "mainAppointmentInfo" to "11:00 to 11:30",
+        "postAppointmentInfo" to "Not required",
+        "comments" to "court notes for staff",
         "courtHearingLink" to "https://video.link.com",
       )
     }
@@ -252,12 +328,13 @@ class RequestBookingServiceTest {
   }
 
   @Test
-  fun `should send emails to the requester and to the prison on a probation booking request`() {
+  fun `should send emails with comments to the requester and to the prison on a probation booking request`() {
     val bookingRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
+      comments = "probation booking comments",
     )
 
     val notificationId = UUID.randomUUID()
@@ -305,6 +382,81 @@ class RequestBookingServiceTest {
         "meetingType" to "Pre-sentence report",
         "appointmentInfo" to "11:00 to 11:30",
         "comments" to "probation booking comments",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      )
+    }
+
+    notificationCaptor.allValues hasSize 2
+    with(notificationCaptor.firstValue) {
+      email isEqualTo "jon@somewhere.com"
+      templateName isEqualTo "probation template id"
+      govNotifyNotificationId isEqualTo notificationId
+    }
+    with(notificationCaptor.secondValue) {
+      email isEqualTo "jon@prison.com"
+      templateName isEqualTo "prison template id"
+      govNotifyNotificationId isEqualTo notificationId
+    }
+  }
+
+  @Test
+  fun `should send emails with notes for staff to the requester and to the prison on a probation booking request`() {
+    val bookingRequest = requestProbationVideoLinkRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonCode = WANDSWORTH,
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      comments = "probation booking comments",
+      notesForStaff = "probation notes for staff",
+    )
+
+    val notificationId = UUID.randomUUID()
+
+    whenever(emailService.send(any<ProbationBookingRequestUserEmail>())) doReturn Result.success(notificationId to "probation template id")
+    whenever(emailService.send(any<ProbationBookingRequestPrisonNoProbationTeamEmail>())) doReturn Result.success(notificationId to "prison template id")
+
+    service.request(bookingRequest, probationUser("probation user"))
+
+    inOrder(emailService, notificationRepository) {
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      verify(emailService).send(emailCaptor.capture())
+      verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+    }
+
+    emailCaptor.allValues hasSize 2
+    with(emailCaptor.firstValue) {
+      this isInstanceOf ProbationBookingRequestUserEmail::class.java
+      address isEqualTo "jon@somewhere.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "userName" to "Jon",
+        "probationTeam" to "probation team description",
+        "prison" to "Wandsworth",
+        "prisonerName" to "John Smith",
+        "dateOfBirth" to "1 Jan 1970",
+        "date" to tomorrow().toMediumFormatStyle(),
+        "meetingType" to "Pre-sentence report",
+        "appointmentInfo" to "11:00 to 11:30",
+        "comments" to "probation notes for staff",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+      )
+    }
+    with(emailCaptor.secondValue) {
+      this isInstanceOf ProbationBookingRequestPrisonNoProbationTeamEmail::class.java
+      address isEqualTo "jon@prison.com"
+      personalisation() containsEntriesExactlyInAnyOrder mapOf(
+        "probationTeam" to "probation team description",
+        "prison" to "Wandsworth",
+        "prisonerName" to "John Smith",
+        "dateOfBirth" to "1 Jan 1970",
+        "date" to tomorrow().toMediumFormatStyle(),
+        "meetingType" to "Pre-sentence report",
+        "appointmentInfo" to "11:00 to 11:30",
+        "comments" to "probation notes for staff",
         "probationOfficerName" to "probation officer name",
         "probationOfficerEmailAddress" to "probation.officer@email.address",
         "probationOfficerContactNumber" to "123456",

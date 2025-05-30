@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
+import dev.zacsweers.redacted.annotations.Redacted
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -69,15 +70,17 @@ data class VideoLinkBooking(
   val additionalBookingDetails: AdditionalBookingDetails? = null,
 
   @Schema(
-    description = "Private free text notes for the booking. These notes are are only visible to external users.",
+    description = "Private free text notes for the booking.",
     example = "Legal representation details ...",
   )
+  @Redacted
   val notesForStaff: String?,
 
   @Schema(
     description = "Public free text notes for the booking. These notes are visible outside of the service, care should be taken what is entered.",
-    example = "Waiting to hear on legal representation ...",
+    example = "Please arrive 10 minutes early",
   )
+  @Redacted
   val notesForPrisoners: String?,
 )
 

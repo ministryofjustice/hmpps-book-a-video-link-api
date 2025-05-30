@@ -33,7 +33,9 @@ select
     vlb.created_by,
     vlb.amended_by as updated_by,
     abd.contact_name as probation_officer_name,
-    abd.contact_email as probation_officer_email_address
+    abd.contact_email as probation_officer_email_address,
+    vlb.notes_for_staff,
+    vlb.notes_for_prisoners
 from video_booking vlb
   left join court c on c.court_id = vlb.court_id
   left join probation_team pt on pt.probation_team_id = vlb.probation_team_id

@@ -63,9 +63,9 @@ class ScheduleServiceTest {
     prisonerNumber = "A1234AA",
     appointmentType = appointmentType.name,
     appointmentTypeDescription = "Court main hearing",
-    appointmentComments = null,
+    appointmentComments = "appointment comments",
     prisonLocationId = pentonvilleLocation.id,
-    bookingComments = null,
+    bookingComments = "booking comments",
     videoUrl = "http://video.url",
     appointmentDate = date,
     startTime = start,
@@ -76,6 +76,8 @@ class ScheduleServiceTest {
     updatedBy = "AMENDER",
     probationOfficerName = null,
     probationOfficerEmailAddress = null,
+    notesForPrisoners = "notes for prisoners",
+    notesForStaff = "notes for staff",
   )
 
   private fun probationItem(
@@ -106,9 +108,9 @@ class ScheduleServiceTest {
     prisonerNumber = "A1234AA",
     appointmentType = AppointmentType.VLB_PROBATION.name,
     appointmentTypeDescription = null,
-    appointmentComments = null,
+    appointmentComments = "appointment comments",
     prisonLocationId = pentonvilleLocation.id,
-    bookingComments = null,
+    bookingComments = "booking comments",
     videoUrl = "http://video.url",
     appointmentDate = date,
     startTime = start,
@@ -119,6 +121,8 @@ class ScheduleServiceTest {
     updatedBy = "AMENDER",
     probationOfficerName = "Jane Doe",
     probationOfficerEmailAddress = "jane@doe.com",
+    notesForPrisoners = "notes for prisoners",
+    notesForStaff = "notes for staff",
   )
 
   private val eight = LocalTime.of(8, 0)
@@ -198,6 +202,10 @@ class ScheduleServiceTest {
       assertThat(item.createdBy).isEqualTo("CREATOR")
       assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
       assertThat(item.updatedBy).isEqualTo("AMENDER")
+      assertThat(item.bookingComments).isEqualTo("booking comments")
+      assertThat(item.appointmentComments).isEqualTo("appointment comments")
+      assertThat(item.notesForStaff).isEqualTo("notes for staff")
+      assertThat(item.notesForPrisoners).isEqualTo("notes for prisoners")
     }
   }
 
@@ -220,6 +228,9 @@ class ScheduleServiceTest {
       assertThat(item.updatedBy).isEqualTo("AMENDER")
       assertThat(item.probationOfficerName).isEqualTo("Jane Doe")
       assertThat(item.probationOfficerEmailAddress).isEqualTo("jane@doe.com")
+      assertThat(item.appointmentComments).isEqualTo("appointment comments")
+      assertThat(item.notesForStaff).isEqualTo("notes for staff")
+      assertThat(item.notesForPrisoners).isEqualTo("notes for prisoners")
     }
   }
 
@@ -232,6 +243,8 @@ class ScheduleServiceTest {
     assertThat(response).extracting("probationTeamCode").containsOnly(probationTeamCode, null)
     assertThat(response).extracting("dpsLocationId").containsOnly(pentonvilleLocation.id)
     assertThat(response).extracting("prisonLocDesc").containsOnly(pentonvilleLocation.localName)
+    assertThat(response).extracting("notesForStaff").containsOnly("notes for staff")
+    assertThat(response).extracting("notesForPrisoners").containsOnly("notes for prisoners")
   }
 
   @Test

@@ -59,14 +59,14 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
   fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long): List<PrisonerSchedule> = if (locationIds.isNotEmpty()) {
     log.info("PRISON-API CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
     getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
-      .also { log.info("PRISON-API CLIENT: matches pre-location filter: ${it.map { ps -> ps.obfuscated() }}") }
+      .also { log.info("PRISON-API CLIENT: matches pre-location filter: ${it.map { ps -> ps.redacted() }}") }
       .filter { it.locationId in locationIds }
-      .also { log.info("PRISON-API CLIENT matches post-location filter: ${it.map { ps -> ps.obfuscated() }}") }
+      .also { log.info("PRISON-API CLIENT matches post-location filter: ${it.map { ps -> ps.redacted() }}") }
   } else {
     emptyList()
   }
 
-  private fun PrisonerSchedule.obfuscated() = copy(firstName = "XXX", lastName = "XXX")
+  private fun PrisonerSchedule.redacted() = copy(firstName = "xxxx", lastName = "xxxx")
 
   private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<PrisonerSchedule> = prisonApiWebClient
     .post()

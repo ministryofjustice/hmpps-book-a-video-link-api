@@ -9,6 +9,7 @@ plugins {
   id("org.openapi.generator") version "7.13.0"
   kotlin("plugin.spring") version "2.1.21"
   kotlin("plugin.jpa") version "2.1.21"
+  id("dev.zacsweers.redacted") version "1.13.0"
 }
 
 allOpen {
@@ -23,6 +24,10 @@ configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
 }
 
+redacted {
+  replacementString = "xxxxx"
+}
+
 dependencies {
   // Spring boot dependencies
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -32,7 +37,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.4")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.9.0")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.19.0")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
