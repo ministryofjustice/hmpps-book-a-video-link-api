@@ -610,7 +610,7 @@ class AmendCourtBookingServiceTest {
         .hasHearingType(amendCourtBookingRequest.courtHearingType!!)
         .hasVideoUrl(amendCourtBookingRequest.videoLinkUrl!!)
         .hasComments("amend comments")
-        .hasStaffNotes("Some private staff notes")
+        .hasStaffNotes(null)
         .hasPrisonersNotes(null)
         .hasAmendedBy(COURT_USER)
         .hasAmendedTimeCloseTo(LocalDateTime.now())

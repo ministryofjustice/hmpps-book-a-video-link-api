@@ -68,7 +68,7 @@ class PrisonServiceTest {
 
     @Test
     fun `should create VLB court appointment using appointment prisoners notes`() {
-      val courtBookingByPrison = courtBooking(createdByPrison = true).withMainCourtPrisonAppointment()
+      val courtBookingByPrison = courtBooking(createdByPrison = true, notesForPrisoners = "Some public prisoners notes").withMainCourtPrisonAppointment()
 
       whenever(toggles.isMasterPublicAndPrivateNotes()) doReturn true
       whenever(nomisMappingService.getNomisLocationId(birminghamLocation.id)) doReturn birminghamNomisLocation.locationId
@@ -110,7 +110,7 @@ class PrisonServiceTest {
 
     @Test
     fun `should create VLPM probation appointment using prisoners notes`() {
-      val probationBookingByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM).withProbationPrisonAppointment()
+      val probationBookingByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM, notesForPrisoners = "Some public prisoners notes").withProbationPrisonAppointment()
 
       whenever(toggles.isMasterPublicAndPrivateNotes()) doReturn true
       whenever(nomisMappingService.getNomisLocationId(probationBookingByPrison.probationMeeting()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
