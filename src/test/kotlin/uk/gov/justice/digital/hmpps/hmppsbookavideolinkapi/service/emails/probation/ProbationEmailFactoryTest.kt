@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntry
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
@@ -69,7 +70,18 @@ class ProbationEmailFactoryTest {
       locationId = wandsworthLocation.id,
     )
 
-  private val probationBooking = probationBooking()
+  private val probationBookingWithComments = probationBooking(comments = "Probation meeting comments")
+    .addAppointment(
+      prison = prison(prisonCode = BIRMINGHAM),
+      prisonerNumber = "123456",
+      appointmentType = "VLB_PROBATION",
+      date = LocalDate.of(2100, 1, 1),
+      startTime = LocalTime.of(11, 0),
+      endTime = LocalTime.of(11, 30),
+      locationId = wandsworthLocation.id,
+    )
+
+  private val probationBookingWithStaffNotes = probationBooking(comments = "Probation staff notes")
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
@@ -121,19 +133,40 @@ class ProbationEmailFactoryTest {
 
   @ParameterizedTest
   @MethodSource("supportedUserBookingActions")
-  fun `should return user emails for supported user based actions`(action: BookingAction) {
+  fun `should return user emails for supported user based actions with comments`(action: BookingAction) {
     val email = ProbationEmailFactory.user(
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL) probationBooking.apply { cancel(COURT_USER) } else probationBooking,
+      booking = if (action == BookingAction.CANCEL) probationBookingWithComments.apply { cancel(COURT_USER) } else probationBookingWithComments,
       prison = prison,
-      appointment = probationBooking.appointments().single(),
+      appointment = probationBookingWithComments.appointments().single(),
       location = wandsworthLocation.toModel(),
       additionalBookingDetail = null,
     )
 
     email isInstanceOf userEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Probation meeting comments")
+  }
+
+  @ParameterizedTest
+  @MethodSource("supportedUserBookingActions")
+  fun `should return user emails for supported user based actions with staff notes`(action: BookingAction) {
+    val email = ProbationEmailFactory.user(
+      action = action,
+      contact = userBookingContact,
+      prisoner = prisoner,
+      booking = if (action == BookingAction.CANCEL) probationBookingWithStaffNotes.apply { cancel(COURT_USER) } else probationBookingWithStaffNotes,
+      prison = prison,
+      appointment = probationBookingWithComments.appointments().single(),
+      location = wandsworthLocation.toModel(),
+      additionalBookingDetail = null,
+    )
+
+    email isInstanceOf userEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Probation staff notes")
   }
 
   @ParameterizedTest
@@ -143,9 +176,9 @@ class ProbationEmailFactoryTest {
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
-      booking = probationBooking,
+      booking = probationBookingWithComments,
       prison = prison,
-      appointment = probationBooking.appointments().single(),
+      appointment = probationBookingWithComments.appointments().single(),
       location = wandsworthLocation.toModel(),
       additionalBookingDetail = null,
     )
@@ -160,9 +193,9 @@ class ProbationEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = prisonBookingContact,
         prisoner = prisoner,
-        booking = probationBooking,
+        booking = probationBookingWithComments,
         prison = prison,
-        appointment = probationBooking.appointments().single(),
+        appointment = probationBookingWithComments.appointments().single(),
         location = birminghamLocation.toModel(),
         additionalBookingDetail = null,
       )
@@ -210,19 +243,40 @@ class ProbationEmailFactoryTest {
 
   @ParameterizedTest
   @MethodSource("supportedProbationBookingActions")
-  fun `should return user emails for supported probation based actions`(action: BookingAction) {
+  fun `should return user emails for supported probation based actions with comments`(action: BookingAction) {
     val email = ProbationEmailFactory.probation(
       action = action,
       contact = probationBookingContact,
       prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(PROBATION_USER) } else probationBooking,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBookingWithComments.apply { cancel(PROBATION_USER) } else probationBookingWithComments,
       prison = prison,
-      appointment = probationBooking.appointments().single(),
+      appointment = probationBookingWithComments.appointments().single(),
       location = wandsworthLocation.toModel(),
       additionalBookingDetail = null,
     )
 
     email isInstanceOf probationEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Probation meeting comments")
+  }
+
+  @ParameterizedTest
+  @MethodSource("supportedProbationBookingActions")
+  fun `should return user emails for supported probation based actions with staff notes`(action: BookingAction) {
+    val email = ProbationEmailFactory.probation(
+      action = action,
+      contact = probationBookingContact,
+      prisoner = prisoner,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBookingWithStaffNotes.apply { cancel(PROBATION_USER) } else probationBookingWithStaffNotes,
+      prison = prison,
+      appointment = probationBookingWithComments.appointments().single(),
+      location = wandsworthLocation.toModel(),
+      additionalBookingDetail = null,
+    )
+
+    email isInstanceOf probationEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Probation staff notes")
   }
 
   @ParameterizedTest
@@ -232,9 +286,9 @@ class ProbationEmailFactoryTest {
       action = action,
       contact = probationBookingContact,
       prisoner = prisoner,
-      booking = probationBooking,
+      booking = probationBookingWithComments,
       prison = prison,
-      appointment = probationBooking.appointments().single(),
+      appointment = probationBookingWithComments.appointments().single(),
       location = wandsworthLocation.toModel(),
       additionalBookingDetail = null,
     )
@@ -244,20 +298,42 @@ class ProbationEmailFactoryTest {
 
   @ParameterizedTest
   @MethodSource("supportedPrisonBookingActions")
-  fun `should return prison probation emails for supported user based actions`(action: BookingAction) {
+  fun `should return prison probation emails for supported user based actions with comments`(action: BookingAction) {
     val email = ProbationEmailFactory.prison(
       action = action,
       contact = prisonBookingContact,
       prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(PROBATION_USER) } else probationBooking,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBookingWithComments.apply { cancel(PROBATION_USER) } else probationBookingWithComments,
       prison = prison,
-      appointment = probationBooking.appointments().single(),
+      appointment = probationBookingWithComments.appointments().single(),
       location = wandsworthLocation.toModel(),
       contacts = setOf(probationBookingContact),
       additionalBookingDetail = null,
     )
 
     email isInstanceOf prisonEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Probation meeting comments")
+  }
+
+  @ParameterizedTest
+  @MethodSource("supportedPrisonBookingActions")
+  fun `should return prison probation emails for supported user based actions with staff notes`(action: BookingAction) {
+    val email = ProbationEmailFactory.prison(
+      action = action,
+      contact = prisonBookingContact,
+      prisoner = prisoner,
+      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBookingWithStaffNotes.apply { cancel(PROBATION_USER) } else probationBookingWithStaffNotes,
+      prison = prison,
+      appointment = probationBookingWithComments.appointments().single(),
+      location = wandsworthLocation.toModel(),
+      contacts = setOf(probationBookingContact),
+      additionalBookingDetail = null,
+    )
+
+    email isInstanceOf prisonEmails[action]!!
+
+    email?.personalisation()!! containsEntry Pair("comments", "Probation staff notes")
   }
 
   @Test
@@ -267,9 +343,9 @@ class ProbationEmailFactoryTest {
         action = BookingAction.CREATE,
         contact = courtBookingContact,
         prisoner = prisoner,
-        booking = probationBooking,
+        booking = probationBookingWithComments,
         prison = prison,
-        appointment = probationBooking.appointments().single(),
+        appointment = probationBookingWithComments.appointments().single(),
         location = birminghamLocation.toModel(),
         contacts = emptySet(),
         additionalBookingDetail = null,

@@ -347,8 +347,8 @@ fun amendCourtBookingRequest(
   comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
   appointmentDate: LocalDate = tomorrow(),
-  notesForStaff: String? = "Some private staff notes",
-  notesForPrisoners: String? = "Some public prisoners notes",
+  notesForStaff: String? = null,
+  notesForPrisoners: String? = null,
 ): AmendVideoBookingRequest {
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
