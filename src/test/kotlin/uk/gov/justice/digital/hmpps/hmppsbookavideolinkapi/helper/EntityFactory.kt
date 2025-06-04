@@ -85,7 +85,13 @@ fun courtBooking(
   notesForPrisoners = notesForPrisoners,
 )
 
-fun bookingHistory(historyType: HistoryType, booking: VideoBooking, comments: String? = "history comments") = BookingHistory(
+fun bookingHistory(
+  historyType: HistoryType,
+  booking: VideoBooking,
+  comments: String? = "history comments",
+  notesForStaff: String? = null,
+  notesForPrisoners: String? = null,
+) = BookingHistory(
   bookingHistoryId = 1L,
   videoBookingId = booking.videoBookingId,
   historyType = historyType,
@@ -94,6 +100,8 @@ fun bookingHistory(historyType: HistoryType, booking: VideoBooking, comments: St
   hearingType = CourtHearingType.TRIBUNAL.name,
   videoUrl = "https://edited.video.url",
   comments = comments,
+  notesForStaff = notesForStaff,
+  notesForPrisoners = notesForPrisoners,
   createdBy = booking.createdBy,
 )
 

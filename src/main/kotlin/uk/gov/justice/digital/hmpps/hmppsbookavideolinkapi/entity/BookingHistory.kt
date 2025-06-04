@@ -48,6 +48,10 @@ class BookingHistory(
 
   val comments: String? = null,
 
+  val notesForStaff: String? = null,
+
+  val notesForPrisoners: String? = null,
+
   val createdBy: String,
 
   val createdTime: LocalDateTime = LocalDateTime.now(),

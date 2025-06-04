@@ -68,6 +68,8 @@ class BookingHistoryServiceTest {
       hearingType isEqualTo courtBooking.hearingType
       comments isEqualTo "Court hearing comments"
       videoUrl isEqualTo courtBooking.videoUrl
+      notesForStaff isEqualTo courtBooking.notesForStaff
+      notesForPrisoners isEqualTo courtBooking.notesForPrisoners
       createdBy isEqualTo COURT_USER.username
       createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
@@ -104,6 +106,8 @@ class BookingHistoryServiceTest {
       createdTime isCloseTo LocalDateTime.now()
       probationMeetingType isEqualTo probationBooking.probationMeetingType
       comments isEqualTo "Probation meeting comments"
+      notesForPrisoners isEqualTo probationBooking.notesForPrisoners
+      notesForStaff isEqualTo probationBooking.notesForStaff
       videoUrl isEqualTo probationBooking.videoUrl
       createdBy isEqualTo PROBATION_USER.username
       createdTime isCloseTo LocalDateTime.now()
@@ -141,6 +145,9 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.AMEND
+      comments isEqualTo courtBooking.comments
+      notesForPrisoners isEqualTo courtBooking.notesForPrisoners
+      notesForStaff isEqualTo courtBooking.notesForStaff
       createdBy isEqualTo "amended by someone else"
       createdTime isEqualTo today().atStartOfDay()
       appointments() hasSize 1
@@ -166,6 +173,9 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.CANCEL
+      comments isEqualTo courtBooking.comments
+      notesForPrisoners isEqualTo courtBooking.notesForPrisoners
+      notesForStaff isEqualTo courtBooking.notesForStaff
       createdBy isEqualTo "court cancellation user"
       createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
@@ -194,6 +204,9 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.AMEND
+      comments isEqualTo probationBooking.comments
+      notesForPrisoners isEqualTo probationBooking.notesForPrisoners
+      notesForStaff isEqualTo probationBooking.notesForStaff
       createdBy isEqualTo "amended by someone else"
       createdTime isEqualTo today().atStartOfDay()
       appointments() hasSize 1
@@ -219,6 +232,9 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.CANCEL
+      comments isEqualTo probationBooking.comments
+      notesForPrisoners isEqualTo probationBooking.notesForPrisoners
+      notesForStaff isEqualTo probationBooking.notesForStaff
       createdBy isEqualTo "probation cancellation user"
       createdTime isCloseTo LocalDateTime.now()
       appointments() hasSize 1
