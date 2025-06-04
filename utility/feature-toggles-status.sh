@@ -1,32 +1,19 @@
 #!/bin/bash
 
 ENV=$1
+
 BVLS_NAMESPACE="hmpps-book-a-video-link-$ENV"
-
-FEATURE_ADMIN_LOCATION_DECORATION=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_ADMIN_LOCATION_DECORATION}' | base64 -d)
-FEATURE_ALTERED_COURT_JOURNEY=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_ALTERED_COURT_JOURNEY}' | base64 -d)
-FEATURE_MASTER_VLPM_TYPES=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_MASTER_VLPM_TYPES}' | base64 -d)
-FEATURE_GREY_RELEASE_PRISONS=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_GREY_RELEASE_PRISONS}' | base64 -d)
 FEATURE_MASTER_PUBLIC_PRIVATE_NOTES=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_MASTER_PUBLIC_PRIVATE_NOTES}' | base64 -d)
-
-echo "--------------------------------------------------------------------------------"
-echo
-echo "Status of feature toggles in '$BVLS_NAMESPACE'"
-echo
-echo "FEATURE_ADMIN_LOCATION_DECORATION=$FEATURE_ADMIN_LOCATION_DECORATION"
-echo "FEATURE_ALTERED_COURT_JOURNEY=$FEATURE_ALTERED_COURT_JOURNEY"
-echo "FEATURE_MASTER_VLPM_TYPES=$FEATURE_MASTER_VLPM_TYPES"
-echo "FEATURE_GREY_RELEASE_PRISONS=$FEATURE_GREY_RELEASE_PRISONS"
-echo "FEATURE_MASTER_PUBLIC_PRIVATE_NOTES=$FEATURE_MASTER_PUBLIC_PRIVATE_NOTES"
-echo
+FEATURE_GREY_RELEASE_PRISONS=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_GREY_RELEASE_PRISONS}' | base64 -d)
 
 ACTIVITIES_NAMESPACE="hmpps-activities-management-$ENV"
+AA_BVLS_FEATURE_MASTER_PUBLIC_PRIVATE_NOTES=$(kubectl -n "$ACTIVITIES_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.BVLS_FEATURE_MASTER_PUBLIC_PRIVATE_NOTES}' | base64 -d)
 
-BVLS_FEATURE_MASTER_PUBLIC_PRIVATE_NOTES=$(kubectl -n "$ACTIVITIES_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.BVLS_FEATURE_MASTER_PUBLIC_PRIVATE_NOTES}' | base64 -d)
+DIGITAL_PRISON_SERVICES="digital-prison-services-$ENV"
+DPS_BVLS_PUBLIC_PRIVATE_NOTES_FEATURE_TOGGLE_ENABLED=$(kubectl -n "$DIGITAL_PRISON_SERVICES" get secret feature-toggles -o jsonpath='{.data.BVLS_PUBLIC_PRIVATE_NOTES_FEATURE_TOGGLE_ENABLED}' | base64 -d)
 
-echo "--------------------------------------------------------------------------------"
-echo
-echo "Status of feature toggles in '$ACTIVITIES_NAMESPACE'"
-echo
-echo "BVLS_FEATURE_MASTER_PUBLIC_PRIVATE_NOTES=$BVLS_FEATURE_MASTER_PUBLIC_PRIVATE_NOTES"
-echo
+echo ENVIRONMENT="$ENV"
+echo BVLS - PUBLIC_PRIVATE_NOTES="$FEATURE_MASTER_PUBLIC_PRIVATE_NOTES"
+echo BVLS - GREY_RELEASE_PRISONS="$FEATURE_GREY_RELEASE_PRISONS"
+echo AA - PUBLIC_PRIVATE_NOTES="$AA_BVLS_FEATURE_MASTER_PUBLIC_PRIVATE_NOTES"
+echo DPS  - PUBLIC_PRIVATE_NOTES="$DPS_BVLS_PUBLIC_PRIVATE_NOTES_FEATURE_TOGGLE_ENABLED"
