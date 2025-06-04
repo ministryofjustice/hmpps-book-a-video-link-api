@@ -189,17 +189,83 @@ class VideoBookingAmendedEventHandlerTest {
     }
 
     @Test
-    fun `should be no-op when no change to actual appointment date and times for court booking`() {
-      val amendedBooking = courtBooking(comments = "comments").withPreMainPostCourtPrisonAppointment(
+    fun `should patch the booking appointments when the notes for staff has changed on receipt of a BOOKING_AMENDED event`() {
+      val amendedBooking = courtBooking(notesForStaff = "new notes").withPreMainPostCourtPrisonAppointment(
         date = LocalDate.of(2100, 1, 1),
         prisonCode = BIRMINGHAM,
         prisonerNumber = "123456",
-        startTime = LocalTime.of(12, 0),
-        endTime = LocalTime.of(12, 15),
+        startTime = LocalTime.of(12, 15),
+        endTime = LocalTime.of(12, 30),
         location = birminghamLocation,
       )
 
-      val createHistory = bookingHistory(HistoryType.CREATE, booking = amendedBooking, comments = "comments").apply {
+      val createHistory = bookingHistory(HistoryType.CREATE, booking = amendedBooking).apply {
+        addBookingHistoryAppointments(
+          listOf(
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 1L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_PRE",
+              prisonLocationId = birminghamLocation.id,
+              startTime = LocalTime.of(11, 45),
+              endTime = LocalTime.of(12, 0),
+              bookingHistory = this,
+            ),
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 2L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_MAIN",
+              prisonLocationId = birminghamLocation.id,
+              startTime = LocalTime.of(12, 0),
+              endTime = LocalTime.of(12, 15),
+              bookingHistory = this,
+            ),
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 3L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_POST",
+              prisonLocationId = birminghamLocation.id,
+              startTime = LocalTime.of(12, 15),
+              endTime = LocalTime.of(12, 30),
+              bookingHistory = this,
+            ),
+          ),
+        )
+      }
+
+      whenever(videoBookingRepository.findById(anyLong())) doReturn Optional.of(amendedBooking)
+      whenever(bookingHistoryService.getByVideoBookingId(anyLong())) doReturn listOf(createHistory, bookingHistory(HistoryType.AMEND, booking = amendedBooking))
+
+      handler.handle(VideoBookingAmendedEvent(1))
+
+      inOrder(manageExternalAppointmentsService) {
+        verify(manageExternalAppointmentsService).amendAppointment(createHistory.appointments()[2], amendedBooking.appointments()[2])
+        verify(manageExternalAppointmentsService).amendAppointment(createHistory.appointments()[1], amendedBooking.appointments()[1])
+        verify(manageExternalAppointmentsService).amendAppointment(createHistory.appointments()[0], amendedBooking.appointments()[0])
+      }
+
+      verifyNoMoreInteractions(manageExternalAppointmentsService)
+    }
+
+    @Test
+    fun `should be no-op when no change to appointment details, date or times for court booking`() {
+      val amendedBooking = courtBooking(comments = "comments", notesForPrisoners = "notes", createdByPrison = true)
+        .withPreMainPostCourtPrisonAppointment(
+          date = LocalDate.of(2100, 1, 1),
+          prisonCode = BIRMINGHAM,
+          prisonerNumber = "123456",
+          startTime = LocalTime.of(12, 0),
+          endTime = LocalTime.of(12, 15),
+          location = birminghamLocation,
+        )
+
+      val createHistory = bookingHistory(HistoryType.CREATE, booking = amendedBooking, comments = "comments", notesForPrisoners = "notes").apply {
         addBookingHistoryAppointments(
           listOf(
             BookingHistoryAppointment(
@@ -340,8 +406,8 @@ class VideoBookingAmendedEventHandlerTest {
 
     @Test
     fun `should be no-op when no change to actual appointment date and times for probation booking`() {
-      val amendedBooking = probationBooking(comments = "comments").withProbationPrisonAppointment(date = today(), startTime = LocalTime.of(13, 30), endTime = LocalTime.of(14, 30), location = birminghamLocation)
-      val history = bookingHistory(HistoryType.CREATE, booking = amendedBooking, comments = "comments").apply {
+      val amendedBooking = probationBooking(comments = "comments", notesForStaff = "notes").withProbationPrisonAppointment(date = today(), startTime = LocalTime.of(13, 30), endTime = LocalTime.of(14, 30), location = birminghamLocation)
+      val history = bookingHistory(HistoryType.CREATE, booking = amendedBooking, comments = "comments", notesForStaff = "notes").apply {
         addBookingHistoryAppointments(
           listOf(
             BookingHistoryAppointment(

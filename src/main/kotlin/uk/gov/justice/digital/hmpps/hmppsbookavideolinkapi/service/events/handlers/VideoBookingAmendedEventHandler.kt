@@ -36,7 +36,9 @@ class VideoBookingAmendedEventHandler(
             .sortedByDescending { history -> history.createdTime }
             .let {
               if (event.additionalInformation.videoBookingId < 0) {
-                require(amendedBooking.isBookingType(BookingType.PROBATION)) { "Booking type must be probation" }
+                // This feature allows negative video booking ids received in events to trigger a re-sync of appointments
+                // without a booking history row first being created (provided something has changed on the appointment)
+                // e.g. by an SQL update applied beforehand.
                 log.info("Processing negative videoBookingId ${event.additionalInformation.videoBookingId}")
 
                 it[0]
@@ -102,7 +104,9 @@ class VideoBookingAmendedEventHandler(
       endTime == historyAppointment.endTime &&
       prisonerNumber == historyAppointment.prisonerNumber &&
       prisonLocationId == historyAppointment.prisonLocationId &&
-      comments == historyAppointment.bookingHistory.comments
+      comments == historyAppointment.bookingHistory.comments &&
+      notesForPrisoners == historyAppointment.bookingHistory.notesForPrisoners &&
+      notesForStaff == historyAppointment.bookingHistory.notesForStaff
   }
 
   private fun PrisonAppointment.isEarlierThanBefore(historyAppointment: BookingHistoryAppointment) = run {

@@ -46,6 +46,8 @@ class PrisonAppointment private constructor(
   val endTime: LocalTime,
 
   val notesForPrisoners: String? = null,
+
+  val notesForStaff: String? = null,
 ) {
 
   fun prisonCode() = prison.code
@@ -93,6 +95,7 @@ class PrisonAppointment private constructor(
       prisonLocationId = locationId,
       comments = videoBooking.comments,
       notesForPrisoners = videoBooking.notesForPrisoners,
+      notesForStaff = videoBooking.notesForStaff,
     )
   }
 }

@@ -194,12 +194,6 @@ class VideoBooking private constructor(
 
   fun probationMeeting(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_PROBATION" }
 
-  fun prisonerNotes(notes: String?, user: User) {
-    if (user is PrisonUser) {
-      notesForPrisoners = notes
-    }
-  }
-
   companion object {
 
     fun newCourtBooking(
