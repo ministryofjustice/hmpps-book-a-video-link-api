@@ -62,8 +62,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Outbou
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PersonReference
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerAppointmentsChangedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerMergedEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReceivedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReleasedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerVideoAppointmentCancelledEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReceivedInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ReleaseInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.PrisonerMergedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
@@ -582,6 +584,42 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     notifications.isPresent("t@t.com", CancelledProbationBookingProbationEmail::class, persistedBooking)
     notifications.isPresent("m@m.com", CancelledProbationBookingProbationEmail::class, persistedBooking)
     notifications.isPresent("a@a.com", CancelledProbationBookingPrisonProbationEmail::class, persistedBooking)
+  }
+
+  @Test
+  fun `should cancel a video booking and send transfer emails when prisoner is moved to a different prison`() {
+    videoBookingRepository.findAll() hasSize 0
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
+    prisonApi().stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.TRN)
+
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = DERBY_JUSTICE_CENTRE,
+      prisonerNumber = "123456",
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
+      date = tomorrow(),
+      startTime = LocalTime.of(17, 30),
+      endTime = LocalTime.of(18, 0),
+      comments = "integration test court booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+    videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
+
+    inboundEventsListener.onMessage(
+      raw(PrisonerReceivedEvent(ReceivedInformation("123456", "TRANSFERRED", BIRMINGHAM))),
+    )
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.CANCELLED }
+
+    with(notificationRepository.findAll()) {
+      this
+      isPresent("b@b.com", TransferredCourtBookingCourtEmail::class, persistedBooking)
+      isPresent("j@j.com", TransferredCourtBookingCourtEmail::class, persistedBooking)
+      isPresent("g@g.com", TransferredCourtBookingPrisonCourtEmail::class, persistedBooking)
+      isPresent("p@p.com", TransferredCourtBookingPrisonCourtEmail::class, persistedBooking)
+    }
   }
 
   private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {

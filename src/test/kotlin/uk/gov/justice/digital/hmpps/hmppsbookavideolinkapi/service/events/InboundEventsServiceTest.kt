@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.AppointmentCreatedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerAppointmentsChangedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerMergedEventHandler
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReceivedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerVideoAppointmentCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingAmendedEventHandler
@@ -23,6 +24,7 @@ class InboundEventsServiceTest {
   private val prisonerMergedEventHandler: PrisonerMergedEventHandler = mock()
   private val prisonerVideoAppointmentCancelledEventHandler: PrisonerVideoAppointmentCancelledEventHandler = mock()
   private val prisonerAppointmentsChangedEventHandler: PrisonerAppointmentsChangedEventHandler = mock()
+  private val prisonerReceivedEventHandler: PrisonerReceivedEventHandler = mock()
 
   private val service = InboundEventsService(
     appointmentCreatedEventHandler,
@@ -33,6 +35,7 @@ class InboundEventsServiceTest {
     prisonerMergedEventHandler,
     prisonerVideoAppointmentCancelledEventHandler,
     prisonerAppointmentsChangedEventHandler,
+    prisonerReceivedEventHandler,
   )
 
   @Test
@@ -109,5 +112,12 @@ class InboundEventsServiceTest {
     val event = mock<PrisonerAppointmentsChangedEvent>()
     service.process(event)
     verify(prisonerAppointmentsChangedEventHandler).handle(event)
+  }
+
+  @Test
+  fun `should call prisoner received event handler when prisoner received event`() {
+    val event = mock<PrisonerReceivedEvent>()
+    service.process(event)
+    verify(prisonerReceivedEventHandler).handle(event)
   }
 }

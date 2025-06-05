@@ -44,6 +44,13 @@ class VideoBookingAmendedEvent(additionalInformation: VideoBookingInformation) :
 
 data class VideoBookingInformation(val videoBookingId: Long) : AdditionalInformation
 
+class PrisonerReceivedEvent(additionalInformation: ReceivedInformation) : DomainEvent<ReceivedInformation>(DomainEventType.PRISONER_RECEIVED, additionalInformation) {
+  fun prisonerNumber() = additionalInformation.nomsNumber
+  fun prisonCode() = additionalInformation.prisonId
+}
+
+data class ReceivedInformation(val nomsNumber: String, val reason: String, val prisonId: String) : AdditionalInformation
+
 class PrisonerReleasedEvent(additionalInformation: ReleaseInformation) : DomainEvent<ReleaseInformation>(DomainEventType.PRISONER_RELEASED, additionalInformation) {
 
   @JsonIgnore
@@ -133,6 +140,9 @@ enum class DomainEventType(val eventType: String, val description: String = "") 
     "A video booking has been amended in the book a video link service",
   ) {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) = mapper.readValue<VideoBookingAmendedEvent>(message)
+  },
+  PRISONER_RECEIVED("prisoner-offender-search.prisoner.received") {
+    override fun toInboundEvent(mapper: ObjectMapper, message: String) = mapper.readValue<PrisonerReceivedEvent>(message)
   },
   PRISONER_RELEASED("prisoner-offender-search.prisoner.released") {
     override fun toInboundEvent(mapper: ObjectMapper, message: String) = mapper.readValue<PrisonerReleasedEvent>(message)
