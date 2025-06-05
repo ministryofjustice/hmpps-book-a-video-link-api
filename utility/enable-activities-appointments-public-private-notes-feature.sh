@@ -10,7 +10,8 @@ fi
 
 while true; do
 
-read -r -p "You are about to enable the new BVLS features in the '$ENV' environment. Are you sure you want to proceed? (y/n) " yn
+echo
+read -r -p "You are about to enable the BVLS notes feature in the activities and appointments '$ENV' environment. Do you want to proceed? (y/n) " yn
 
 case $yn in
 	[yY] ) echo ok, proceeding...;
@@ -21,8 +22,8 @@ case $yn in
 esac
 done
 
-NAMESPACE="hmpps-book-a-video-link-$ENV"
-SECRETS_FILE="book-a-video-link-secrets.yaml"
+NAMESPACE="hmpps-activities-management-$ENV"
+SECRETS_FILE="activities-appointments-secrets.yaml"
 
 # Create the secrets YAML file
 cat <<EOF > $SECRETS_FILE
@@ -33,20 +34,17 @@ metadata:
   namespace: $NAMESPACE
 type: Opaque
 stringData:
-  FEATURE_ADMIN_LOCATION_DECORATION: "true"
-  FEATURE_ALTERED_COURT_JOURNEY: "true"
-  FEATURE_MASTER_VLPM_TYPES: "true"
+  BVLS_FEATURE_MASTER_PUBLIC_PRIVATE_NOTES: "true"
 EOF
 
 # Apply the secret
 kubectl apply -f ./$SECRETS_FILE
+echo
 echo "Applied secrets to $NAMESPACE"
 
 rm -f ./$SECRETS_FILE
 
 # Restart the deployment pods
-echo "Restarting deployment hmpps-book-a-video-link-api pods on namespace $NAMESPACE"
-kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-book-a-video-link-api
-kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-book-a-video-link-ui
-
-source feature-toggles-status.sh "$ENV"
+echo
+echo "Restarting activities and appointments deployment on namespace $NAMESPACE"
+kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-activities-management

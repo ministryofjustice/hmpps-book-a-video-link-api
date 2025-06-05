@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-@TestPropertySource(properties = ["FEATURE_GREY_RELEASE_PRISONS=PVI", "FEATURE_MASTER_PUBLIC_PRIVATE_NOTES=true"])
+@TestPropertySource(properties = ["feature.master.public-private.notes=true"])
 class InfoTest : IntegrationTestBase() {
 
   @Test
@@ -40,9 +40,6 @@ class InfoTest : IntegrationTestBase() {
       .expectBody()
       .jsonPath("featureToggles.FEATURE_MASTER_PUBLIC_PRIVATE_NOTES").value<String> {
         assertThat(it).isEqualTo("true")
-      }
-      .jsonPath("featureToggles.FEATURE_GREY_RELEASE_PRISONS").value<String> {
-        assertThat(it).isEqualTo("PVI")
       }
   }
 }

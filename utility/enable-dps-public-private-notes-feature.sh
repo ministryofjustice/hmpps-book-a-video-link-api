@@ -1,0 +1,50 @@
+#!/bin/bash
+
+ENV=$1
+
+# Temporarily disable any prod runs
+if [ "$ENV" = "prod" ]; then
+  echo "Prod is currently disabled."
+  return 1 2> /dev/null || exit 1
+fi
+
+while true; do
+
+echo
+read -r -p "You are about to enable the BVLS notes features in the Digital Prisons '$ENV' environment. Are you sure you want to proceed? (y/n) " yn
+
+case $yn in
+	[yY] ) echo ok, proceeding...;
+		break;;
+	[nN] ) echo exiting...;
+		exit;;
+	* ) echo invalid response;;
+esac
+done
+
+NAMESPACE="digital-prison-services-$ENV"
+SECRETS_FILE="digital-prisons-secrets.yaml"
+
+# Create the secrets YAML file
+cat <<EOF > $SECRETS_FILE
+apiVersion: v1
+kind: Secret
+metadata:
+  name: feature-toggles
+  namespace: $NAMESPACE
+type: Opaque
+stringData:
+  BVLS_PUBLIC_PRIVATE_NOTES_FEATURE_TOGGLE_ENABLED: "true"
+EOF
+
+# Apply the secret
+kubectl apply -f ./$SECRETS_FILE
+echo
+echo "Applied secrets to $NAMESPACE"
+
+rm -f ./$SECRETS_FILE
+
+# Restart the deployment pods
+echo
+echo "Restarting digital prisons deployment on namespace $NAMESPACE"
+kubectl -n "$NAMESPACE" rollout restart deployments/digital-prison-services
