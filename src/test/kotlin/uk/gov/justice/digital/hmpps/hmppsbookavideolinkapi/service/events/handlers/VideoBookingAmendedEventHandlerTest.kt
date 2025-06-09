@@ -20,8 +20,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
@@ -56,6 +58,168 @@ class VideoBookingAmendedEventHandlerTest {
     @BeforeEach
     fun before() {
       whenever(activitiesService.isAppointmentsRolledOutAt(anyString())) doReturn true
+    }
+
+    @Test
+    fun `should patch a pre-appointment only on receipt of a BOOKING_AMENDED event`() {
+      val amendedBooking = courtBooking()
+        .addAppointment(
+          prison = prison(BIRMINGHAM),
+          prisonerNumber = "123456",
+          appointmentType = "VLB_COURT_PRE",
+          date = LocalDate.of(2100, 1, 1),
+          startTime = LocalTime.of(11, 30),
+          endTime = LocalTime.of(11, 45),
+          locationId = birminghamLocation.id,
+        ).addAppointment(
+          prison = prison(BIRMINGHAM),
+          prisonerNumber = "123456",
+          appointmentType = "VLB_COURT_MAIN",
+          date = LocalDate.of(2100, 1, 1),
+          startTime = LocalTime.of(11, 45),
+          endTime = LocalTime.of(12, 0),
+          locationId = birminghamLocation.id,
+        ).addAppointment(
+          prison = prison(BIRMINGHAM),
+          prisonerNumber = "123456",
+          appointmentType = "VLB_COURT_POST",
+          date = LocalDate.of(2100, 1, 1),
+          startTime = LocalTime.of(12, 0),
+          endTime = LocalTime.of(12, 15),
+          locationId = birminghamLocation.id,
+        )
+
+      val createHistory = bookingHistory(HistoryType.CREATE, booking = amendedBooking, comments = amendedBooking.comments).apply {
+        addBookingHistoryAppointments(
+          listOf(
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 1L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_PRE",
+              prisonLocationId = birminghamLocation2.id,
+              startTime = amendedBooking.preHearing()!!.startTime,
+              endTime = amendedBooking.preHearing()!!.endTime,
+              bookingHistory = this,
+            ),
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 2L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_MAIN",
+              prisonLocationId = birminghamLocation.id,
+              startTime = amendedBooking.mainHearing()!!.startTime,
+              endTime = amendedBooking.mainHearing()!!.endTime,
+              bookingHistory = this,
+            ),
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 3L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_POST",
+              prisonLocationId = birminghamLocation.id,
+              startTime = amendedBooking.postHearing()!!.startTime,
+              endTime = amendedBooking.postHearing()!!.endTime,
+              bookingHistory = this,
+            ),
+          ),
+        )
+      }
+
+      whenever(videoBookingRepository.findById(anyLong())) doReturn Optional.of(amendedBooking)
+      whenever(bookingHistoryService.getByVideoBookingId(anyLong())) doReturn listOf(createHistory, bookingHistory(HistoryType.AMEND, booking = amendedBooking))
+
+      handler.handle(VideoBookingAmendedEvent(1))
+
+      createHistory.appointments()[0].appointmentType isEqualTo "VLB_COURT_PRE"
+      amendedBooking.appointments()[0].appointmentType isEqualTo "VLB_COURT_PRE"
+
+      verify(manageExternalAppointmentsService).amendAppointment(createHistory.appointments()[0], amendedBooking.appointments()[0])
+      verifyNoMoreInteractions(manageExternalAppointmentsService)
+    }
+
+    @Test
+    fun `should patch a post-appointment only on receipt of a BOOKING_AMENDED event`() {
+      val amendedBooking = courtBooking()
+        .addAppointment(
+          prison = prison(BIRMINGHAM),
+          prisonerNumber = "123456",
+          appointmentType = "VLB_COURT_PRE",
+          date = LocalDate.of(2100, 1, 1),
+          startTime = LocalTime.of(11, 30),
+          endTime = LocalTime.of(11, 45),
+          locationId = birminghamLocation.id,
+        ).addAppointment(
+          prison = prison(BIRMINGHAM),
+          prisonerNumber = "123456",
+          appointmentType = "VLB_COURT_MAIN",
+          date = LocalDate.of(2100, 1, 1),
+          startTime = LocalTime.of(11, 45),
+          endTime = LocalTime.of(12, 0),
+          locationId = birminghamLocation.id,
+        ).addAppointment(
+          prison = prison(BIRMINGHAM),
+          prisonerNumber = "123456",
+          appointmentType = "VLB_COURT_POST",
+          date = LocalDate.of(2100, 1, 1),
+          startTime = LocalTime.of(12, 0),
+          endTime = LocalTime.of(12, 15),
+          locationId = birminghamLocation.id,
+        )
+
+      val createHistory = bookingHistory(HistoryType.CREATE, booking = amendedBooking, comments = amendedBooking.comments).apply {
+        addBookingHistoryAppointments(
+          listOf(
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 1L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_PRE",
+              prisonLocationId = birminghamLocation.id,
+              startTime = amendedBooking.preHearing()!!.startTime,
+              endTime = amendedBooking.preHearing()!!.endTime,
+              bookingHistory = this,
+            ),
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 2L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_MAIN",
+              prisonLocationId = birminghamLocation.id,
+              startTime = amendedBooking.mainHearing()!!.startTime,
+              endTime = amendedBooking.mainHearing()!!.endTime,
+              bookingHistory = this,
+            ),
+            BookingHistoryAppointment(
+              bookingHistoryAppointmentId = 3L,
+              prisonCode = BIRMINGHAM,
+              prisonerNumber = "123456",
+              appointmentDate = LocalDate.of(2100, 1, 1),
+              appointmentType = "VLB_COURT_POST",
+              prisonLocationId = birminghamLocation2.id,
+              startTime = amendedBooking.postHearing()!!.startTime,
+              endTime = amendedBooking.postHearing()!!.endTime,
+              bookingHistory = this,
+            ),
+          ),
+        )
+      }
+
+      whenever(videoBookingRepository.findById(anyLong())) doReturn Optional.of(amendedBooking)
+      whenever(bookingHistoryService.getByVideoBookingId(anyLong())) doReturn listOf(createHistory, bookingHistory(HistoryType.AMEND, booking = amendedBooking))
+
+      handler.handle(VideoBookingAmendedEvent(1))
+
+      createHistory.appointments()[2].appointmentType isEqualTo "VLB_COURT_POST"
+      amendedBooking.appointments()[2].appointmentType isEqualTo "VLB_COURT_POST"
+
+      verify(manageExternalAppointmentsService).amendAppointment(createHistory.appointments()[2], amendedBooking.appointments()[2])
+      verifyNoMoreInteractions(manageExternalAppointmentsService)
     }
 
     @Test

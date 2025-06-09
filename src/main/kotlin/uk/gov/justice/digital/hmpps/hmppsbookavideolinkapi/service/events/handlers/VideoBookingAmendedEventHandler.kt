@@ -61,8 +61,8 @@ class VideoBookingAmendedEventHandler(
                 cancelIfRemoved(previousPostHearing, amendedPostHearing)
 
                 if (amendedMainHearing.isTheSameAs(previousMainHearing)) {
-                  amendedPreHearing?.run { createIfNo(previousPreHearing, amendedPreHearing) }
-                  amendedPostHearing?.run { createIfNo(previousPostHearing, amendedPostHearing) }
+                  amendedPreHearing?.run { createOrAmend(previousPreHearing, amendedPreHearing) }
+                  amendedPostHearing?.run { createOrAmend(previousPostHearing, amendedPostHearing) }
                 } else {
                   // The order in which appointments are created or amended depends on if the booking is now earlier or
                   // later. If the main hearing is now earlier then we process pre, main and then post.
@@ -122,12 +122,6 @@ class VideoBookingAmendedEventHandler(
       manageExternalAppointmentsService.createAppointment(amended)
     } else {
       amendIfNotTheSame(old, amended)
-    }
-  }
-
-  private fun createIfNo(old: BookingHistoryAppointment?, amended: PrisonAppointment) {
-    if (old == null) {
-      manageExternalAppointmentsService.createAppointment(amended)
     }
   }
 
