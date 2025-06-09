@@ -33,6 +33,7 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as ModelPrisoner
 
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG", localName = "Birmingham room")
+val birminghamLocation2 = location(prisonCode = BIRMINGHAM, locationKeySuffix = "XXXXXXX", localName = "Birmingham room 2")
 val inactiveBirminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "HIJLKLM", active = false)
 val norwichLocation = location(prisonCode = NORWICH, locationKeySuffix = "ABCDEFG")
 val pentonvilleLocation = location(prisonCode = PENTONVILLE, locationKeySuffix = "ABCDEFG", localName = "Pentonville room 3")

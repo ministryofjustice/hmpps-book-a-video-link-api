@@ -77,9 +77,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
   fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long) = if (locationIds.isNotEmpty()) {
     log.info("A&A CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
     getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
-      .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
       .filter { locationIds.toList().contains(it.internalLocation?.id) }
-      .also { log.info("A&A CLIENT: matches post-location filter: $it") }
   } else {
     emptyList()
   }
@@ -146,10 +144,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
    */
   fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<Long>) = if (locationIds.isNotEmpty()) {
     log.info("A&A CLIENT: query params - prisonCode=$prisonCode, onDate=$onDate, locationIds=${locationIds.toList()}")
-    getPrisonAppointments(prisonCode, onDate)
-      .also { log.info("A&A CLIENT: matches pre-location filter: $it") }
-      .filter { locationIds.toList().contains(it.internalLocation?.id) }
-      .also { log.info("A&A CLIENT: matches post-location filter: $it") }
+    getPrisonAppointments(prisonCode, onDate).filter { locationIds.toList().contains(it.internalLocation?.id) }
   } else {
     emptyList()
   }
