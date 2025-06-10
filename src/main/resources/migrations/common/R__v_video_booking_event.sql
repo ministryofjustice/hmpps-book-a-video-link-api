@@ -28,7 +28,8 @@ select
   bha_post.end_time as post_end_time,
   true as court_booking,
   rc.description as type,
-  bh.created_by as "user"
+  bh.created_by as "user",
+  vlb.video_url as cvp_link
 from video_booking vlb
   join booking_history bh on bh.video_booking_id = vlb.video_booking_id
   join booking_history_appointment bha_main on bha_main.booking_history_id = bh.booking_history_id and bha_main.appointment_type = 'VLB_COURT_MAIN'
@@ -64,7 +65,8 @@ select
     null as post_end_time,
     false as court_booking,
     rc.description as type,
-    bh.created_by as "user"
+    bh.created_by as "user",
+    null as cvp_link
 from video_booking vlb
   join booking_history bh on bh.video_booking_id = vlb.video_booking_id
   join booking_history_appointment bha_main on bha_main.booking_history_id = bh.booking_history_id and bha_main.appointment_type = 'VLB_PROBATION'
