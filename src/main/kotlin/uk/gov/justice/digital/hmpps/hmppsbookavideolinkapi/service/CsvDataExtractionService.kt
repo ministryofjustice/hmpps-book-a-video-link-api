@@ -155,6 +155,7 @@ class CsvDataExtractionService(
   "postLocationName",
   "hearingType",
   "user",
+  "cvpLink",
 )
 data class CourtBookingEvent(
   val eventId: Long,
@@ -176,13 +177,14 @@ data class CourtBookingEvent(
   val postLocationName: String?,
   val hearingType: String,
   val user: String,
+  val cvpLink: String?,
 ) {
-  constructor(vbh: VideoBookingEvent, locations: Set<Location>) : this(
-    vbh.eventId,
-    vbh.timestamp,
-    vbh.videoBookingId,
+  constructor(vbe: VideoBookingEvent, locations: Set<Location>) : this(
+    vbe.eventId,
+    vbe.timestamp,
+    vbe.videoBookingId,
     // Old BVLS has DELETE instead of CANCEL and UPDATE instead of AMEND
-    vbh.eventType.let {
+    vbe.eventType.let {
       if (it == "CANCEL") {
         "DELETE"
       } else if (it == "AMEND") {
@@ -191,21 +193,22 @@ data class CourtBookingEvent(
         it
       }
     },
-    vbh.prisonCode,
-    vbh.courtDescription!!,
-    vbh.courtCode!!,
-    vbh.createdByPrison.not(),
-    vbh.mainDate.atTime(vbh.mainStartTime),
-    vbh.mainDate.atTime(vbh.mainEndTime),
-    vbh.preDate?.atTime(vbh.preStartTime),
-    vbh.preDate?.atTime(vbh.preEndTime),
-    vbh.postDate?.atTime(vbh.postStartTime),
-    vbh.postDate?.atTime(vbh.postEndTime),
-    vbh.mainLocationId.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
-    vbh.preLocationId?.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
-    vbh.postLocationId?.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
-    vbh.type,
-    vbh.user,
+    vbe.prisonCode,
+    vbe.courtDescription!!,
+    vbe.courtCode!!,
+    vbe.createdByPrison.not(),
+    vbe.mainDate.atTime(vbe.mainStartTime),
+    vbe.mainDate.atTime(vbe.mainEndTime),
+    vbe.preDate?.atTime(vbe.preStartTime),
+    vbe.preDate?.atTime(vbe.preEndTime),
+    vbe.postDate?.atTime(vbe.postStartTime),
+    vbe.postDate?.atTime(vbe.postEndTime),
+    vbe.mainLocationId.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbe.preLocationId?.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbe.postLocationId?.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbe.type,
+    vbe.user,
+    vbe.cvpLink,
   )
 }
 
@@ -251,12 +254,12 @@ data class ProbationBookingEvent(
   val meetingType: String,
   val user: String,
 ) {
-  constructor(vbh: VideoBookingEvent, locations: Set<Location>) : this(
-    vbh.eventId,
-    vbh.timestamp,
-    vbh.videoBookingId,
+  constructor(vbe: VideoBookingEvent, locations: Set<Location>) : this(
+    vbe.eventId,
+    vbe.timestamp,
+    vbe.videoBookingId,
     // Old BVLS has DELETE instead of CANCEL and UPDATE instead of AMEND
-    vbh.eventType.let {
+    vbe.eventType.let {
       if (it == "CANCEL") {
         "DELETE"
       } else if (it == "AMEND") {
@@ -265,20 +268,20 @@ data class ProbationBookingEvent(
         it
       }
     },
-    vbh.prisonCode,
-    vbh.probationTeamDescription!!,
-    vbh.probationTeamCode!!,
-    vbh.createdByPrison.not(),
-    vbh.mainDate.atTime(vbh.mainStartTime),
-    vbh.mainDate.atTime(vbh.mainEndTime),
+    vbe.prisonCode,
+    vbe.probationTeamDescription!!,
+    vbe.probationTeamCode!!,
+    vbe.createdByPrison.not(),
+    vbe.mainDate.atTime(vbe.mainStartTime),
+    vbe.mainDate.atTime(vbe.mainEndTime),
     null,
     null,
     null,
     null,
-    vbh.mainLocationId.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
+    vbe.mainLocationId.let { id -> locations.singleOrNull { it.id == id }?.let { it.localName ?: it.key } ?: id.toString() },
     null,
     null,
-    vbh.type,
-    vbh.user,
+    vbe.type,
+    vbe.user,
   )
 }
