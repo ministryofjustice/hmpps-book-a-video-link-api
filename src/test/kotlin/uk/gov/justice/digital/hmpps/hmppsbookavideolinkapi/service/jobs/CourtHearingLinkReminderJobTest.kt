@@ -29,7 +29,7 @@ class CourtHearingLinkReminderJobTest {
     val SUNDAY = SATURDAY.plusDays(1)
   }
 
-  private val courtBookingWithoutUrl = courtBooking().apply { videoUrl = null }.withMainCourtPrisonAppointment()
+  private val courtBookingWithoutUrl = courtBooking(cvpLinkDetails = null).withMainCourtPrisonAppointment()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val bookingFacade: BookingFacade = mock()
 

@@ -1746,6 +1746,17 @@ class BookingFacadeTest {
   inner class CourtHearingLinkReminder {
     @Test
     fun `should send an email to the court contact to remind them to add a court hearing link`() {
+      val courtBooking = courtBooking(cvpLinkDetails = null)
+        .addAppointment(
+          prison = prison(prisonCode = WANDSWORTH),
+          prisonerNumber = "123456",
+          appointmentType = "VLB_COURT_MAIN",
+          date = LocalDate.of(2100, 1, 1),
+          startTime = LocalTime.of(11, 0),
+          endTime = LocalTime.of(11, 30),
+          locationId = wandsworthLocation.id,
+        )
+
       val prisoner = Prisoner(
         prisonerNumber = courtBooking.prisoner(),
         prisonId = "WWI",
@@ -1760,7 +1771,7 @@ class BookingFacadeTest {
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
       whenever(emailService.send(any<CourtHearingLinkReminderEmail>())) doReturn Result.success(emailNotificationId to "court template id")
 
-      facade.courtHearingLinkReminder(courtBooking.apply { videoUrl = null }, SERVICE_USER)
+      facade.courtHearingLinkReminder(courtBooking, SERVICE_USER)
 
       inOrder(emailService, notificationRepository) {
         verify(emailService).send(emailCaptor.capture())

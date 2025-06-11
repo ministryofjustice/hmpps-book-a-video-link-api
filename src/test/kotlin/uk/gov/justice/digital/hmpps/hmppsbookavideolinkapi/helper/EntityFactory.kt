@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationScheduleUsage
@@ -75,11 +76,14 @@ fun courtBooking(
   comments: String? = "Court hearing comments",
   notesForStaff: String? = null,
   notesForPrisoners: String? = null,
+  cvpLinkDetails: CvpLinkDetails? = CvpLinkDetails.videoUrl("https://court.hearing.link"),
+  guestPin: String? = null,
 ) = VideoBooking.newCourtBooking(
   court = court,
   hearingType = "TRIBUNAL",
   comments = comments,
-  videoUrl = "https://court.hearing.link",
+  cvpLinkDetails = cvpLinkDetails,
+  guestPin = guestPin,
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
   notesForStaff = notesForStaff,
   notesForPrisoners = notesForPrisoners,
