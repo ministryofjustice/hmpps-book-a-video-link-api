@@ -20,6 +20,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 import java.time.LocalTime
+import java.util.Objects
 import java.util.UUID
 
 @Entity
@@ -47,8 +48,6 @@ class VideoBooking private constructor(
   @Deprecated(message = "This is to be superseded by notesForStaff and notesForPrisoners.")
   var comments: String? = null,
 
-  var videoUrl: String? = null,
-
   val createdByPrison: Boolean = false,
 
   val createdBy: String,
@@ -58,8 +57,6 @@ class VideoBooking private constructor(
   val migratedVideoBookingId: Long? = null,
 
   val migratedDescription: String? = null,
-
-  var notesForStaff: String? = null,
 ) {
   @OneToMany(mappedBy = "videoBooking", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val prisonAppointments: MutableList<PrisonAppointment> = mutableListOf()
@@ -72,7 +69,19 @@ class VideoBooking private constructor(
 
   var amendedTime: LocalDateTime? = null
 
+  var notesForStaff: String? = null
+    private set
+
   var notesForPrisoners: String? = null
+    private set
+
+  var videoUrl: String? = null
+    private set
+
+  var hmctsNumber: String? = null
+    private set
+
+  var guestPin: String? = null
     private set
 
   fun isBookingType(bookingType: BookingType) = this.bookingType == bookingType
@@ -114,12 +123,31 @@ class VideoBooking private constructor(
     )
   }
 
+  @Deprecated(message = "Use amend court booking with CVP link details instead")
   fun amendCourtBooking(
     hearingType: String,
     comments: String?,
     notesForStaff: String?,
     notesForPrisoners: String?,
     videoUrl: String?,
+    amendedBy: User,
+  ) = amendCourtBooking(
+    hearingType = hearingType,
+    comments = comments,
+    notesForStaff = notesForStaff,
+    notesForPrisoners = notesForPrisoners,
+    cvpLinkDetails = videoUrl?.let(CvpLinkDetails::videoUrl),
+    guestPin = null,
+    amendedBy = amendedBy,
+  )
+
+  fun amendCourtBooking(
+    hearingType: String,
+    comments: String?,
+    notesForStaff: String?,
+    notesForPrisoners: String?,
+    cvpLinkDetails: CvpLinkDetails?,
+    guestPin: String?,
     amendedBy: User,
   ) = apply {
     require(bookingType == BookingType.COURT) {
@@ -132,7 +160,9 @@ class VideoBooking private constructor(
     if (amendedBy is PrisonUser) {
       this.notesForPrisoners = notesForPrisoners
     }
-    this.videoUrl = videoUrl
+    this.videoUrl = cvpLinkDetails?.videoUrl
+    this.hmctsNumber = cvpLinkDetails?.hmctsNumber
+    this.guestPin = guestPin
     this.amendedBy = amendedBy.username
     amendedTime = now()
   }
@@ -196,6 +226,7 @@ class VideoBooking private constructor(
 
   companion object {
 
+    @Deprecated(message = "Use new court booking with CVP link details instead")
     fun newCourtBooking(
       court: Court,
       hearingType: String,
@@ -204,6 +235,26 @@ class VideoBooking private constructor(
       notesForPrisoners: String?,
       videoUrl: String?,
       createdBy: User,
+    ): VideoBooking = newCourtBooking(
+      court = court,
+      hearingType = hearingType,
+      comments = comments,
+      notesForStaff = notesForStaff,
+      notesForPrisoners = notesForPrisoners,
+      cvpLinkDetails = videoUrl?.let(CvpLinkDetails::videoUrl),
+      guestPin = null,
+      createdBy = createdBy,
+    )
+
+    fun newCourtBooking(
+      court: Court,
+      hearingType: String,
+      comments: String?,
+      notesForStaff: String?,
+      notesForPrisoners: String?,
+      cvpLinkDetails: CvpLinkDetails?,
+      guestPin: String?,
+      createdBy: User,
     ): VideoBooking = VideoBooking(
       bookingType = BookingType.COURT,
       court = court,
@@ -211,12 +262,14 @@ class VideoBooking private constructor(
       probationTeam = null,
       probationMeetingType = null,
       comments = comments,
-      notesForStaff = notesForStaff,
-      videoUrl = videoUrl,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
     ).apply {
+      this.videoUrl = cvpLinkDetails?.videoUrl
+      this.guestPin = guestPin
+      this.notesForStaff = notesForStaff
       this.notesForPrisoners = notesForPrisoners?.takeIf { createdBy is PrisonUser }
+      this.hmctsNumber = cvpLinkDetails?.hmctsNumber
     }
 
     fun newProbationBooking(
@@ -233,11 +286,10 @@ class VideoBooking private constructor(
       probationTeam = probationTeam.also { requireNot(probationTeam.readOnly) { "Probation team with code ${it.code} is read only" } },
       probationMeetingType = probationMeetingType,
       comments = comments,
-      notesForStaff = notesForStaff,
-      videoUrl = null,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
     ).apply {
+      this.notesForStaff = notesForStaff
       this.notesForPrisoners = notesForPrisoners?.takeIf { createdBy is PrisonUser }
     }
   }
@@ -246,4 +298,28 @@ class VideoBooking private constructor(
 enum class StatusCode {
   ACTIVE,
   CANCELLED,
+}
+
+/**
+ * Simple value object for CVP link details which will have either a HMCTS number or a video URL but never both.
+ */
+class CvpLinkDetails private constructor(val hmctsNumber: String? = null, val videoUrl: String? = null) {
+  companion object {
+    fun hmctsNumber(value: String) = CvpLinkDetails(hmctsNumber = value)
+    fun videoUrl(value: String) = CvpLinkDetails(videoUrl = value)
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as CvpLinkDetails
+
+    if (hmctsNumber != other.hmctsNumber) return false
+    if (videoUrl != other.videoUrl) return false
+
+    return true
+  }
+
+  override fun hashCode() = Objects.hash(hmctsNumber, videoUrl)
 }

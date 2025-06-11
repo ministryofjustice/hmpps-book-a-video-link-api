@@ -32,13 +32,14 @@ class VideoBookingTest {
   }
 
   @Test
-  fun `should be court booking created by prison user`() {
+  fun `should be court booking with CVP video URL created by prison user`() {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
       comments = "Some prison user comments",
-      videoUrl = "prison-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.videoUrl("prison-user-video-url"),
       createdBy = PRISON_USER_BIRMINGHAM,
+      guestPin = "123456",
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
     )
@@ -49,6 +50,8 @@ class VideoBookingTest {
       hearingType isEqualTo "TRIBUNAL"
       comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo "prison-user-video-url"
+      hmctsNumber isEqualTo null
+      guestPin isEqualTo "123456"
       createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
       createdTime isCloseTo now()
       createdByPrison isBool true
@@ -59,12 +62,43 @@ class VideoBookingTest {
   }
 
   @Test
-  fun `should amend prison created court booking created by court user`() {
+  fun `should be court booking with CVP HMCTS number created by prison user`() {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
       comments = "Some prison user comments",
-      videoUrl = "prison-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS1234"),
+      createdBy = PRISON_USER_BIRMINGHAM,
+      guestPin = "123456",
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
+    )
+
+    with(courtBooking) {
+      court isEqualTo court(code = "COURT_CODE")
+      isBookingType(BookingType.COURT) isBool true
+      hearingType isEqualTo "TRIBUNAL"
+      comments isEqualTo "Some prison user comments"
+      videoUrl isEqualTo null
+      hmctsNumber isEqualTo "HMCTS1234"
+      guestPin isEqualTo "123456"
+      createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      createdTime isCloseTo now()
+      createdByPrison isBool true
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+    }
+  }
+
+  @Test
+  fun `should amend prison created court booking with CVP video URL created by court user`() {
+    val courtBooking = VideoBooking.newCourtBooking(
+      court(code = "COURT_CODE"),
+      hearingType = "TRIBUNAL",
+      comments = "Some prison user comments",
+      cvpLinkDetails = CvpLinkDetails.videoUrl("prison-user-video-url"),
+      guestPin = "123456",
       createdBy = PRISON_USER_BIRMINGHAM,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
@@ -76,6 +110,8 @@ class VideoBookingTest {
       hearingType isEqualTo "TRIBUNAL"
       comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo "prison-user-video-url"
+      hmctsNumber isEqualTo null
+      guestPin isEqualTo "123456"
       createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
       createdTime isCloseTo now()
       createdByPrison isBool true
@@ -89,7 +125,8 @@ class VideoBookingTest {
       comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
-      videoUrl = "amended-prison-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.videoUrl("amended-prison-user-video-url"),
+      guestPin = "654321",
       COURT_USER,
     )
 
@@ -99,6 +136,60 @@ class VideoBookingTest {
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Some public prisoners notes"
       videoUrl isEqualTo "amended-prison-user-video-url"
+      hmctsNumber isEqualTo null
+      guestPin isEqualTo "654321"
+      amendedBy isEqualTo COURT_USER.username
+      amendedTime isCloseTo now()
+    }
+  }
+
+  @Test
+  fun `should amend prison created court booking with CVP HMCTS number created by court user`() {
+    val courtBooking = VideoBooking.newCourtBooking(
+      court(code = "COURT_CODE"),
+      hearingType = "TRIBUNAL",
+      comments = "Some prison user comments",
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS1234"),
+      guestPin = "123456",
+      createdBy = PRISON_USER_BIRMINGHAM,
+      notesForStaff = "Some private staff notes",
+      notesForPrisoners = "Some public prisoners notes",
+    )
+
+    with(courtBooking) {
+      court isEqualTo court(code = "COURT_CODE")
+      isBookingType(BookingType.COURT) isBool true
+      hearingType isEqualTo "TRIBUNAL"
+      comments isEqualTo "Some prison user comments"
+      videoUrl isEqualTo null
+      hmctsNumber isEqualTo "HMCTS1234"
+      guestPin isEqualTo "123456"
+      createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
+      createdTime isCloseTo now()
+      createdByPrison isBool true
+      statusCode isEqualTo StatusCode.ACTIVE
+      notesForStaff isEqualTo "Some private staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+    }
+
+    courtBooking.amendCourtBooking(
+      hearingType = "APPEAL",
+      comments = "Amended comments",
+      notesForStaff = "Amended staff notes",
+      notesForPrisoners = "Amended prisoners notes",
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS4321"),
+      guestPin = "654321",
+      COURT_USER,
+    )
+
+    with(courtBooking) {
+      hearingType isEqualTo "APPEAL"
+      comments isEqualTo "Amended comments"
+      notesForStaff isEqualTo "Amended staff notes"
+      notesForPrisoners isEqualTo "Some public prisoners notes"
+      videoUrl isEqualTo null
+      hmctsNumber isEqualTo "HMCTS4321"
+      guestPin isEqualTo "654321"
       amendedBy isEqualTo COURT_USER.username
       amendedTime isCloseTo now()
     }
