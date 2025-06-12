@@ -76,7 +76,7 @@ fun courtBooking(
   comments: String? = "Court hearing comments",
   notesForStaff: String? = null,
   notesForPrisoners: String? = null,
-  cvpLinkDetails: CvpLinkDetails? = CvpLinkDetails.videoUrl("https://court.hearing.link"),
+  cvpLinkDetails: CvpLinkDetails? = CvpLinkDetails.url("https://court.hearing.link"),
   guestPin: String? = null,
 ) = VideoBooking.newCourtBooking(
   court = court,

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Toggles
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -54,10 +55,12 @@ class AmendCourtBookingService(
   private fun amendCourt(existingBooking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     val prisoner = request.prisoner().validate()
 
+    // TODO use HMCTS number and guest pin when added to request/model.
     return existingBooking.amendCourtBooking(
       hearingType = request.courtHearingType!!.name,
       comments = if (toggles.isMasterPublicAndPrivateNotes()) existingBooking.comments else request.comments,
-      videoUrl = request.videoLinkUrl,
+      cvpLinkDetails = request.videoLinkUrl?.let(CvpLinkDetails::url),
+      guestPin = null,
       amendedBy = amendedBy,
       notesForStaff = if (toggles.isMasterPublicAndPrivateNotes()) request.notesForStaff else existingBooking.notesForStaff,
       notesForPrisoners = if (toggles.isMasterPublicAndPrivateNotes()) request.notesForPrisoners else existingBooking.notesForPrisoners,

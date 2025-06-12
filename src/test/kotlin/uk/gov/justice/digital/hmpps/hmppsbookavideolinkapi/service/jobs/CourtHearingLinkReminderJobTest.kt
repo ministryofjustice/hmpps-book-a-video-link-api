@@ -8,6 +8,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
@@ -83,7 +84,15 @@ class CourtHearingLinkReminderJobTest {
 
   @Test
   fun `should not call court hearing link reminder for bookings with video URL`() {
-    val booking = courtBooking().withMainCourtPrisonAppointment()
+    val booking = courtBooking(cvpLinkDetails = CvpLinkDetails.url("url")).withMainCourtPrisonAppointment()
+    whenever(prisonAppointmentRepository.findAllActivePrisonAppointmentsOnDate(TUESDAY, "VLB_COURT_MAIN")) doReturn booking.appointments()
+    runJobOn(MONDAY)
+    verify(bookingFacade, never()).courtHearingLinkReminder(any(), any())
+  }
+
+  @Test
+  fun `should not call court hearing link reminder for bookings with HMCTS number`() {
+    val booking = courtBooking(cvpLinkDetails = CvpLinkDetails.hmctsNumber("12345678")).withMainCourtPrisonAppointment()
     whenever(prisonAppointmentRepository.findAllActivePrisonAppointmentsOnDate(TUESDAY, "VLB_COURT_MAIN")) doReturn booking.appointments()
     runJobOn(MONDAY)
     verify(bookingFacade, never()).courtHearingLinkReminder(any(), any())

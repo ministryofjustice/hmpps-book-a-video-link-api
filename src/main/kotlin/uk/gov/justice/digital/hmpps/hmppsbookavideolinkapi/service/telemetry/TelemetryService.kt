@@ -43,7 +43,8 @@ sealed class TelemetryEvent(val eventType: String) {
       "post_location_id" to (post()?.prisonLocationId?.toString() ?: ""),
       "post_start" to (post()?.start()?.toIsoDateTime() ?: ""),
       "post_end" to (post()?.end()?.toIsoDateTime() ?: ""),
-      "cvp_link" to (videoUrl != null).toString(),
+      "cvp_link" to (videoUrl != null || hmctsNumber != null).toString(),
+      "guest_pin" to (guestPin != null).toString(),
     )
   } else {
     mapOf(

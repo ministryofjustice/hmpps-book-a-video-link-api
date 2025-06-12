@@ -123,24 +123,6 @@ class VideoBooking private constructor(
     )
   }
 
-  @Deprecated(message = "Use amend court booking with CVP link details instead")
-  fun amendCourtBooking(
-    hearingType: String,
-    comments: String?,
-    notesForStaff: String?,
-    notesForPrisoners: String?,
-    videoUrl: String?,
-    amendedBy: User,
-  ) = amendCourtBooking(
-    hearingType = hearingType,
-    comments = comments,
-    notesForStaff = notesForStaff,
-    notesForPrisoners = notesForPrisoners,
-    cvpLinkDetails = videoUrl?.let(CvpLinkDetails::videoUrl),
-    guestPin = null,
-    amendedBy = amendedBy,
-  )
-
   fun amendCourtBooking(
     hearingType: String,
     comments: String?,
@@ -226,26 +208,6 @@ class VideoBooking private constructor(
 
   companion object {
 
-    @Deprecated(message = "Use new court booking with CVP link details instead")
-    fun newCourtBooking(
-      court: Court,
-      hearingType: String,
-      comments: String?,
-      notesForStaff: String?,
-      notesForPrisoners: String?,
-      videoUrl: String?,
-      createdBy: User,
-    ): VideoBooking = newCourtBooking(
-      court = court,
-      hearingType = hearingType,
-      comments = comments,
-      notesForStaff = notesForStaff,
-      notesForPrisoners = notesForPrisoners,
-      cvpLinkDetails = videoUrl?.let(CvpLinkDetails::videoUrl),
-      guestPin = null,
-      createdBy = createdBy,
-    )
-
     fun newCourtBooking(
       court: Court,
       hearingType: String,
@@ -305,8 +267,17 @@ enum class StatusCode {
  */
 class CvpLinkDetails private constructor(val hmctsNumber: String? = null, val videoUrl: String? = null) {
   companion object {
-    fun hmctsNumber(value: String) = CvpLinkDetails(hmctsNumber = value)
-    fun videoUrl(value: String) = CvpLinkDetails(videoUrl = value)
+    fun hmctsNumber(value: String) = run {
+      require(value.isNotBlank() && value.length <= 8) { "CVP HMCTS number must not be blank or greater than 8 characters" }
+
+      CvpLinkDetails(hmctsNumber = value)
+    }
+
+    fun url(value: String) = run {
+      require(value.isNotBlank() && value.length <= 120) { "CVP URL must not be blank or greater than 120 characters" }
+
+      CvpLinkDetails(videoUrl = value)
+    }
   }
 
   override fun equals(other: Any?): Boolean {

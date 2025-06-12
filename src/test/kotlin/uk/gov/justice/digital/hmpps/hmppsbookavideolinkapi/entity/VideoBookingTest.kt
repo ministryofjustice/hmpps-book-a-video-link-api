@@ -37,7 +37,7 @@ class VideoBookingTest {
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
       comments = "Some prison user comments",
-      cvpLinkDetails = CvpLinkDetails.videoUrl("prison-user-video-url"),
+      cvpLinkDetails = CvpLinkDetails.url("prison-user-video-url"),
       createdBy = PRISON_USER_BIRMINGHAM,
       guestPin = "123456",
       notesForStaff = "Some private staff notes",
@@ -67,7 +67,7 @@ class VideoBookingTest {
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
       comments = "Some prison user comments",
-      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS1234"),
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS123"),
       createdBy = PRISON_USER_BIRMINGHAM,
       guestPin = "123456",
       notesForStaff = "Some private staff notes",
@@ -80,7 +80,7 @@ class VideoBookingTest {
       hearingType isEqualTo "TRIBUNAL"
       comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo null
-      hmctsNumber isEqualTo "HMCTS1234"
+      hmctsNumber isEqualTo "HMCTS123"
       guestPin isEqualTo "123456"
       createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
       createdTime isCloseTo now()
@@ -97,7 +97,7 @@ class VideoBookingTest {
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
       comments = "Some prison user comments",
-      cvpLinkDetails = CvpLinkDetails.videoUrl("prison-user-video-url"),
+      cvpLinkDetails = CvpLinkDetails.url("prison-user-video-url"),
       guestPin = "123456",
       createdBy = PRISON_USER_BIRMINGHAM,
       notesForStaff = "Some private staff notes",
@@ -125,7 +125,7 @@ class VideoBookingTest {
       comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
-      cvpLinkDetails = CvpLinkDetails.videoUrl("amended-prison-user-video-url"),
+      cvpLinkDetails = CvpLinkDetails.url("amended-prison-user-video-url"),
       guestPin = "654321",
       COURT_USER,
     )
@@ -149,7 +149,7 @@ class VideoBookingTest {
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
       comments = "Some prison user comments",
-      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS1234"),
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS123"),
       guestPin = "123456",
       createdBy = PRISON_USER_BIRMINGHAM,
       notesForStaff = "Some private staff notes",
@@ -162,7 +162,7 @@ class VideoBookingTest {
       hearingType isEqualTo "TRIBUNAL"
       comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo null
-      hmctsNumber isEqualTo "HMCTS1234"
+      hmctsNumber isEqualTo "HMCTS123"
       guestPin isEqualTo "123456"
       createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
       createdTime isCloseTo now()
@@ -177,7 +177,7 @@ class VideoBookingTest {
       comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
-      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS4321"),
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS321"),
       guestPin = "654321",
       COURT_USER,
     )
@@ -188,7 +188,7 @@ class VideoBookingTest {
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Some public prisoners notes"
       videoUrl isEqualTo null
-      hmctsNumber isEqualTo "HMCTS4321"
+      hmctsNumber isEqualTo "HMCTS321"
       guestPin isEqualTo "654321"
       amendedBy isEqualTo COURT_USER.username
       amendedTime isCloseTo now()
@@ -201,7 +201,8 @@ class VideoBookingTest {
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
       comments = "Some prison user comments",
-      videoUrl = "prison-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.url("prison-user-video-url"),
+      guestPin = "123456",
       createdBy = PRISON_USER_BIRMINGHAM,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
@@ -213,6 +214,8 @@ class VideoBookingTest {
       hearingType isEqualTo "TRIBUNAL"
       comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo "prison-user-video-url"
+      hmctsNumber isEqualTo null
+      guestPin isEqualTo "123456"
       createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
       createdTime isCloseTo now()
       createdByPrison isBool true
@@ -226,7 +229,8 @@ class VideoBookingTest {
       comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
-      videoUrl = "amended-prison-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.url("amended-prison-user-video-url"),
+      guestPin = "654321",
       PRISON_USER_BIRMINGHAM,
     )
 
@@ -236,6 +240,7 @@ class VideoBookingTest {
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Amended prisoners notes"
       videoUrl isEqualTo "amended-prison-user-video-url"
+      guestPin isEqualTo "654321"
       amendedBy isEqualTo PRISON_USER_BIRMINGHAM.username
       amendedTime isCloseTo now()
     }
@@ -247,7 +252,8 @@ class VideoBookingTest {
       court(code = "COURT_CODE"),
       hearingType = "APPEAL",
       comments = "Some court user comments",
-      videoUrl = "court-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.url("court-user-video-url"),
+      guestPin = "123456",
       createdBy = COURT_USER,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Should be ignored for external user",
@@ -259,6 +265,7 @@ class VideoBookingTest {
       hearingType isEqualTo "APPEAL"
       comments isEqualTo "Some court user comments"
       videoUrl isEqualTo "court-user-video-url"
+      guestPin isEqualTo "123456"
       createdBy isEqualTo COURT_USER.username
       createdByPrison isBool false
       statusCode isEqualTo StatusCode.ACTIVE
@@ -273,7 +280,8 @@ class VideoBookingTest {
       court(code = "COURT_CODE"),
       hearingType = "APPEAL",
       comments = "Some court user comments",
-      videoUrl = "court-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.url("court-user-video-url"),
+      guestPin = "123456",
       createdBy = COURT_USER,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Should be ignored for external user",
@@ -285,6 +293,7 @@ class VideoBookingTest {
       hearingType isEqualTo "APPEAL"
       comments isEqualTo "Some court user comments"
       videoUrl isEqualTo "court-user-video-url"
+      guestPin isEqualTo "123456"
       createdBy isEqualTo COURT_USER.username
       createdByPrison isBool false
       statusCode isEqualTo StatusCode.ACTIVE
@@ -297,7 +306,8 @@ class VideoBookingTest {
       comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
-      videoUrl = "amended-prison-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.url("amended-court-user-video-url"),
+      guestPin = "654321",
       COURT_USER,
     )
 
@@ -306,7 +316,8 @@ class VideoBookingTest {
       comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo null
-      videoUrl isEqualTo "amended-prison-user-video-url"
+      videoUrl isEqualTo "amended-court-user-video-url"
+      guestPin isEqualTo "654321"
       amendedBy isEqualTo COURT_USER.username
       amendedTime isCloseTo now()
     }
@@ -318,7 +329,8 @@ class VideoBookingTest {
       court(code = "COURT_CODE"),
       hearingType = "APPEAL",
       comments = "Some court user comments",
-      videoUrl = "court-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS123"),
+      guestPin = "123456",
       createdBy = COURT_USER,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Should be ignored for external user",
@@ -329,7 +341,9 @@ class VideoBookingTest {
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "APPEAL"
       comments isEqualTo "Some court user comments"
-      videoUrl isEqualTo "court-user-video-url"
+      videoUrl isEqualTo null
+      hmctsNumber isEqualTo "HMCTS123"
+      guestPin isEqualTo "123456"
       createdBy isEqualTo COURT_USER.username
       createdByPrison isBool false
       statusCode isEqualTo StatusCode.ACTIVE
@@ -342,7 +356,8 @@ class VideoBookingTest {
       comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
-      videoUrl = "amended-prison-user-video-url",
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS321"),
+      guestPin = "654321",
       PRISON_USER_BIRMINGHAM,
     )
 
@@ -351,7 +366,9 @@ class VideoBookingTest {
       comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Amended prisoners notes"
-      videoUrl isEqualTo "amended-prison-user-video-url"
+      hmctsNumber isEqualTo "HMCTS321"
+      guestPin isEqualTo "654321"
+      videoUrl isEqualTo null
       amendedBy isEqualTo PRISON_USER_BIRMINGHAM.username
       amendedTime isCloseTo now()
     }
