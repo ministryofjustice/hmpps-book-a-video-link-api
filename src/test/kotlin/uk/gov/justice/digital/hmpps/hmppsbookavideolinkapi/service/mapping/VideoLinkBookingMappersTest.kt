@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
@@ -25,7 +26,8 @@ class VideoLinkBookingMappersTest {
       court(code = CHESTERFIELD_JUSTICE_CENTRE),
       CourtHearingType.TRIBUNAL.name,
       comments = "some comments for the court booking",
-      videoUrl = null,
+      cvpLinkDetails = null,
+      guestPin = null,
       createdBy = COURT_USER,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
@@ -62,7 +64,8 @@ class VideoLinkBookingMappersTest {
       court(code = CHESTERFIELD_JUSTICE_CENTRE),
       CourtHearingType.TRIBUNAL.name,
       comments = "some comments for the court booking",
-      videoUrl = "court-video-url",
+      cvpLinkDetails = CvpLinkDetails.url("court-video-url"),
+      guestPin = "123456",
       createdBy = COURT_USER,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",

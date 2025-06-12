@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
@@ -54,11 +55,13 @@ class CreateCourtBookingService(
 
     val prisoner = request.prisoner().validate()
 
+    // TODO use HMCTS number and guest pin when added to request/model.
     return VideoBooking.newCourtBooking(
       court = court,
       hearingType = request.courtHearingType!!.name,
       comments = request.comments,
-      videoUrl = request.videoLinkUrl,
+      cvpLinkDetails = request.videoLinkUrl?.let(CvpLinkDetails::url),
+      guestPin = null,
       createdBy = createdBy,
       notesForStaff = request.notesForStaff,
       notesForPrisoners = request.notesForPrisoners,

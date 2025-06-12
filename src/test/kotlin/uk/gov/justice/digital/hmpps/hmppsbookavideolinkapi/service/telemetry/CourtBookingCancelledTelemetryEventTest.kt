@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -31,7 +32,8 @@ class CourtBookingCancelledTelemetryEventTest {
     hearingType = "APPEAL",
     createdBy = COURT_USER,
     comments = null,
-    videoUrl = "http://booking.created.url",
+    cvpLinkDetails = CvpLinkDetails.url("http://booking.created.url"),
+    guestPin = "123456",
     notesForStaff = null,
     notesForPrisoners = null,
   ).addAppointment(
@@ -83,6 +85,7 @@ class CourtBookingCancelledTelemetryEventTest {
         "post_start" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
         "post_end" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
         "cvp_link" to "true",
+        "guest_pin" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -117,6 +120,7 @@ class CourtBookingCancelledTelemetryEventTest {
         "post_start" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
         "post_end" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
         "cvp_link" to "true",
+        "guest_pin" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -151,6 +155,7 @@ class CourtBookingCancelledTelemetryEventTest {
         "post_start" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
         "post_end" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
         "cvp_link" to "true",
+        "guest_pin" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -185,6 +190,7 @@ class CourtBookingCancelledTelemetryEventTest {
         "post_start" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
         "post_end" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
         "cvp_link" to "true",
+        "guest_pin" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -219,6 +225,7 @@ class CourtBookingCancelledTelemetryEventTest {
         "post_start" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
         "post_end" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
         "cvp_link" to "true",
+        "guest_pin" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(

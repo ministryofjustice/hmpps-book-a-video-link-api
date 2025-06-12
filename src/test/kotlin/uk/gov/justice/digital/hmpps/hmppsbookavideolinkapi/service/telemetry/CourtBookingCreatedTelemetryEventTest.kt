@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -33,7 +34,8 @@ class CourtBookingCreatedTelemetryEventTest {
       hearingType = "APPEAL",
       createdBy = COURT_USER,
       comments = null,
-      videoUrl = "http://booking.created.url",
+      cvpLinkDetails = CvpLinkDetails.url("http://booking.created.url"),
+      guestPin = "123456",
       notesForStaff = null,
       notesForPrisoners = null,
     ).addAppointment(
@@ -80,6 +82,7 @@ class CourtBookingCreatedTelemetryEventTest {
         "post_start" to tomorrow().atTime(LocalTime.of(11, 0)).toIsoDateTime(),
         "post_end" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
         "cvp_link" to "true",
+        "guest_pin" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -98,7 +101,59 @@ class CourtBookingCreatedTelemetryEventTest {
       hearingType = "APPEAL",
       createdBy = PRISON_USER_RISLEY,
       comments = null,
-      videoUrl = null,
+      cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS123"),
+      guestPin = "123456",
+      notesForStaff = null,
+      notesForPrisoners = null,
+    ).addAppointment(
+      prison = prison(RISLEY),
+      prisonerNumber = "ABC123",
+      appointmentType = "VLB_COURT_MAIN",
+      date = tomorrow(),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(13, 0),
+      locationId = risleyLocation.id,
+    )
+
+    with(CourtBookingCreatedTelemetryEvent(booking)) {
+      eventType isEqualTo "BVLS-court-booking-created"
+      properties() containsEntriesExactlyInAnyOrder mapOf(
+        "video_booking_id" to "0",
+        "created_by" to "prison",
+        "court_code" to DERBY_JUSTICE_CENTRE,
+        "hearing_type" to "APPEAL",
+        "prison_code" to RISLEY,
+        "pre_location_id" to "",
+        "pre_start" to "",
+        "pre_end" to "",
+        "main_location_id" to risleyLocation.id.toString(),
+        "main_start" to tomorrow().atTime(LocalTime.of(12, 0)).toIsoDateTime(),
+        "main_end" to tomorrow().atTime(LocalTime.of(13, 0)).toIsoDateTime(),
+        "post_location_id" to "",
+        "post_start" to "",
+        "post_end" to "",
+        "cvp_link" to "true",
+        "guest_pin" to "true",
+      )
+
+      metrics() containsEntriesExactlyInAnyOrder mapOf(
+        "hoursBeforeStartTime" to hoursBetween(
+          booking.createdTime,
+          tomorrow().atTime(LocalTime.of(12, 0)),
+        ).toDouble(),
+      )
+    }
+  }
+
+  @Test
+  fun `should raise a court booking created telemetry event created by a prison without CVP or guest pin`() {
+    val booking = VideoBooking.newCourtBooking(
+      court = court(DERBY_JUSTICE_CENTRE),
+      hearingType = "APPEAL",
+      createdBy = PRISON_USER_RISLEY,
+      comments = null,
+      cvpLinkDetails = null,
+      guestPin = null,
       notesForStaff = null,
       notesForPrisoners = null,
     ).addAppointment(
@@ -129,6 +184,7 @@ class CourtBookingCreatedTelemetryEventTest {
         "post_start" to "",
         "post_end" to "",
         "cvp_link" to "false",
+        "guest_pin" to "false",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
