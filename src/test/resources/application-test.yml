@@ -10,6 +10,8 @@ spring:
     url: 'jdbc:postgresql://localhost:5432/book-a-video-link-test-db'
     username: book-a-video-link
     password: book-a-video-link
+    hikari:
+      minimum-idle: 5
 
   flyway:
     locations: classpath:/migrations/common,classpath:/migrations/dev

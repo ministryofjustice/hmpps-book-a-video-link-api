@@ -385,9 +385,12 @@ fun additionalDetails(
 fun VideoBooking.hasBookingType(that: BookingType) = also { it.bookingType isEqualTo that }
 fun VideoBooking.hasHearingType(that: CourtHearingType) = also { it.hearingType isEqualTo that.name }
 fun VideoBooking.hasProbationTeam(that: ProbationTeam) = also { it.probationTeam isEqualTo that }
+fun VideoBooking.hasCourt(code: String) = also { it.court?.code isEqualTo code }
 fun VideoBooking.hasMeetingType(that: ProbationMeetingType) = also { it.probationMeetingType isEqualTo that.name }
 fun VideoBooking.hasComments(that: String) = also { it.comments isEqualTo that }
-fun VideoBooking.hasVideoUrl(that: String) = also { it.videoUrl isEqualTo that }
+fun VideoBooking.hasVideoUrl(that: String?) = also { it.videoUrl isEqualTo that }
+fun VideoBooking.hasHmctsNumber(that: String?) = also { it.hmctsNumber isEqualTo that }
+fun VideoBooking.hasGuestPin(that: String?) = also { it.guestPin isEqualTo that }
 fun VideoBooking.hasCreatedBy(that: User) = also { it.createdBy isEqualTo that.username }
 fun VideoBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdTime isCloseTo that }
 fun VideoBooking.hasCreatedByPrison(that: Boolean) = also { it.createdByPrison isBool that }

@@ -27,6 +27,7 @@ data class ScheduleItem(
   val statusCode: BookingStatus,
 
   @Schema(description = "The video link URL to attend this event", example = "https://video.link.url")
+  @Redacted
   val videoUrl: String?,
 
   @Schema(description = "The comments provided for the booking", example = "Free text comment")
@@ -127,20 +128,28 @@ data class ScheduleItem(
   val updatedBy: String? = null,
 
   @Schema(description = "The name of the probation officer if this is a probation booking and present", example = "Jane Doe")
+  @Redacted
   val probationOfficerName: String? = null,
 
   @Schema(description = "The email address of the probation officer if this is a probation booking and present", example = "jane.doe@somewhere.com")
+  @Redacted
   val probationOfficerEmailAddress: String? = null,
 
   @Schema(
     description = "Private free text notes for the booking.",
     example = "Legal representation details ...",
   )
+  @Redacted
   val notesForStaff: String?,
 
   @Schema(
     description = "Public free text notes for the booking.",
     example = "Please arrive 10 minutes early",
   )
+  @Redacted
   val notesForPrisoners: String?,
+
+  @Schema(description = "The HMCTS number for the video booking. When this is provided the video link will be null.", example = "12345678")
+  @Redacted
+  val hmctsNumber: String?,
 )

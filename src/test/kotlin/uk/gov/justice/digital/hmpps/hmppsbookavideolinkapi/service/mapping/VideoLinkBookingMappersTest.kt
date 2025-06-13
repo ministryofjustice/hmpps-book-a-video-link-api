@@ -55,6 +55,8 @@ class VideoLinkBookingMappersTest {
       amendedBy = null,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = null,
+      hmctsNumber = booking.hmctsNumber,
+      guestPin = booking.guestPin,
     )
   }
 
@@ -93,6 +95,8 @@ class VideoLinkBookingMappersTest {
       amendedBy = null,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = null,
+      hmctsNumber = booking.hmctsNumber,
+      guestPin = booking.guestPin,
     )
   }
 
@@ -129,6 +133,8 @@ class VideoLinkBookingMappersTest {
       amendedBy = null,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = null,
+      hmctsNumber = booking.hmctsNumber,
+      guestPin = booking.guestPin,
     )
   }
 }

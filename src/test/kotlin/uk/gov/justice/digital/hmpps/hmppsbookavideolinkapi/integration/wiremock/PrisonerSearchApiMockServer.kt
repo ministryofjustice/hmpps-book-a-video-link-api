@@ -6,9 +6,12 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 
 class PrisonerSearchApiMockServer : MockServer(8092) {
+
+  fun stubGetPrisoner(prisoner: Prisoner) = stubGetPrisoner(prisoner.number, prisoner.prison)
 
   fun stubGetPrisoner(prisonerNumber: String, prisonCode: String = "WWI", lastPrisonCode: String? = null) {
     stubFor(
