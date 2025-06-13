@@ -78,7 +78,8 @@ class ScheduleServiceTest {
     probationOfficerEmailAddress = null,
     notesForPrisoners = "notes for prisoners",
     notesForStaff = "notes for staff",
-    hmctsNumber = null,
+    hmctsNumber = "HMCTS",
+    guestPin = "12345",
   )
 
   private fun probationItem(
@@ -125,6 +126,7 @@ class ScheduleServiceTest {
     notesForPrisoners = "notes for prisoners",
     notesForStaff = "notes for staff",
     hmctsNumber = null,
+    guestPin = null,
   )
 
   private val eight = LocalTime.of(8, 0)
@@ -208,6 +210,8 @@ class ScheduleServiceTest {
       assertThat(item.appointmentComments).isEqualTo("appointment comments")
       assertThat(item.notesForStaff).isEqualTo("notes for staff")
       assertThat(item.notesForPrisoners).isEqualTo("notes for prisoners")
+      assertThat(item.hmctsNumber).isEqualTo("HMCTS")
+      assertThat(item.guestPin).isEqualTo("12345")
     }
   }
 

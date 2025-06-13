@@ -93,4 +93,6 @@ data class ScheduleItem(
   val notesForPrisoners: String?,
 
   val hmctsNumber: String?,
+
+  val guestPin: String?,
 )
