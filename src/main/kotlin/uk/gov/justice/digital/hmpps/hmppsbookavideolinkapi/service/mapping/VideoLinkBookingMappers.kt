@@ -38,4 +38,6 @@ fun VideoBookingEntity.toModel(
   additionalBookingDetails = additionalBookingDetails,
   notesForStaff = notesForStaff,
   notesForPrisoners = notesForPrisoners,
+  hmctsNumber = hmctsNumber,
+  guestPin = guestPin,
 )

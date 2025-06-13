@@ -55,13 +55,12 @@ class CreateCourtBookingService(
 
     val prisoner = request.prisoner().validate()
 
-    // TODO use HMCTS number and guest pin when added to request/model.
     return VideoBooking.newCourtBooking(
       court = court,
       hearingType = request.courtHearingType!!.name,
       comments = request.comments,
-      cvpLinkDetails = request.videoLinkUrl?.let(CvpLinkDetails::url),
-      guestPin = null,
+      cvpLinkDetails = request.cvpLinkDetails(),
+      guestPin = request.guestPin,
       createdBy = createdBy,
       notesForStaff = request.notesForStaff,
       notesForPrisoners = request.notesForPrisoners,
@@ -70,6 +69,14 @@ class CreateCourtBookingService(
       .also { booking -> videoBookingRepository.saveAndFlush(booking) }
       .also { booking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, booking) }
       .also { log.info("CREATE COURT BOOKING: court booking with id ${it.videoBookingId} created") } to prisoner
+  }
+
+  private fun CreateVideoBookingRequest.cvpLinkDetails() = run {
+    when {
+      videoLinkUrl != null -> CvpLinkDetails.url(videoLinkUrl)
+      hmctsNumber != null -> CvpLinkDetails.hmctsNumber(hmctsNumber)
+      else -> null
+    }
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.

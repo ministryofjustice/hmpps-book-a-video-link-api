@@ -78,6 +78,7 @@ class ScheduleServiceTest {
     probationOfficerEmailAddress = null,
     notesForPrisoners = "notes for prisoners",
     notesForStaff = "notes for staff",
+    hmctsNumber = null,
   )
 
   private fun probationItem(
@@ -123,6 +124,7 @@ class ScheduleServiceTest {
     probationOfficerEmailAddress = "jane@doe.com",
     notesForPrisoners = "notes for prisoners",
     notesForStaff = "notes for staff",
+    hmctsNumber = null,
   )
 
   private val eight = LocalTime.of(8, 0)

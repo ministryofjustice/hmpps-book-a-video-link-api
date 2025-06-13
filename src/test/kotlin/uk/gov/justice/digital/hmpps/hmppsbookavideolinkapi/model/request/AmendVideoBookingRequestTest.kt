@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalTime
 
-class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>() {
+class AmendVideoBookingRequestTest : ValidatorBase<AmendVideoBookingRequest>() {
 
   private val appointment = Appointment(
     type = AppointmentType.VLB_COURT_MAIN,
@@ -22,9 +22,8 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     appointments = listOf(appointment),
   )
 
-  private val courtBooking = CreateVideoBookingRequest(
+  private val courtBooking = AmendVideoBookingRequest(
     bookingType = BookingType.COURT,
-    courtCode = "ABC",
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
@@ -33,9 +32,8 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     notesForPrisoners = "Some public prisoners notes",
   )
 
-  private val probationBooking = CreateVideoBookingRequest(
+  private val probationBooking = AmendVideoBookingRequest(
     bookingType = BookingType.PROBATION,
-    probationTeamCode = "DEF",
     probationMeetingType = ProbationMeetingType.RR,
     prisoners = listOf(prisoner),
     comments = "Blah de blah",
@@ -57,26 +55,6 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   @Test
   fun `should fail when missing booking type`() {
     courtBooking.copy(bookingType = null) failsWithSingle ModelError("bookingType", "The video link booking type is mandatory")
-  }
-
-  @Test
-  fun `should fail when court booking missing court code`() {
-    courtBooking.copy(courtCode = null) failsWithSingle ModelError("invalidCourtBooking", "The court code and court hearing type are mandatory for court bookings")
-  }
-
-  @Test
-  fun `should fail when court booking missing court hearing type code`() {
-    courtBooking.copy(courtHearingType = null) failsWithSingle ModelError("invalidCourtBooking", "The court code and court hearing type are mandatory for court bookings")
-  }
-
-  @Test
-  fun `should fail when probation booking missing probation team code`() {
-    probationBooking.copy(probationTeamCode = null) failsWithSingle ModelError("invalidProbationBooking", "The probation team code and probation meeting type are mandatory for probation bookings")
-  }
-
-  @Test
-  fun `should fail when probation booking missing probation meeting type code`() {
-    probationBooking.copy(probationMeetingType = null) failsWithSingle ModelError("invalidProbationBooking", "The probation team code and probation meeting type are mandatory for probation bookings")
   }
 
   @Test

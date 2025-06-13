@@ -54,7 +54,7 @@ class VideoBookingAmendedEventHandlerTest {
   )
 
   @Nested
-  inner class RolledOutPrisons {
+  inner class RolledOutPrison {
     @BeforeEach
     fun before() {
       whenever(activitiesService.isAppointmentsRolledOutAt(anyString())) doReturn true
@@ -598,7 +598,7 @@ class VideoBookingAmendedEventHandlerTest {
   }
 
   @Nested
-  inner class NonRolledOutPrisons {
+  inner class NonRolledOutPrison {
     @BeforeEach
     fun before() {
       whenever(activitiesService.isAppointmentsRolledOutAt(anyString())) doReturn false

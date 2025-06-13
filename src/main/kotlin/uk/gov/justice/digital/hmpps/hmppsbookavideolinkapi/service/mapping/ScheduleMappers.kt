@@ -47,6 +47,7 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   probationOfficerEmailAddress = probationOfficerEmailAddress,
   notesForStaff = notesForStaff,
   notesForPrisoners = notesForPrisoners,
+  hmctsNumber = hmctsNumber,
 )
 
 fun List<ScheduleItemEntity>.toModel(locations: List<Location>) = map { it.toModel(locations) }
