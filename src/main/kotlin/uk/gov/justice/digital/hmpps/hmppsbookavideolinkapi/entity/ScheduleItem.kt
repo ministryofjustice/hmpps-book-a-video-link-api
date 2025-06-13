@@ -91,4 +91,6 @@ data class ScheduleItem(
   val notesForStaff: String?,
 
   val notesForPrisoners: String?,
+
+  val hmctsNumber: String?,
 )

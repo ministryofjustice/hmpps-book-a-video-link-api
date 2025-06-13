@@ -55,12 +55,11 @@ class AmendCourtBookingService(
   private fun amendCourt(existingBooking: VideoBooking, request: AmendVideoBookingRequest, amendedBy: User): Pair<VideoBooking, Prisoner> {
     val prisoner = request.prisoner().validate()
 
-    // TODO use HMCTS number and guest pin when added to request/model.
     return existingBooking.amendCourtBooking(
       hearingType = request.courtHearingType!!.name,
       comments = if (toggles.isMasterPublicAndPrivateNotes()) existingBooking.comments else request.comments,
-      cvpLinkDetails = request.videoLinkUrl?.let(CvpLinkDetails::url),
-      guestPin = null,
+      cvpLinkDetails = request.cvpLinkDetails(),
+      guestPin = request.guestPin,
       amendedBy = amendedBy,
       notesForStaff = if (toggles.isMasterPublicAndPrivateNotes()) request.notesForStaff else existingBooking.notesForStaff,
       notesForPrisoners = if (toggles.isMasterPublicAndPrivateNotes()) request.notesForPrisoners else existingBooking.notesForPrisoners,
@@ -70,6 +69,14 @@ class AmendCourtBookingService(
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
       .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking) }
       .also { thisBooking -> log.info("AMEND COURT BOOKING: court booking ${thisBooking.videoBookingId} amended") } to prisoner
+  }
+
+  private fun AmendVideoBookingRequest.cvpLinkDetails() = run {
+    when {
+      videoLinkUrl != null -> CvpLinkDetails.url(videoLinkUrl)
+      hmctsNumber != null -> CvpLinkDetails.hmctsNumber(hmctsNumber)
+      else -> null
+    }
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.

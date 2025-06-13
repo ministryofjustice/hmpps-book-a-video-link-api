@@ -46,10 +46,20 @@ data class VideoLinkBooking(
   val probationMeetingTypeDescription: String? = null,
 
   @Schema(description = "Free text comments for the video link booking", example = "Waiting to hear on legal representation")
+  @Redacted
   val comments: String?,
 
-  @Schema(description = "The video link for the appointment. Must be a valid URL", example = "https://video.here.com")
+  @Schema(description = "The video link for the video booking. Must be a valid URL. When this is provided the HMCTS number will be null.", example = "https://video.here.com")
+  @Redacted
   val videoLinkUrl: String?,
+
+  @Schema(description = "The HMCTS number for the video booking. When this is provided the video link will be null.", example = "12345678")
+  @Redacted
+  val hmctsNumber: String?,
+
+  @Schema(description = "The guest PIN to access the video booking.", example = "46385765")
+  @Redacted
+  val guestPin: String?,
 
   @Schema(description = "True if the booking was made by a prison user.", example = "false")
   val createdByPrison: Boolean? = false,

@@ -53,9 +53,19 @@ data class AmendVideoBookingRequest(
   val comments: String?,
 
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
-  @Schema(description = "The video link for the appointment.", example = "https://video.here.com")
+  @Schema(description = "he video link for the video booking. When this is provided the HMCTS number must be null.", example = "https://video.here.com")
   @Redacted
-  val videoLinkUrl: String?,
+  val videoLinkUrl: String? = null,
+
+  @field:Size(max = 8, message = "The HMCTS number should not exceed {max} characters")
+  @Schema(description = "The HMCTS number for the appointment. When this is provided the video link must be null. Ignored for non-court bookings.", example = "12345678")
+  @Redacted
+  val hmctsNumber: String? = null,
+
+  @field:Size(max = 8, message = "The guest PIN should not exceed {max} characters")
+  @Schema(description = "The guest PIN to access the video booking. Ignored for non-court bookings.", example = "46385765")
+  @Redacted
+  val guestPin: String? = null,
 
   @Schema(
     description = """
@@ -93,4 +103,8 @@ data class AmendVideoBookingRequest(
   @JsonIgnore
   @AssertTrue(message = "The supplied video link is blank")
   private fun isInvalidUrl() = videoLinkUrl == null || videoLinkUrl.isNotBlank()
+
+  @JsonIgnore
+  @AssertTrue(message = "The video link cannot have both a video link and HMCTS number")
+  private fun isInvalidCvpLinkDetails() = (BookingType.COURT != bookingType) || (videoLinkUrl == null || hmctsNumber == null)
 }
