@@ -152,4 +152,8 @@ data class ScheduleItem(
   @Schema(description = "The HMCTS number for the video booking. When this is provided the video link will be null.", example = "12345678")
   @Redacted
   val hmctsNumber: String?,
+
+  @Schema(description = "The guest PIN to access the video booking.", example = "46385765")
+  @Redacted
+  val guestPin: String?,
 )
