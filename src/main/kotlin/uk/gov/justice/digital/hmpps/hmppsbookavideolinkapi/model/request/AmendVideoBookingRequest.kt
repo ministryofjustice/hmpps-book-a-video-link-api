@@ -53,7 +53,7 @@ data class AmendVideoBookingRequest(
   val comments: String?,
 
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
-  @Schema(description = "he video link for the video booking. When this is provided the HMCTS number must be null.", example = "https://video.here.com")
+  @Schema(description = "The video link for the video booking. When this is provided the HMCTS number must be null.", example = "https://video.here.com")
   @Redacted
   val videoLinkUrl: String? = null,
 
