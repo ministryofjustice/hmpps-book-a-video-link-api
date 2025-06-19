@@ -64,6 +64,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CancelledCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
@@ -130,6 +131,7 @@ class BookingFacadeTest {
     telemetryService,
     availabilityService,
     additionalBookingDetailRepository,
+    CourtEmailFactory("default-video-url"),
   )
   private val courtBooking = courtBooking()
     .addAppointment(

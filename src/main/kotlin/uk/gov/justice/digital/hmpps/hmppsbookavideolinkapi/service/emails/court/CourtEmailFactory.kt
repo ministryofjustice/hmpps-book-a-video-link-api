@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
@@ -14,7 +16,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import java.util.UUID
 
-object CourtEmailFactory {
+@Component
+class CourtEmailFactory(@Value("\${default.court.video.url:}") private val defaultCourtVideoUrl: String) {
   fun user(
     contact: BookingContact,
     prisoner: Prisoner,
@@ -46,7 +49,7 @@ object CourtEmailFactory {
         mainAppointmentDetails = main.appointmentDetails(locations),
         postAppointmentDetails = post?.appointmentDetails(locations),
         comments = booking.staffNotesOrElseComments(),
-        courtHearingLink = booking.videoUrl,
+        courtHearingLink = booking.fullCvpVideoUrl(),
       )
       BookingAction.AMEND -> AmendedCourtBookingUserEmail(
         address = contact.email!!,
@@ -61,7 +64,7 @@ object CourtEmailFactory {
         mainAppointmentDetails = main.appointmentDetails(locations),
         postAppointmentDetails = post?.appointmentDetails(locations),
         comments = booking.staffNotesOrElseComments(),
-        courtHearingLink = booking.videoUrl,
+        courtHearingLink = booking.fullCvpVideoUrl(),
       )
       BookingAction.CANCEL -> {
         booking.requireIsCancelled()
@@ -79,7 +82,7 @@ object CourtEmailFactory {
           mainAppointmentInfo = main.appointmentInformation(locations),
           postAppointmentInfo = post?.appointmentInformation(locations),
           comments = booking.staffNotesOrElseComments(),
-          courtHearingLink = booking.videoUrl,
+          courtHearingLink = booking.fullCvpVideoUrl(),
         )
       }
 
@@ -117,7 +120,7 @@ object CourtEmailFactory {
         mainAppointmentDetails = main.appointmentDetails(locations),
         postAppointmentDetails = post?.appointmentDetails(locations),
         comments = booking.staffNotesOrElseComments(),
-        courtHearingLink = booking.videoUrl,
+        courtHearingLink = booking.fullCvpVideoUrl(),
       )
 
       BookingAction.AMEND -> AmendedCourtBookingCourtEmail(
@@ -132,7 +135,7 @@ object CourtEmailFactory {
         mainAppointmentDetails = main.appointmentDetails(locations),
         postAppointmentDetails = post?.appointmentDetails(locations),
         comments = booking.staffNotesOrElseComments(),
-        courtHearingLink = booking.videoUrl,
+        courtHearingLink = booking.fullCvpVideoUrl(),
       )
 
       BookingAction.CANCEL -> {
@@ -150,7 +153,7 @@ object CourtEmailFactory {
           mainAppointmentInfo = main.appointmentInformation(locations),
           postAppointmentInfo = post?.appointmentInformation(locations),
           comments = booking.staffNotesOrElseComments(),
-          courtHearingLink = booking.videoUrl,
+          courtHearingLink = booking.fullCvpVideoUrl(),
         )
       }
 
@@ -247,7 +250,7 @@ object CourtEmailFactory {
             mainAppointmentDetails = main.appointmentDetails(locations),
             postAppointmentDetails = post?.appointmentDetails(locations),
             comments = booking.staffNotesOrElseComments(),
-            courtHearingLink = booking.videoUrl,
+            courtHearingLink = booking.fullCvpVideoUrl(),
           )
         } else {
           NewCourtBookingPrisonNoCourtEmail(
@@ -262,7 +265,7 @@ object CourtEmailFactory {
             mainAppointmentDetails = main.appointmentDetails(locations),
             postAppointmentDetails = post?.appointmentDetails(locations),
             comments = booking.staffNotesOrElseComments(),
-            courtHearingLink = booking.videoUrl,
+            courtHearingLink = booking.fullCvpVideoUrl(),
           )
         }
       }
@@ -282,7 +285,7 @@ object CourtEmailFactory {
             mainAppointmentDetails = main.appointmentDetails(locations),
             postAppointmentDetails = post?.appointmentDetails(locations),
             comments = booking.staffNotesOrElseComments(),
-            courtHearingLink = booking.videoUrl,
+            courtHearingLink = booking.fullCvpVideoUrl(),
           )
         } else {
           AmendedCourtBookingPrisonNoCourtEmail(
@@ -297,7 +300,7 @@ object CourtEmailFactory {
             mainAppointmentDetails = main.appointmentDetails(locations),
             postAppointmentDetails = post?.appointmentDetails(locations),
             comments = booking.staffNotesOrElseComments(),
-            courtHearingLink = booking.videoUrl,
+            courtHearingLink = booking.fullCvpVideoUrl(),
           )
         }
       }
@@ -319,7 +322,7 @@ object CourtEmailFactory {
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
             comments = booking.staffNotesOrElseComments(),
-            courtHearingLink = booking.videoUrl,
+            courtHearingLink = booking.fullCvpVideoUrl(),
           )
         } else {
           CancelledCourtBookingPrisonNoCourtEmail(
@@ -334,7 +337,7 @@ object CourtEmailFactory {
             mainAppointmentInfo = main.appointmentInformation(locations),
             postAppointmentInfo = post?.appointmentInformation(locations),
             comments = booking.staffNotesOrElseComments(),
-            courtHearingLink = booking.videoUrl,
+            courtHearingLink = booking.fullCvpVideoUrl(),
           )
         }
       }
@@ -438,4 +441,6 @@ object CourtEmailFactory {
   }
 
   private fun VideoBooking.staffNotesOrElseComments() = notesForStaff ?: comments
+
+  private fun VideoBooking.fullCvpVideoUrl() = hmctsNumber?.let { "HMCTS$it@$defaultCourtVideoUrl" } ?: videoUrl
 }

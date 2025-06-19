@@ -51,6 +51,7 @@ class BookingFacade(
   private val telemetryService: TelemetryService,
   private val availabilityService: AvailabilityService,
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,
+  private val courtEmailFactory: CourtEmailFactory,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -178,9 +179,9 @@ class BookingFacade(
 
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
-        ContactType.USER -> CourtEmailFactory.user(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user is PrisonUser || user is ExternalUser }
-        ContactType.COURT -> CourtEmailFactory.court(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user is PrisonUser || user is ServiceUser }
-        ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
+        ContactType.USER -> courtEmailFactory.user(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user is PrisonUser || user is ExternalUser }
+        ContactType.COURT -> courtEmailFactory.court(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user is PrisonUser || user is ServiceUser }
+        ContactType.PRISON -> courtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
         else -> null
       }
     }

@@ -198,3 +198,8 @@ video-link-booking:
 hmpps:
   sqs:
     queueAdminRole: BOOK_A_VIDEO_LINK_ADMIN
+
+default:
+  court:
+    video:
+      url: "meet.video.justice.gov.uk"
