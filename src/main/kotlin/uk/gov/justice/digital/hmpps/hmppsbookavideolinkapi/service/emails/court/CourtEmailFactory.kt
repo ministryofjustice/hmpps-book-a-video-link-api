@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
@@ -16,8 +14,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import java.util.UUID
 
-@Component
-class CourtEmailFactory(@Value("\${default.court.video.url:}") private val defaultCourtVideoUrl: String) {
+const val DEFAULT_COURT_URL_SUFFIX = "meet.video.justice.gov.uk"
+
+object CourtEmailFactory {
   fun user(
     contact: BookingContact,
     prisoner: Prisoner,
@@ -442,5 +441,5 @@ class CourtEmailFactory(@Value("\${default.court.video.url:}") private val defau
 
   private fun VideoBooking.staffNotesOrElseComments() = notesForStaff ?: comments
 
-  private fun VideoBooking.fullCvpVideoUrl() = hmctsNumber?.let { "HMCTS$it@$defaultCourtVideoUrl" } ?: videoUrl
+  private fun VideoBooking.fullCvpVideoUrl() = hmctsNumber?.let { "HMCTS$it@$DEFAULT_COURT_URL_SUFFIX" } ?: videoUrl
 }

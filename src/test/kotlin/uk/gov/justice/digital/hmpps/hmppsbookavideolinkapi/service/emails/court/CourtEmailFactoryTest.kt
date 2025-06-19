@@ -85,8 +85,6 @@ class CourtEmailFactoryTest {
 
   private val prison = prison(prisonCode = WANDSWORTH)
 
-  private val factory = CourtEmailFactory("default-video-url")
-
   companion object {
     @JvmStatic
     fun supportedUserBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL)
@@ -116,7 +114,7 @@ class CourtEmailFactoryTest {
   @ParameterizedTest
   @MethodSource("supportedUserBookingActions")
   fun `should return user emails for supported user based actions using comments`(action: BookingAction) {
-    val email = factory.user(
+    val email = CourtEmailFactory.user(
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
@@ -136,7 +134,7 @@ class CourtEmailFactoryTest {
   @ParameterizedTest
   @MethodSource("supportedUserBookingActions")
   fun `should return user emails for supported user based actions using staff notes`(action: BookingAction) {
-    val email = factory.user(
+    val email = CourtEmailFactory.user(
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
@@ -156,7 +154,7 @@ class CourtEmailFactoryTest {
   @ParameterizedTest
   @MethodSource("unsupportedUserBookingActions")
   fun `should return no email for unsupported user based actions`(action: BookingAction) {
-    val email = factory.user(
+    val email = CourtEmailFactory.user(
       action = action,
       contact = userBookingContact,
       prisoner = prisoner,
@@ -174,7 +172,7 @@ class CourtEmailFactoryTest {
   @Test
   fun `should reject incorrect contact type for user emails`() {
     val error = assertThrows<IllegalArgumentException> {
-      factory.user(
+      CourtEmailFactory.user(
         action = BookingAction.CREATE,
         contact = prisonBookingContact,
         prisoner = prisoner,
@@ -193,7 +191,7 @@ class CourtEmailFactoryTest {
   @Test
   fun `should reject probation video bookings for user emails`() {
     val error = assertThrows<IllegalArgumentException> {
-      factory.user(
+      CourtEmailFactory.user(
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
@@ -212,7 +210,7 @@ class CourtEmailFactoryTest {
   @ParameterizedTest
   @MethodSource("supportedCourtBookingActions")
   fun `should return court emails for supported court based actions with comments and full video URL`(action: BookingAction) {
-    val email = factory.court(
+    val email = CourtEmailFactory.court(
       action = action,
       contact = courtBookingContact,
       prisoner = prisoner,
@@ -236,7 +234,7 @@ class CourtEmailFactoryTest {
   @ParameterizedTest
   @MethodSource("supportedCourtBookingActions")
   fun `should return court emails for supported court based actions with staff notes and HMCTS number`(action: BookingAction) {
-    val email = factory.court(
+    val email = CourtEmailFactory.court(
       action = action,
       contact = courtBookingContact,
       prisoner = prisoner,
@@ -253,14 +251,14 @@ class CourtEmailFactoryTest {
     email?.personalisation()!! containsEntry Pair("comments", "Court hearing staff notes")
 
     if (listOf(BookingAction.CREATE, BookingAction.CANCEL).contains(action)) {
-      email.personalisation() containsEntry Pair("courtHearingLink", "HMCTS54321@default-video-url")
+      email.personalisation() containsEntry Pair("courtHearingLink", "HMCTS54321@meet.video.justice.gov.uk")
     }
   }
 
   @Test
   fun `should reject incorrect contact type for court emails`() {
     val error = assertThrows<IllegalArgumentException> {
-      factory.court(
+      CourtEmailFactory.court(
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
@@ -279,7 +277,7 @@ class CourtEmailFactoryTest {
   @Test
   fun `should reject probation video bookings for court emails`() {
     val error = assertThrows<IllegalArgumentException> {
-      factory.court(
+      CourtEmailFactory.court(
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
@@ -298,7 +296,7 @@ class CourtEmailFactoryTest {
   @Test
   fun `should reject incorrect contact type for prison emails`() {
     val error = assertThrows<IllegalArgumentException> {
-      factory.prison(
+      CourtEmailFactory.prison(
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
@@ -318,7 +316,7 @@ class CourtEmailFactoryTest {
   @Test
   fun `should reject probation video bookings for prison emails`() {
     val error = assertThrows<IllegalArgumentException> {
-      factory.prison(
+      CourtEmailFactory.prison(
         action = BookingAction.CREATE,
         contact = userBookingContact,
         prisoner = prisoner,
