@@ -37,7 +37,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     courtResponse contains "video-links-by-court-booking-date-from-2024-01-01-for-1-days.csv"
     courtResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,court,courtId,madeByTheCourt,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,hearingType,user,cvpLink\n"
-    courtResponse contains "-2000,2024-01-01T01:00:00,-2000,CREATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2099-01-24T12:00:00,2099-01-24T13:00:00,,,,,\"Pentonville room 3\",,,Tribunal,court_user,cvp-link"
+    courtResponse contains "-2000,2024-01-01T01:00:00,-2000,CREATE,PVI,\"Derby Justice Centre\",DRBYMC,true,2099-01-24T12:00:00,2099-01-24T13:00:00,,,,,\"Pentonville room 3\",,,Tribunal,court_user,54321"
 
     val probationResponse = webTestClient.downloadProbationDataByBookingDate(LocalDate.of(2024, 1, 1), 2)
 
