@@ -48,3 +48,7 @@ rm -f ./$SECRETS_FILE
 echo
 echo "Restarting BVLS UI deployment on namespace $NAMESPACE"
 kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-book-a-video-link-ui
+
+echo
+echo "Restarting Daily Schedule deployment on namespace $NAMESPACE"
+kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-video-conference-schedule-ui
