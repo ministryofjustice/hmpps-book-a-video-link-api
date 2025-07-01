@@ -46,6 +46,6 @@ rm -f ./$SECRETS_FILE
 
 # Restart the deployment pods
 echo
-echo "Restarting BVLS UI deployment on namespace $NAMESPACE"
+echo "Restarting Daily schedule deployment in namespace $NAMESPACE"
 kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-video-conference-schedule-ui
 
