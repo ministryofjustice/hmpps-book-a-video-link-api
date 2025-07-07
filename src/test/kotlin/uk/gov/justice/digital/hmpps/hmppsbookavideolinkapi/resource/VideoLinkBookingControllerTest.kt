@@ -207,7 +207,6 @@ class VideoLinkBookingControllerTest {
   ],
   "courtCode": "DRBYMC",
   "courtHearingType": "APPEAL",
-  "comments": "Waiting to hear on legal representation",
   "videoLinkUrl": "https://video.here.com"
 }
     """.trimIndent()

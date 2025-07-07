@@ -2,21 +2,18 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Toggles
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -34,22 +31,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAmendedBy
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAmendedTimeCloseTo
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentDate
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentTypeMain
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasBookingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasComments
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEndTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasHearingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonersNotes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
@@ -82,7 +64,6 @@ class AmendCourtBookingServiceTest {
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val locationValidator: LocationValidator = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
-  private val toggles: Toggles = mock()
 
   private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationsInsidePrisonClient, locationValidator)
 
@@ -92,18 +73,19 @@ class AmendCourtBookingServiceTest {
     appointmentsService,
     bookingHistoryService,
     prisonerSearchClient,
-    toggles,
   )
 
   private var amendedBookingCaptor = argumentCaptor<VideoBooking>()
 
   @Test
-  fun `should amend an existing court video booking for court user`() {
+  fun `should amend an existing court video booking`() {
     val prisonerNumber = "123456"
-    val courtBooking = courtBooking(court = court(DERBY_JUSTICE_CENTRE)).withMainCourtPrisonAppointment()
+    val courtBooking = courtBooking(court = court(DERBY_JUSTICE_CENTRE), notesForStaff = "some notes for staff", notesForPrisoners = "some notes for prisoners").withMainCourtPrisonAppointment()
     val amendCourtBookingRequest = amendCourtBookingRequest(
       prisonCode = BIRMINGHAM,
       prisonerNumber = prisonerNumber,
+      notesForStaff = "some amended notes for staff",
+      notesForPrisoners = "some amended notes for prisoners",
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
@@ -134,8 +116,9 @@ class AmendCourtBookingServiceTest {
 
     whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
     whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
-    val (booking, prisoner) = service.amend(1, amendCourtBookingRequest, COURT_USER)
+    val (booking, prisoner) = service.amend(1, amendCourtBookingRequest, PRISON_USER_BIRMINGHAM)
 
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
@@ -146,10 +129,11 @@ class AmendCourtBookingServiceTest {
     with(amendedBookingCaptor.firstValue) {
       bookingType isEqualTo BookingType.COURT
       hearingType isEqualTo amendCourtBookingRequest.courtHearingType?.name
-      comments isEqualTo "court booking comments"
       videoUrl isEqualTo amendCourtBookingRequest.videoLinkUrl
-      amendedBy isEqualTo COURT_USER.username
+      amendedBy isEqualTo PRISON_USER_BIRMINGHAM.username
       amendedTime isCloseTo LocalDateTime.now()
+      notesForStaff isEqualTo "some amended notes for staff"
+      notesForPrisoners isEqualTo "some amended notes for prisoners"
 
       appointments() hasSize 3
 
@@ -558,135 +542,6 @@ class AmendCourtBookingServiceTest {
     val error = assertThrows<IllegalArgumentException> { service.amend(1, amendProbationBookingRequest(), COURT_USER) }
 
     error.message isEqualTo "AMEND COURT BOOKING: booking type is not court"
-  }
-
-  @Nested
-  inner class FeatureToggleForNotesComments {
-    @Test
-    fun `should amend existing comments (and not notes) when toggle off`() {
-      val prisonerNumber = "123456"
-      val courtBooking = courtBooking(court = court(DERBY_JUSTICE_CENTRE), comments = "create comments").withMainCourtPrisonAppointment()
-      val amendCourtBookingRequest = amendCourtBookingRequest(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = prisonerNumber,
-        comments = "amend comments",
-        notesForStaff = "amend notes for staff",
-        notesForPrisoners = "amend notes for prisoners",
-        appointments = listOf(
-          Appointment(
-            type = AppointmentType.VLB_COURT_MAIN,
-            locationKey = birminghamLocation.key,
-            date = tomorrow(),
-            startTime = LocalTime.of(9, 30),
-            endTime = LocalTime.of(10, 0),
-          ),
-        ),
-      )
-
-      withBookingFixture(1, courtBooking)
-      withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
-
-      whenever(toggles.isMasterPublicAndPrivateNotes()) doReturn false
-      whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-      whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-
-      service.amend(1, amendCourtBookingRequest, COURT_USER).also { (booking, prisoner) ->
-        booking isEqualTo persistedVideoBooking
-        prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
-      }
-
-      inOrder(videoBookingRepository, prisonRepository, prisonerSearchClient, locationValidator, bookingHistoryService) {
-        verify(videoBookingRepository).findById(any())
-        verify(prisonRepository).findByCode(BIRMINGHAM)
-        verify(prisonerSearchClient).getPrisoner(prisonerNumber)
-        verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
-        verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
-        verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
-      }
-
-      amendedBookingCaptor
-        .firstValue
-        .hasBookingType(BookingType.COURT)
-        .hasHearingType(amendCourtBookingRequest.courtHearingType!!)
-        .hasVideoUrl(amendCourtBookingRequest.videoLinkUrl!!)
-        .hasComments("amend comments")
-        .hasStaffNotes(null)
-        .hasPrisonersNotes(null)
-        .hasAmendedBy(COURT_USER)
-        .hasAmendedTimeCloseTo(LocalDateTime.now())
-        .mainHearing()!!
-        .hasPrisonCode(BIRMINGHAM)
-        .hasPrisonerNumber(prisonerNumber)
-        .hasLocation(birminghamLocation)
-        .hasAppointmentDate(tomorrow())
-        .hasStartTime(LocalTime.of(9, 30))
-        .hasEndTime(LocalTime.of(10, 0))
-        .hasAppointmentTypeMain()
-    }
-
-    @Test
-    fun `should amend existing notes (and not comments) when toggle is on`() {
-      val prisonerNumber = "123456"
-      val courtBooking = courtBooking(court = court(DERBY_JUSTICE_CENTRE), comments = "create comments").withMainCourtPrisonAppointment()
-      val amendCourtBookingRequest = amendCourtBookingRequest(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = prisonerNumber,
-        comments = "amend comments",
-        notesForStaff = "some amend notes for staff",
-        notesForPrisoners = "some amend notes for prisoners",
-        appointments = listOf(
-          Appointment(
-            type = AppointmentType.VLB_COURT_MAIN,
-            locationKey = birminghamLocation.key,
-            date = tomorrow(),
-            startTime = LocalTime.of(9, 30),
-            endTime = LocalTime.of(10, 0),
-          ),
-        ),
-      )
-
-      withBookingFixture(1, courtBooking)
-      withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
-
-      whenever(toggles.isMasterPublicAndPrivateNotes()) doReturn true
-      whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-      whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-      whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
-
-      service.amend(1, amendCourtBookingRequest, PRISON_USER_BIRMINGHAM).also { (booking, prisoner) ->
-        booking isEqualTo persistedVideoBooking
-        prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
-      }
-
-      inOrder(videoBookingRepository, prisonRepository, prisonerSearchClient, locationValidator, bookingHistoryService) {
-        verify(videoBookingRepository).findById(any())
-        verify(prisonRepository).findByCode(BIRMINGHAM)
-        verify(prisonerSearchClient).getPrisoner(prisonerNumber)
-        verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
-        verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
-        verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
-      }
-
-      amendedBookingCaptor
-        .firstValue
-        .hasBookingType(BookingType.COURT)
-        .hasHearingType(amendCourtBookingRequest.courtHearingType!!)
-        .hasVideoUrl(amendCourtBookingRequest.videoLinkUrl!!)
-        // note old comments are not lost/overwritten
-        .hasComments("create comments")
-        .hasStaffNotes("some amend notes for staff")
-        .hasPrisonersNotes("some amend notes for prisoners")
-        .hasAmendedBy(PRISON_USER_BIRMINGHAM)
-        .hasAmendedTimeCloseTo(LocalDateTime.now())
-        .mainHearing()!!
-        .hasPrisonCode(BIRMINGHAM)
-        .hasPrisonerNumber(prisonerNumber)
-        .hasLocation(birminghamLocation)
-        .hasAppointmentDate(tomorrow())
-        .hasStartTime(LocalTime.of(9, 30))
-        .hasEndTime(LocalTime.of(10, 0))
-        .hasAppointmentTypeMain()
-    }
   }
 
   private fun withBookingFixture(bookingId: Long, booking: VideoBooking) {

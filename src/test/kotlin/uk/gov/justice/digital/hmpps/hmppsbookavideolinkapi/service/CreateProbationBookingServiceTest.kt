@@ -27,7 +27,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentTypeProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasBookingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasComments
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasContactName
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedBy
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedByPrison
@@ -39,7 +38,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPhoneNumber
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonersNotes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
@@ -101,6 +102,7 @@ class CreateProbationBookingServiceTest {
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(10, 0),
       additionalBookingDetails = AdditionalBookingDetails("Fred", "fred@email.com", "0173 361 6789"),
+      notesForStaff = "probation notes for staff",
     )
 
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
@@ -125,7 +127,7 @@ class CreateProbationBookingServiceTest {
       .hasBookingType(BookingType.PROBATION)
       .hasProbationTeam(requestedProbationTeam)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasComments("probation booking comments")
+      .hasStaffNotes("probation notes for staff")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .appointments()
@@ -161,6 +163,8 @@ class CreateProbationBookingServiceTest {
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(12, 0),
       additionalBookingDetails = AdditionalBookingDetails("Jane", "jane@email.com", "0114 561 6789"),
+      notesForStaff = "probation notes for staff",
+      notesForPrisoners = "probation notes for prisoner",
     )
 
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
@@ -185,7 +189,8 @@ class CreateProbationBookingServiceTest {
       .hasBookingType(BookingType.PROBATION)
       .hasProbationTeam(requestedProbationTeam)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasComments("probation booking comments")
+      .hasStaffNotes("probation notes for staff")
+      .hasPrisonersNotes("probation notes for prisoner")
       .hasCreatedBy(PRISON_USER_BIRMINGHAM)
       .hasCreatedByPrison(true)
       .hasCreatedTimeCloseTo(LocalDateTime.now())

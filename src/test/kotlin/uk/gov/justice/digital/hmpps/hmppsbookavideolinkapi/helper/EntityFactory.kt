@@ -73,7 +73,6 @@ fun courtBooking(
   createdBy: String = "court_user",
   createdByPrison: Boolean = false,
   court: Court = court(),
-  comments: String? = "Court hearing comments",
   notesForStaff: String? = null,
   notesForPrisoners: String? = null,
   cvpLinkDetails: CvpLinkDetails? = CvpLinkDetails.url("https://court.hearing.link"),
@@ -81,7 +80,6 @@ fun courtBooking(
 ) = VideoBooking.newCourtBooking(
   court = court,
   hearingType = "TRIBUNAL",
-  comments = comments,
   cvpLinkDetails = cvpLinkDetails,
   guestPin = guestPin,
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),
@@ -204,13 +202,11 @@ fun probationBooking(
   probationTeam: ProbationTeam = probationTeam(),
   meetingType: ProbationMeetingType = ProbationMeetingType.PSR,
   createdBy: User? = null,
-  comments: String? = "Probation meeting comments",
   notesForStaff: String? = null,
   notesForPrisoners: String? = null,
 ) = VideoBooking.newProbationBooking(
   probationTeam = probationTeam,
   probationMeetingType = meetingType.name,
-  comments = comments,
   createdBy = createdBy ?: PROBATION_USER,
   notesForStaff = notesForStaff,
   notesForPrisoners = notesForPrisoners,
@@ -387,7 +383,6 @@ fun VideoBooking.hasHearingType(that: CourtHearingType) = also { it.hearingType 
 fun VideoBooking.hasProbationTeam(that: ProbationTeam) = also { it.probationTeam isEqualTo that }
 fun VideoBooking.hasCourt(code: String) = also { it.court?.code isEqualTo code }
 fun VideoBooking.hasMeetingType(that: ProbationMeetingType) = also { it.probationMeetingType isEqualTo that.name }
-fun VideoBooking.hasComments(that: String) = also { it.comments isEqualTo that }
 fun VideoBooking.hasVideoUrl(that: String?) = also { it.videoUrl isEqualTo that }
 fun VideoBooking.hasHmctsNumber(that: String?) = also { it.hmctsNumber isEqualTo that }
 fun VideoBooking.hasGuestPin(that: String?) = also { it.guestPin isEqualTo that }
@@ -407,7 +402,8 @@ fun PrisonAppointment.hasAppointmentDate(that: LocalDate): PrisonAppointment = a
 fun PrisonAppointment.hasStartTime(that: LocalTime): PrisonAppointment = also { it.startTime isEqualTo that }
 fun PrisonAppointment.hasEndTime(that: LocalTime): PrisonAppointment = also { it.endTime isEqualTo that }
 fun PrisonAppointment.hasLocation(that: Location): PrisonAppointment = also { it.prisonLocationId isEqualTo that.id }
-fun PrisonAppointment.hasComments(that: String): PrisonAppointment = also { it.comments isEqualTo that }
+fun PrisonAppointment.hasStaffNotes(that: String?) = also { it.notesForStaff isEqualTo that }
+fun PrisonAppointment.hasPrisonersNotes(that: String?) = also { it.notesForPrisoners isEqualTo that }
 
 fun AdditionalBookingDetail.hasContactName(that: String): AdditionalBookingDetail = also { it.contactName isEqualTo that }
 fun AdditionalBookingDetail.hasEmailAddress(that: String): AdditionalBookingDetail = also { it.contactEmail isEqualTo that }

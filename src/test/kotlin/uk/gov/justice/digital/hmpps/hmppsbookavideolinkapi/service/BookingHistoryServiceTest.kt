@@ -66,7 +66,6 @@ class BookingHistoryServiceTest {
       historyType isEqualTo HistoryType.CREATE
       createdTime isCloseTo LocalDateTime.now()
       hearingType isEqualTo courtBooking.hearingType
-      comments isEqualTo "Court hearing comments"
       videoUrl isEqualTo courtBooking.videoUrl
       notesForStaff isEqualTo courtBooking.notesForStaff
       notesForPrisoners isEqualTo courtBooking.notesForPrisoners
@@ -105,7 +104,6 @@ class BookingHistoryServiceTest {
       historyType isEqualTo HistoryType.CREATE
       createdTime isCloseTo LocalDateTime.now()
       probationMeetingType isEqualTo probationBooking.probationMeetingType
-      comments isEqualTo "Probation meeting comments"
       notesForPrisoners isEqualTo probationBooking.notesForPrisoners
       notesForStaff isEqualTo probationBooking.notesForStaff
       videoUrl isEqualTo probationBooking.videoUrl

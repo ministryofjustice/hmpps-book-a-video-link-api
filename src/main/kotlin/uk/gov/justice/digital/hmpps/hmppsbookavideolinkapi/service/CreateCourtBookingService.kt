@@ -58,7 +58,6 @@ class CreateCourtBookingService(
     return VideoBooking.newCourtBooking(
       court = court,
       hearingType = request.courtHearingType!!.name,
-      comments = request.comments,
       cvpLinkDetails = request.cvpLinkDetails(),
       guestPin = request.guestPin,
       createdBy = createdBy,

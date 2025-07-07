@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.AmendCourtBookingRequestBuilder
@@ -38,7 +37,6 @@ import java.time.LocalTime
 /**
  * This integration test focuses on court booking related operations only.
  */
-@TestPropertySource(properties = ["feature.master.public-private.notes=true"])
 class CourtBookingsResourceIntegrationTest : IntegrationTestBase() {
 
   @MockitoBean

@@ -47,6 +47,13 @@ data class PrisonAppointment(
   )
   @Redacted
   val notesForPrisoners: String?,
+
+  @Schema(
+    description = "Private free text notes for the booking.",
+    example = "Legal representation details ...",
+  )
+  @Redacted
+  val notesForStaff: String?,
 ) {
   @Schema(description = "The time slot the appointment falls into", example = "PM")
   val timeSlot: TimeSlot = slot(startTime)

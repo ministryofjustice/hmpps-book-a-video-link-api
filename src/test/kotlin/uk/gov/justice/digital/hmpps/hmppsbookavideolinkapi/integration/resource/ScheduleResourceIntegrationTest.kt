@@ -65,7 +65,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = pentonvilleLocation,
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
-        comments = "integration test court booking comments",
       )
 
       webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -89,7 +88,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         assertThat(appointmentDate).isEqualTo(tomorrow())
         assertThat(startTime).isEqualTo(LocalTime.of(12, 0))
         assertThat(endTime).isEqualTo(LocalTime.of(12, 30))
-        assertThat(bookingComments).isEqualTo("integration test court booking comments")
       }
     }
 
@@ -111,7 +109,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = pentonvilleLocation,
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
-        comments = "integration test court booking comments",
       )
 
       webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -202,7 +199,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = pentonvilleLocation,
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
-        comments = "integration test court booking comments",
       )
 
       webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -226,7 +222,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         assertThat(appointmentDate).isEqualTo(tomorrow())
         assertThat(startTime).isEqualTo(LocalTime.of(12, 0))
         assertThat(endTime).isEqualTo(LocalTime.of(12, 30))
-        assertThat(bookingComments).isEqualTo("integration test court booking comments")
+        assertThat(notesForStaff).isEqualTo("Some private staff notes")
       }
     }
   }
@@ -248,7 +244,6 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         location = pentonvilleLocation,
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
-        comments = "integration test court booking comments",
       )
 
       webTestClient.createBooking(courtBookingRequest, COURT_USER)

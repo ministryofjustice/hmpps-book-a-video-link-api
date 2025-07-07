@@ -36,7 +36,6 @@ class VideoBookingTest {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
-      comments = "Some prison user comments",
       cvpLinkDetails = CvpLinkDetails.url("prison-user-video-url"),
       createdBy = PRISON_USER_BIRMINGHAM,
       guestPin = "123456",
@@ -48,7 +47,6 @@ class VideoBookingTest {
       court isEqualTo court(code = "COURT_CODE")
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "TRIBUNAL"
-      comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo "prison-user-video-url"
       hmctsNumber isEqualTo null
       guestPin isEqualTo "123456"
@@ -66,7 +64,6 @@ class VideoBookingTest {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
-      comments = "Some prison user comments",
       cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS123"),
       createdBy = PRISON_USER_BIRMINGHAM,
       guestPin = "123456",
@@ -78,7 +75,6 @@ class VideoBookingTest {
       court isEqualTo court(code = "COURT_CODE")
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "TRIBUNAL"
-      comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo null
       hmctsNumber isEqualTo "HMCTS123"
       guestPin isEqualTo "123456"
@@ -96,7 +92,6 @@ class VideoBookingTest {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
-      comments = "Some prison user comments",
       cvpLinkDetails = CvpLinkDetails.url("prison-user-video-url"),
       guestPin = "123456",
       createdBy = PRISON_USER_BIRMINGHAM,
@@ -108,7 +103,6 @@ class VideoBookingTest {
       court isEqualTo court(code = "COURT_CODE")
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "TRIBUNAL"
-      comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo "prison-user-video-url"
       hmctsNumber isEqualTo null
       guestPin isEqualTo "123456"
@@ -122,7 +116,6 @@ class VideoBookingTest {
 
     courtBooking.amendCourtBooking(
       hearingType = "APPEAL",
-      comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
       cvpLinkDetails = CvpLinkDetails.url("amended-prison-user-video-url"),
@@ -132,7 +125,6 @@ class VideoBookingTest {
 
     with(courtBooking) {
       hearingType isEqualTo "APPEAL"
-      comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Some public prisoners notes"
       videoUrl isEqualTo "amended-prison-user-video-url"
@@ -148,7 +140,6 @@ class VideoBookingTest {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
-      comments = "Some prison user comments",
       cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS123"),
       guestPin = "123456",
       createdBy = PRISON_USER_BIRMINGHAM,
@@ -160,7 +151,6 @@ class VideoBookingTest {
       court isEqualTo court(code = "COURT_CODE")
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "TRIBUNAL"
-      comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo null
       hmctsNumber isEqualTo "HMCTS123"
       guestPin isEqualTo "123456"
@@ -174,7 +164,6 @@ class VideoBookingTest {
 
     courtBooking.amendCourtBooking(
       hearingType = "APPEAL",
-      comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
       cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS321"),
@@ -184,7 +173,6 @@ class VideoBookingTest {
 
     with(courtBooking) {
       hearingType isEqualTo "APPEAL"
-      comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Some public prisoners notes"
       videoUrl isEqualTo null
@@ -200,7 +188,6 @@ class VideoBookingTest {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "TRIBUNAL",
-      comments = "Some prison user comments",
       cvpLinkDetails = CvpLinkDetails.url("prison-user-video-url"),
       guestPin = "123456",
       createdBy = PRISON_USER_BIRMINGHAM,
@@ -212,7 +199,6 @@ class VideoBookingTest {
       court isEqualTo court(code = "COURT_CODE")
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "TRIBUNAL"
-      comments isEqualTo "Some prison user comments"
       videoUrl isEqualTo "prison-user-video-url"
       hmctsNumber isEqualTo null
       guestPin isEqualTo "123456"
@@ -226,7 +212,6 @@ class VideoBookingTest {
 
     courtBooking.amendCourtBooking(
       hearingType = "APPEAL",
-      comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
       cvpLinkDetails = CvpLinkDetails.url("amended-prison-user-video-url"),
@@ -236,7 +221,6 @@ class VideoBookingTest {
 
     with(courtBooking) {
       hearingType isEqualTo "APPEAL"
-      comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Amended prisoners notes"
       videoUrl isEqualTo "amended-prison-user-video-url"
@@ -251,7 +235,6 @@ class VideoBookingTest {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "APPEAL",
-      comments = "Some court user comments",
       cvpLinkDetails = CvpLinkDetails.url("court-user-video-url"),
       guestPin = "123456",
       createdBy = COURT_USER,
@@ -263,7 +246,6 @@ class VideoBookingTest {
       court isEqualTo court(code = "COURT_CODE")
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "APPEAL"
-      comments isEqualTo "Some court user comments"
       videoUrl isEqualTo "court-user-video-url"
       guestPin isEqualTo "123456"
       createdBy isEqualTo COURT_USER.username
@@ -279,7 +261,6 @@ class VideoBookingTest {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "APPEAL",
-      comments = "Some court user comments",
       cvpLinkDetails = CvpLinkDetails.url("court-user-video-url"),
       guestPin = "123456",
       createdBy = COURT_USER,
@@ -291,7 +272,6 @@ class VideoBookingTest {
       court isEqualTo court(code = "COURT_CODE")
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "APPEAL"
-      comments isEqualTo "Some court user comments"
       videoUrl isEqualTo "court-user-video-url"
       guestPin isEqualTo "123456"
       createdBy isEqualTo COURT_USER.username
@@ -303,7 +283,6 @@ class VideoBookingTest {
 
     courtBooking.amendCourtBooking(
       hearingType = "APPEAL",
-      comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
       cvpLinkDetails = CvpLinkDetails.url("amended-court-user-video-url"),
@@ -313,7 +292,6 @@ class VideoBookingTest {
 
     with(courtBooking) {
       hearingType isEqualTo "APPEAL"
-      comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo null
       videoUrl isEqualTo "amended-court-user-video-url"
@@ -328,7 +306,6 @@ class VideoBookingTest {
     val courtBooking = VideoBooking.newCourtBooking(
       court(code = "COURT_CODE"),
       hearingType = "APPEAL",
-      comments = "Some court user comments",
       cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS123"),
       guestPin = "123456",
       createdBy = COURT_USER,
@@ -340,7 +317,6 @@ class VideoBookingTest {
       court isEqualTo court(code = "COURT_CODE")
       isBookingType(BookingType.COURT) isBool true
       hearingType isEqualTo "APPEAL"
-      comments isEqualTo "Some court user comments"
       videoUrl isEqualTo null
       hmctsNumber isEqualTo "HMCTS123"
       guestPin isEqualTo "123456"
@@ -353,7 +329,6 @@ class VideoBookingTest {
 
     courtBooking.amendCourtBooking(
       hearingType = "APPEAL",
-      comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
       cvpLinkDetails = CvpLinkDetails.hmctsNumber("HMCTS321"),
@@ -363,7 +338,6 @@ class VideoBookingTest {
 
     with(courtBooking) {
       hearingType isEqualTo "APPEAL"
-      comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Amended prisoners notes"
       hmctsNumber isEqualTo "HMCTS321"
@@ -379,7 +353,6 @@ class VideoBookingTest {
     val probationBooking = VideoBooking.newProbationBooking(
       probationTeam(code = "TEAM_CODE"),
       probationMeetingType = "OTHER",
-      comments = "Some prison user comments",
       createdBy = PRISON_USER_BIRMINGHAM,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
@@ -389,7 +362,6 @@ class VideoBookingTest {
       probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
       isBookingType(BookingType.PROBATION) isBool true
       probationMeetingType isEqualTo "OTHER"
-      comments isEqualTo "Some prison user comments"
       createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
       createdTime isCloseTo now()
       createdByPrison isBool true
@@ -404,7 +376,6 @@ class VideoBookingTest {
     val probationBooking = VideoBooking.newProbationBooking(
       probationTeam(code = "TEAM_CODE"),
       probationMeetingType = "OTHER",
-      comments = "Some prison user comments",
       createdBy = PRISON_USER_BIRMINGHAM,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
@@ -414,7 +385,6 @@ class VideoBookingTest {
       probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
       isBookingType(BookingType.PROBATION) isBool true
       probationMeetingType isEqualTo "OTHER"
-      comments isEqualTo "Some prison user comments"
       createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
       createdTime isCloseTo now()
       createdByPrison isBool true
@@ -425,7 +395,6 @@ class VideoBookingTest {
 
     probationBooking.amendProbationBooking(
       probationMeetingType = "RR",
-      comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
       amendedBy = PRISON_USER_BIRMINGHAM,
@@ -433,7 +402,6 @@ class VideoBookingTest {
 
     with(probationBooking) {
       probationMeetingType isEqualTo "RR"
-      comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Amended prisoners notes"
       amendedBy isEqualTo PRISON_USER_BIRMINGHAM.username
@@ -446,7 +414,6 @@ class VideoBookingTest {
     val probationBooking = VideoBooking.newProbationBooking(
       probationTeam(code = "TEAM_CODE"),
       probationMeetingType = "OTHER",
-      comments = "Some prison user comments",
       createdBy = PRISON_USER_BIRMINGHAM,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
@@ -456,7 +423,6 @@ class VideoBookingTest {
       probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
       isBookingType(BookingType.PROBATION) isBool true
       probationMeetingType isEqualTo "OTHER"
-      comments isEqualTo "Some prison user comments"
       createdBy isEqualTo PRISON_USER_BIRMINGHAM.username
       createdTime isCloseTo now()
       createdByPrison isBool true
@@ -467,7 +433,6 @@ class VideoBookingTest {
 
     probationBooking.amendProbationBooking(
       probationMeetingType = "RR",
-      comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
       amendedBy = PROBATION_USER,
@@ -475,7 +440,6 @@ class VideoBookingTest {
 
     with(probationBooking) {
       probationMeetingType isEqualTo "RR"
-      comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo "Some public prisoners notes"
       amendedBy isEqualTo PROBATION_USER.username
@@ -488,7 +452,6 @@ class VideoBookingTest {
     val probationBooking = VideoBooking.newProbationBooking(
       probationTeam(code = "TEAM_CODE"),
       probationMeetingType = "OTHER",
-      comments = "Some prison user comments",
       createdBy = PROBATION_USER,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
@@ -498,7 +461,6 @@ class VideoBookingTest {
       probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
       isBookingType(BookingType.PROBATION) isBool true
       probationMeetingType isEqualTo "OTHER"
-      comments isEqualTo "Some prison user comments"
       createdBy isEqualTo PROBATION_USER.username
       createdTime isCloseTo now()
       createdByPrison isBool false
@@ -509,7 +471,6 @@ class VideoBookingTest {
 
     probationBooking.amendProbationBooking(
       probationMeetingType = "RR",
-      comments = "Amended comments",
       notesForStaff = "Amended staff notes",
       notesForPrisoners = "Amended prisoners notes",
       amendedBy = PROBATION_USER,
@@ -517,7 +478,6 @@ class VideoBookingTest {
 
     with(probationBooking) {
       probationMeetingType isEqualTo "RR"
-      comments isEqualTo "Amended comments"
       notesForStaff isEqualTo "Amended staff notes"
       notesForPrisoners isEqualTo null
       amendedBy isEqualTo PROBATION_USER.username
@@ -530,7 +490,6 @@ class VideoBookingTest {
     val probationBooking = VideoBooking.newProbationBooking(
       probationTeam(code = "TEAM_CODE"),
       probationMeetingType = "PSR",
-      comments = "Some probation user comments",
       createdBy = PROBATION_USER,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Should be ignored for external user",
@@ -540,7 +499,6 @@ class VideoBookingTest {
       probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
       isBookingType(BookingType.PROBATION) isBool true
       probationMeetingType isEqualTo "PSR"
-      comments isEqualTo "Some probation user comments"
       createdBy isEqualTo PROBATION_USER.username
       createdByPrison isBool false
       statusCode isEqualTo StatusCode.ACTIVE
@@ -619,7 +577,6 @@ class VideoBookingTest {
       VideoBooking.newProbationBooking(
         probationTeam = probationTeam("READ_ONLY", readOnly = true),
         probationMeetingType = "PSR",
-        comments = null,
         createdBy = PROBATION_USER,
         notesForStaff = null,
         notesForPrisoners = null,
@@ -633,7 +590,6 @@ class VideoBookingTest {
       VideoBooking.newProbationBooking(
         probationTeam = probationTeam("NOT_READ_ONLY", readOnly = false),
         probationMeetingType = "PSR",
-        comments = null,
         createdBy = PROBATION_USER,
         notesForStaff = null,
         notesForPrisoners = null,

@@ -104,7 +104,6 @@ class VideoBookingAmendedEventHandler(
       endTime == historyAppointment.endTime &&
       prisonerNumber == historyAppointment.prisonerNumber &&
       prisonLocationId == historyAppointment.prisonLocationId &&
-      comments == historyAppointment.bookingHistory.comments &&
       notesForPrisoners == historyAppointment.bookingHistory.notesForPrisoners &&
       notesForStaff == historyAppointment.bookingHistory.notesForStaff
   }

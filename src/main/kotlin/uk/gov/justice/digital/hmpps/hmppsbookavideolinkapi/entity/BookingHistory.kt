@@ -46,6 +46,7 @@ class BookingHistory(
 
   val videoUrl: String? = null,
 
+  @Deprecated(message = "This is superseded by notesForStaff and notesForPrisoners and not longer used.")
   val comments: String? = null,
 
   val notesForStaff: String? = null,

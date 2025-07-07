@@ -28,7 +28,6 @@ class ProbationBookingCreatedTelemetryEventTest {
       probationTeam = probationTeam(BLACKPOOL_MC_PPOC),
       probationMeetingType = "PSR",
       createdBy = PROBATION_USER,
-      comments = null,
       notesForStaff = null,
       notesForPrisoners = null,
     ).addAppointment(
@@ -69,7 +68,6 @@ class ProbationBookingCreatedTelemetryEventTest {
       probationTeam = probationTeam(BLACKPOOL_MC_PPOC),
       probationMeetingType = "PSR",
       createdBy = PRISON_USER_BIRMINGHAM,
-      comments = null,
       notesForStaff = null,
       notesForPrisoners = null,
     ).addAppointment(

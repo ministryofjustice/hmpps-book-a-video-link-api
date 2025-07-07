@@ -22,8 +22,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.checkVideoBo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toPrisonerDetails
 import java.time.LocalDateTime.now
 
-private const val MEETING_TYPE_OTHER = "OTHER"
-
 @Service
 class AmendProbationBookingService(
   private val videoBookingRepository: VideoBookingRepository,
@@ -55,7 +53,6 @@ class AmendProbationBookingService(
 
     return booking.amendProbationBooking(
       probationMeetingType = request.probationMeetingType!!.name,
-      comments = request.comments,
       notesForStaff = request.notesForStaff,
       notesForPrisoners = request.notesForPrisoners,
       amendedBy = amendedBy,

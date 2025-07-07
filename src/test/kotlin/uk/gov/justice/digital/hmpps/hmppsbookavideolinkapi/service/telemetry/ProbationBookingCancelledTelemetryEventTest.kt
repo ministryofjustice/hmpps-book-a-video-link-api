@@ -28,7 +28,6 @@ class ProbationBookingCancelledTelemetryEventTest {
     probationTeam = probationTeam(BLACKPOOL_MC_PPOC),
     probationMeetingType = "PSR",
     createdBy = PROBATION_USER,
-    comments = null,
     notesForStaff = null,
     notesForPrisoners = null,
   ).addAppointment(

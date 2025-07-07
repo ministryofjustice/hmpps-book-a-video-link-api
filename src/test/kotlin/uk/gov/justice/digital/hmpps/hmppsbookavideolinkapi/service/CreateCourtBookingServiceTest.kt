@@ -128,7 +128,6 @@ class CreateCourtBookingServiceTest {
       court isEqualTo requestedCourt
       createdTime isCloseTo LocalDateTime.now()
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
-      comments isEqualTo "court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
       createdBy isEqualTo COURT_USER.username
       createdTime isCloseTo LocalDateTime.now()

@@ -113,7 +113,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(9, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -156,7 +155,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(9, 30),
       endTime = LocalTime.of(10, 0),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -200,7 +198,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(9, 30),
       endTime = LocalTime.of(20, 0),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -243,7 +240,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -279,7 +275,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -335,7 +330,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -422,7 +416,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -475,7 +468,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
@@ -550,7 +542,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
+      notesForPrisoners = "integration test probation prisoner notes",
     )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -600,7 +592,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       date = tomorrow(),
       startTime = LocalTime.of(17, 30),
       endTime = LocalTime.of(18, 0),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -614,7 +605,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.CANCELLED }
 
     with(notificationRepository.findAll()) {
-      this
       isPresent("b@b.com", TransferredCourtBookingCourtEmail::class, persistedBooking)
       isPresent("j@j.com", TransferredCourtBookingCourtEmail::class, persistedBooking)
       isPresent("g@g.com", TransferredCourtBookingPrisonCourtEmail::class, persistedBooking)
