@@ -304,6 +304,7 @@ fun requestProbationVideoLinkRequest(
   comments: String? = null,
   appointments: List<RequestedAppointment> = emptyList(),
   notesForStaff: String? = null,
+  date: LocalDate? = tomorrow(),
 ): RequestVideoBookingRequest {
   val prisoner = UnknownPrisonerDetails(
     prisonCode = prisonCode,
@@ -314,7 +315,7 @@ fun requestProbationVideoLinkRequest(
       listOf(
         RequestedAppointment(
           type = AppointmentType.VLB_PROBATION,
-          date = tomorrow(),
+          date = date,
           startTime = startTime,
           endTime = endTime,
         ),

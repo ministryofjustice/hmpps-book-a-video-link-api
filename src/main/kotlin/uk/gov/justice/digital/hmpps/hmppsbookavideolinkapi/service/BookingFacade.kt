@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -94,6 +95,10 @@ class BookingFacade(
 
   fun cancel(videoBookingId: Long, cancelledBy: ExternalUser) {
     cancelBooking(videoBookingId, cancelledBy)
+  }
+
+  fun request(booking: RequestVideoBookingRequest, user: ExternalUser) {
+    videoBookingServiceDelegate.request(booking, user)
   }
 
   private fun cancelBooking(videoBookingId: Long, cancelledBy: User) {
