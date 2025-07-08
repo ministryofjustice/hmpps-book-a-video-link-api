@@ -391,8 +391,8 @@ fun VideoBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdT
 fun VideoBooking.hasCreatedByPrison(that: Boolean) = also { it.createdByPrison isBool that }
 fun VideoBooking.hasAmendedBy(that: User) = also { it.amendedBy isEqualTo that.username }
 fun VideoBooking.hasAmendedTimeCloseTo(that: LocalDateTime) = also { it.amendedTime isCloseTo that }
-fun VideoBooking.hasStaffNotes(that: String?) = also { it.notesForStaff isEqualTo that }
-fun VideoBooking.hasPrisonersNotes(that: String?) = also { it.notesForPrisoners isEqualTo that }
+fun VideoBooking.hasNotesForStaff(that: String?) = also { it.notesForStaff isEqualTo that }
+fun VideoBooking.hasNotesForPrisoner(that: String?) = also { it.notesForPrisoners isEqualTo that }
 
 fun PrisonAppointment.hasPrisonCode(that: String): PrisonAppointment = also { it.prisonCode() isEqualTo that }
 fun PrisonAppointment.hasPrisonerNumber(that: String): PrisonAppointment = also { it.prisonerNumber isEqualTo that }
@@ -402,8 +402,8 @@ fun PrisonAppointment.hasAppointmentDate(that: LocalDate): PrisonAppointment = a
 fun PrisonAppointment.hasStartTime(that: LocalTime): PrisonAppointment = also { it.startTime isEqualTo that }
 fun PrisonAppointment.hasEndTime(that: LocalTime): PrisonAppointment = also { it.endTime isEqualTo that }
 fun PrisonAppointment.hasLocation(that: Location): PrisonAppointment = also { it.prisonLocationId isEqualTo that.id }
-fun PrisonAppointment.hasStaffNotes(that: String?) = also { it.notesForStaff isEqualTo that }
-fun PrisonAppointment.hasPrisonersNotes(that: String?) = also { it.notesForPrisoners isEqualTo that }
+fun PrisonAppointment.hasNotesForStaff(that: String?) = also { it.notesForStaff isEqualTo that }
+fun PrisonAppointment.hasNotesForPrisoner(that: String?) = also { it.notesForPrisoners isEqualTo that }
 
 fun AdditionalBookingDetail.hasContactName(that: String): AdditionalBookingDetail = also { it.contactName isEqualTo that }
 fun AdditionalBookingDetail.hasEmailAddress(that: String): AdditionalBookingDetail = also { it.contactEmail isEqualTo that }

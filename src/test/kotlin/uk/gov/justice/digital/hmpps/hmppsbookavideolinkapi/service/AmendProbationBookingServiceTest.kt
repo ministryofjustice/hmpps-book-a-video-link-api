@@ -38,7 +38,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPhoneNumber
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForStaff
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
@@ -125,7 +125,7 @@ class AmendProbationBookingServiceTest {
       .hasBookingType(BookingType.PROBATION)
       .hasProbationTeam(probationBooking.probationTeam!!)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasStaffNotes("amended notes for staff")
+      .hasNotesForStaff("amended notes for staff")
       .hasAmendedBy(PROBATION_USER)
       .hasAmendedTimeCloseTo(LocalDateTime.now())
       .appointments()
@@ -198,7 +198,7 @@ class AmendProbationBookingServiceTest {
       .hasBookingType(BookingType.PROBATION)
       .hasProbationTeam(probationBooking.probationTeam!!)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasStaffNotes("amended notes for staff")
+      .hasNotesForStaff("amended notes for staff")
       .hasAmendedBy(PROBATION_USER)
       .hasAmendedTimeCloseTo(LocalDateTime.now())
       .appointments()

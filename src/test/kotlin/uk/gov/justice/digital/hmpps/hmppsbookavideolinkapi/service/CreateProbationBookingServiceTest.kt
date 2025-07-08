@@ -38,9 +38,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPhoneNumber
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonersNotes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForStaff
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
@@ -127,7 +127,7 @@ class CreateProbationBookingServiceTest {
       .hasBookingType(BookingType.PROBATION)
       .hasProbationTeam(requestedProbationTeam)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasStaffNotes("probation notes for staff")
+      .hasNotesForStaff("probation notes for staff")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .appointments()
@@ -189,8 +189,8 @@ class CreateProbationBookingServiceTest {
       .hasBookingType(BookingType.PROBATION)
       .hasProbationTeam(requestedProbationTeam)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasStaffNotes("probation notes for staff")
-      .hasPrisonersNotes("probation notes for prisoner")
+      .hasNotesForStaff("probation notes for staff")
+      .hasNotesForPrisoner("probation notes for prisoner")
       .hasCreatedBy(PRISON_USER_BIRMINGHAM)
       .hasCreatedByPrison(true)
       .hasCreatedTimeCloseTo(LocalDateTime.now())

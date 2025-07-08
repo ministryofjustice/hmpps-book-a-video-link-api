@@ -420,5 +420,5 @@ fun VideoLinkBooking.hasVideoUrl(that: String) = also { it.videoLinkUrl isEqualT
 fun VideoLinkBooking.hasCreatedBy(that: User) = also { it.createdBy isEqualTo that.username }
 fun VideoLinkBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdAt isCloseTo that }
 fun VideoLinkBooking.hasCreatedByPrisonerUser(that: Boolean) = also { it.createdByPrison!! isBool that }
-fun VideoLinkBooking.hasStaffNotes(that: String): VideoLinkBooking = also { it.notesForStaff isEqualTo that }
-fun VideoLinkBooking.hasPrisonersNotes(that: String?): VideoLinkBooking = also { it.notesForPrisoners isEqualTo that }
+fun VideoLinkBooking.hasNotesForStaff(that: String): VideoLinkBooking = also { it.notesForStaff isEqualTo that }
+fun VideoLinkBooking.hasNotesForPrisoner(that: String?): VideoLinkBooking = also { it.notesForPrisoners isEqualTo that }

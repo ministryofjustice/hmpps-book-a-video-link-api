@@ -52,11 +52,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedByPr
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedTimeCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingTypeDescription
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonersNotes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeamDescription
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForStaff
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
@@ -793,8 +793,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasMeetingTypeDescription(null)
       .hasCreatedByPrisonerUser(false)
       .hasVideoUrl("https://video.link.com")
-      .hasStaffNotes("integration test court")
-      .hasPrisonersNotes(null)
+      .hasNotesForStaff("integration test court")
+      .hasNotesForPrisoner(null)
 
     with(bookingDetails.prisonAppointments.single()) {
       assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
@@ -928,8 +928,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrisonerUser(false)
-      .hasStaffNotes("Some private probation staff notes")
-      .hasPrisonersNotes(null)
+      .hasNotesForStaff("Some private probation staff notes")
+      .hasNotesForPrisoner(null)
       .hasCourt(null)
       .hasCourtHearingType(null)
       .hasCourtDescription(null)

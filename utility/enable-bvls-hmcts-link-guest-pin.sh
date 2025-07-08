@@ -51,4 +51,4 @@ kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-book-a-video-link-ui
 
 echo
 echo "Restarting Daily Schedule deployment on namespace $NAMESPACE"
-kubectl -n hmpps-book-a-video-link-dev rollout restart deployments/hmpps-video-conference-schedule-ui
+kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-video-conference-schedule-ui
