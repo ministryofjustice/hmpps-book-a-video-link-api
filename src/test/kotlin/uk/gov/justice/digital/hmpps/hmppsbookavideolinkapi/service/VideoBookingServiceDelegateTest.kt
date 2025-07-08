@@ -93,7 +93,7 @@ class VideoBookingServiceDelegateTest {
     )
 
     functions.forEach {
-      assertThrows<ValidationException> { it.invoke() }.message isEqualTo "Start date cannot be more than $maxDaysIntoFuture days into the future"
+      assertThrows<ValidationException> { it.invoke() }.message isEqualTo "Date cannot be more than $maxDaysIntoFuture days into the future"
     }
   }
 }
