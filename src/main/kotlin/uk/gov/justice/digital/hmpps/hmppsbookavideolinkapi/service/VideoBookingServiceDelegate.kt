@@ -23,10 +23,14 @@ class VideoBookingServiceDelegate(
   private val amendProbationBookingService: AmendProbationBookingService,
   private val cancelVideoBookingService: CancelVideoBookingService,
   private val requestBookingService: RequestBookingService,
-  @Value("\${applications.max-appointment-start-date-from-today:1000}") private val maxStartDateOffsetDays: Long = 1000,
+  @Value("\${applications.max-appointment-start-date-from-today:1000}") private val maxStartDateOffsetDays: Long,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
+  init {
+    log.info("BOOKING DELEGATE: max start date offset set to $maxStartDateOffsetDays days.")
   }
 
   @Transactional
@@ -68,7 +72,7 @@ class VideoBookingServiceDelegate(
 
   private fun checkStartDateNotTooFarInFuture(startDate: LocalDate) {
     if (startDate > LocalDate.now().plusDays(maxStartDateOffsetDays)) {
-      throw ValidationException("Start date cannot be more than $maxStartDateOffsetDays days into the future")
+      throw ValidationException("Date cannot be more than $maxStartDateOffsetDays days into the future")
     }
   }
 }
