@@ -19,9 +19,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasGuestPin
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasHmctsNumber
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForStaff
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForStaff
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation

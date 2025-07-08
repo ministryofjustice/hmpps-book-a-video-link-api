@@ -198,3 +198,6 @@ video-link-booking:
 hmpps:
   sqs:
     queueAdminRole: BOOK_A_VIDEO_LINK_ADMIN
+
+applications:
+  max-appointment-start-date-from-today: 1826
