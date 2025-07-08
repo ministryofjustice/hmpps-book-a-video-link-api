@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoL
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.RequestBookingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBookingsService
 
 @Tag(name = "Video Link Booking Controller")
@@ -40,7 +39,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBook
 @AuthApiResponses
 class VideoLinkBookingController(
   val bookingFacade: BookingFacade,
-  val requestBookingService: RequestBookingService,
   val videoLinkBookingsService: VideoLinkBookingsService,
 ) {
 
@@ -204,7 +202,7 @@ class VideoLinkBookingController(
     @Parameter(description = "The request with the requested video link booking details", required = true)
     request: RequestVideoBookingRequest,
     httpRequest: HttpServletRequest,
-  ) = requestBookingService.request(request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+  ) = bookingFacade.request(request, httpRequest.getBvlsRequestContext().user as ExternalUser)
 
   @Operation(summary = "Endpoint to search for a unique matching video link booking.")
   @ApiResponses(
