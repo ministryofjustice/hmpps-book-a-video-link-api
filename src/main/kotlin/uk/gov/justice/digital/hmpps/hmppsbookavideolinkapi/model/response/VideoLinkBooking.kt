@@ -45,10 +45,6 @@ data class VideoLinkBooking(
   @Schema(description = "The probation meeting type description, required for booking type PROBATION", example = "Pre-sentence report")
   val probationMeetingTypeDescription: String? = null,
 
-  @Schema(description = "Free text comments for the video link booking", example = "Waiting to hear on legal representation")
-  @Redacted
-  val comments: String?,
-
   @Schema(description = "The video link for the video booking. Must be a valid URL. When this is provided the HMCTS number will be null.", example = "https://video.here.com")
   @Redacted
   val videoLinkUrl: String?,
