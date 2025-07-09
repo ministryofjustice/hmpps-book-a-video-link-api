@@ -95,7 +95,7 @@ class RequestBookingServiceTest {
       prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "court booking comments",
+      notesForStaff = "court booking comments",
     )
 
     val notificationId = UUID.randomUUID()
@@ -169,7 +169,6 @@ class RequestBookingServiceTest {
       prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "court booking comments",
       notesForStaff = "court notes for staff",
     )
 
@@ -334,7 +333,7 @@ class RequestBookingServiceTest {
       prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "probation booking comments",
+      notesForStaff = "probation booking comments",
     )
 
     val notificationId = UUID.randomUUID()
@@ -408,7 +407,6 @@ class RequestBookingServiceTest {
       prisonCode = WANDSWORTH,
       startTime = LocalTime.of(11, 0),
       endTime = LocalTime.of(11, 30),
-      comments = "probation booking comments",
       notesForStaff = "probation notes for staff",
     )
 

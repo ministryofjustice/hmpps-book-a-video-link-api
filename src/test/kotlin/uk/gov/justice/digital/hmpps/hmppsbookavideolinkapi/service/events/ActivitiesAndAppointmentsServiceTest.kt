@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Toggles
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
@@ -36,8 +35,7 @@ class ActivitiesAndAppointmentsServiceTest {
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val nomisMappingService: NomisMappingService = mock()
   private val supportedAppointmentTypes = SupportedAppointmentTypes()
-  private val toggles: Toggles = mock()
-  private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, nomisMappingService, supportedAppointmentTypes, toggles)
+  private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, nomisMappingService, supportedAppointmentTypes)
 
   private val birminghamNomisLocation = Location(locationId = 123456, locationType = VLB, "VIDEO LINK", BIRMINGHAM)
   private val courtBookingByCourt = courtBooking().withMainCourtPrisonAppointment()
@@ -46,32 +44,10 @@ class ActivitiesAndAppointmentsServiceTest {
   @Nested
   @DisplayName("Map court and probation appointments")
   inner class MapCourtAndProbationAppointments {
-
-    @Test
-    fun `should create VLB court appointment using appointment comments`() {
-      whenever(toggles.isMasterPublicAndPrivateNotes()) doReturn false
-      whenever(nomisMappingService.getNomisLocationId(courtBookingByCourt.mainHearing()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
-
-      service.createAppointment(courtBookingByCourt.mainHearing()!!)
-
-      verify(nomisMappingService).getNomisLocationId(courtBookingByCourt.mainHearing()!!.prisonLocationId)
-      verify(activitiesAppointmentsClient).createAppointment(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = courtBookingByCourt.mainHearing()!!.prisonerNumber,
-        startDate = courtBookingByCourt.mainHearing()!!.appointmentDate,
-        startTime = courtBookingByCourt.mainHearing()!!.startTime,
-        endTime = courtBookingByCourt.mainHearing()!!.endTime,
-        internalLocationId = birminghamNomisLocation.locationId,
-        comments = "Court hearing comments",
-        appointmentType = SupportedAppointmentTypes.Type.COURT,
-      )
-    }
-
     @Test
     fun `should create VLB court appointment using appointment prisoners notes`() {
       val courtBookingByPrison = courtBooking(createdByPrison = true, notesForPrisoners = "Some public prisoners notes").withMainCourtPrisonAppointment()
 
-      whenever(toggles.isMasterPublicAndPrivateNotes()) doReturn true
       whenever(nomisMappingService.getNomisLocationId(birminghamLocation.id)) doReturn birminghamNomisLocation.locationId
 
       service.createAppointment(courtBookingByPrison.mainHearing()!!)
@@ -90,30 +66,9 @@ class ActivitiesAndAppointmentsServiceTest {
     }
 
     @Test
-    fun `should create VLPM probation appointment using appointment comments`() {
-      whenever(toggles.isMasterPublicAndPrivateNotes()) doReturn false
-      whenever(nomisMappingService.getNomisLocationId(probationBookingByProbationTeam.probationMeeting()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
-
-      service.createAppointment(probationBookingByProbationTeam.probationMeeting()!!)
-
-      verify(nomisMappingService).getNomisLocationId(probationBookingByProbationTeam.probationMeeting()!!.prisonLocationId)
-      verify(activitiesAppointmentsClient).createAppointment(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = probationBookingByProbationTeam.probationMeeting()!!.prisonerNumber,
-        startDate = probationBookingByProbationTeam.probationMeeting()!!.appointmentDate,
-        startTime = probationBookingByProbationTeam.probationMeeting()!!.startTime,
-        endTime = probationBookingByProbationTeam.probationMeeting()!!.endTime,
-        internalLocationId = birminghamNomisLocation.locationId,
-        comments = "Probation meeting comments",
-        appointmentType = SupportedAppointmentTypes.Type.PROBATION,
-      )
-    }
-
-    @Test
     fun `should create VLPM probation appointment using appointment prisoners notes`() {
       val probationBookingByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM, notesForPrisoners = "Some public prisoners notes").withProbationPrisonAppointment()
 
-      whenever(toggles.isMasterPublicAndPrivateNotes()) doReturn true
       whenever(nomisMappingService.getNomisLocationId(probationBookingByPrison.probationMeeting()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
 
       service.createAppointment(probationBookingByPrison.probationMeeting()!!)

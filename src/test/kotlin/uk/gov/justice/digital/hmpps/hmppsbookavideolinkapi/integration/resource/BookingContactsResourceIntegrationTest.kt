@@ -42,7 +42,6 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -105,7 +104,6 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       location = wandsworthLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -132,7 +130,6 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       location = birminghamLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -162,7 +159,6 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)

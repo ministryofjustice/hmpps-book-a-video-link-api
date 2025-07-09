@@ -29,12 +29,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAmendedTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentTypeProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasBookingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasComments
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasContactName
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEmailAddress
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEndTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForStaff
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPhoneNumber
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
@@ -89,7 +89,7 @@ class AmendProbationBookingServiceTest {
 
   @Test
   fun `should amend a PSR probation video booking for probation user`() {
-    val probationBooking = probationBooking(meetingType = ProbationMeetingType.PSR).withProbationPrisonAppointment()
+    val probationBooking = probationBooking(meetingType = ProbationMeetingType.PSR, notesForStaff = "notes for staff").withProbationPrisonAppointment()
     val prisonerNumber = "123456"
     val probationBookingRequest = amendProbationBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -103,6 +103,7 @@ class AmendProbationBookingServiceTest {
         contactEmail = "contact@email.com",
         contactNumber = "07928 660553",
       ),
+      notesForStaff = "amended notes for staff",
     )
 
     withBookingFixture(2, probationBooking)
@@ -124,7 +125,7 @@ class AmendProbationBookingServiceTest {
       .hasBookingType(BookingType.PROBATION)
       .hasProbationTeam(probationBooking.probationTeam!!)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasComments("probation booking comments")
+      .hasNotesForStaff("amended notes for staff")
       .hasAmendedBy(PROBATION_USER)
       .hasAmendedTimeCloseTo(LocalDateTime.now())
       .appointments()
@@ -165,7 +166,7 @@ class AmendProbationBookingServiceTest {
 
   @Test
   fun `should remove additional details from probation video booking for probation user`() {
-    val probationBooking = probationBooking(meetingType = ProbationMeetingType.PSR).withProbationPrisonAppointment()
+    val probationBooking = probationBooking(meetingType = ProbationMeetingType.PSR, notesForStaff = "notes for staff").withProbationPrisonAppointment()
     val prisonerNumber = "123456"
     val probationBookingRequest = amendProbationBookingRequest(
       prisonCode = BIRMINGHAM,
@@ -174,6 +175,7 @@ class AmendProbationBookingServiceTest {
       appointmentDate = tomorrow(),
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(13, 0),
+      notesForStaff = "amended notes for staff",
     )
 
     withBookingFixture(2, probationBooking)
@@ -196,7 +198,7 @@ class AmendProbationBookingServiceTest {
       .hasBookingType(BookingType.PROBATION)
       .hasProbationTeam(probationBooking.probationTeam!!)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasComments("probation booking comments")
+      .hasNotesForStaff("amended notes for staff")
       .hasAmendedBy(PROBATION_USER)
       .hasAmendedTimeCloseTo(LocalDateTime.now())
       .appointments()

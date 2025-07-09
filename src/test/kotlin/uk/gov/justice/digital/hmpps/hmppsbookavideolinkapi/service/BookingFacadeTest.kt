@@ -131,7 +131,7 @@ class BookingFacadeTest {
     availabilityService,
     additionalBookingDetailRepository,
   )
-  private val courtBooking = courtBooking()
+  private val courtBooking = courtBooking(notesForStaff = "court notes for staff")
     .addAppointment(
       prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "123456",
@@ -161,7 +161,7 @@ class BookingFacadeTest {
       endTime = LocalTime.of(11, 30),
       locationId = wandsworthLocation.id,
     )
-  private val courtBookingCreatedByPrison = courtBooking(createdByPrison = true)
+  private val courtBookingCreatedByPrison = courtBooking(createdByPrison = true, notesForStaff = "court notes for staff", notesForPrisoners = "court notes for prisoners")
     .addAppointment(
       prison = prison(prisonCode = WANDSWORTH),
       prisonerNumber = "123456",
@@ -172,7 +172,7 @@ class BookingFacadeTest {
       locationId = wandsworthLocation.id,
     )
 
-  private val probationBookingAtBirminghamPrison = probationBooking()
+  private val probationBookingAtBirminghamPrison = probationBooking(notesForStaff = "probation notes for staff")
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "654321",
@@ -183,7 +183,7 @@ class BookingFacadeTest {
       endTime = LocalTime.MIDNIGHT.plusHours(1),
     )
 
-  private val probationBookingAtBirminghamPrisonCreatedByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM)
+  private val probationBookingAtBirminghamPrisonCreatedByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM, notesForStaff = "probation notes for staff", notesForPrisoners = "probation notes for staff prisoner")
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "654321",
@@ -246,7 +246,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
           "prePrisonVideoUrl" to "",
           "postPrisonVideoUrl" to "",
@@ -264,7 +264,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
           "prePrisonVideoUrl" to "",
           "postPrisonVideoUrl" to "",
@@ -338,7 +338,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
           "prePrisonVideoUrl" to "",
           "postPrisonVideoUrl" to "",
@@ -356,7 +356,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
           "prePrisonVideoUrl" to "",
           "postPrisonVideoUrl" to "",
@@ -430,7 +430,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "probation officer name",
           "probationOfficerEmailAddress" to "probation.officer@email.com",
@@ -448,7 +448,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "probation officer name",
           "probationOfficerEmailAddress" to "probation.officer@email.com",
@@ -524,7 +524,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "probation officer name",
           "probationOfficerEmailAddress" to "probation.officer@email.com",
@@ -542,7 +542,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "probation officer name",
           "probationOfficerEmailAddress" to "probation.officer@email.com",
@@ -623,7 +623,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
         )
       }
@@ -639,7 +639,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
         )
       }
@@ -702,7 +702,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
         )
       }
@@ -718,7 +718,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
         )
       }
@@ -781,7 +781,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
         )
       }
@@ -834,7 +834,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -852,7 +852,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -916,7 +916,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -934,7 +934,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -998,7 +998,7 @@ class BookingFacadeTest {
           "prisonerName" to "Bob Builder",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1070,7 +1070,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "prison" to "Wandsworth",
           "courtHearingLink" to "https://court.hearing.link",
           "prePrisonVideoUrl" to "",
@@ -1089,7 +1089,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
           "prePrisonVideoUrl" to "",
           "postPrisonVideoUrl" to "",
@@ -1169,7 +1169,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "prison" to "Wandsworth",
           "courtHearingLink" to "https://court.hearing.link",
           "prePrisonVideoUrl" to "",
@@ -1188,7 +1188,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "https://court.hearing.link",
           "prePrisonVideoUrl" to "",
           "postPrisonVideoUrl" to "",
@@ -1260,7 +1260,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1277,7 +1277,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1350,7 +1350,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1367,7 +1367,7 @@ class BookingFacadeTest {
           "prisonerName" to "Fred Bloggs",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1452,7 +1452,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
         )
       }
 
@@ -1513,7 +1513,7 @@ class BookingFacadeTest {
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1531,7 +1531,7 @@ class BookingFacadeTest {
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1608,7 +1608,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
         )
       }
 
@@ -1625,7 +1625,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
         )
       }
 
@@ -1693,7 +1693,7 @@ class BookingFacadeTest {
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1711,7 +1711,7 @@ class BookingFacadeTest {
           "dateOfBirth" to LocalDate.EPOCH.toMediumFormatStyle(),
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "prisonVideoUrl" to "birmingham-video-url",
           "probationOfficerName" to "Not yet known",
           "probationOfficerEmailAddress" to "Not yet known",
@@ -1746,7 +1746,7 @@ class BookingFacadeTest {
   inner class CourtHearingLinkReminder {
     @Test
     fun `should send an email to the court contact to remind them to add a court hearing link`() {
-      val courtBooking = courtBooking(cvpLinkDetails = null)
+      val courtBooking = courtBooking(cvpLinkDetails = null, notesForStaff = "court notes for staff")
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = "123456",
@@ -1791,7 +1791,7 @@ class BookingFacadeTest {
           "preAppointmentInfo" to "Not required",
           "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
           "postAppointmentInfo" to "Not required",
-          "comments" to "Court hearing comments",
+          "comments" to "court notes for staff",
           "courtHearingLink" to "Not yet known",
           "bookingId" to "0",
         )
@@ -1870,7 +1870,7 @@ class BookingFacadeTest {
           "meetingType" to "PSR",
           "date" to tomorrow().toMediumFormatStyle(),
           "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
-          "comments" to "Probation meeting comments",
+          "comments" to "probation notes for staff",
           "bookingId" to "0",
           "prisonVideoUrl" to "birmingham-video-url",
         )

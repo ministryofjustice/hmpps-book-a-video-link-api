@@ -82,7 +82,6 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
           date = tomorrow(),
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(12, 30),
-          comments = "integration test court booking comments",
           videoLinkUrl = null,
         )
 
@@ -118,7 +117,6 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
           date = 3.daysFromNow(),
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(12, 30),
-          comments = "integration test court booking comments",
           videoLinkUrl = null,
         )
 
@@ -154,7 +152,6 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
           date = 2.daysFromNow(),
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(12, 30),
-          comments = "integration test court booking comments",
           videoLinkUrl = null,
         )
 
@@ -200,7 +197,6 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
         date = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(12, 30),
-        comments = "integration test court booking comments",
         videoLinkUrl = null,
       )
 
@@ -245,7 +241,6 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
           appointmentDate = tomorrow(),
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(12, 30),
-          comments = "integration test probation booking comments",
         )
 
         val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -280,7 +275,6 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
           appointmentDate = 3.daysFromNow(),
           startTime = LocalTime.of(12, 0),
           endTime = LocalTime.of(12, 30),
-          comments = "integration test probation booking comments",
         )
 
         val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)

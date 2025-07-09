@@ -25,7 +25,6 @@ class VideoLinkBookingMappersTest {
     val booking = VideoBooking.newCourtBooking(
       court(code = CHESTERFIELD_JUSTICE_CENTRE),
       CourtHearingType.TRIBUNAL.name,
-      comments = "some comments for the court booking",
       cvpLinkDetails = null,
       guestPin = null,
       createdBy = COURT_USER,
@@ -50,7 +49,6 @@ class VideoLinkBookingMappersTest {
       videoLinkUrl = null,
       createdBy = COURT_USER.username,
       createdAt = booking.createdTime,
-      comments = "some comments for the court booking",
       amendedAt = null,
       amendedBy = null,
       notesForStaff = "Some private staff notes",
@@ -65,7 +63,6 @@ class VideoLinkBookingMappersTest {
     val booking = VideoBooking.newCourtBooking(
       court(code = CHESTERFIELD_JUSTICE_CENTRE),
       CourtHearingType.TRIBUNAL.name,
-      comments = "some comments for the court booking",
       cvpLinkDetails = CvpLinkDetails.url("court-video-url"),
       guestPin = "123456",
       createdBy = COURT_USER,
@@ -90,7 +87,6 @@ class VideoLinkBookingMappersTest {
       videoLinkUrl = "court-video-url",
       createdBy = COURT_USER.username,
       createdAt = booking.createdTime,
-      comments = "some comments for the court booking",
       amendedAt = null,
       amendedBy = null,
       notesForStaff = "Some private staff notes",
@@ -105,7 +101,6 @@ class VideoLinkBookingMappersTest {
     val booking = VideoBooking.newProbationBooking(
       probationTeam(DERBY_JUSTICE_CENTRE),
       probationMeetingType = "PSR",
-      comments = "some comments for the probation booking",
       createdBy = PROBATION_USER,
       notesForStaff = "Some private staff notes",
       notesForPrisoners = "Some public prisoners notes",
@@ -128,10 +123,51 @@ class VideoLinkBookingMappersTest {
       videoLinkUrl = "prob-video-url",
       createdBy = PROBATION_USER.username,
       createdAt = booking.createdTime,
-      comments = "some comments for the probation booking",
       amendedAt = null,
       amendedBy = null,
       notesForStaff = "Some private staff notes",
+      notesForPrisoners = null,
+      hmctsNumber = booking.hmctsNumber,
+      guestPin = booking.guestPin,
+    )
+  }
+
+  @Test
+  fun `should map (private) old comments to notes for staff on old booking`() {
+    val booking = VideoBooking.newCourtBooking(
+      court(code = CHESTERFIELD_JUSTICE_CENTRE),
+      CourtHearingType.TRIBUNAL.name,
+      cvpLinkDetails = null,
+      guestPin = null,
+      createdBy = COURT_USER,
+      notesForStaff = null,
+      notesForPrisoners = null,
+    ).apply {
+      comments = "old booking comments"
+    }
+
+    val model = booking.toModel(locations = setOf(risleyLocation.toModel(locationAttributes().copy(prisonVideoUrl = "prob-video-url"))), courtHearingTypeDescription = "hearing type description")
+
+    model isEqualTo VideoLinkBooking(
+      videoLinkBookingId = booking.videoBookingId,
+      statusCode = BookingStatus.ACTIVE,
+      bookingType = BookingType.COURT,
+      prisonAppointments = emptyList(),
+      courtCode = CHESTERFIELD_JUSTICE_CENTRE,
+      courtDescription = CHESTERFIELD_JUSTICE_CENTRE,
+      courtHearingType = CourtHearingType.TRIBUNAL,
+      courtHearingTypeDescription = "hearing type description",
+      probationTeamCode = null,
+      probationMeetingType = null,
+      probationTeamDescription = null,
+      probationMeetingTypeDescription = null,
+      createdByPrison = false,
+      videoLinkUrl = null,
+      createdBy = COURT_USER.username,
+      createdAt = booking.createdTime,
+      amendedAt = null,
+      amendedBy = null,
+      notesForStaff = "old booking comments",
       notesForPrisoners = null,
       hmctsNumber = booking.hmctsNumber,
       guestPin = booking.guestPin,

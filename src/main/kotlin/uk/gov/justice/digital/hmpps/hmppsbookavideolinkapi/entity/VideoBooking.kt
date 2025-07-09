@@ -45,7 +45,7 @@ class VideoBooking private constructor(
 
   var probationMeetingType: String?,
 
-  @Deprecated(message = "This is to be superseded by notesForStaff and notesForPrisoners.")
+  @Deprecated(message = "This is superseded by notesForStaff and notesForPrisoners and no longer used.")
   var comments: String? = null,
 
   val createdByPrison: Boolean = false,
@@ -125,7 +125,6 @@ class VideoBooking private constructor(
 
   fun amendCourtBooking(
     hearingType: String,
-    comments: String?,
     notesForStaff: String?,
     notesForPrisoners: String?,
     cvpLinkDetails: CvpLinkDetails?,
@@ -137,7 +136,6 @@ class VideoBooking private constructor(
     }
 
     this.hearingType = hearingType
-    this.comments = comments
     this.notesForStaff = notesForStaff
     if (amendedBy is PrisonUser) {
       this.notesForPrisoners = notesForPrisoners
@@ -151,7 +149,6 @@ class VideoBooking private constructor(
 
   fun amendProbationBooking(
     probationMeetingType: String,
-    comments: String?,
     notesForStaff: String?,
     notesForPrisoners: String?,
     amendedBy: User,
@@ -161,7 +158,6 @@ class VideoBooking private constructor(
     }
 
     this.probationMeetingType = probationMeetingType
-    this.comments = comments
     this.notesForStaff = notesForStaff
     if (amendedBy is PrisonUser) {
       this.notesForPrisoners = notesForPrisoners
@@ -211,7 +207,6 @@ class VideoBooking private constructor(
     fun newCourtBooking(
       court: Court,
       hearingType: String,
-      comments: String?,
       notesForStaff: String?,
       notesForPrisoners: String?,
       cvpLinkDetails: CvpLinkDetails?,
@@ -223,7 +218,6 @@ class VideoBooking private constructor(
       hearingType = hearingType,
       probationTeam = null,
       probationMeetingType = null,
-      comments = comments,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
     ).apply {
@@ -237,7 +231,6 @@ class VideoBooking private constructor(
     fun newProbationBooking(
       probationTeam: ProbationTeam,
       probationMeetingType: String,
-      comments: String?,
       notesForStaff: String?,
       notesForPrisoners: String?,
       createdBy: User,
@@ -247,7 +240,6 @@ class VideoBooking private constructor(
       hearingType = null,
       probationTeam = probationTeam.also { requireNot(probationTeam.readOnly) { "Probation team with code ${it.code} is read only" } },
       probationMeetingType = probationMeetingType,
-      comments = comments,
       createdBy = createdBy.username,
       createdByPrison = createdBy is PrisonUser,
     ).apply {

@@ -70,7 +70,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -112,7 +111,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val id = webTestClient.createBooking(courtBookingRequest, COURT_USER)

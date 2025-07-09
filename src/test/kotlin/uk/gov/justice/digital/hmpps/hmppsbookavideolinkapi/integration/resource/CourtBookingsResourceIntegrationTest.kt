@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.AmendCourtBookingRequestBuilder
@@ -20,9 +19,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasGuestPin
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasHmctsNumber
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForStaff
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonerNumber
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
@@ -38,7 +37,6 @@ import java.time.LocalTime
 /**
  * This integration test focuses on court booking related operations only.
  */
-@TestPropertySource(properties = ["feature.master.public-private.notes=true"])
 class CourtBookingsResourceIntegrationTest : IntegrationTestBase() {
 
   @MockitoBean
@@ -81,7 +79,7 @@ class CourtBookingsResourceIntegrationTest : IntegrationTestBase() {
         .hasHmctsNumber(null)
         .hasGuestPin("1234")
         .hasCreatedBy(COURT_USER)
-        .hasStaffNotes("Some staff notes")
+        .hasNotesForStaff("Some staff notes")
 
       val persistedAppointment = prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()
 
@@ -117,7 +115,7 @@ class CourtBookingsResourceIntegrationTest : IntegrationTestBase() {
         .hasVideoUrl(null)
         .hasGuestPin("5678")
         .hasCreatedBy(COURT_USER)
-        .hasStaffNotes("Some staff notes")
+        .hasNotesForStaff("Some staff notes")
 
       val persistedAppointment = prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()
 
@@ -150,7 +148,7 @@ class CourtBookingsResourceIntegrationTest : IntegrationTestBase() {
         .hasVideoUrl(null)
         .hasGuestPin(null)
         .hasCreatedBy(COURT_USER)
-        .hasStaffNotes(null)
+        .hasNotesForStaff(null)
 
       val persistedAppointment = prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()
 
@@ -201,7 +199,7 @@ class CourtBookingsResourceIntegrationTest : IntegrationTestBase() {
         .hasHmctsNumber("12345")
         .hasGuestPin("4321")
         .hasCreatedBy(COURT_USER)
-        .hasStaffNotes("Amended staff notes")
+        .hasNotesForStaff("Amended staff notes")
 
       val amendedAppointment = prisonAppointmentRepository.findByVideoBooking(amendedBooking).single()
 

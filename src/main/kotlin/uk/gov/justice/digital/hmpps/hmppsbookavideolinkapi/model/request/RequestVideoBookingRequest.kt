@@ -40,11 +40,6 @@ data class RequestVideoBookingRequest(
   @Schema(description = "The probation meeting type is needed if booking type is PROBATION, otherwise null", example = "PSR")
   val probationMeetingType: ProbationMeetingType? = null,
 
-  @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
-  @Schema(description = "Free text comments for the video link booking", example = "Waiting to hear on legal representation")
-  @Redacted
-  val comments: String?,
-
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
   @Schema(description = "The video link for the appointment.", example = "https://video.here.com")
   @Redacted

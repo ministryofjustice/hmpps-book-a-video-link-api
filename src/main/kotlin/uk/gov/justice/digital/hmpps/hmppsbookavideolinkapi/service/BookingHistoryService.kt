@@ -38,7 +38,6 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
       probationTeamId = booking.probationTeam?.probationTeamId.takeIf { booking.isBookingType(PROBATION) },
       probationMeetingType = booking.probationMeetingType.takeIf { booking.isBookingType(PROBATION) },
       videoUrl = booking.videoUrl,
-      comments = booking.comments,
       notesForStaff = booking.notesForStaff,
       notesForPrisoners = booking.notesForPrisoners,
       createdBy = booking.amendedBy ?: booking.createdBy,

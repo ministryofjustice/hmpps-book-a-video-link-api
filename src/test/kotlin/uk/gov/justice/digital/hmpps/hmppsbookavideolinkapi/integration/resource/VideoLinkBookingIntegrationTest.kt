@@ -43,7 +43,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasBookingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasComments
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCourt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCourtDescription
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCourtHearingType
@@ -53,11 +52,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedByPr
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedTimeCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasMeetingTypeDescription
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasPrisonersNotes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForPrisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasNotesForStaff
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasProbationTeamDescription
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStaffNotes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasVideoUrl
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
@@ -160,7 +159,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
+      notesForStaff = "integration test court booking staff notes",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -171,7 +170,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
-      comments isEqualTo "integration test court booking comments"
+      notesForStaff isEqualTo "integration test court booking staff notes"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
       createdBy isEqualTo COURT_USER.username
       createdByPrison isEqualTo false
@@ -188,7 +187,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonLocationId isEqualTo pentonvilleLocation.id
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
-      comments isEqualTo "integration test court booking comments"
+      notesForStaff isEqualTo "integration test court booking staff notes"
     }
 
     val history = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
@@ -240,7 +239,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
+      notesForStaff = "integration test court booking staff notes",
+      notesForPrisoners = "integration test court booking prisoner notes",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
@@ -252,10 +252,11 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
-      comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
       createdBy isEqualTo PRISON_USER_PENTONVILLE.username
       createdByPrison isEqualTo true
+      notesForStaff isEqualTo "integration test court booking staff notes"
+      notesForPrisoners isEqualTo "integration test court booking prisoner notes"
     }
 
     val persistedAppointment = prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()
@@ -269,7 +270,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonLocationId isEqualTo pentonvilleLocation.id
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
-      comments isEqualTo "integration test court booking comments"
+      notesForStaff isEqualTo "integration test court booking staff notes"
+      notesForPrisoners isEqualTo "integration test court booking prisoner notes"
     }
 
     val history = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
@@ -324,7 +326,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     webTestClient.createBooking(courtBookingRequest, prisonUser)
@@ -336,7 +337,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     // No error should be thrown
@@ -359,7 +359,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     webTestClient.createBooking(courtBookingRequest, prisonUser)
@@ -380,7 +379,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = birminghamLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
+      notesForStaff = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -391,10 +390,10 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
-      comments isEqualTo "integration test court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
       createdBy isEqualTo COURT_USER.username
       createdByPrison isEqualTo false
+      notesForStaff isEqualTo "integration test court booking comments"
     }
 
     with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
@@ -406,7 +405,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonLocationId isEqualTo birminghamLocation.id
       startTime isEqualTo LocalTime.of(12, 0)
       endTime isEqualTo LocalTime.of(12, 30)
-      comments isEqualTo "integration test court booking comments"
+      notesForStaff isEqualTo "integration test court booking comments"
     }
 
     // There should be 2 - notifications one user email and 1 prison email
@@ -570,7 +569,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
+      notesForStaff = "integration test probation booking comments",
     )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -581,7 +580,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       bookingType isEqualTo BookingType.PROBATION
       probationTeam?.probationTeamId isEqualTo 1
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
-      comments isEqualTo "integration test probation booking comments"
+      notesForStaff isEqualTo "integration test probation booking comments"
       videoUrl isEqualTo null
       createdBy isEqualTo PROBATION_USER.username
       createdByPrison isEqualTo false
@@ -596,7 +595,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonLocationId isEqualTo birminghamLocation.id
       startTime isEqualTo LocalTime.of(9, 0)
       endTime isEqualTo LocalTime.of(9, 30)
-      comments isEqualTo "integration test probation booking comments"
+      notesForStaff isEqualTo "integration test probation booking comments"
     }
 
     val history = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
@@ -777,7 +776,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court",
+      notesForStaff = "integration test court",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -794,10 +793,13 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasMeetingTypeDescription(null)
       .hasCreatedByPrisonerUser(false)
       .hasVideoUrl("https://video.link.com")
+      .hasNotesForStaff("integration test court")
+      .hasNotesForPrisoner(null)
 
     with(bookingDetails.prisonAppointments.single()) {
       assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
-      assertThat(comments).contains("integration test")
+      assertThat(notesForStaff).contains("integration test court")
+      assertThat(notesForPrisoners).isNull()
       assertThat(prisonCode).isEqualTo(PENTONVILLE)
       assertThat(prisonLocKey).isEqualTo(pentonvilleLocation.key)
     }
@@ -817,7 +819,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = risleyLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court",
+      notesForStaff = "integration test court",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
@@ -837,7 +839,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(bookingDetails.prisonAppointments.single()) {
       assertThat(appointmentType).isEqualTo("VLB_COURT_MAIN")
-      assertThat(comments).contains("integration test")
+      assertThat(notesForStaff).contains("integration test")
       assertThat(prisonCode).isEqualTo(RISLEY)
       assertThat(prisonLocKey).isEqualTo(risleyLocation.key)
     }
@@ -857,7 +859,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = risleyLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court",
+      notesForStaff = "integration test court",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, prisonUser)
@@ -909,7 +911,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = wandsworthLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "probation comments",
       notesForStaff = "Some private probation staff notes",
       notesForPrisoners = "Some public probation prisoner notes",
     )
@@ -927,9 +928,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrisonerUser(false)
-      .hasComments("probation comments")
-      .hasStaffNotes("Some private probation staff notes")
-      .hasPrisonersNotes(null)
+      .hasNotesForStaff("Some private probation staff notes")
+      .hasNotesForPrisoner(null)
       .hasCourt(null)
       .hasCourtHearingType(null)
       .hasCourtDescription(null)
@@ -937,7 +937,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(bookingDetails.prisonAppointments.single()) {
       assertThat(appointmentType).isEqualTo("VLB_PROBATION")
-      assertThat(comments).contains("probation comments")
+      assertThat(notesForStaff).contains("Some private probation staff notes")
+      assertThat(notesForPrisoners).isNull()
       assertThat(prisonCode).isEqualTo(WANDSWORTH)
       assertThat(prisonLocKey).isEqualTo(wandsworthLocation.key)
     }
@@ -956,7 +957,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test not found",
+      notesForStaff = "integration test not found",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -980,7 +981,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
+      notesForStaff = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -991,7 +992,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = pentonvilleLocation,
       startTime = LocalTime.of(13, 0),
       endTime = LocalTime.of(14, 30),
-      comments = "amended court booking comments",
+      notesForStaff = "amended court booking comments",
     )
 
     notificationRepository.deleteAll()
@@ -1002,7 +1003,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     with(persistedBooking) {
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
-      comments isEqualTo "amended court booking comments"
+      notesForStaff isEqualTo "amended court booking comments"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
       createdBy isEqualTo COURT_USER.username
       createdByPrison isEqualTo false
@@ -1018,7 +1019,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonLocationId isEqualTo pentonvilleLocation.id
       startTime isEqualTo LocalTime.of(13, 0)
       endTime isEqualTo LocalTime.of(14, 30)
-      comments isEqualTo "amended court booking comments"
+      notesForStaff isEqualTo "amended court booking comments"
     }
 
     // There should be 3 notifications, 1 user email and 2 prison emails
@@ -1043,7 +1044,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = birminghamLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
+      notesForStaff = "integration test court booking staff notes",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -1054,7 +1055,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = birminghamLocation,
       startTime = LocalTime.of(13, 0),
       endTime = LocalTime.of(14, 30),
-      comments = "amended court booking comments",
+      notesForStaff = "amended integration test court booking staff note",
     )
 
     notificationRepository.deleteAll()
@@ -1067,7 +1068,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       bookingType isEqualTo BookingType.COURT
       court?.code isEqualTo courtBookingRequest.courtCode
       hearingType isEqualTo courtBookingRequest.courtHearingType?.name
-      comments isEqualTo "amended court booking comments"
+      notesForStaff isEqualTo "amended integration test court booking staff note"
       videoUrl isEqualTo courtBookingRequest.videoLinkUrl
       createdBy isEqualTo COURT_USER.username
       createdByPrison isEqualTo false
@@ -1083,7 +1084,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonLocationId isEqualTo birminghamLocation.id
       startTime isEqualTo LocalTime.of(13, 0)
       endTime isEqualTo LocalTime.of(14, 30)
-      comments isEqualTo "amended court booking comments"
+      notesForStaff isEqualTo "amended integration test court booking staff note"
     }
 
     // There should be 2 notifications - one user email and 1 prisoner email
@@ -1197,7 +1198,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       startTime = LocalTime.of(9, 0),
       endTime = LocalTime.of(9, 30),
       location = risleyLocation,
-      comments = "integration test probation booking comments",
     )
 
     val error = webTestClient.put()
@@ -1271,7 +1271,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
+      notesForStaff = "integration test probation booking staff notes",
     )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -1284,7 +1284,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(11, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "amended probation booking comments",
+      notesForStaff = "amended integration test probation booking staff notes",
     )
 
     webTestClient.amendBooking(bookingId, amendBookingRequest, PROBATION_USER)
@@ -1296,7 +1296,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       bookingType isEqualTo BookingType.PROBATION
       probationTeam?.probationTeamId isEqualTo 1
       probationMeetingType isEqualTo ProbationMeetingType.PSR.name
-      comments isEqualTo "amended probation booking comments"
+      notesForStaff isEqualTo "amended integration test probation booking staff notes"
       videoUrl isEqualTo null
       createdBy isEqualTo PROBATION_USER.username
       createdByPrison isEqualTo false
@@ -1312,7 +1312,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonLocationId isEqualTo birminghamLocation.id
       startTime isEqualTo LocalTime.of(10, 0)
       endTime isEqualTo LocalTime.of(11, 30)
-      comments isEqualTo "amended probation booking comments"
+      notesForStaff isEqualTo "amended integration test probation booking staff notes"
     }
   }
 
@@ -1331,7 +1331,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
     )
     val probationBookingRequest2 = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -1342,7 +1341,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(16, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
     )
 
     webTestClient.createBooking(probationBookingRequest1, PROBATION_USER)
@@ -1356,7 +1354,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
     )
 
     val error = webTestClient.put()
@@ -1392,7 +1389,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
     )
 
     val videoBookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -1407,7 +1403,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
-      comments = "integration test probation booking comments",
     )
 
     notificationRepository.deleteAll()
@@ -1434,7 +1429,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       endTime = LocalTime.of(9, 30),
       appointmentType = AppointmentType.VLB_PROBATION,
       location = risleyLocation,
-      comments = "integration test probation booking comments",
     )
 
     val error = webTestClient.put()
@@ -1476,7 +1470,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       location = birminghamLocation,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court booking comments",
     )
 
     val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
@@ -1514,7 +1507,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonCode = NORWICH,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court request comments",
     )
 
     webTestClient.requestVideoLink(courtRequest, COURT_USER)
@@ -1538,7 +1530,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonCode = BIRMINGHAM,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test court request comments",
     )
 
     webTestClient.requestVideoLink(courtRequest, COURT_USER)
@@ -1562,7 +1553,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonCode = NORWICH,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test probation request comments",
     )
 
     webTestClient.requestVideoLink(probationRequest, PROBATION_USER)
@@ -1586,7 +1576,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonCode = BIRMINGHAM,
       startTime = LocalTime.of(12, 0),
       endTime = LocalTime.of(12, 30),
-      comments = "integration test probation request comments",
     )
 
     webTestClient.requestVideoLink(probationRequest, PROBATION_USER)

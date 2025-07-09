@@ -31,7 +31,6 @@ class CourtBookingCancelledTelemetryEventTest {
     court = court(DERBY_JUSTICE_CENTRE),
     hearingType = "APPEAL",
     createdBy = COURT_USER,
-    comments = null,
     cvpLinkDetails = CvpLinkDetails.url("http://booking.created.url"),
     guestPin = "123456",
     notesForStaff = null,

@@ -175,7 +175,6 @@ fun courtBookingRequest(
   date: LocalDate = tomorrow(),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
-  comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
   videoLinkUrl: String? = "https://video.link.com",
   notesForStaff: String = "Some private staff notes",
@@ -202,7 +201,6 @@ fun courtBookingRequest(
     courtCode = courtCode,
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
-    comments = comments,
     videoLinkUrl = videoLinkUrl,
     notesForStaff = notesForStaff,
     notesForPrisoners = notesForPrisoners,
@@ -217,7 +215,6 @@ fun requestCourtVideoLinkRequest(
   dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
-  comments: String? = null,
   appointments: List<RequestedAppointment> = emptyList(),
   notesForStaff: String? = null,
 ): RequestVideoBookingRequest {
@@ -243,7 +240,6 @@ fun requestCourtVideoLinkRequest(
     courtCode = courtCode,
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
-    comments = comments,
     videoLinkUrl = "https://video.link.com",
     notesForStaff = notesForStaff,
   )
@@ -260,7 +256,6 @@ fun probationBookingRequest(
   appointmentDate: LocalDate = tomorrow(),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
-  comments: String = "probation booking comments",
   additionalBookingDetails: AdditionalBookingDetails? = null,
   notesForStaff: String? = "Some private staff notes",
   notesForPrisoners: String? = "Some public prisoners notes",
@@ -284,7 +279,6 @@ fun probationBookingRequest(
     probationTeamCode = probationTeamCode,
     probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
-    comments = comments,
     videoLinkUrl = null,
     additionalBookingDetails = additionalBookingDetails,
     notesForStaff = notesForStaff,
@@ -301,7 +295,6 @@ fun requestProbationVideoLinkRequest(
   dateOfBirth: LocalDate = LocalDate.of(1970, 1, 1),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
-  comments: String? = null,
   appointments: List<RequestedAppointment> = emptyList(),
   notesForStaff: String? = null,
   date: LocalDate? = tomorrow(),
@@ -328,7 +321,6 @@ fun requestProbationVideoLinkRequest(
     probationTeamCode = probationTeamCode,
     probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
-    comments = comments,
     videoLinkUrl = "https://video.link.com",
     additionalBookingDetails = AdditionalBookingDetails(
       contactName = "probation officer name",
@@ -346,7 +338,6 @@ fun amendCourtBookingRequest(
   location: Location? = null,
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
-  comments: String = "court booking comments",
   appointments: List<Appointment> = emptyList(),
   appointmentDate: LocalDate = tomorrow(),
   notesForStaff: String? = null,
@@ -372,7 +363,6 @@ fun amendCourtBookingRequest(
     bookingType = BookingType.COURT,
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
-    comments = comments,
     videoLinkUrl = "https://video.link.com",
     notesForStaff = notesForStaff,
     notesForPrisoners = notesForPrisoners,
@@ -389,7 +379,6 @@ fun amendProbationBookingRequest(
   appointmentDate: LocalDate = tomorrow(),
   startTime: LocalTime = LocalTime.now(),
   endTime: LocalTime = LocalTime.now().plusHours(1),
-  comments: String = "probation booking comments",
   additionalBookingDetails: AdditionalBookingDetails? = null,
   notesForStaff: String? = "Some private staff notes",
   notesForPrisoners: String? = "Some public prisoners notes",
@@ -412,7 +401,6 @@ fun amendProbationBookingRequest(
     bookingType = BookingType.PROBATION,
     probationMeetingType = probationMeetingType,
     prisoners = listOf(prisoner),
-    comments = comments,
     videoLinkUrl = null,
     additionalBookingDetails = additionalBookingDetails,
     notesForStaff = notesForStaff,
@@ -433,6 +421,5 @@ fun VideoLinkBooking.hasVideoUrl(that: String) = also { it.videoLinkUrl isEqualT
 fun VideoLinkBooking.hasCreatedBy(that: User) = also { it.createdBy isEqualTo that.username }
 fun VideoLinkBooking.hasCreatedTimeCloseTo(that: LocalDateTime) = also { it.createdAt isCloseTo that }
 fun VideoLinkBooking.hasCreatedByPrisonerUser(that: Boolean) = also { it.createdByPrison!! isBool that }
-fun VideoLinkBooking.hasComments(that: String): VideoLinkBooking = also { it.comments isEqualTo that }
-fun VideoLinkBooking.hasStaffNotes(that: String): VideoLinkBooking = also { it.notesForStaff isEqualTo that }
-fun VideoLinkBooking.hasPrisonersNotes(that: String?): VideoLinkBooking = also { it.notesForPrisoners isEqualTo that }
+fun VideoLinkBooking.hasNotesForStaff(that: String): VideoLinkBooking = also { it.notesForStaff isEqualTo that }
+fun VideoLinkBooking.hasNotesForPrisoner(that: String?): VideoLinkBooking = also { it.notesForPrisoners isEqualTo that }

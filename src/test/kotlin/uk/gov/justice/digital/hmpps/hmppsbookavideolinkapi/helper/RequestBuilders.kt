@@ -89,7 +89,6 @@ class CreateCourtBookingRequestBuilder {
       videoLinkUrl = cvpLinkDetails?.videoUrl,
       hmctsNumber = cvpLinkDetails?.hmctsNumber,
       guestPin = guestPin,
-      comments = null,
       notesForStaff = notesForStaff,
       notesForPrisoners = notesForPrisoners,
     )
@@ -170,7 +169,6 @@ class AmendCourtBookingRequestBuilder {
       videoLinkUrl = cvpLinkDetails?.videoUrl,
       hmctsNumber = cvpLinkDetails?.hmctsNumber,
       guestPin = guestPin,
-      comments = null,
       notesForStaff = notesForStaff,
       notesForPrisoners = notesForPrisoners,
     )

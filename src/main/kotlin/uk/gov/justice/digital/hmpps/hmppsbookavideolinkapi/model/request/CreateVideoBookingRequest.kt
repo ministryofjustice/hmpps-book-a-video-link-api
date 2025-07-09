@@ -83,15 +83,6 @@ data class CreateVideoBookingRequest(
   @field:Valid
   val additionalBookingDetails: AdditionalBookingDetails? = null,
 
-  @Deprecated(message = "This is to be superseded by notesForStaff and notesForPrisoners.")
-  @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
-  @Schema(
-    description = "Free text comments for the video link booking",
-    example = "Waiting to hear on legal representation",
-  )
-  @Redacted
-  val comments: String?,
-
   @field:Size(max = 400, message = "Notes for staff for the video link booking cannot not exceed {max} characters")
   @Schema(
     description = "Private free text notes for the booking.",

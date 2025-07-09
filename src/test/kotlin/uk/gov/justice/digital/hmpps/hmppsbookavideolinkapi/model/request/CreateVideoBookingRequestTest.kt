@@ -27,7 +27,6 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     courtCode = "ABC",
     courtHearingType = CourtHearingType.TRIBUNAL,
     prisoners = listOf(prisoner),
-    comments = "Blah de blah",
     videoLinkUrl = "https://video.link.com",
     notesForStaff = "Some private staff notes",
     notesForPrisoners = "Some public prisoners notes",
@@ -38,7 +37,6 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     probationTeamCode = "DEF",
     probationMeetingType = ProbationMeetingType.RR,
     prisoners = listOf(prisoner),
-    comments = "Blah de blah",
     notesForStaff = "Some private staff notes",
     notesForPrisoners = "Some public prisoners notes",
   )
@@ -82,11 +80,6 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   @Test
   fun `should fail when missing prisoners`() {
     courtBooking.copy(prisoners = emptyList()) failsWithSingle ModelError("prisoners", "At least one prisoner must be supplied for a video link booking")
-  }
-
-  @Test
-  fun `should fail when comments too long`() {
-    courtBooking.copy(comments = "a".repeat(401)) failsWithSingle ModelError("comments", "Comments for the video link booking cannot not exceed 400 characters")
   }
 
   @Test

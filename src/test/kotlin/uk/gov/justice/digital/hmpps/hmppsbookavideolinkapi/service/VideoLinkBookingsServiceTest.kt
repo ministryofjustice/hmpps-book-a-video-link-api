@@ -136,7 +136,6 @@ class VideoLinkBookingsServiceTest {
         courtDescription isEqualTo DERBY_JUSTICE_CENTRE
         courtHearingType isEqualTo CourtHearingType.TRIBUNAL
         courtHearingTypeDescription isEqualTo "Tribunal"
-        comments isEqualTo "Court hearing comments"
         videoLinkUrl isEqualTo "https://court.hearing.link"
         additionalBookingDetails isEqualTo AdditionalBookingDetails("court contact", "court@email.com", "0114 2345678")
         notesForStaff isEqualTo null
@@ -219,7 +218,6 @@ class VideoLinkBookingsServiceTest {
         this.probationMeetingType isEqualTo ProbationMeetingType.PSR
         probationMeetingTypeDescription isEqualTo "Pre-sentence report"
         videoLinkUrl isEqualTo "decorated-video-link-url"
-        comments isEqualTo "Probation meeting comments"
 
         // Should be null for a probation booking
         assertThat(courtCode).isNull()

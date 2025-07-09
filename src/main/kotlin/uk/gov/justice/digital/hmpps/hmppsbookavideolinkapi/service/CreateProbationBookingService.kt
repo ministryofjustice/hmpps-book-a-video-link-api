@@ -50,7 +50,6 @@ class CreateProbationBookingService(
     return VideoBooking.newProbationBooking(
       probationTeam = probationTeam,
       probationMeetingType = request.probationMeetingType!!.name,
-      comments = request.comments,
       createdBy = createdBy,
       notesForStaff = request.notesForStaff,
       notesForPrisoners = request.notesForPrisoners,

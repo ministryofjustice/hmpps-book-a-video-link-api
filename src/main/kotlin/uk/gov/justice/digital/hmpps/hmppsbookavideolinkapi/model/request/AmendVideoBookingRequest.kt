@@ -43,15 +43,6 @@ data class AmendVideoBookingRequest(
   )
   val probationMeetingType: ProbationMeetingType? = null,
 
-  @Deprecated(message = "This is to be superseded by notesForStaff and notesForPrisoners.")
-  @field:Size(max = 400, message = "Comments for the video link booking cannot not exceed {max} characters")
-  @Schema(
-    description = "Free text comments for the video link booking",
-    example = "Waiting to hear on legal representation",
-  )
-  @Redacted
-  val comments: String?,
-
   @field:Size(max = 120, message = "The video link should not exceed {max} characters")
   @Schema(description = "The video link for the video booking. When this is provided the HMCTS number must be null.", example = "https://video.here.com")
   @Redacted
