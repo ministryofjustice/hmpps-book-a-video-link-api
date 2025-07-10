@@ -30,9 +30,6 @@ data class ScheduleItem(
 
   val videoUrl: String?,
 
-  @Deprecated("use notesoff the booking instead")
-  val bookingComments: String?,
-
   val createdByPrison: Boolean,
 
   val courtId: Long?,
@@ -64,9 +61,6 @@ data class ScheduleItem(
   val appointmentType: String,
 
   val appointmentTypeDescription: String?,
-
-  @Deprecated("use notes/comments off the booking instead")
-  val appointmentComments: String?,
 
   val prisonLocationId: UUID,
 

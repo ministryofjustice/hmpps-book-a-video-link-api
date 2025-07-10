@@ -23,10 +23,6 @@ data class PrisonAppointment(
   @Schema(description = "The appointment type", example = "VLB")
   val appointmentType: String,
 
-  @Schema(description = "The comments for this appointment", example = "Please be on time")
-  @Redacted
-  val comments: String?,
-
   @Schema(description = "The location of the appointment at the prison", example = "VCC-ROOM-1")
   val prisonLocKey: String,
 

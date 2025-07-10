@@ -1,3 +1,5 @@
+DROP VIEW IF EXISTS v_prison_schedule;
+
 CREATE OR REPLACE VIEW v_prison_schedule
 AS
 select
@@ -10,7 +12,6 @@ select
     vlb.probation_meeting_type,
     rc4.description as probation_meeting_type_description,
     vlb.video_url,
-    vlb.comments as booking_comments,
     vlb.created_by_prison,
     c.court_id,
     c.code as court_code,
@@ -23,7 +24,6 @@ select
     pa.prisoner_number,
     pa.appointment_type,
     rc3.description as appointment_type_description,
-    pa.comments as appointment_comments,
     pa.prison_location_id,
     pa.appointment_date,
     pa.start_time,

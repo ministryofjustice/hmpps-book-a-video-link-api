@@ -143,7 +143,6 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.AMEND
-      comments isEqualTo courtBooking.comments
       notesForPrisoners isEqualTo courtBooking.notesForPrisoners
       notesForStaff isEqualTo courtBooking.notesForStaff
       createdBy isEqualTo "amended by someone else"
@@ -171,7 +170,6 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.CANCEL
-      comments isEqualTo courtBooking.comments
       notesForPrisoners isEqualTo courtBooking.notesForPrisoners
       notesForStaff isEqualTo courtBooking.notesForStaff
       createdBy isEqualTo "court cancellation user"
@@ -202,7 +200,6 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.AMEND
-      comments isEqualTo probationBooking.comments
       notesForPrisoners isEqualTo probationBooking.notesForPrisoners
       notesForStaff isEqualTo probationBooking.notesForStaff
       createdBy isEqualTo "amended by someone else"
@@ -230,7 +227,6 @@ class BookingHistoryServiceTest {
 
     with(historyCaptor.firstValue) {
       historyType isEqualTo HistoryType.CANCEL
-      comments isEqualTo probationBooking.comments
       notesForPrisoners isEqualTo probationBooking.notesForPrisoners
       notesForStaff isEqualTo probationBooking.notesForStaff
       createdBy isEqualTo "probation cancellation user"

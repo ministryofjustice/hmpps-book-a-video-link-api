@@ -35,7 +35,7 @@ fun VideoBookingEntity.toModel(
   amendedBy = amendedBy,
   amendedAt = amendedTime,
   additionalBookingDetails = additionalBookingDetails,
-  notesForStaff = notesForStaff ?: comments,
+  notesForStaff = notesForStaff,
   notesForPrisoners = notesForPrisoners,
   hmctsNumber = hmctsNumber,
   guestPin = guestPin,

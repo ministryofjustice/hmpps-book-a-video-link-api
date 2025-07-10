@@ -34,9 +34,6 @@ class PrisonAppointment private constructor(
 
   val appointmentType: String,
 
-  @Deprecated(message = "This is superseded by notesForPrisoners.")
-  val comments: String? = null,
-
   val prisonLocationId: UUID,
 
   val appointmentDate: LocalDate,
