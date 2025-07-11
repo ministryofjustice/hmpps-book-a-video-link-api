@@ -45,9 +45,6 @@ class VideoBooking private constructor(
 
   var probationMeetingType: String?,
 
-  @Deprecated(message = "This is superseded by notesForStaff and notesForPrisoners and no longer used.")
-  var comments: String? = null,
-
   val createdByPrison: Boolean = false,
 
   val createdBy: String,

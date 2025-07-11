@@ -30,10 +30,6 @@ data class ScheduleItem(
   @Redacted
   val videoUrl: String?,
 
-  @Schema(description = "The comments provided for the booking", example = "Free text comment")
-  @Redacted
-  val bookingComments: String?,
-
   @Schema(description = "True if the booking was made by a prison user", allowableValues = ["true", "false"], example = "false")
   val createdByPrison: Boolean,
 
@@ -81,10 +77,6 @@ data class ScheduleItem(
 
   @Schema(description = "The appointment type description", example = "Court - main hearing")
   val appointmentTypeDescription: String?,
-
-  @Schema(description = "The appointment comments", example = "This is a free text comment")
-  @Redacted
-  val appointmentComments: String?,
 
   @Schema(
     description = "The location key for the room where the appointment will take place in the prison.",

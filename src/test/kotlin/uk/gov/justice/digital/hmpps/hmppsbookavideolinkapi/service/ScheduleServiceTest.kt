@@ -63,9 +63,7 @@ class ScheduleServiceTest {
     prisonerNumber = "A1234AA",
     appointmentType = appointmentType.name,
     appointmentTypeDescription = "Court main hearing",
-    appointmentComments = "appointment comments",
     prisonLocationId = pentonvilleLocation.id,
-    bookingComments = "booking comments",
     videoUrl = "http://video.url",
     appointmentDate = date,
     startTime = start,
@@ -110,9 +108,7 @@ class ScheduleServiceTest {
     prisonerNumber = "A1234AA",
     appointmentType = AppointmentType.VLB_PROBATION.name,
     appointmentTypeDescription = null,
-    appointmentComments = "appointment comments",
     prisonLocationId = pentonvilleLocation.id,
-    bookingComments = "booking comments",
     videoUrl = "http://video.url",
     appointmentDate = date,
     startTime = start,
@@ -206,8 +202,6 @@ class ScheduleServiceTest {
       assertThat(item.createdBy).isEqualTo("CREATOR")
       assertThat(item.updatedTime).isEqualTo(today().atStartOfDay())
       assertThat(item.updatedBy).isEqualTo("AMENDER")
-      assertThat(item.bookingComments).isEqualTo("booking comments")
-      assertThat(item.appointmentComments).isEqualTo("appointment comments")
       assertThat(item.notesForStaff).isEqualTo("notes for staff")
       assertThat(item.notesForPrisoners).isEqualTo("notes for prisoners")
       assertThat(item.hmctsNumber).isEqualTo("HMCTS")
@@ -234,7 +228,6 @@ class ScheduleServiceTest {
       assertThat(item.updatedBy).isEqualTo("AMENDER")
       assertThat(item.probationOfficerName).isEqualTo("Jane Doe")
       assertThat(item.probationOfficerEmailAddress).isEqualTo("jane@doe.com")
-      assertThat(item.appointmentComments).isEqualTo("appointment comments")
       assertThat(item.notesForStaff).isEqualTo("notes for staff")
       assertThat(item.notesForPrisoners).isEqualTo("notes for prisoners")
     }
