@@ -5,11 +5,11 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.3.0"
-  id("org.openapi.generator") version "7.13.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.3.2"
+  id("org.openapi.generator") version "7.14.0"
   kotlin("plugin.spring") version "2.2.0"
   kotlin("plugin.jpa") version "2.2.0"
-  id("dev.zacsweers.redacted") version "1.14.0"
+  id("dev.zacsweers.redacted") version "1.14.1"
 }
 
 allOpen {
@@ -33,8 +33,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.4.7")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.6")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.4.9")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.8")
 
   // CSV dependencies
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.19.1")
@@ -49,9 +49,9 @@ dependencies {
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
 
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.16.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.18.0")
 
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.4")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.10")
 
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
@@ -63,8 +63,8 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:localstack:1.21.2")
-  testImplementation("org.testcontainers:postgresql:1.21.2")
+  testImplementation("org.testcontainers:localstack:1.21.3")
+  testImplementation("org.testcontainers:postgresql:1.21.3")
   testImplementation("org.wiremock:wiremock-standalone:3.13.1")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.29") {
     exclude(group = "io.swagger.core.v3")
