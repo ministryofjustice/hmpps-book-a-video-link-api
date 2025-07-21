@@ -465,9 +465,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber = "123456",
       prisonCode = PENTONVILLE,
       location = pentonvilleLocation,
-      date = tomorrow(),
-      startTime = LocalTime.of(12, 0),
-      endTime = LocalTime.of(12, 30),
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,

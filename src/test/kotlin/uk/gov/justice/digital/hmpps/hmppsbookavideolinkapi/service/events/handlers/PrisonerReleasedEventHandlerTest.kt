@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
@@ -31,10 +32,19 @@ class PrisonerReleasedEventHandlerTest {
   private val probationAppointment: PrisonAppointment = mock { on { videoBooking } doReturn probationBooking }
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val bookingFacade: BookingFacade = mock()
-  private val handler = PrisonerReleasedEventHandler(prisonAppointmentRepository, bookingFacade)
+  private val handler = PrisonerReleasedEventHandler(prisonAppointmentRepository, bookingFacade, TransactionHandler())
   private val dateCaptor = argumentCaptor<LocalDate>()
   private val timeCaptor = argumentCaptor<LocalTime>()
   private val timeNow = LocalTime.now()
+
+  @BeforeEach
+  fun before() {
+    whenever(courtAppointment1.start()) doReturn LocalDate.now().atTime(timeNow.plusMinutes(1))
+    whenever(courtAppointment2.start()) doReturn LocalDate.now().atTime(timeNow.plusMinutes(1))
+    whenever(courtBooking.appointments()) doReturn listOf(courtAppointment1, courtAppointment2)
+    whenever(probationAppointment.start()) doReturn LocalDate.now().atTime(timeNow.plusMinutes(1))
+    whenever(probationBooking.appointments()) doReturn listOf(probationAppointment)
+  }
 
   @Test
   fun `should ignore temporary absence release of prisoner`() {
@@ -118,5 +128,24 @@ class PrisonerReleasedEventHandlerTest {
 
     verify(bookingFacade).prisonerTransferred(1, getServiceAsUser())
     verify(bookingFacade).prisonerTransferred(2, getServiceAsUser())
+  }
+
+  @Test
+  fun `should not release prisoner if any of the bookings appointments has passed`() {
+    whenever(
+      prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(
+        eq("123456"),
+        eq(LocalDate.now()),
+        argThat { time -> time.isOnOrAfter(timeNow) },
+      ),
+    ) doReturn listOf(courtAppointment2)
+
+    whenever(courtAppointment1.start()) doReturn LocalDate.now().atTime(timeNow.minusMinutes(1))
+
+    handler.handle(PrisonerReleasedEvent(ReleaseInformation("123456", "RELEASED", BIRMINGHAM)))
+
+    verify(prisonAppointmentRepository).findActivePrisonerPrisonAppointmentsAfter(eq("123456"), dateCaptor.capture(), timeCaptor.capture())
+
+    verifyNoInteractions(bookingFacade)
   }
 }

@@ -2,17 +2,19 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerReleasedEvent
-import java.time.LocalDate
-import java.time.LocalTime
+import java.time.LocalDateTime
 
 @Component
 class PrisonerReleasedEventHandler(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val bookingFacade: BookingFacade,
+  private val transactionHandler: TransactionHandler,
 ) : DomainEventHandler<PrisonerReleasedEvent> {
 
   companion object {
@@ -28,23 +30,38 @@ class PrisonerReleasedEventHandler(
   }
 
   private fun processRelease(event: PrisonerReleasedEvent) {
-    prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(event.prisonerNumber(), LocalDate.now(), LocalTime.now())
-      .ifEmpty {
+    val now = LocalDateTime.now()
+
+    // A new transaction is needed so we can look at (lazily loaded) appointments but avoid wrapping the call to the
+    // facade in the same transaction. Ideally, the facade needs to be excluded from transactions so the service layer
+    // calls further down the call chain can be in their own transaction.
+    transactionHandler.newSpringTransaction {
+      prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter(
+        event.prisonerNumber(),
+        now.toLocalDate(),
+        now.toLocalTime(),
+      ).ifEmpty {
         log.info("RELEASE EVENT HANDLER: no bookings affected for release event $event")
         emptyList()
       }
-      .map { it.videoBooking.videoBookingId }
-      .distinct()
-      .forEach { booking ->
-        if (event.isTransferred()) {
-          log.info("RELEASE EVENT HANDLER: processing transfer event $event")
-          bookingFacade.prisonerTransferred(booking, getServiceAsUser())
-        } else if (event.isPermanent()) {
-          log.info("RELEASE EVENT HANDLER: processing release event $event")
-          bookingFacade.prisonerReleased(booking, getServiceAsUser())
-        } else {
-          log.info("RELEASE EVENT HANDLER: no action taken for release event $event")
-        }
+        .map(PrisonAppointment::videoBooking)
+        .distinctBy(VideoBooking::videoBookingId)
+        .allBookingAppointmentsAreStillActive(now)
+        .map(VideoBooking::videoBookingId)
+    }.forEach { booking ->
+      if (event.isTransferred()) {
+        log.info("RELEASE EVENT HANDLER: processing transfer event $event")
+        bookingFacade.prisonerTransferred(booking, getServiceAsUser())
+      } else if (event.isPermanent()) {
+        log.info("RELEASE EVENT HANDLER: processing release event $event")
+        bookingFacade.prisonerReleased(booking, getServiceAsUser())
+      } else {
+        log.info("RELEASE EVENT HANDLER: no action taken for release event $event")
       }
+    }
+  }
+
+  private fun List<VideoBooking>.allBookingAppointmentsAreStillActive(dateTime: LocalDateTime) = filter { booking ->
+    booking.appointments().all { appointment -> appointment.start().isAfter(dateTime) }
   }
 }
