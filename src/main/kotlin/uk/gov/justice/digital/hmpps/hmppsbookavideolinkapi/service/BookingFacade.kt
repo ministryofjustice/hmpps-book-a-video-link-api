@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 
 /**
  * This facade exists to ensure all booking related transactions are fully committed prior to sending any events or emails.
+ * That is to say, ideally calls to the facade should not be wrapped in transactions.
  */
 @Component
 class BookingFacade(
