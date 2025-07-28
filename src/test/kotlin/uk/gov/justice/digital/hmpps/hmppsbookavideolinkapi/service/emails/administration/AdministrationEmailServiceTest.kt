@@ -160,6 +160,18 @@ class AdministrationEmailServiceTest {
     verifyNoInteractions(notificationRepository)
   }
 
+  @Test
+  fun `should send no emails when no new rooms`() {
+    whenever(prisonsService.getListOfPrisons(true)) doReturn emptyList()
+
+    service("email@domain.com").sendEmailsForNewPrisonVideoRoom()
+
+    verify(prisonsService).getListOfPrisons(true)
+    verifyNoInteractions(locationsService)
+    verifyNoInteractions(emailService)
+    verifyNoInteractions(notificationRepository)
+  }
+
   private fun service(vararg emails: String) = AdministrationEmailService(
     prisonsService,
     locationsService,

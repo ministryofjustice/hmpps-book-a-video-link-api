@@ -38,16 +38,18 @@ class AdministrationEmailService(
           ).allNewPrisonRooms()
         }.mapKeys { it.key.name }.toSortedMap()
 
-      administrationEmails.split(',').map { it.lowercase().trim() }.distinct().forEach { email ->
-        emailService.send(AdministrationNewVideoRoomEmail(email, sortedNewPrisonVideoRooms)).onSuccess { (govNotifyId, templateId) ->
-          notificationRepository.saveAndFlush(
-            Notification(
-              email = email,
-              govNotifyNotificationId = govNotifyId,
-              templateName = templateId,
-              reason = "NEW_PRISON_VIDEO_ROOM",
-            ),
-          )
+      if (sortedNewPrisonVideoRooms.isNotEmpty()) {
+        administrationEmails.split(',').map { it.lowercase().trim() }.distinct().forEach { email ->
+          emailService.send(AdministrationNewVideoRoomEmail(email, sortedNewPrisonVideoRooms)).onSuccess { (govNotifyId, templateId) ->
+            notificationRepository.saveAndFlush(
+              Notification(
+                email = email,
+                govNotifyNotificationId = govNotifyId,
+                templateName = templateId,
+                reason = "NEW_PRISON_VIDEO_ROOM",
+              ),
+            )
+          }
         }
       }
     }
