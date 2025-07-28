@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -22,7 +22,7 @@ abstract class DeprecatedCourtEmail(
   courtHearingLink: String?,
   userName: String? = null,
   courtEmailAddress: String? = null,
-) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
   init {
     addPersonalisation("offenderNo", prisonerNumber)
     addPersonalisation("court", court)
@@ -51,7 +51,7 @@ abstract class CourtEmail(
   courtHearingLink: String?,
   userName: String? = null,
   courtEmailAddress: String? = null,
-) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
   init {
     addPersonalisation("offenderNo", prisonerNumber)
     addPersonalisation("court", court)
@@ -434,7 +434,7 @@ class CourtBookingRequestUserEmail(
   postAppointmentInfo: String?,
   comments: String?,
   courtHearingLink: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("userName", userName)
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
@@ -463,7 +463,7 @@ class CourtBookingRequestPrisonCourtEmail(
   postAppointmentInfo: String?,
   comments: String?,
   courtHearingLink: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("courtEmailAddress", courtEmailAddress)
@@ -491,7 +491,7 @@ class CourtBookingRequestPrisonNoCourtEmail(
   postAppointmentInfo: String?,
   comments: String?,
   courtHearingLink: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("court", court)
@@ -517,7 +517,7 @@ class TransferredCourtBookingCourtEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("offenderNo", prisonerNumber)
@@ -542,7 +542,7 @@ class ReleasedCourtBookingCourtEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("offenderNo", prisonerNumber)
@@ -567,7 +567,7 @@ class ReleasedCourtBookingPrisonCourtEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("offenderNo", prisonerNumber)
@@ -592,7 +592,7 @@ class ReleasedCourtBookingPrisonNoCourtEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("offenderNo", prisonerNumber)
@@ -617,7 +617,7 @@ class TransferredCourtBookingPrisonCourtEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("offenderNo", prisonerNumber)
@@ -642,7 +642,7 @@ class TransferredCourtBookingPrisonNoCourtEmail(
   mainAppointmentInfo: String,
   postAppointmentInfo: String?,
   comments: String?,
-) : Email(address, prisonerFirstName, prisonerLastName, date, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, date, comments) {
   init {
     addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle())
     addPersonalisation("offenderNo", prisonerNumber)

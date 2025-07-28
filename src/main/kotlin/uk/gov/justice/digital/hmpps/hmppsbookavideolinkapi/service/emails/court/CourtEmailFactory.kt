@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
@@ -27,7 +27,7 @@ object CourtEmailFactory {
     post: PrisonAppointment?,
     locations: Map<UUID, Location>,
     action: BookingAction,
-  ): Email? {
+  ): VideoBookingEmail? {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.USER) {
@@ -99,7 +99,7 @@ object CourtEmailFactory {
     post: PrisonAppointment?,
     locations: Map<UUID, Location>,
     action: BookingAction,
-  ): Email? {
+  ): VideoBookingEmail? {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.COURT) {
@@ -224,7 +224,7 @@ object CourtEmailFactory {
     post: PrisonAppointment?,
     locations: Map<UUID, Location>,
     action: BookingAction,
-  ): Email? {
+  ): VideoBookingEmail? {
     booking.requireIsCourtBooking()
 
     require(contact.contactType == ContactType.PRISON) {

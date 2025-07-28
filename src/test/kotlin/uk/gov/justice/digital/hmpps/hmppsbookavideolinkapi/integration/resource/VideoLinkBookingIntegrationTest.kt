@@ -12,9 +12,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
@@ -1700,7 +1700,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     .expectBody(ErrorResponse::class.java)
     .returnResult().responseBody!!
 
-  private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
+  private fun <T : VideoBookingEmail> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
     single { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
   }
 }

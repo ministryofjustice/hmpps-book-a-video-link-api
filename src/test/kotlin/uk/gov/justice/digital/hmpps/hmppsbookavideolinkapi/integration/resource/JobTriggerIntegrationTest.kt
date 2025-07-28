@@ -27,13 +27,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.daysFromNow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.administration.AdministrationNewVideoRoomEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerDetailsReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsPublisher
@@ -59,6 +62,9 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
+
+  @Autowired
+  private lateinit var prisonRepository: PrisonRepository
 
   @Autowired
   private lateinit var notificationRepository: NotificationRepository
@@ -291,6 +297,23 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
         notifications.isPresent("t@t.com", ProbationOfficerDetailsReminderEmail::class, persistedBooking)
         notifications.isPresent("m@m.com", ProbationOfficerDetailsReminderEmail::class, persistedBooking)
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("Administration emails")
+  inner class AdministrationEmails {
+    @Test
+    fun `should send administration new prison video room email`() {
+      prisonRepository.findAll().forEach {
+        locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(it.code, location(prisonCode = it.code, locationKeySuffix = "${it.code}-ABCEDFG", localName = "${it.code} room"))
+      }
+
+      webTestClient.triggerJob(JobType.NEW_PRISON_VIDEO_ROOM)
+
+      val notifications = notificationRepository.findAll().also { it hasSize 1 }
+
+      notifications.isPresent(email = "recipient@somewhere.com", template = AdministrationNewVideoRoomEmail::class)
     }
   }
 

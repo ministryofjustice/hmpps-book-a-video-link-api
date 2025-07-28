@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.GovNotifyEmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.administration.AdministrationNewVideoRoomEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
@@ -107,6 +108,7 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation.transfer-booking.prison-no-probation-email:}") private val transferProbationBookingPrisonNoProbationEmail: String,
   @Value("\${notify.templates.court.hearing-link-reminder.court:}") private val courtHearingLinkReminderEmail: String,
   @Value("\${notify.templates.probation.probation-officer-details-reminder.probation:}") private val probationOfficerDetailsReminderEmail: String,
+  @Value("\${notify.templates.administration.new-video-room:}") private val administrationNewVideoRoom: String,
 ) {
 
   companion object {
@@ -165,6 +167,7 @@ class EmailConfiguration(
     cancelledCourtBookingCourtEmail = cancelledCourtBookingCourtEmail,
     courtHearingLinkReminderEmail = courtHearingLinkReminderEmail,
     probationOfficerDetailsReminderEmail = probationOfficerDetailsReminderEmail,
+    administrationNewVideoRoom = administrationNewVideoRoom,
   )
 }
 
@@ -177,25 +180,30 @@ fun interface EmailService {
   fun send(email: Email): Result<Pair<UUID, TemplateId>>
 }
 
-abstract class Email(
-  val address: String,
-  prisonerFirstName: String,
-  prisonerLastName: String,
-  date: LocalDate = LocalDate.now(),
-  comments: String? = null,
-) {
-  private val common = mapOf(
-    "date" to date.toMediumFormatStyle(),
-    "prisonerName" to prisonerFirstName.plus(" $prisonerLastName"),
-    "comments" to (comments ?: "None entered"),
-  )
-  private val personalisation: MutableMap<String, String?> = mutableMapOf()
+abstract class Email(val address: String) {
+  private val personalisation: MutableMap<String, String> = mutableMapOf()
 
   protected fun addPersonalisation(key: String, value: String) {
     personalisation[key] = value
   }
 
-  fun personalisation() = common.plus(personalisation)
+  fun personalisation(): Map<String, String> = personalisation.toMap()
+}
+
+abstract class AdministrationEmail(address: String) : Email(address)
+
+abstract class VideoBookingEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  date: LocalDate = LocalDate.now(),
+  comments: String? = null,
+) : Email(address) {
+  init {
+    addPersonalisation("date", date.toMediumFormatStyle())
+    addPersonalisation("prisonerName", prisonerFirstName.plus(" $prisonerLastName"))
+    addPersonalisation("comments", (comments ?: "None entered"))
+  }
 }
 
 data class EmailTemplates(
@@ -243,6 +251,7 @@ data class EmailTemplates(
   val transferProbationBookingPrisonNoProbationEmail: String,
   val courtHearingLinkReminderEmail: String,
   val probationOfficerDetailsReminderEmail: String,
+  val administrationNewVideoRoom: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
@@ -290,6 +299,7 @@ data class EmailTemplates(
     TransferredProbationBookingPrisonNoProbationEmail::class.java to transferProbationBookingPrisonNoProbationEmail,
     CourtHearingLinkReminderEmail::class.java to courtHearingLinkReminderEmail,
     ProbationOfficerDetailsReminderEmail::class.java to probationOfficerDetailsReminderEmail,
+    AdministrationNewVideoRoomEmail::class.java to administrationNewVideoRoom,
   )
 
   init {
@@ -302,5 +312,5 @@ data class EmailTemplates(
     }
   }
 
-  fun <T : Email> templateFor(type: Class<T>) = emailTemplateMappings[type]
+  fun templateFor(type: Class<out Email>) = emailTemplateMappings[type]
 }

@@ -121,6 +121,8 @@ management:
 
 notify:
   templates:
+    administration:
+      new-video-room: "d336d824-60ec-4829-bfb6-6959314fac71"
     court:
       new-booking:
         user: "1405711e-1f30-4999-b336-27061d58fdb6"
