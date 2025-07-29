@@ -21,7 +21,7 @@ generic-service:
 
   namespace_secrets:
     administration:
-      EMAILS: "EMAILS"
+      ADMINISTRATION_EMAILS: "ADMINISTRATION_EMAILS"
 
   allowlist:
     groups:
