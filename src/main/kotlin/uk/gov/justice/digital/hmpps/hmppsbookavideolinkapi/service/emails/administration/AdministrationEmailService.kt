@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
-import kotlin.onSuccess
 
 @Service
 class AdministrationEmailService(
@@ -49,6 +48,8 @@ class AdministrationEmailService(
                 reason = "NEW_PRISON_VIDEO_ROOM",
               ),
             )
+          }.onFailure {
+            log.info("ADMINISTRATION_EMAIL: failed to send email for new prison video room.")
           }
         }
       }
