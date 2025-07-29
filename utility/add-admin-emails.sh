@@ -35,7 +35,7 @@ metadata:
   namespace: $NAMESPACE
 type: Opaque
 stringData:
-  EMAILS: "$EMAILS"
+  ADMINISTRATION_EMAILS: "$EMAILS"
 EOF
 
 # Apply the secret
