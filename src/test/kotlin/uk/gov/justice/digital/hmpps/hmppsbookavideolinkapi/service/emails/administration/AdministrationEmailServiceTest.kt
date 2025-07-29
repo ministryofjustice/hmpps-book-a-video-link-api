@@ -162,12 +162,12 @@ class AdministrationEmailServiceTest {
 
   @Test
   fun `should send no emails when no new rooms`() {
-    whenever(prisonsService.getListOfPrisons(true)) doReturn emptyList()
+    whenever(locationsService.getVideoLinkLocationsAtPrison(PENTONVILLE, true)) doReturn emptyList()
 
     service("email@domain.com").sendEmailsForNewPrisonVideoRoom()
 
     verify(prisonsService).getListOfPrisons(true)
-    verifyNoInteractions(locationsService)
+    verify(locationsService).getVideoLinkLocationsAtPrison(PENTONVILLE, true)
     verifyNoInteractions(emailService)
     verifyNoInteractions(notificationRepository)
   }
