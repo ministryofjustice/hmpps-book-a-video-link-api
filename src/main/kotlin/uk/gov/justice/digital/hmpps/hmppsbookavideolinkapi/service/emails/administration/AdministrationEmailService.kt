@@ -23,10 +23,14 @@ class AdministrationEmailService(
   }
 
   init {
-    log.info("ADMINISTRATION_EMAIL: no email address configured for sending administration emails")
+    if (administrationEmails.isNullOrBlank()) {
+      log.info("ADMINISTRATION_EMAIL: no email address configured for sending administration emails")
+    }
   }
 
   fun sendEmailsForNewPrisonVideoRoom() {
+    log.info("ADMINISTRATION_EMAIL: new video link prison room check")
+
     if (!administrationEmails.isNullOrBlank()) {
       // We are only interested in enabled prisons
       val sortedNewPrisonVideoRooms = prisonsService.getListOfPrisons(true)
