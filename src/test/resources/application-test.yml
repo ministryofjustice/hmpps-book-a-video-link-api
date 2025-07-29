@@ -37,3 +37,6 @@ api:
 bvls:
   frontend:
     url: http://localhost:3000
+
+administration:
+  emails: "recipient@somewhere.com"

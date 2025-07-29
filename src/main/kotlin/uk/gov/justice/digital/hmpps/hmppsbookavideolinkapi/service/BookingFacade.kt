@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
@@ -213,7 +213,7 @@ class BookingFacade(
     emails.forEach { probationEmail -> sendEmailAndSaveNotification(probationEmail, booking, eventType) }
   }
 
-  private fun sendEmailAndSaveNotification(email: Email, booking: VideoBooking, action: BookingAction) {
+  private fun sendEmailAndSaveNotification(email: VideoBookingEmail, booking: VideoBooking, action: BookingAction) {
     emailService.send(email).onSuccess { (govNotifyId, templateId) ->
       notificationRepository.saveAndFlush(
         Notification(

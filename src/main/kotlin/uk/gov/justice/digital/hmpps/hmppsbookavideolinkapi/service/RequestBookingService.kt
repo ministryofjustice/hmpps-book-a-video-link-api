@@ -4,8 +4,8 @@ import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
@@ -144,7 +144,7 @@ class RequestBookingService(
 
   private fun getCourtAppointments(prisoner: UnknownPrisonerDetails): Triple<RequestedAppointment?, RequestedAppointment, RequestedAppointment?> = prisoner.appointments.appointmentsForCourtHearing()
 
-  private fun sendEmails(contacts: List<Contact>, emailGenerator: (Contact) -> Email?) {
+  private fun sendEmails(contacts: List<Contact>, emailGenerator: (Contact) -> VideoBookingEmail?) {
     contacts.mapNotNull(emailGenerator).forEach { email ->
       emailService.send(email).onSuccess { (govNotifyId, templateId) ->
         notificationRepository.saveAndFlush(
@@ -197,7 +197,7 @@ class RequestBookingService(
     main: RequestedAppointment,
     pre: RequestedAppointment?,
     post: RequestedAppointment?,
-  ): Email {
+  ): VideoBookingEmail {
     val primaryCourtContact = contacts.primaryContact(ContactType.COURT)
     return if (primaryCourtContact != null) {
       CourtBookingRequestPrisonCourtEmail(
@@ -267,7 +267,7 @@ class RequestBookingService(
     contacts: Collection<Contact>,
     meetingType: ReferenceCode,
     appointment: RequestedAppointment,
-  ): Email {
+  ): VideoBookingEmail {
     val primaryProbationTeamContact = contacts.primaryContact(ContactType.PROBATION)
     return if (primaryProbationTeamContact != null) {
       ProbationBookingRequestPrisonProbationTeamEmail(

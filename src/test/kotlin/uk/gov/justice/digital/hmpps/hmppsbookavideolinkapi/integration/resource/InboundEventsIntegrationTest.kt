@@ -10,8 +10,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.context.jdbc.Sql
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -609,7 +609,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
-  private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
+  private fun <T : VideoBookingEmail> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
     val match = singleOrNull { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
 
     requireNotNull(match) {
@@ -617,7 +617,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
     }
   }
 
-  private fun <T : Email> Collection<Notification>.isNotPresent(template: KClass<T>, booking: VideoBooking? = null) {
+  private fun <T : VideoBookingEmail> Collection<Notification>.isNotPresent(template: KClass<T>, booking: VideoBooking? = null) {
     val noMatch = none { it.templateName == template.simpleName && it.videoBooking == booking }
 
     require(noMatch) {

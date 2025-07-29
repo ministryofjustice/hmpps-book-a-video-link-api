@@ -19,8 +19,8 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
@@ -104,7 +104,7 @@ import java.time.LocalTime
 import java.util.UUID
 
 class BookingFacadeTest {
-  private val emailCaptor = argumentCaptor<Email>()
+  private val emailCaptor = argumentCaptor<VideoBookingEmail>()
   private val videoBookingServiceDelegate: VideoBookingServiceDelegate = mock()
   private val contactsService: ContactsService = mock()
   private val prisonRepository: PrisonRepository = mock()

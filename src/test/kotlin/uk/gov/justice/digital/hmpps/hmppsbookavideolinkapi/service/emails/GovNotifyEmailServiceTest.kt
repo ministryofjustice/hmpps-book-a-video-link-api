@@ -9,10 +9,11 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailTemplates
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.administration.AdministrationNewVideoRoomEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingUserEmail
@@ -95,6 +96,7 @@ class GovNotifyEmailServiceTest {
     transferProbationBookingPrisonNoProbationEmail = "transferProbationBookingPrisonNoProbationEmail",
     courtHearingLinkReminderEmail = "courtHearingLinkReminderEmail",
     probationOfficerDetailsReminderEmail = "probationOfficerDetailsReminderEmail",
+    administrationNewVideoRoom = "administrationNewVideoRoomEmail",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates, "http://localhost:3000")
@@ -854,7 +856,7 @@ class GovNotifyEmailServiceTest {
     error.exceptionOrNull()?.message isEqualTo "EMAIL: Missing template ID for email type UnsupportedEmail."
   }
 
-  private object UnsupportedEmail : Email("", "", "", LocalDate.now())
+  private object UnsupportedEmail : VideoBookingEmail("", "", "", LocalDate.now())
 
   @Test
   fun `should propagate client error when client fails to send email`() {
@@ -1236,6 +1238,28 @@ class GovNotifyEmailServiceTest {
         "frontendDomain" to "http://localhost:3000",
         "meetingType" to "PSR",
       ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send administration new video room email and return a notification ID`() {
+    val result = service.send(
+      AdministrationNewVideoRoomEmail(
+        address = "recipient@emailaddress.com",
+        newPrisonVideoRooms = buildMap {
+          put("Moorland", listOf("Room 1", "Room 2", "Room 3"))
+          put("Risley", listOf("Room 10", "Room 12", "Room 18"))
+        },
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "administrationNewVideoRoomEmail")
+
+    verify(client).sendEmail(
+      "administrationNewVideoRoomEmail",
+      "recipient@emailaddress.com",
+      mapOf("prisonsAndRooms" to "Moorland\nRoom 1\nRoom 2\nRoom 3\n\nRisley\nRoom 10\nRoom 12\nRoom 18\n\n", "frontendDomain" to "http://localhost:3000"),
       null,
     )
   }

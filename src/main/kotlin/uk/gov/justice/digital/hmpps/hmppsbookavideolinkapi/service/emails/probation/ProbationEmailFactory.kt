@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AdditionalBookingDetail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
@@ -24,7 +24,7 @@ object ProbationEmailFactory {
     location: Location,
     action: BookingAction,
     additionalBookingDetail: AdditionalBookingDetail?,
-  ): Email? {
+  ): VideoBookingEmail? {
     booking.requireIsProbationBooking()
 
     require(contact.contactType == ContactType.USER) {
@@ -100,7 +100,7 @@ object ProbationEmailFactory {
     location: Location,
     action: BookingAction,
     additionalBookingDetail: AdditionalBookingDetail?,
-  ): Email? {
+  ): VideoBookingEmail? {
     booking.requireIsProbationBooking()
 
     require(contact.contactType == ContactType.PROBATION) {
@@ -233,7 +233,7 @@ object ProbationEmailFactory {
     action: BookingAction,
     contacts: Collection<BookingContact>,
     additionalBookingDetail: AdditionalBookingDetail?,
-  ): Email? {
+  ): VideoBookingEmail? {
     booking.requireIsProbationBooking()
 
     require(contact.contactType == ContactType.PRISON) {

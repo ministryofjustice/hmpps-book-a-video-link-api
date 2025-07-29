@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.administration.AdministrationNewVideoRoomEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
@@ -95,6 +96,7 @@ class EmailTemplatesTest {
     TransferredProbationBookingPrisonNoProbationEmail::class.java to "transferProbationBookingPrisonNoProbationEmail",
     CourtHearingLinkReminderEmail::class.java to "courtHearingLinkReminderEmail",
     ProbationOfficerDetailsReminderEmail::class.java to "probationOfficerDetailsReminderEmail",
+    AdministrationNewVideoRoomEmail::class.java to "administrationNewVideoRoom",
   )
 
   private val templates = EmailTemplates(
@@ -142,6 +144,7 @@ class EmailTemplatesTest {
     transferProbationBookingPrisonNoProbationEmail = "transferProbationBookingPrisonNoProbationEmail",
     courtHearingLinkReminderEmail = "courtHearingLinkReminderEmail",
     probationOfficerDetailsReminderEmail = "probationOfficerDetailsReminderEmail",
+    administrationNewVideoRoom = "administrationNewVideoRoom",
   )
 
   @Test
@@ -200,6 +203,7 @@ class EmailTemplatesTest {
       "15",
       courtHearingLinkReminderEmail = "16",
       probationOfficerDetailsReminderEmail = "17",
+      administrationNewVideoRoom = "18",
     )
 
     val error = assertThrows<IllegalArgumentException> {
@@ -248,6 +252,7 @@ class EmailTemplatesTest {
         "duplicate",
         courtHearingLinkReminderEmail = "14",
         probationOfficerDetailsReminderEmail = "15",
+        administrationNewVideoRoom = "16",
       )
     }
 

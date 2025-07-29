@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import java.time.LocalDate
 
 abstract class ProbationEmail(
@@ -22,7 +22,7 @@ abstract class ProbationEmail(
   probationOfficerName: String? = null,
   probationOfficerEmailAddress: String? = null,
   probationOfficerContactNumber: String? = null,
-) : Email(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
+) : VideoBookingEmail(address, prisonerFirstName, prisonerLastName, appointmentDate, comments) {
 
   init {
     addPersonalisation("probationTeam", probationTeam)
