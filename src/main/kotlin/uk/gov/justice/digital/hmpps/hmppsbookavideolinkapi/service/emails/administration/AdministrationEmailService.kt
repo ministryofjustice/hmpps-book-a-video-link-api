@@ -39,7 +39,7 @@ class AdministrationEmailService(
             prisonCode = prison.code,
             enabledOnly = true,
           ).allNewPrisonRooms()
-        }.mapKeys { it.key.name }.toSortedMap()
+        }.mapKeys { it.key.name }.filterValues { rooms -> rooms.isNotEmpty() }.toSortedMap()
 
       if (sortedNewPrisonVideoRooms.isNotEmpty()) {
         administrationEmails.split(',').map { it.lowercase().trim() }.distinct().forEach { email ->
