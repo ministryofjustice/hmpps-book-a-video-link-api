@@ -20,18 +20,27 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Month
+import java.util.*
 import java.util.stream.Stream
 
 class CsvDataExtractionServiceTest {
   private val videoBookingEventRepository: VideoBookingEventRepository = mock()
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
-  private val service = CsvDataExtractionService(videoBookingEventRepository, locationsInsidePrisonClient)
+  private val locationsService: LocationsService = mock()
+  private val prisonsService: PrisonsService = mock()
+  private val service = CsvDataExtractionService(videoBookingEventRepository, locationsInsidePrisonClient, locationsService, prisonsService)
   private val csvOutputStream = ByteArrayOutputStream()
   private val wandsworthCreateCourtBookingEvent = VideoBookingEvent(
     eventId = 1,
@@ -242,4 +251,38 @@ class CsvDataExtractionServiceTest {
       "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
       "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${risleyLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
   }
+
+  @Test
+  fun `should produce CSV for prison room configuration`() {
+    whenever(prisonsService.getListOfPrisons(eq(true))) doReturn listOfPrisons
+    whenever(locationsService.getVideoLinkLocationsAtPrison(eq("MDI"), eq(true))) doReturn locationsAtMoorland
+
+    service.prisonRoomConfigurationToCsv(csvOutputStream)
+
+    verify(prisonsService).getListOfPrisons(eq(true))
+    verify(locationsService).getVideoLinkLocationsAtPrison(eq("MDI"), eq(true))
+
+    csvOutputStream.toString() isEqualTo
+      "prisonCode,prisonDescription,roomKey,roomDescription,roomVideoLink,roomSetup,roomStatus,permission,schedule\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Shared,No\n"
+  }
+
+  private val listOfPrisons = listOf(
+    Prison(prisonId = 1L, code = "MDI", name = "HMP Moorland", enabled = true, notes = null),
+  )
+
+  private val roomAttributes = RoomAttributes(
+    attributeId = 1L,
+    locationStatus = LocationStatus.ACTIVE,
+    locationUsage = LocationUsage.SHARED,
+    prisonVideoUrl = "/video-link-url",
+    allowedParties = emptyList(),
+    notes = null,
+    expectedActiveDate = null,
+    statusMessage = null,
+  )
+
+  private val locationsAtMoorland = listOf(
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-1", prisonCode = "MDI", description = "Room 1", enabled = true, extraAttributes = roomAttributes),
+  )
 }

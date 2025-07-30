@@ -104,11 +104,27 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
     "video-links-by-probation-booking-date-from-${startDate.toIsoDate()}-for-$days-days.csv",
   ) { os -> service.probationBookingsByBookingDateToCsv(inclusiveFromDate = startDate, exclusiveToDate = startDate.plusDays(days), os) }
 
+  @GetMapping(path = ["/prison-room-configuration-data"])
+  @Operation(description = "Return room decoration data for all active prisons in BVLS.")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  fun downloadPrisonRoomConfigurationData(): ResponseEntity<StreamingResponseBody> = streamedCsvResponse(
+    "prison-room-configuration.csv",
+  ) { os -> service.prisonRoomConfigurationToCsv(os) }
+
   private fun streamedCsvResponse(startDate: LocalDate, days: Long, filename: String, block: (outputStream: OutputStream) -> Unit): ResponseEntity<StreamingResponseBody> {
     require(ChronoUnit.DAYS.between(startDate, startDate.plusDays(days)) <= 365) {
       "CSV extracts are limited to a years worth of data."
     }
 
+    log.info("CSV controller: beginning CSV download for $filename")
+
+    return ResponseEntity.ok()
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+      .contentType(MediaType.parseMediaType("text/csv"))
+      .body(StreamingResponseBody { block(it) })
+  }
+
+  private fun streamedCsvResponse(filename: String, block: (outputStream: OutputStream) -> Unit): ResponseEntity<StreamingResponseBody> {
     log.info("CSV controller: beginning CSV download for $filename")
 
     return ResponseEntity.ok()

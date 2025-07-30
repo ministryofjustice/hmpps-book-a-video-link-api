@@ -8,7 +8,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CsvMapperConfig.csvMapper
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.io.OutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -16,11 +20,14 @@ import java.time.temporal.ChronoUnit.DAYS
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.system.measureTimeMillis
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location as DecoratedLocation
 
 @Service
 class CsvDataExtractionService(
   private val videoBookingEventRepository: VideoBookingEventRepository,
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
+  private val locationsService: LocationsService,
+  private val prisonsService: PrisonsService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -133,6 +140,51 @@ class CsvDataExtractionService(
       "CSV extracts are limited to a years worth of data."
     }
   }
+
+  @Transactional(readOnly = true)
+  fun prisonRoomConfigurationToCsv(csvOutputStream: OutputStream) {
+    val total: Int
+
+    val activePrisons = prisonsService.getListOfPrisons(enabledOnly = true)
+    val locationsInPrisons = activePrisons.map { prison ->
+      locationsService.getVideoLinkLocationsAtPrison(prison.code, enabledOnly = true)
+    }.flatten().stream()
+
+    // Preprocess so each schedule duplicates the room row
+    // Map<dpsLocationId, List<Location>
+    // Each schedule produces a new row
+    // Only decorated rooms? Empty row for undecorated?
+    // Check Matt's recent change for new room notifications.
+
+    val elapsed = measureTimeMillis {
+      total = writePrisonRoomConfigurationToCsv(locationsInPrisons, activePrisons, csvOutputStream)
+    }
+
+    log.info("CSV: time taken downloading $total prison room configuration in millis=$elapsed")
+  }
+
+  private fun writePrisonRoomConfigurationToCsv(
+    rooms: Stream<DecoratedLocation>,
+    activePrisons: List<Prison>,
+    csvOutputStream: OutputStream,
+  ): Int {
+    val roomItems = rooms.map { RoomItem(it, activePrisons) }.asSequence()
+
+    var counter = 0
+
+    csvMapper
+      .writer(csvMapper.schemaFor(RoomItem::class.java).withHeader())
+      .writeValues(csvOutputStream.bufferedWriter())
+      .use { writer ->
+        roomItems.forEach { item ->
+          writer.write(item)
+          counter++
+          if (counter % 100 == 0) log.info("CSV: extracted $counter room configuration items so far ...")
+        }
+      }
+
+    return counter
+  }
 }
 
 @JsonPropertyOrder(
@@ -185,12 +237,16 @@ data class CourtBookingEvent(
     vbe.videoBookingId,
     // Old BVLS has DELETE instead of CANCEL and UPDATE instead of AMEND
     vbe.eventType.let {
-      if (it == "CANCEL") {
-        "DELETE"
-      } else if (it == "AMEND") {
-        "UPDATE"
-      } else {
-        it
+      when (it) {
+        "CANCEL" -> {
+          "DELETE"
+        }
+        "AMEND" -> {
+          "UPDATE"
+        }
+        else -> {
+          it
+        }
       }
     },
     vbe.prisonCode,
@@ -260,12 +316,16 @@ data class ProbationBookingEvent(
     vbe.videoBookingId,
     // Old BVLS has DELETE instead of CANCEL and UPDATE instead of AMEND
     vbe.eventType.let {
-      if (it == "CANCEL") {
-        "DELETE"
-      } else if (it == "AMEND") {
-        "UPDATE"
-      } else {
-        it
+      when (it) {
+        "CANCEL" -> {
+          "DELETE"
+        }
+        "AMEND" -> {
+          "UPDATE"
+        }
+        else -> {
+          it
+        }
       }
     },
     vbe.prisonCode,
@@ -283,5 +343,57 @@ data class ProbationBookingEvent(
     null,
     vbe.type,
     vbe.user,
+  )
+}
+
+@JsonPropertyOrder(
+  "prisonCode",
+  "prisonDescription",
+  "roomKey",
+  "roomDescription",
+  "roomVideoLink",
+  "roomSetup",
+  "roomStatus",
+  "permission",
+  "schedule",
+)
+data class RoomItem(
+  val prisonCode: String,
+  val prisonDescription: String,
+  val roomKey: String,
+  val roomDescription: String?,
+  val roomVideoLink: String,
+  val roomSetup: String,
+  val roomStatus: String?,
+  val permission: String?,
+  val schedule: String,
+) {
+  constructor(location: DecoratedLocation, prisons: List<Prison>) : this(
+    prisonCode = location.prisonCode,
+    prisonDescription = prisons.find { prison -> prison.code == location.prisonCode }?.name ?: "Unknown",
+    roomKey = location.key,
+    roomDescription = location.description,
+    roomVideoLink = location.extraAttributes?.let { location.extraAttributes.prisonVideoUrl } ?: "",
+    roomSetup = location.extraAttributes?.let { "Customised" } ?: "Default",
+    roomStatus = location.extraAttributes?.locationStatus?.let {
+      when (it) {
+        LocationStatus.ACTIVE -> "Active"
+        LocationStatus.INACTIVE -> "Out of use"
+      }
+    } ?: "",
+    permission = location.extraAttributes?.locationUsage?.let {
+      when (it) {
+        LocationUsage.COURT -> "Court"
+        LocationUsage.PROBATION -> "Probation"
+        LocationUsage.SHARED -> "Shared"
+        LocationUsage.SCHEDULE -> "Schedule"
+      }
+    } ?: "",
+    schedule = location.extraAttributes?.schedule?.let {
+      when (it.isEmpty()) {
+        true -> "No"
+        false -> "Yes"
+      }
+    } ?: "No",
   )
 }
