@@ -19,6 +19,10 @@ generic-service:
     API_BASE_URL_NOMIS_MAPPING: "https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk"
     BVLS_FRONTEND_URL: "https://book-a-video-link-dev.prison.service.justice.gov.uk"
 
+  namespace_secrets:
+    administration:
+      ADMINISTRATION_EMAILS: "ADMINISTRATION_EMAILS"
+
   allowlist:
     groups:
       - internal
