@@ -19,7 +19,7 @@ data class CreateDecoratedRoomRequest(
   val allowedParties: Set<String>? = null,
 
   @Schema(description = "The prison video URL for the location, can be null", example = "HMPS123456", required = false)
-  @field:Size(max = 120, message = "Prison video URL should not exceed {max} characters")
+  @field:Size(max = 300, message = "Prison video URL should not exceed {max} characters")
   val prisonVideoUrl: String? = null,
 
   @field:Size(max = 400, message = "Comments should not exceed {max} characters")

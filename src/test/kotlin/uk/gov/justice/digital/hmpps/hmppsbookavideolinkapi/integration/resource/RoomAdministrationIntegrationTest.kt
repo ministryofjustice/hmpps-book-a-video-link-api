@@ -158,7 +158,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should amend an existing decorated location`() {
+  fun `should create and amend an existing decorated location with a long prison video url`() {
     locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation3)
 
     webTestClient.createDecoratedRoom(
@@ -166,7 +166,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.PROBATION,
         locationStatus = ModelLocationStatus.INACTIVE,
         allowedParties = setOf("PROBATION"),
-        prisonVideoUrl = "shared-prison-video-url-3",
+        prisonVideoUrl = "x".repeat(300),
         comments = "some comments",
       ),
       wandsworthLocation3.toModel(),
@@ -178,7 +178,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.COURT,
         locationStatus = ModelLocationStatus.ACTIVE,
         allowedParties = setOf("COURT"),
-        prisonVideoUrl = null,
+        prisonVideoUrl = "v".repeat(300),
         comments = "amended comments",
       ),
       wandsworthLocation3.toModel(),
@@ -189,7 +189,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationUsage isEqualTo ModelLocationUsage.COURT
       locationStatus isEqualTo ModelLocationStatus.ACTIVE
       allowedParties containsExactlyInAnyOrder setOf("COURT")
-      prisonVideoUrl isEqualTo null
+      prisonVideoUrl isEqualTo "v".repeat(300)
       notes isEqualTo "amended comments"
     }
 
@@ -197,7 +197,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationUsage isEqualTo EntityLocationUsage.COURT
       locationStatus isEqualTo EntityLocationStatus.ACTIVE
       allowedParties isEqualTo "COURT"
-      prisonVideoUrl isEqualTo null
+      prisonVideoUrl isEqualTo "v".repeat(300)
       notes isEqualTo "amended comments"
       amendedBy isEqualTo COURT_USER.username
       amendedTime isCloseTo LocalDateTime.now()
