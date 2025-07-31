@@ -21,13 +21,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.io.ByteArrayOutputStream
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -264,25 +267,53 @@ class CsvDataExtractionServiceTest {
 
     csvOutputStream.toString() isEqualTo
       "prisonCode,prisonDescription,roomKey,roomDescription,roomVideoLink,roomSetup,roomStatus,permission,schedule\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Shared,No\n"
+      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Schedule,\"Monday-Tuesday 10:00-11:00 Court (ABERCV)\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Schedule,\"Wednesday-Thursday 10:00-11:00 Probation (BARNET)\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,Schedule,\"Monday-Tuesday 10:00-11:00 Court (ABERCV)\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,Schedule,\"Wednesday-Thursday 10:00-11:00 Probation (BARNET)\"\n"
   }
 
   private val listOfPrisons = listOf(
     Prison(prisonId = 1L, code = "MDI", name = "HMP Moorland", enabled = true, notes = null),
   )
 
-  private val roomAttributes = RoomAttributes(
+  private val roomSchedules = listOf(
+    RoomSchedule(
+      scheduleId = 1L,
+      startDayOfWeek = DayOfWeek.MONDAY,
+      endDayOfWeek = DayOfWeek.TUESDAY,
+      startTime = LocalTime.of(10, 0),
+      endTime = LocalTime.of(11, 0),
+      locationUsage = LocationScheduleUsage.COURT,
+      allowedParties = listOf("ABERCV"),
+    ),
+    RoomSchedule(
+      scheduleId = 2L,
+      startDayOfWeek = DayOfWeek.WEDNESDAY,
+      endDayOfWeek = DayOfWeek.THURSDAY,
+      startTime = LocalTime.of(10, 0),
+      endTime = LocalTime.of(11, 0),
+      locationUsage = LocationScheduleUsage.PROBATION,
+      allowedParties = listOf("BARNET"),
+    ),
+  )
+
+  private val roomAttributes1 = RoomAttributes(
     attributeId = 1L,
     locationStatus = LocationStatus.ACTIVE,
-    locationUsage = LocationUsage.SHARED,
+    locationUsage = LocationUsage.SCHEDULE,
     prisonVideoUrl = "/video-link-url",
     allowedParties = emptyList(),
     notes = null,
     expectedActiveDate = null,
     statusMessage = null,
+    schedule = roomSchedules,
   )
 
+  private val roomAttributes2 = roomAttributes1.copy(attributeId = 2L)
+
   private val locationsAtMoorland = listOf(
-    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-1", prisonCode = "MDI", description = "Room 1", enabled = true, extraAttributes = roomAttributes),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-1", prisonCode = "MDI", description = "Room 1", enabled = true, extraAttributes = roomAttributes1),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-2", prisonCode = "MDI", description = "Room 2", enabled = true, extraAttributes = roomAttributes2),
   )
 }

@@ -11,12 +11,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEv
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.io.OutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
+import java.util.*
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.system.measureTimeMillis
@@ -145,33 +147,41 @@ class CsvDataExtractionService(
   fun prisonRoomConfigurationToCsv(csvOutputStream: OutputStream) {
     val total: Int
 
+    // Get the active prisons and all of their decorated VIDE type locations
     val activePrisons = prisonsService.getListOfPrisons(enabledOnly = true)
     val locationsInPrisons = activePrisons.map { prison ->
       locationsService.getVideoLinkLocationsAtPrison(prison.code, enabledOnly = true)
-    }.flatten().stream()
+    }.flatten()
 
-    // Preprocess so each schedule duplicates the room row
-    // Map<dpsLocationId, List<Location>
-    // Each schedule produces a new row
-    // Only decorated rooms? Empty row for undecorated?
-    // Check Matt's recent change for new room notifications.
+    // Extract all the rooms of usage type SCHEDULE and get the schedule rows associated with the room dpsLocationId
+    val schedulesInUse = locationsInPrisons.mapNotNull { room ->
+      if (room.extraAttributes?.locationUsage == LocationUsage.SCHEDULE) {
+        room.extraAttributes.schedule.map { schedule -> RoomScheduleWithDpsId(room.dpsLocationId, schedule) }
+      } else {
+        null
+      }
+    }.flatten()
+
+    // Produce the room items with duplicated rows for each schedule for that room
+    val roomItems = locationsInPrisons.map { room ->
+      if (room.extraAttributes?.locationUsage == LocationUsage.SCHEDULE) {
+        schedulesInUse
+          .filter { it.dpsLocationId == room.dpsLocationId }
+          .map { scheduleForThisRoom -> RoomItem(room, scheduleForThisRoom, activePrisons) }
+      } else {
+        listOf(RoomItem(room, null, activePrisons))
+      }
+    }.flatten()
 
     val elapsed = measureTimeMillis {
-      total = writePrisonRoomConfigurationToCsv(locationsInPrisons, activePrisons, csvOutputStream)
+      total = writePrisonRoomConfigurationToCsv(roomItems.asSequence(), csvOutputStream)
     }
 
     log.info("CSV: time taken downloading $total prison room configuration in millis=$elapsed")
   }
 
-  private fun writePrisonRoomConfigurationToCsv(
-    rooms: Stream<DecoratedLocation>,
-    activePrisons: List<Prison>,
-    csvOutputStream: OutputStream,
-  ): Int {
-    val roomItems = rooms.map { RoomItem(it, activePrisons) }.asSequence()
-
+  private fun writePrisonRoomConfigurationToCsv(roomItems: Sequence<RoomItem>, csvOutputStream: OutputStream): Int {
     var counter = 0
-
     csvMapper
       .writer(csvMapper.schemaFor(RoomItem::class.java).withHeader())
       .writeValues(csvOutputStream.bufferedWriter())
@@ -182,7 +192,6 @@ class CsvDataExtractionService(
           if (counter % 100 == 0) log.info("CSV: extracted $counter room configuration items so far ...")
         }
       }
-
     return counter
   }
 }
@@ -368,7 +377,11 @@ data class RoomItem(
   val permission: String?,
   val schedule: String,
 ) {
-  constructor(location: DecoratedLocation, prisons: List<Prison>) : this(
+  constructor(
+    location: DecoratedLocation,
+    scheduleWithDpsId: RoomScheduleWithDpsId?,
+    prisons: List<Prison>,
+  ) : this(
     prisonCode = location.prisonCode,
     prisonDescription = prisons.find { prison -> prison.code == location.prisonCode }?.name ?: "Unknown",
     roomKey = location.key,
@@ -389,11 +402,22 @@ data class RoomItem(
         LocationUsage.SCHEDULE -> "Schedule"
       }
     } ?: "",
-    schedule = location.extraAttributes?.schedule?.let {
-      when (it.isEmpty()) {
-        true -> "No"
-        false -> "Yes"
-      }
-    } ?: "No",
+    schedule = scheduleWithDpsId?.let { scheduleToString(scheduleWithDpsId) } ?: "No",
   )
 }
+
+// TODO: Map allowed party codes to court and probation team names
+fun scheduleToString(schedule: RoomScheduleWithDpsId): String {
+  val rs = schedule.roomSchedule
+  val startDay = rs.startDayOfWeek.name.lowercase().replaceFirstChar { it.uppercaseChar() }
+  val endDay = rs.endDayOfWeek.name.lowercase().replaceFirstChar { it.uppercaseChar() }
+  val usage = rs.locationUsage.name.lowercase().replaceFirstChar { it.uppercaseChar() }
+  val parties = rs.allowedParties.joinToString { it }
+
+  return "$startDay-$endDay ${rs.startTime}-${rs.endTime} $usage ($parties)"
+}
+
+data class RoomScheduleWithDpsId(
+  val dpsLocationId: UUID,
+  val roomSchedule: RoomSchedule,
+)
