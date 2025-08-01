@@ -108,7 +108,7 @@ class CsvDataExtractionController(private val service: CsvDataExtractionService)
   @Operation(description = "Return room decoration data for all active prisons in BVLS.")
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun downloadPrisonRoomConfigurationData(): ResponseEntity<StreamingResponseBody> = streamedCsvResponse(
-    "prison-room-configuration.csv",
+    "prison-room-configuration-${LocalDate.now().toIsoDate()}.csv",
   ) { os -> service.prisonRoomConfigurationToCsv(os) }
 
   private fun streamedCsvResponse(startDate: LocalDate, days: Long, filename: String, block: (outputStream: OutputStream) -> Unit): ResponseEntity<StreamingResponseBody> {
