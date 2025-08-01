@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -20,11 +21,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
@@ -35,7 +38,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Month
-import java.util.*
+import java.util.UUID
 import java.util.stream.Stream
 
 class CsvDataExtractionServiceTest {
@@ -43,7 +46,18 @@ class CsvDataExtractionServiceTest {
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val locationsService: LocationsService = mock()
   private val prisonsService: PrisonsService = mock()
-  private val service = CsvDataExtractionService(videoBookingEventRepository, locationsInsidePrisonClient, locationsService, prisonsService)
+  private val courtsService: CourtsService = mock()
+  private val probationTeamsService: ProbationTeamsService = mock()
+
+  private val service = CsvDataExtractionService(
+    videoBookingEventRepository,
+    locationsInsidePrisonClient,
+    locationsService,
+    prisonsService,
+    courtsService,
+    probationTeamsService,
+  )
+
   private val csvOutputStream = ByteArrayOutputStream()
   private val wandsworthCreateCourtBookingEvent = VideoBookingEvent(
     eventId = 1,
@@ -257,20 +271,29 @@ class CsvDataExtractionServiceTest {
 
   @Test
   fun `should produce CSV for prison room configuration`() {
+    whenever(courtsService.getCourts(eq(true))) doReturn listOfCourts
+    whenever(probationTeamsService.getProbationTeams(eq(true))) doReturn listOfTeams
     whenever(prisonsService.getListOfPrisons(eq(true))) doReturn listOfPrisons
     whenever(locationsService.getVideoLinkLocationsAtPrison(eq("MDI"), eq(true))) doReturn locationsAtMoorland
 
     service.prisonRoomConfigurationToCsv(csvOutputStream)
 
+    verify(courtsService).getCourts(eq(true))
+    verify(probationTeamsService).getProbationTeams(eq(true))
     verify(prisonsService).getListOfPrisons(eq(true))
     verify(locationsService).getVideoLinkLocationsAtPrison(eq("MDI"), eq(true))
 
     csvOutputStream.toString() isEqualTo
-      "prisonCode,prisonDescription,roomKey,roomDescription,roomVideoLink,roomSetup,roomStatus,permission,schedule\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Schedule,\"Monday-Tuesday 10:00-11:00 Court (ABERCV)\"\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Schedule,\"Wednesday-Thursday 10:00-11:00 Probation (BARNET)\"\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,Schedule,\"Monday-Tuesday 10:00-11:00 Court (ABERCV)\"\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,Schedule,\"Wednesday-Thursday 10:00-11:00 Probation (BARNET)\"\n"
+      "prisonCode,prisonDescription,roomKey,roomDescription,roomVideoLink,roomSetup,roomStatus,permission,allowedParties,schedule\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Schedule,,\"Monday-Tuesday 10:00-11:00 Court CourtA\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Schedule,,\"Wednesday-Thursday 10:00-11:00 Probation TeamA\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,Schedule,,\"Monday-Tuesday 10:00-11:00 Court CourtA\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,Schedule,,\"Wednesday-Thursday 10:00-11:00 Probation TeamA\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-3,\"Room 3\",/video-link-url,Customised,Active,Court,CourtA,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-4,\"Room 4\",/video-link-url,Customised,Active,Shared,,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-5,\"Room 5\",/video-link-url,Customised,Active,Probation,,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-6,\"Room 6\",/video-link-url,Customised,Active,Court,,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-7,\"Room 7\",/video-link-url,Customised,Active,Probation,TeamA:TeamB,No\n"
   }
 
   private val listOfPrisons = listOf(
@@ -285,7 +308,7 @@ class CsvDataExtractionServiceTest {
       startTime = LocalTime.of(10, 0),
       endTime = LocalTime.of(11, 0),
       locationUsage = LocationScheduleUsage.COURT,
-      allowedParties = listOf("ABERCV"),
+      allowedParties = listOf("A"),
     ),
     RoomSchedule(
       scheduleId = 2L,
@@ -294,7 +317,7 @@ class CsvDataExtractionServiceTest {
       startTime = LocalTime.of(10, 0),
       endTime = LocalTime.of(11, 0),
       locationUsage = LocationScheduleUsage.PROBATION,
-      allowedParties = listOf("BARNET"),
+      allowedParties = listOf("A"),
     ),
   )
 
@@ -311,9 +334,129 @@ class CsvDataExtractionServiceTest {
   )
 
   private val roomAttributes2 = roomAttributes1.copy(attributeId = 2L)
+  private val roomAttributes3 = roomAttributes1.copy(attributeId = 3L, schedule = emptyList(), locationUsage = LocationUsage.COURT, allowedParties = listOf("A"))
+  private val roomAttributes4 = roomAttributes1.copy(attributeId = 4L, schedule = emptyList(), locationUsage = LocationUsage.SHARED)
+  private val roomAttributes5 = roomAttributes1.copy(attributeId = 5L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION)
+  private val roomAttributes6 = roomAttributes1.copy(attributeId = 6L, schedule = emptyList(), locationUsage = LocationUsage.COURT)
+  private val roomAttributes7 = roomAttributes1.copy(attributeId = 6L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION, allowedParties = listOf("A", "B"))
 
   private val locationsAtMoorland = listOf(
     Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-1", prisonCode = "MDI", description = "Room 1", enabled = true, extraAttributes = roomAttributes1),
     Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-2", prisonCode = "MDI", description = "Room 2", enabled = true, extraAttributes = roomAttributes2),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-3", prisonCode = "MDI", description = "Room 3", enabled = true, extraAttributes = roomAttributes3),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-4", prisonCode = "MDI", description = "Room 4", enabled = true, extraAttributes = roomAttributes4),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-5", prisonCode = "MDI", description = "Room 5", enabled = true, extraAttributes = roomAttributes5),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-6", prisonCode = "MDI", description = "Room 6", enabled = true, extraAttributes = roomAttributes6),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-7", prisonCode = "MDI", description = "Room 7", enabled = true, extraAttributes = roomAttributes7),
   )
+
+  private val listOfCourts = listOf(
+    Court(1L, "A", "CourtA", true, ""),
+    Court(2L, "B", "CourtB", true, ""),
+    Court(3L, "C", "CourtC", true, ""),
+  )
+
+  private val listOfTeams = listOf(
+    ProbationTeam(1L, "A", "TeamA", true, ""),
+    ProbationTeam(2L, "B", "TeamB", true, ""),
+    ProbationTeam(3L, "C", "TeamC", true, ""),
+  )
+
+  @Test
+  fun `Court codes are mapped to names for allowed parties on room attributes`() {
+    val parties = listOf("A", "B", "C")
+    val locationUsageCourt = LocationUsage.COURT
+    val courts = mapOf("A" to "AAA", "B" to "BBB", "C" to "CCC")
+
+    val response = allowedPartiesToString(allowedParties = parties, usage = locationUsageCourt, courts = courts)
+
+    assertThat(response).isEqualTo("AAA:BBB:CCC")
+  }
+
+  @Test
+  fun `Probation team codes are mapped to names for allowed parties on room attributes`() {
+    val parties = listOf("A", "B", "C")
+    val locationUsageProbation = LocationUsage.PROBATION
+    val teams = mapOf("A" to "AAA", "B" to "BBB", "C" to "CCC")
+
+    val response = allowedPartiesToString(allowedParties = parties, usage = locationUsageProbation, teams = teams)
+
+    assertThat(response).isEqualTo("AAA:BBB:CCC")
+  }
+
+  @Test
+  fun `Shared rooms will not show any allowed parties`() {
+    val parties = listOf("A", "B", "C")
+    val locationUsageShared = LocationUsage.SHARED
+    val courts = mapOf("A" to "AAA", "B" to "BBB", "C" to "CCC")
+    val teams = mapOf("A" to "AAA", "B" to "BBB", "C" to "CCC")
+
+    val response = allowedPartiesToString(allowedParties = parties, usage = locationUsageShared, courts = courts, teams = teams)
+
+    assertThat(response).isEqualTo("")
+  }
+
+  @Test
+  fun `Room schedule for court is formatted correctly`() {
+    val roomSchedule = RoomScheduleWithDpsId(
+      dpsLocationId = UUID.randomUUID(),
+      roomSchedule = RoomSchedule(
+        scheduleId = 1L,
+        startDayOfWeek = DayOfWeek.MONDAY,
+        endDayOfWeek = DayOfWeek.SUNDAY,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(17, 0),
+        locationUsage = LocationScheduleUsage.COURT,
+        allowedParties = listOf("A", "B", "C"),
+      ),
+    )
+
+    val courts = mapOf("A" to "AAA", "B" to "BBB", "C" to "CCC")
+
+    val response = scheduleToString(schedule = roomSchedule, courts = courts)
+
+    assertThat(response).isEqualTo("Monday-Sunday 09:00-17:00 Court AAA:BBB:CCC")
+  }
+
+  @Test
+  fun `Room schedule for probation is formatted correctly`() {
+    val roomSchedule = RoomScheduleWithDpsId(
+      dpsLocationId = UUID.randomUUID(),
+      roomSchedule = RoomSchedule(
+        scheduleId = 1L,
+        startDayOfWeek = DayOfWeek.MONDAY,
+        endDayOfWeek = DayOfWeek.SUNDAY,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(17, 0),
+        locationUsage = LocationScheduleUsage.PROBATION,
+        allowedParties = listOf("A", "B", "C"),
+      ),
+    )
+
+    val teams = mapOf("A" to "AAA", "B" to "BBB", "C" to "CCC")
+
+    val response = scheduleToString(schedule = roomSchedule, teams = teams)
+
+    assertThat(response).isEqualTo("Monday-Sunday 09:00-17:00 Probation AAA:BBB:CCC")
+  }
+
+  @Test
+  fun `Room schedule for blocked is formatted correctly`() {
+    val roomSchedule = RoomScheduleWithDpsId(
+      dpsLocationId = UUID.randomUUID(),
+      roomSchedule = RoomSchedule(
+        scheduleId = 1L,
+        startDayOfWeek = DayOfWeek.MONDAY,
+        endDayOfWeek = DayOfWeek.SUNDAY,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(17, 0),
+        locationUsage = LocationScheduleUsage.BLOCKED,
+        allowedParties = emptyList(),
+      ),
+    )
+
+    val response = scheduleToString(schedule = roomSchedule)
+
+    assertThat(response).isEqualTo("Monday-Sunday 09:00-17:00 Blocked ")
+  }
 }

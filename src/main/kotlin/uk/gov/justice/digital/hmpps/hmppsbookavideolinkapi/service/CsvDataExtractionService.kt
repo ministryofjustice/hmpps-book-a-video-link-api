@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CsvMapperConfig.csvMapper
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prison
@@ -30,6 +31,8 @@ class CsvDataExtractionService(
   private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val locationsService: LocationsService,
   private val prisonsService: PrisonsService,
+  private val courtsService: CourtsService,
+  private val probationTeamsService: ProbationTeamsService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -147,6 +150,15 @@ class CsvDataExtractionService(
   fun prisonRoomConfigurationToCsv(csvOutputStream: OutputStream) {
     val total: Int
 
+    // Get all courts and probation team codes/descriptions into reference maps
+    val courtMap = courtsService.getCourts(enabledOnly = true).associate { court ->
+      Pair(court.code, court.description)
+    }
+
+    val probationMap = probationTeamsService.getProbationTeams(enabledOnly = true).associate { team ->
+      Pair(team.code, team.description)
+    }
+
     // Get the active prisons and all of their decorated VIDE type locations
     val activePrisons = prisonsService.getListOfPrisons(enabledOnly = true)
     val locationsInPrisons = activePrisons.map { prison ->
@@ -167,9 +179,9 @@ class CsvDataExtractionService(
       if (room.extraAttributes?.locationUsage == LocationUsage.SCHEDULE) {
         schedulesInUse
           .filter { it.dpsLocationId == room.dpsLocationId }
-          .map { scheduleForThisRoom -> RoomItem(room, scheduleForThisRoom, activePrisons) }
+          .map { scheduleForThisRoom -> RoomItem(room, scheduleForThisRoom, activePrisons, courtMap, probationMap) }
       } else {
-        listOf(RoomItem(room, null, activePrisons))
+        listOf(RoomItem(room, null, activePrisons, courtMap, probationMap))
       }
     }.flatten()
 
@@ -189,7 +201,6 @@ class CsvDataExtractionService(
         roomItems.forEach { item ->
           writer.write(item)
           counter++
-          if (counter % 100 == 0) log.info("CSV: extracted $counter room configuration items so far ...")
         }
       }
     return counter
@@ -364,6 +375,7 @@ data class ProbationBookingEvent(
   "roomSetup",
   "roomStatus",
   "permission",
+  "allowedParties",
   "schedule",
 )
 data class RoomItem(
@@ -375,25 +387,28 @@ data class RoomItem(
   val roomSetup: String,
   val roomStatus: String?,
   val permission: String?,
+  val allowedParties: String?,
   val schedule: String,
 ) {
   constructor(
     location: DecoratedLocation,
     scheduleWithDpsId: RoomScheduleWithDpsId?,
     prisons: List<Prison>,
+    courts: Map<String, String>,
+    teams: Map<String, String>,
   ) : this(
     prisonCode = location.prisonCode,
     prisonDescription = prisons.find { prison -> prison.code == location.prisonCode }?.name ?: "Unknown",
     roomKey = location.key,
     roomDescription = location.description,
-    roomVideoLink = location.extraAttributes?.let { location.extraAttributes.prisonVideoUrl } ?: "",
     roomSetup = location.extraAttributes?.let { "Customised" } ?: "Default",
+    roomVideoLink = location.extraAttributes?.prisonVideoUrl ?: "",
     roomStatus = location.extraAttributes?.locationStatus?.let {
       when (it) {
         LocationStatus.ACTIVE -> "Active"
         LocationStatus.INACTIVE -> "Out of use"
       }
-    } ?: "",
+    } ?: "Active",
     permission = location.extraAttributes?.locationUsage?.let {
       when (it) {
         LocationUsage.COURT -> "Court"
@@ -401,20 +416,73 @@ data class RoomItem(
         LocationUsage.SHARED -> "Shared"
         LocationUsage.SCHEDULE -> "Schedule"
       }
-    } ?: "",
-    schedule = scheduleWithDpsId?.let { scheduleToString(scheduleWithDpsId) } ?: "No",
+    } ?: "Shared",
+    allowedParties = allowedPartiesToString(
+      location.extraAttributes?.allowedParties,
+      location.extraAttributes?.locationUsage,
+      courts,
+      teams,
+    ),
+    schedule = scheduleWithDpsId?.let { scheduleToString(scheduleWithDpsId, courts, teams) } ?: "No",
   )
 }
 
-// TODO: Map allowed party codes to court and probation team names
-fun scheduleToString(schedule: RoomScheduleWithDpsId): String {
+/**
+ * Produce a string representation of the allowed party names with potentially several allowed courts or teams.
+ */
+fun allowedPartiesToString(
+  allowedParties: List<String>?,
+  usage: LocationUsage?,
+  courts: Map<String, String> = emptyMap(),
+  teams: Map<String, String> = emptyMap(),
+): String {
+  if (allowedParties.isNullOrEmpty()) {
+    return ""
+  }
+
+  return when (usage) {
+    LocationUsage.COURT -> {
+      allowedParties.joinToString(":") { courts.getOrDefault(it, "Unknown") }
+    }
+
+    LocationUsage.PROBATION -> {
+      allowedParties.joinToString(":") { teams.getOrDefault(it, "Unknown") }
+    }
+
+    else -> {
+      ""
+    }
+  }
+}
+
+/**
+ * Produce a string representation of a single schedule with potentially several allowed courts or teams
+ */
+fun scheduleToString(
+  schedule: RoomScheduleWithDpsId,
+  courts: Map<String, String> = emptyMap(),
+  teams: Map<String, String> = emptyMap(),
+): String {
   val rs = schedule.roomSchedule
   val startDay = rs.startDayOfWeek.name.lowercase().replaceFirstChar { it.uppercaseChar() }
   val endDay = rs.endDayOfWeek.name.lowercase().replaceFirstChar { it.uppercaseChar() }
   val usage = rs.locationUsage.name.lowercase().replaceFirstChar { it.uppercaseChar() }
-  val parties = rs.allowedParties.joinToString { it }
 
-  return "$startDay-$endDay ${rs.startTime}-${rs.endTime} $usage ($parties)"
+  val parties = when (rs.locationUsage) {
+    LocationScheduleUsage.COURT -> {
+      rs.allowedParties.joinToString(":") { courts.getOrDefault(it, "Unknown") }
+    }
+
+    LocationScheduleUsage.PROBATION -> {
+      rs.allowedParties.joinToString(":") { teams.getOrDefault(it, "Unknown") }
+    }
+
+    else -> {
+      ""
+    }
+  }
+
+  return "$startDay-$endDay ${rs.startTime}-${rs.endTime} $usage $parties"
 }
 
 data class RoomScheduleWithDpsId(
