@@ -29,7 +29,9 @@ select
   true as court_booking,
   rc.description as type,
   bh.created_by as "user",
-  coalesce(vlb.hmcts_number, vlb.video_url) as cvp_link
+  coalesce(vlb.hmcts_number, vlb.video_url) as cvp_link,
+  null as probation_officer_name,
+  null as probation_officer_email
 from video_booking vlb
   join booking_history bh on bh.video_booking_id = vlb.video_booking_id
   join booking_history_appointment bha_main on bha_main.booking_history_id = bh.booking_history_id and bha_main.appointment_type = 'VLB_COURT_MAIN'
@@ -66,10 +68,13 @@ select
     false as court_booking,
     rc.description as type,
     bh.created_by as "user",
-    null as cvp_link
+    null as cvp_link,
+    abd.contact_name as probation_officer_name,
+    abd.contact_email as probation_officer_email
 from video_booking vlb
   join booking_history bh on bh.video_booking_id = vlb.video_booking_id
   join booking_history_appointment bha_main on bha_main.booking_history_id = bh.booking_history_id and bha_main.appointment_type = 'VLB_PROBATION'
   join probation_team p on p.probation_team_id = vlb.probation_team_id
   join reference_code rc on rc.group_code = 'PROBATION_MEETING_TYPE' and rc.code = bh.probation_meeting_type
+  left join additional_booking_detail abd on abd.video_booking_id = vlb.video_booking_id
 where vlb.probation_team_id is not null;

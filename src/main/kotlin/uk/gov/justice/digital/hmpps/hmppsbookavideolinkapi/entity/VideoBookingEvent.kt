@@ -72,4 +72,8 @@ data class VideoBookingEvent(
   val user: String,
 
   val cvpLink: String? = null,
+
+  val probationOfficerName: String? = null,
+
+  val probationOfficerEmail: String? = null,
 )

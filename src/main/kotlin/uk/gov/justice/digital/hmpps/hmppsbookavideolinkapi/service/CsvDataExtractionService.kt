@@ -308,6 +308,8 @@ data class CourtBookingEvent(
   "postLocationName",
   "meetingType",
   "user",
+  "probationOfficerName",
+  "probationOfficerEmail",
 )
 data class ProbationBookingEvent(
   val eventId: Long,
@@ -329,6 +331,8 @@ data class ProbationBookingEvent(
   val postLocationName: String?,
   val meetingType: String,
   val user: String,
+  val probationOfficerName: String?,
+  val probationOfficerEmail: String?,
 ) {
   constructor(vbe: VideoBookingEvent, locations: Set<Location>) : this(
     vbe.eventId,
@@ -363,6 +367,8 @@ data class ProbationBookingEvent(
     null,
     vbe.type,
     vbe.user,
+    vbe.probationOfficerName ?: "Not known",
+    vbe.probationOfficerEmail ?: "Not known",
   )
 }
 
