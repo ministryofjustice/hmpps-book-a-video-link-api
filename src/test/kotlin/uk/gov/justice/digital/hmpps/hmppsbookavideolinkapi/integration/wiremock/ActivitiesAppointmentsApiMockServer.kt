@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.UUID
 
 class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
 
@@ -32,7 +33,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     startDate: LocalDate,
     startTime: LocalTime,
     endTime: LocalTime,
-    internalLocationId: Long,
+    dpsLocationsId: UUID,
     extraInformation: String,
     appointmentType: SupportedAppointmentTypes.Type,
   ) {
@@ -46,7 +47,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
       startDate = startDate,
       startTime = startTime.toHourMinuteStyle(),
       endTime = endTime.toHourMinuteStyle(),
-      internalLocationId = internalLocationId,
+      dpsLocationId = dpsLocationsId,
       extraInformation = extraInformation,
     )
 
@@ -69,6 +70,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
                   endTime = request.endTime,
                   createdBy = "Test",
                   createdTime = LocalDateTime.now(),
+                  dpsLocationId = dpsLocationsId,
                   appointments = listOf(
                     Appointment(
                       id = 1,
@@ -130,6 +132,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         sequenceNumber = 1,
         internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
         timeSlot = AppointmentSearchResult.TimeSlot.AM,
+        createdTime = LocalDateTime.now(),
       )
     }
 

@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtP
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
 
@@ -272,6 +273,7 @@ class BookedLocationsServiceTest {
       sequenceNumber = 1,
       internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
       timeSlot = AppointmentSearchResult.TimeSlot.AM,
+      createdTime = LocalDateTime.now(),
     )
   }
 
