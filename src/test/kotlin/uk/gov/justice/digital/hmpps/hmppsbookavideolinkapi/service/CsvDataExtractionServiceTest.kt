@@ -88,13 +88,13 @@ class CsvDataExtractionServiceTest {
   )
   private val wandsworthCancelCourtBookingEvent = wandsworthCreateCourtBookingEvent.copy(eventType = "CANCEL")
   private val wandsworthAmendCourtBookingEvent = wandsworthCreateCourtBookingEvent.copy(eventType = "AMEND")
-  private val wandsworthCreateProbationBookingEvent = wandsworthCreateCourtBookingEvent.copy(courtDescription = null, courtCode = null, probationTeamCode = "probation code", probationTeamDescription = "probation team description", courtBooking = false, type = "Pre-sentence report", user = "probation_user")
+  private val wandsworthCreateProbationBookingEvent = wandsworthCreateCourtBookingEvent.copy(courtDescription = null, courtCode = null, probationTeamCode = "probation code", probationTeamDescription = "probation team description", courtBooking = false, type = "Pre-sentence report", user = "probation_user", probationOfficerName = "wandsworth officer name", probationOfficerEmail = "wandsworth_officer@email.com")
   private val wandsworthCancelProbationBooking = wandsworthCreateProbationBookingEvent.copy(eventType = "CANCEL")
   private val wandsworthAmendProbationBooking = wandsworthCreateProbationBookingEvent.copy(eventType = "AMEND")
   private val wandsworthPrisonCourtBooking = wandsworthCreateCourtBookingEvent.copy(createdByPrison = true)
   private val risleyCourtBooking = wandsworthCreateCourtBookingEvent.copy(prisonCode = RISLEY, eventType = "CANCEL", mainLocationId = risleyLocation.id, preLocationId = risleyLocation.id, postLocationId = risleyLocation.id)
   private val risleyPrisonCourtBooking = risleyCourtBooking.copy(createdByPrison = true, courtBooking = false)
-  private val risleyProbationBooking = wandsworthCreateProbationBookingEvent.copy(prisonCode = RISLEY, createdByPrison = false, mainLocationId = risleyLocation.id, preLocationId = risleyLocation.id, postLocationId = risleyLocation.id)
+  private val risleyProbationBooking = wandsworthCreateProbationBookingEvent.copy(prisonCode = RISLEY, createdByPrison = false, mainLocationId = risleyLocation.id, probationOfficerName = "risley officer name", probationOfficerEmail = "risley_officer@email.com")
 
   @BeforeEach
   fun before() {
@@ -223,8 +223,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user,probationOfficerName,probationOfficerEmail\n" +
+      "1,2024-07-01T09:00:00,1,CREATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user,\"wandsworth officer name\",\"wandsworth_officer@email.com\"\n"
   }
 
   @Test
@@ -237,8 +237,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
-      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user,probationOfficerName,probationOfficerEmail\n" +
+      "1,2024-07-01T09:00:00,1,DELETE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user,\"wandsworth officer name\",\"wandsworth_officer@email.com\"\n"
   }
 
   @Test
@@ -251,8 +251,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByDateOfBookingBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
-      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user,probationOfficerName,probationOfficerEmail\n" +
+      "1,2024-07-01T09:00:00,1,UPDATE,$WANDSWORTH,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${wandsworthLocation.localName}\",,,\"Pre-sentence report\",probation_user,\"wandsworth officer name\",\"wandsworth_officer@email.com\"\n"
   }
 
   @Test
@@ -265,8 +265,8 @@ class CsvDataExtractionServiceTest {
     verify(videoBookingEventRepository, never()).findByMainDateBetween(any(), any(), any())
 
     csvOutputStream.toString() isEqualTo
-      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user\n" +
-      "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${risleyLocation.localName}\",,,\"Pre-sentence report\",probation_user\n"
+      "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user,probationOfficerName,probationOfficerEmail\n" +
+      "1,2024-07-01T09:00:00,1,CREATE,$RISLEY,\"probation team description\",\"probation code\",true,2024-07-10T10:00:00,2024-07-10T11:00:00,,,,,\"${risleyLocation.localName}\",,,\"Pre-sentence report\",probation_user,\"risley officer name\",risley_officer@email.com\n"
   }
 
   @Test
