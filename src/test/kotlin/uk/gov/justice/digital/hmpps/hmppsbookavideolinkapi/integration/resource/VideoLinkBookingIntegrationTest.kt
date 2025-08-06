@@ -516,7 +516,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Validation failure: Prisoner 123456 not found at prison BMI"
+      userMessage isEqualTo "Prisoner 123456 not found at prison BMI"
       developerMessage isEqualTo "Prisoner 123456 not found at prison BMI"
     }
   }
@@ -725,7 +725,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     with(error) {
       status isEqualTo 400
-      userMessage isEqualTo "Validation failure: Prisoner 789012 not found at prison WWI"
+      userMessage isEqualTo "Prisoner 789012 not found at prison WWI"
       developerMessage isEqualTo "Prisoner 789012 not found at prison WWI"
     }
   }
