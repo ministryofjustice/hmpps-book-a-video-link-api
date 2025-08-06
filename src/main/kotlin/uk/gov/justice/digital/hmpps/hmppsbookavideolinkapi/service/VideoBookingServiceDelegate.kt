@@ -72,7 +72,7 @@ class VideoBookingServiceDelegate(
 
   private fun checkStartDateNotTooFarInFuture(startDate: LocalDate) {
     if (startDate > LocalDate.now().plusDays(maxStartDateOffsetDays)) {
-      throw ValidationException("Date cannot be more than $maxStartDateOffsetDays days into the future")
+      throw ValidationException("Date must be within the next $maxStartDateOffsetDays days")
     }
   }
 }
