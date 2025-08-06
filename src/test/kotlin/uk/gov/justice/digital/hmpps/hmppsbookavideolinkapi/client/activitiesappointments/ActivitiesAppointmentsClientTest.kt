@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiMockServer
 import java.time.LocalTime
+import java.util.UUID
 
 class ActivitiesAppointmentsClientTest {
 
@@ -24,13 +25,15 @@ class ActivitiesAppointmentsClientTest {
 
   @Test
   fun `should post new appointment`() {
+    val dpsLocationId = UUID.fromString("00000000-0000-0000-0000-000000000000")
+
     server.stubPostCreateAppointment(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startDate = tomorrow(),
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
-      internalLocationId = 1,
+      dpsLocationsId = dpsLocationId,
       extraInformation = "extra info",
       appointmentType = SupportedAppointmentTypes.Type.COURT,
     )
@@ -41,7 +44,7 @@ class ActivitiesAppointmentsClientTest {
       startDate = tomorrow(),
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
-      internalLocationId = 1,
+      dpsLocationId = dpsLocationId,
       comments = "extra info",
       appointmentType = SupportedAppointmentTypes.Type.COURT,
     )

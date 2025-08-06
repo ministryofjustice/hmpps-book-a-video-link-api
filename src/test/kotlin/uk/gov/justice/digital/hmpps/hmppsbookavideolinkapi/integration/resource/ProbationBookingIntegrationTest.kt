@@ -167,7 +167,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startDate = tomorrow(),
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
-        internalLocationId = 1,
+        dpsLocationId = birminghamLocation.id,
         comments = null,
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
@@ -232,7 +232,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startDate = tomorrow(),
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(12, 30),
-        internalLocationId = 1,
+        dpsLocationId = birminghamLocation.id,
         comments = null,
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
@@ -360,7 +360,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startDate = tomorrow(),
         startTime = LocalTime.of(14, 0),
         endTime = LocalTime.of(15, 30),
-        internalLocationId = 1,
+        dpsLocationId = birminghamLocation.id,
         comments = null,
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
@@ -488,7 +488,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startDate = tomorrow(),
         startTime = LocalTime.of(16, 0),
         endTime = LocalTime.of(16, 30),
-        internalLocationId = 1,
+        dpsLocationId = birminghamLocation.id,
         comments = "psr integration test probation prisoner notes",
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
@@ -561,6 +561,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         "VIDEO LINK",
       ),
       timeSlot = AppointmentSearchResult.TimeSlot.AM,
+      createdTime = LocalDateTime.now(),
     )
   }
 }

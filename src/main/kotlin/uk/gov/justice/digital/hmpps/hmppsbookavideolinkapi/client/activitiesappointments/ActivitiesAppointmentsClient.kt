@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteSt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
@@ -47,7 +48,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     startDate: LocalDate,
     startTime: LocalTime,
     endTime: LocalTime,
-    internalLocationId: Long,
+    dpsLocationId: UUID,
     comments: String?,
     appointmentType: SupportedAppointmentTypes.Type,
   ): AppointmentSeries? = activitiesAppointmentsApiWebClient.post()
@@ -63,7 +64,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
         startDate = startDate,
         startTime = startTime.toHourMinuteStyle(),
         endTime = endTime.toHourMinuteStyle(),
-        internalLocationId = internalLocationId,
+        dpsLocationId = dpsLocationId,
         extraInformation = comments,
       ),
     )

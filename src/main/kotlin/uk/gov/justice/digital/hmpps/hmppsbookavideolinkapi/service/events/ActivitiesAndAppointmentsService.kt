@@ -35,7 +35,7 @@ class ActivitiesAndAppointmentsService(
       startDate = appointment.appointmentDate,
       startTime = appointment.startTime,
       endTime = appointment.endTime,
-      internalLocationId = nomisMappingService.getNomisLocationId(appointment.prisonLocationId)!!,
+      dpsLocationId = appointment.prisonLocationId,
       comments = appointment.notesForPrisoners,
       appointmentType = supportedAppointmentTypes.typeOf(appointment.bookingType()),
     )
