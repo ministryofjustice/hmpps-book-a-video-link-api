@@ -8,6 +8,7 @@ spec:
   failedJobsHistoryLimit: 5
   startingDeadlineSeconds: 43200
   successfulJobsHistoryLimit: 5
+  timeZone: "Europe/London"
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 345600 # 4 days
@@ -19,5 +20,5 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --fail --retry 2 -XPOST http://hmpps-book-a-video-link-api/job-admin/run/NEW_VIDEO_ROOM
+                - curl --fail --retry 2 -XPOST http://hmpps-book-a-video-link-api/job-admin/run/NEW_PRISON_VIDEO_ROOM
           restartPolicy: Never
