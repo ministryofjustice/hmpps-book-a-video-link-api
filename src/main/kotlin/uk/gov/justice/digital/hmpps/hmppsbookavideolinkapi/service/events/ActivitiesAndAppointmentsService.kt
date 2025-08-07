@@ -10,12 +10,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NomisMappingService
 
 @Service
 class ActivitiesAndAppointmentsService(
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
-  private val nomisMappingService: NomisMappingService,
   private val supportedAppointmentTypes: SupportedAppointmentTypes,
 ) {
   companion object {
@@ -58,20 +56,20 @@ class ActivitiesAndAppointmentsService(
 
   private inner class AppointmentsMatcher {
     fun findMatchingAppointments(appointment: PrisonAppointment): Collection<Long> = run {
-      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+      activitiesAppointmentsClient.getPrisonersAppointments(
         prisonCode = appointment.prisonCode(),
         prisonerNumber = appointment.prisonerNumber,
         onDate = appointment.appointmentDate,
-        nomisMappingService.getNomisLocationId(appointment.prisonLocationId)!!,
+        locationId = appointment.prisonLocationId,
       ).findMatchingAppointments(appointment).map { it.appointmentId }
     }
 
     fun findMatchingAppointments(appointment: BookingHistoryAppointment): Collection<Long> = run {
-      activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+      activitiesAppointmentsClient.getPrisonersAppointments(
         prisonCode = appointment.prisonCode,
         prisonerNumber = appointment.prisonerNumber,
         onDate = appointment.appointmentDate,
-        nomisMappingService.getNomisLocationId(appointment.prisonLocationId)!!,
+        locationId = appointment.prisonLocationId,
       ).findMatchingAppointments(appointment).map { it.appointmentId }
     }
 
