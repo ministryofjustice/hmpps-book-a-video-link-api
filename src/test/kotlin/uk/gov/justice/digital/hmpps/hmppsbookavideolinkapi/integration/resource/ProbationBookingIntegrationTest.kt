@@ -306,7 +306,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startDate = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
-        internalLocationId = 1,
+        dpsLocationId = birminghamLocation.id,
         comments = null,
       )
     }
@@ -437,7 +437,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startDate = tomorrow(),
         startTime = LocalTime.of(14, 30),
         endTime = LocalTime.of(15, 30),
-        internalLocationId = 1,
+        dpsLocationId = birminghamLocation.id,
         comments = "other integration test probation prisoner notes amended",
       )
     }

@@ -82,6 +82,42 @@ class ActivitiesAndAppointmentsServiceTest {
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
     }
+
+    @Test
+    fun `should patch a court appointment`() {
+      val courtBooking = courtBooking().withMainCourtPrisonAppointment()
+
+      service.patchAppointment(1, courtBooking.mainHearing()!!)
+
+      verifyNoInteractions(nomisMappingService)
+
+      verify(activitiesAppointmentsClient).patchAppointment(
+        1,
+        startDate = courtBooking.mainHearing()!!.appointmentDate,
+        startTime = courtBooking.mainHearing()!!.startTime,
+        endTime = courtBooking.mainHearing()!!.endTime,
+        dpsLocationId = courtBooking.mainHearing()!!.prisonLocationId,
+        comments = null,
+      )
+    }
+
+    @Test
+    fun `should patch a probation appointment`() {
+      val probationBooking = probationBooking().withProbationPrisonAppointment()
+
+      service.patchAppointment(1, probationBooking.probationMeeting()!!)
+
+      verifyNoInteractions(nomisMappingService)
+
+      verify(activitiesAppointmentsClient).patchAppointment(
+        1,
+        startDate = probationBooking.probationMeeting()!!.appointmentDate,
+        startTime = probationBooking.probationMeeting()!!.startTime,
+        endTime = probationBooking.probationMeeting()!!.endTime,
+        dpsLocationId = probationBooking.probationMeeting()!!.prisonLocationId,
+        comments = null,
+      )
+    }
   }
 
   @Nested
