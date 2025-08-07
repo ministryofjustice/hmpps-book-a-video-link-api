@@ -120,7 +120,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     startDate: LocalDate,
     startTime: LocalTime,
     endTime: LocalTime,
-    internalLocationId: Long,
+    dpsLocationId: UUID,
     comments: String?,
   ): AppointmentSeries? = activitiesAppointmentsApiWebClient.patch()
     .uri("/appointments/$appointmentId")
@@ -131,7 +131,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
         startDate = startDate,
         startTime = startTime.toHourMinuteStyle(),
         endTime = endTime.toHourMinuteStyle(),
-        internalLocationId = internalLocationId,
+        dpsLocationId = dpsLocationId,
         extraInformation = comments,
       ),
     )
