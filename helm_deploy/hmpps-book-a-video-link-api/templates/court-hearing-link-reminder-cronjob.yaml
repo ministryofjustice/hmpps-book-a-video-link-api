@@ -8,6 +8,7 @@ spec:
   failedJobsHistoryLimit: 5
   startingDeadlineSeconds: 43200
   successfulJobsHistoryLimit: 5
+  timeZone: "Europe/London"
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 345600 # 4 days
