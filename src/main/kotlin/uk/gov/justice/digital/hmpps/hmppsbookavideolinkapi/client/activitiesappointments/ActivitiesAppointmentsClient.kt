@@ -73,28 +73,24 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     .block()
 
   /**
-   * Returns all matching appointment (types) for a prisoner, not just video link bookings.
+   * Returns all matching appointment (types) for a prisoner at a given location, not just video link bookings.
    */
-  fun getPrisonersAppointmentsAtLocations(prisonCode: String, prisonerNumber: String, onDate: LocalDate, vararg locationIds: Long) = if (locationIds.isNotEmpty()) {
-    log.info("A&A CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationIds=${locationIds.toList()}")
-    getPrisonersAppointments(prisonCode, prisonerNumber, onDate)
-      .filter { locationIds.toList().contains(it.internalLocation?.id) }
-  } else {
-    emptyList()
+  fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate, locationId: UUID) = run {
+    log.info("A&A CLIENT: query params - prisonCode=$prisonCode, prisonerNumber=$prisonerNumber, onDate=$onDate, locationId=$locationId")
+    activitiesAppointmentsApiWebClient.post()
+      .uri("/appointments/{prisonCode}/search", prisonCode)
+      .bodyValue(
+        AppointmentSearchRequest(
+          startDate = onDate,
+          prisonerNumbers = listOf(prisonerNumber),
+          dpsLocationId = locationId,
+        ),
+      )
+      .retrieve()
+      .bodyToMono(typeReference<List<AppointmentSearchResult>>())
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block() ?: emptyList()
   }
-
-  private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate) = activitiesAppointmentsApiWebClient.post()
-    .uri("/appointments/{prisonCode}/search", prisonCode)
-    .bodyValue(
-      AppointmentSearchRequest(
-        startDate = onDate,
-        prisonerNumbers = listOf(prisonerNumber),
-      ),
-    )
-    .retrieve()
-    .bodyToMono(typeReference<List<AppointmentSearchResult>>())
-    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block() ?: emptyList()
 
   /**
    * @param appointmentId refers the appointment identifier held in Activities and Appointments, not BVLS.

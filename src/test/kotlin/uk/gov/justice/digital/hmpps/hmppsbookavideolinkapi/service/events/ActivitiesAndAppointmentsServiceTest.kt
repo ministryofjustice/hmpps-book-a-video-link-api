@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendeeSearchResult
@@ -25,7 +24,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.NomisMappingService
 import java.time.LocalDateTime
 
 private const val VLB = "VLB"
@@ -34,9 +32,8 @@ private const val VLPM = "VLPM"
 
 class ActivitiesAndAppointmentsServiceTest {
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
-  private val nomisMappingService: NomisMappingService = mock()
   private val supportedAppointmentTypes = SupportedAppointmentTypes()
-  private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, nomisMappingService, supportedAppointmentTypes)
+  private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, supportedAppointmentTypes)
 
   private val birminghamNomisLocation = Location(locationId = 123456, locationType = VLB, "VIDEO LINK", BIRMINGHAM)
   private val courtBookingByCourt = courtBooking().withMainCourtPrisonAppointment()
@@ -51,7 +48,6 @@ class ActivitiesAndAppointmentsServiceTest {
 
       service.createAppointment(courtBookingByPrison.mainHearing()!!)
 
-      verifyNoInteractions(nomisMappingService)
       verify(activitiesAppointmentsClient).createAppointment(
         prisonCode = BIRMINGHAM,
         prisonerNumber = courtBookingByPrison.mainHearing()!!.prisonerNumber,
@@ -70,7 +66,6 @@ class ActivitiesAndAppointmentsServiceTest {
 
       service.createAppointment(probationBookingByPrison.probationMeeting()!!)
 
-      verifyNoInteractions(nomisMappingService)
       verify(activitiesAppointmentsClient).createAppointment(
         prisonCode = BIRMINGHAM,
         prisonerNumber = probationBookingByPrison.probationMeeting()!!.prisonerNumber,
@@ -89,8 +84,6 @@ class ActivitiesAndAppointmentsServiceTest {
 
       service.patchAppointment(1, courtBooking.mainHearing()!!)
 
-      verifyNoInteractions(nomisMappingService)
-
       verify(activitiesAppointmentsClient).patchAppointment(
         1,
         startDate = courtBooking.mainHearing()!!.appointmentDate,
@@ -106,8 +99,6 @@ class ActivitiesAndAppointmentsServiceTest {
       val probationBooking = probationBooking().withProbationPrisonAppointment()
 
       service.patchAppointment(1, probationBooking.probationMeeting()!!)
-
-      verifyNoInteractions(nomisMappingService)
 
       verify(activitiesAppointmentsClient).patchAppointment(
         1,
@@ -128,15 +119,13 @@ class ActivitiesAndAppointmentsServiceTest {
       val matchingAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamNomisLocation, VLB)
 
       whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        activitiesAppointmentsClient.getPrisonersAppointments(
           prisonCode = courtBookingByCourt.mainHearing()!!.prisonCode(),
           prisonerNumber = courtBookingByCourt.mainHearing()!!.prisonerNumber,
           onDate = courtBookingByCourt.mainHearing()!!.appointmentDate,
-          birminghamNomisLocation.locationId,
+          locationId = courtBookingByCourt.mainHearing()!!.prisonLocationId,
         ),
       ) doReturn listOf(matchingAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(courtBookingByCourt.mainHearing()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
 
       service.findMatchingAppointments(courtBookingByCourt.mainHearing()!!) containsExactly listOf(matchingAppointment.appointmentId)
     }
@@ -146,15 +135,13 @@ class ActivitiesAndAppointmentsServiceTest {
       val matchingAppointment = appointmentSearchResult(probationBookingByProbationTeam.probationMeeting()!!, birminghamNomisLocation, VLB)
 
       whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        activitiesAppointmentsClient.getPrisonersAppointments(
           prisonCode = probationBookingByProbationTeam.probationMeeting()!!.prisonCode(),
           prisonerNumber = probationBookingByProbationTeam.probationMeeting()!!.prisonerNumber,
           onDate = probationBookingByProbationTeam.probationMeeting()!!.appointmentDate,
-          birminghamNomisLocation.locationId,
+          locationId = probationBookingByProbationTeam.probationMeeting()!!.prisonLocationId,
         ),
       ) doReturn listOf(matchingAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(probationBookingByProbationTeam.probationMeeting()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
 
       service.findMatchingAppointments(probationBookingByProbationTeam.probationMeeting()!!) containsExactly listOf(matchingAppointment.appointmentId)
     }
@@ -164,15 +151,13 @@ class ActivitiesAndAppointmentsServiceTest {
       val matchingAppointment = appointmentSearchResult(probationBookingByProbationTeam.probationMeeting()!!, birminghamNomisLocation, VLPM)
 
       whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        activitiesAppointmentsClient.getPrisonersAppointments(
           prisonCode = probationBookingByProbationTeam.probationMeeting()!!.prisonCode(),
           prisonerNumber = probationBookingByProbationTeam.probationMeeting()!!.prisonerNumber,
           onDate = probationBookingByProbationTeam.probationMeeting()!!.appointmentDate,
-          birminghamNomisLocation.locationId,
+          locationId = probationBookingByProbationTeam.probationMeeting()!!.prisonLocationId,
         ),
       ) doReturn listOf(matchingAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(probationBookingByProbationTeam.probationMeeting()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
 
       service.findMatchingAppointments(probationBookingByProbationTeam.probationMeeting()!!) containsExactly listOf(matchingAppointment.appointmentId)
     }
@@ -182,15 +167,13 @@ class ActivitiesAndAppointmentsServiceTest {
       val cancelledAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamNomisLocation, VLB).copy(isCancelled = true)
 
       whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        activitiesAppointmentsClient.getPrisonersAppointments(
           prisonCode = courtBookingByCourt.mainHearing()!!.prisonCode(),
           prisonerNumber = courtBookingByCourt.mainHearing()!!.prisonerNumber,
           onDate = courtBookingByCourt.mainHearing()!!.appointmentDate,
-          birminghamNomisLocation.locationId,
+          locationId = courtBookingByCourt.mainHearing()!!.prisonLocationId,
         ),
       ) doReturn listOf(cancelledAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(courtBookingByCourt.mainHearing()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
 
       service.findMatchingAppointments(courtBookingByCourt.mainHearing()!!).isEmpty() isBool true
     }
@@ -200,15 +183,13 @@ class ActivitiesAndAppointmentsServiceTest {
       val differentEndTimeAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamNomisLocation, VLB).copy(endTime = courtBookingByCourt.mainHearing()!!.endTime.plusHours(1).toHourMinuteStyle())
 
       whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        activitiesAppointmentsClient.getPrisonersAppointments(
           prisonCode = courtBookingByCourt.mainHearing()!!.prisonCode(),
           prisonerNumber = courtBookingByCourt.mainHearing()!!.prisonerNumber,
           onDate = courtBookingByCourt.mainHearing()!!.appointmentDate,
-          birminghamNomisLocation.locationId,
+          locationId = courtBookingByCourt.mainHearing()!!.prisonLocationId,
         ),
       ) doReturn listOf(differentEndTimeAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(courtBookingByCourt.mainHearing()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
 
       service.findMatchingAppointments(courtBookingByCourt.mainHearing()!!).isEmpty() isBool true
     }
@@ -218,35 +199,29 @@ class ActivitiesAndAppointmentsServiceTest {
       val vlooAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamNomisLocation, VLOO)
 
       whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        activitiesAppointmentsClient.getPrisonersAppointments(
           prisonCode = courtBookingByCourt.mainHearing()!!.prisonCode(),
           prisonerNumber = courtBookingByCourt.mainHearing()!!.prisonerNumber,
           onDate = courtBookingByCourt.mainHearing()!!.appointmentDate,
-          birminghamNomisLocation.locationId,
+          locationId = courtBookingByCourt.mainHearing()!!.prisonLocationId,
         ),
       ) doReturn listOf(vlooAppointment)
-
-      whenever(nomisMappingService.getNomisLocationId(courtBookingByCourt.mainHearing()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
 
       service.findMatchingAppointments(courtBookingByCourt.mainHearing()!!).isEmpty() isBool true
     }
 
     @Test
     fun `should not find matching VLPM appointment`() {
-      val vlpmAppointment = appointmentSearchResult(probationBookingByProbationTeam.probationMeeting()!!, birminghamNomisLocation, VLPM)
-
       whenever(
-        activitiesAppointmentsClient.getPrisonersAppointmentsAtLocations(
+        activitiesAppointmentsClient.getPrisonersAppointments(
           prisonCode = probationBookingByProbationTeam.probationMeeting()!!.prisonCode(),
           prisonerNumber = probationBookingByProbationTeam.probationMeeting()!!.prisonerNumber,
           onDate = probationBookingByProbationTeam.probationMeeting()!!.appointmentDate,
-          birminghamNomisLocation.locationId,
+          locationId = probationBookingByProbationTeam.probationMeeting()!!.prisonLocationId,
         ),
-      ) doReturn listOf(vlpmAppointment)
+      ) doReturn emptyList()
 
-      whenever(nomisMappingService.getNomisLocationId(probationBookingByProbationTeam.probationMeeting()!!.prisonLocationId)) doReturn birminghamNomisLocation.locationId
-
-      service.findMatchingAppointments(probationBookingByProbationTeam.probationMeeting()!!) containsExactly listOf(vlpmAppointment.appointmentId)
+      service.findMatchingAppointments(probationBookingByProbationTeam.probationMeeting()!!).isEmpty() isBool true
     }
   }
 

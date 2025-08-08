@@ -8,10 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppoi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiMockServer
 import java.time.LocalTime
@@ -48,47 +45,6 @@ class ActivitiesAppointmentsClientTest {
       comments = "extra info",
       appointmentType = SupportedAppointmentTypes.Type.COURT,
     )
-  }
-
-  @Test
-  fun `should get single prisoners appointment`() {
-    server.stubGetPrisonersAppointments(
-      prisonCode = BIRMINGHAM,
-      prisonerNumber = "123456",
-      date = tomorrow(),
-      locationIds = setOf(1000, 2000),
-    )
-
-    val appointment = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 1000).single()
-
-    appointment.internalLocation?.id isEqualTo 1000
-  }
-
-  @Test
-  fun `should get multiple prisoner appointments at locations`() {
-    server.stubGetPrisonersAppointments(
-      prisonCode = BIRMINGHAM,
-      prisonerNumber = "123456",
-      date = tomorrow(),
-      locationIds = setOf(1000, 2000, 3000),
-    )
-
-    val appointments = client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 2000, 3000)
-
-    appointments hasSize 2
-    appointments.map { it.internalLocation?.id } containsExactlyInAnyOrder setOf(2000, 3000)
-  }
-
-  @Test
-  fun `should get no prisoner appointments at locations`() {
-    server.stubGetPrisonersAppointments(
-      prisonCode = BIRMINGHAM,
-      prisonerNumber = "123456",
-      date = tomorrow(),
-      locationIds = setOf(1000, 2000, 3000),
-    )
-
-    client.getPrisonersAppointmentsAtLocations(BIRMINGHAM, "123456", tomorrow(), 4000) hasSize 0
   }
 
   @Test

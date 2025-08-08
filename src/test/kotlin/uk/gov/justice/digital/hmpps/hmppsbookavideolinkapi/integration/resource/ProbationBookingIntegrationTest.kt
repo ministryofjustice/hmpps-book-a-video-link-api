@@ -275,7 +275,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
     activitiesAppointmentsClient.stub {
       on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true
-      on { getPrisonersAppointmentsAtLocations(prisonCode = BIRMINGHAM, prisonerNumber = "123456", onDate = tomorrow(), 1) } doReturn listOf(
+      on { getPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "123456", onDate = tomorrow(), birminghamLocation.id) } doReturn listOf(
         appointmentSearchResult(date = tomorrow(), startTime = LocalTime.of(11, 0), endTime = LocalTime.of(12, 30), prisonCode = BIRMINGHAM, prisonerNumber = "123456", locationId = 1, appointmentType = SupportedAppointmentTypes.Type.PROBATION),
       )
     }
@@ -409,7 +409,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
     activitiesAppointmentsClient.stub {
       on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true
-      on { getPrisonersAppointmentsAtLocations(prisonCode = BIRMINGHAM, prisonerNumber = "654321", onDate = tomorrow(), 1) } doReturn listOf(
+      on { getPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "654321", onDate = tomorrow(), birminghamLocation.id) } doReturn listOf(
         appointmentSearchResult(date = tomorrow(), startTime = LocalTime.of(14, 0), endTime = LocalTime.of(15, 30), prisonCode = BIRMINGHAM, prisonerNumber = "654321", locationId = 1, appointmentType = SupportedAppointmentTypes.Type.PROBATION),
       )
     }
