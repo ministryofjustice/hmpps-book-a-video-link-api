@@ -1,12 +1,19 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyPrison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendPrisonRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison as PrisonEntity
@@ -61,5 +68,28 @@ class PrisonsServiceTest {
     whenever(prisonRepository.findAllByEnabledIsTrue()).thenReturn(emptyList())
     assertThat(service.getListOfPrisons(true)).isEmpty()
     verify(prisonRepository).findAllByEnabledIsTrue()
+  }
+
+  @Test
+  fun `Should amend prison pick-up time`() {
+    whenever(prisonRepository.findByCode(RISLEY)) doReturn risleyPrison.apply { pickUpTime = 30 }
+
+    risleyPrison.pickUpTime isEqualTo 30
+
+    service.amend(RISLEY, AmendPrisonRequest(pickUpTime = 60))
+
+    verify(prisonRepository).findByCode(RISLEY)
+    verify(prisonRepository).saveAndFlush(risleyPrison)
+
+    risleyPrison.pickUpTime isEqualTo 60
+  }
+
+  @Test
+  fun `Should fail to amend unknown prison`() {
+    whenever(prisonRepository.findByCode("UNKNOWN")) doReturn null
+
+    val error = assertThrows<EntityNotFoundException> { service.amend("UNKNOWN", AmendPrisonRequest(pickUpTime = 60)) }
+
+    error.message isEqualTo "Prison with code UNKNOWN not found."
   }
 }

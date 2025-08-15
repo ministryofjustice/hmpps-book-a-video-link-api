@@ -14,9 +14,24 @@ data class Prison(
   @Schema(description = "A fuller description for this prison", example = "HMP Birmingham")
   val name: String,
 
-  @Schema(description = "A boolean value to show whether the prison is enabled for self-service video link bookings by court/probation.", example = "true")
+  @Schema(
+    description = "A boolean value to show whether the prison is enabled for self-service video link bookings by court/probation.",
+    example = "true",
+  )
   val enabled: Boolean,
 
-  @Schema(description = "Notes relating to this prison, e.g. number of video-enabled rooms, address.", example = "Free form notes")
+  @Schema(
+    description = "Notes relating to this prison, e.g. number of video-enabled rooms, address.",
+    example = "Free form notes",
+  )
   val notes: String?,
+
+  @Schema(
+    description = """
+    Represents the number of minutes to pick-up prisoners prior to bookings starting. For example, if a booking starts
+     at 10am and the pick-up time is 15 minutes, the prisoner will be picked up at 9:45am the day of the booking.
+  """,
+    example = "15",
+  )
+  val pickUpTime: Int? = null,
 )

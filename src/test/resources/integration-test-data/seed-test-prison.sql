@@ -1,0 +1,1 @@
+insert into prison(code, name, enabled, notes, created_by, created_time, pick_up_time) values ('TEST', 'Test prison', false, null, 'TEST', current_timestamp, 30);

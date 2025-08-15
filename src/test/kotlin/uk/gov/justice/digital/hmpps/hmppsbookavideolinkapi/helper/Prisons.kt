@@ -16,3 +16,4 @@ val prisonNames = mapOf(
 
 val pentonvillePrison = prison(PENTONVILLE)
 val wandsworthPrison = prison(WANDSWORTH)
+val risleyPrison = prison(RISLEY)
