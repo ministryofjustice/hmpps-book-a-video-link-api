@@ -1,0 +1,1 @@
+DELETE FROM prison where code = 'TEST';

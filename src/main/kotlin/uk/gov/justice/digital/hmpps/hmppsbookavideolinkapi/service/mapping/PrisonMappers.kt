@@ -9,6 +9,7 @@ fun PrisonEntity.toModel() = Prison(
   name = name,
   enabled = enabled,
   notes = notes,
+  pickUpTime = pickUpTime,
 )
 
 fun List<PrisonEntity>.toModel() = map { it.toModel() }.sortedBy { it.name }

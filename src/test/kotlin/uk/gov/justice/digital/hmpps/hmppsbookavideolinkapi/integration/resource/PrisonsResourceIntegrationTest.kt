@@ -27,6 +27,7 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 import java.util.UUID
 
+@Sql("classpath:integration-test-data/clean-test-prison.sql")
 class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Autowired
