@@ -92,4 +92,20 @@ class PrisonsServiceTest {
 
     error.message isEqualTo "Prison with code UNKNOWN not found."
   }
+
+  @Test
+  fun `Should return a prison by its code`() {
+    whenever(prisonRepository.findByCode(RISLEY)) doReturn prisonEntity(1L, RISLEY, "Risley")
+
+    service.getPrison(RISLEY).name isEqualTo risleyPrison.name
+  }
+
+  @Test
+  fun `Should fail to get prison by code`() {
+    whenever(prisonRepository.findByCode("UNKNOWN")) doReturn null
+
+    val error = assertThrows<EntityNotFoundException> { service.getPrison("UNKNOWN") }
+
+    error.message isEqualTo "Prison with code UNKNOWN not found."
+  }
 }

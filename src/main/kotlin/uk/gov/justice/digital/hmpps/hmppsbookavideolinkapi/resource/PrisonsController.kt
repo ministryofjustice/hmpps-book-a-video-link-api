@@ -84,4 +84,26 @@ class PrisonsController(
   } else {
     locationsService.getNonResidentialLocationsAtPrison(prisonCode, enabledOnly)
   }
+
+  @Operation(summary = "Endpoint to find a prison by its code")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Get a prison by its code",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = Prison::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @GetMapping(value = ["/{prisonCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
+  fun getPrisonByCode(
+    @Parameter(description = "The code of the prison to be returned.")
+    @PathVariable("prisonCode", required = true) prisonCode: String,
+  ) = prisonsService.getPrison(prisonCode)
 }

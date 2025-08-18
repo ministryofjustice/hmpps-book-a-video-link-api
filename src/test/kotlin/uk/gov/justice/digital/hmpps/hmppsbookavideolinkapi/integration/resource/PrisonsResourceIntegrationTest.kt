@@ -100,6 +100,21 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should return a prisons by its code`() {
+    with(webTestClient.getPrison("RSI")!!) { name isEqualTo "Risley (HMP)" }
+  }
+
+  private fun WebTestClient.getPrison(prisonCode: String) = get()
+    .uri("/prisons/$prisonCode")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(Prison::class.java)
+    .returnResult().responseBody
+
+  @Test
   fun `should get all possible appointment locations`() {
     locationsInsidePrisonApi().stubNonResidentialAppointmentLocationsAtPrison(
       WANDSWORTH,

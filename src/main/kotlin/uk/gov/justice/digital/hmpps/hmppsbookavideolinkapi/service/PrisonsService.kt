@@ -20,6 +20,9 @@ class PrisonsService(private val prisonRepository: PrisonRepository) {
     prisonRepository.findAllByEnabledIsTrue().toModel()
   }
 
+  fun getPrison(prisonCode: String) = prisonRepository.findByCode(prisonCode)?.toModel()
+    ?: throw EntityNotFoundException("Prison with code $prisonCode not found.")
+
   fun amend(prisonCode: String, request: AmendPrisonRequest): Prison {
     val prison = prisonRepository.findByCode(prisonCode)
 
