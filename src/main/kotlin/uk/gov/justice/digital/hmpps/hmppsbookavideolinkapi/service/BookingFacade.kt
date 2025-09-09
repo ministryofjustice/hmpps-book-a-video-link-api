@@ -53,6 +53,7 @@ class BookingFacade(
   private val telemetryService: TelemetryService,
   private val availabilityService: AvailabilityService,
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,
+  private val changeTrackingService: ChangeTrackingService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -83,11 +84,15 @@ class BookingFacade(
       }
     }
 
-    val (booking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
-    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
-    sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
-    sendTelemetry(BookingAction.AMEND, booking, amendedBy)
-    return booking.videoBookingId
+    // Only amend and send out comms if the booking has genuinely changed.
+    if (changeTrackingService.hasBookingChanged(videoBookingId, bookingRequest, amendedBy)) {
+      val (booking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
+      outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
+      sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
+      sendTelemetry(BookingAction.AMEND, booking, amendedBy)
+    }
+
+    return videoBookingId
   }
 
   fun cancel(videoBookingId: Long, cancelledBy: PrisonUser) {

@@ -22,6 +22,7 @@ class CacheConfiguration {
     const val COURTS_CACHE = "courts"
     const val NOMIS_MAPPING_CACHE_NAME = "nomis_mapping"
     const val NON_RESIDENTIAL_LOCATIONS_CACHE_NAME: String = "non_residential_locations"
+    const val LOCATION_BY_KEY_CACHE_NAME: String = "location_by_key"
     const val PROBATION_TEAMS_CACHE = "probation_team"
     const val ROLLED_OUT_PRISONS_CACHE_NAME = "rolled_out_prisons"
     const val VIDEO_LINK_LOCATIONS_CACHE_NAME: String = "video_link_locations"
@@ -33,6 +34,7 @@ class CacheConfiguration {
   @Bean
   fun cacheManager(): CacheManager = ConcurrentMapCacheManager(
     COURTS_CACHE,
+    LOCATION_BY_KEY_CACHE_NAME,
     NOMIS_MAPPING_CACHE_NAME,
     NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
     PROBATION_TEAMS_CACHE,
@@ -74,5 +76,11 @@ class CacheConfiguration {
   @Scheduled(fixedDelay = TWO, timeUnit = TimeUnit.HOURS)
   fun cacheEvictProbationTeams() {
     log.info("Evicting cache: $PROBATION_TEAMS_CACHE after $TWO hours")
+  }
+
+  @CacheEvict(value = [LOCATION_BY_KEY_CACHE_NAME], allEntries = true)
+  @Scheduled(fixedDelay = FIVE, timeUnit = TimeUnit.SECONDS)
+  fun cacheEvictLocationByKey() {
+    log.info("Evicting cache: $LOCATION_BY_KEY_CACHE_NAME after $FIVE seconds")
   }
 }
