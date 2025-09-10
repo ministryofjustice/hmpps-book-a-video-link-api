@@ -1411,19 +1411,33 @@ class BookingFacadeTest {
     }
 
     @Test
-    fun `should be minimal service interactions when no actual changes`() {
-      val amendRequest = amendProbationBookingRequest()
+    fun `should not send emails when no actual changes`() {
+      setupProbationPrimaryContacts(PRISON_USER_BIRMINGHAM)
 
-      whenever(changeTrackingService.hasBookingChanged(1, amendRequest, PROBATION_USER)) doReturn false
+      val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
 
-      facade.amend(1, amendRequest, PROBATION_USER)
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
 
-      verify(changeTrackingService).hasBookingChanged(1, amendRequest, PROBATION_USER)
-      verifyNoInteractions(videoBookingServiceDelegate)
-      verifyNoInteractions(outboundEventsService)
+      val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
+
+      whenever(videoBookingServiceDelegate.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(
+        probationBookingAtBirminghamPrison.apply {
+          amendedTime = now()
+          amendedBy = PRISON_USER_BIRMINGHAM.username
+        },
+        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!),
+      )
+
+      whenever(changeTrackingService.hasBookingChanged(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn false
+
+      facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+
+      verify(changeTrackingService).hasBookingChanged(1, amendRequest, PRISON_USER_BIRMINGHAM)
+      verify(videoBookingServiceDelegate).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
       verifyNoInteractions(emailService)
       verifyNoInteractions(notificationRepository)
-      verifyNoInteractions(telemetryService)
+      verify(telemetryService).track(any())
     }
   }
 

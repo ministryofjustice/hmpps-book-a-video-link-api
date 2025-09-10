@@ -84,13 +84,21 @@ class BookingFacade(
       }
     }
 
-    // Only amend and send out comms if the booking has genuinely changed.
-    if (changeTrackingService.hasBookingChanged(videoBookingId, bookingRequest, amendedBy)) {
-      val (booking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
-      outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
+    // Need to check before amendment to see before picture.
+    val changeRequiresEmails = changeTrackingService.hasBookingChanged(videoBookingId, bookingRequest, amendedBy)
+
+    // Amend regardless of changes (this is in-case new fields ever are introduced but not covered by the change check).
+    val (booking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
+    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
+
+    // Only send emails on back of change check above.
+    if (changeRequiresEmails) {
       sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
-      sendTelemetry(BookingAction.AMEND, booking, amendedBy)
+    } else {
+      log.info("No changes detected for video booking $videoBookingId, not sending email")
     }
+
+    sendTelemetry(BookingAction.AMEND, booking, amendedBy)
 
     return videoBookingId
   }
