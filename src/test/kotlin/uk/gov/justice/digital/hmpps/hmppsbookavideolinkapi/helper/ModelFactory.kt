@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.mo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.RoomAttributes
@@ -342,6 +343,8 @@ fun amendCourtBookingRequest(
   appointmentDate: LocalDate = tomorrow(),
   notesForStaff: String? = null,
   notesForPrisoners: String? = null,
+  hearingType: CourtHearingType = CourtHearingType.TRIBUNAL,
+  cvpLinkDetails: CvpLinkDetails = CvpLinkDetails.url("https://video.link.com"),
 ): AmendVideoBookingRequest {
   val prisoner = PrisonerDetails(
     prisonCode = prisonCode,
@@ -361,9 +364,10 @@ fun amendCourtBookingRequest(
 
   return AmendVideoBookingRequest(
     bookingType = BookingType.COURT,
-    courtHearingType = CourtHearingType.TRIBUNAL,
+    courtHearingType = hearingType,
     prisoners = listOf(prisoner),
-    videoLinkUrl = "https://video.link.com",
+    videoLinkUrl = cvpLinkDetails.videoUrl,
+    hmctsNumber = cvpLinkDetails.hmctsNumber,
     notesForStaff = notesForStaff,
     notesForPrisoners = notesForPrisoners,
   )

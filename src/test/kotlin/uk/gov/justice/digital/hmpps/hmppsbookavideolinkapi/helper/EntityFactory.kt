@@ -77,9 +77,10 @@ fun courtBooking(
   notesForPrisoners: String? = null,
   cvpLinkDetails: CvpLinkDetails? = CvpLinkDetails.url("https://court.hearing.link"),
   guestPin: String? = null,
+  hearingType: CourtHearingType = CourtHearingType.TRIBUNAL,
 ) = VideoBooking.newCourtBooking(
   court = court,
-  hearingType = "TRIBUNAL",
+  hearingType = hearingType.name,
   cvpLinkDetails = cvpLinkDetails,
   guestPin = guestPin,
   createdBy = if (createdByPrison) prisonUser(createdBy) else courtUser(createdBy),

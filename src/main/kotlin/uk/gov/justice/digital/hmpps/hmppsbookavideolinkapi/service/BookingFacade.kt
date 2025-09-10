@@ -53,6 +53,7 @@ class BookingFacade(
   private val telemetryService: TelemetryService,
   private val availabilityService: AvailabilityService,
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,
+  private val changeTrackingService: ChangeTrackingService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -83,11 +84,23 @@ class BookingFacade(
       }
     }
 
+    // Need to check before amendment to see before picture.
+    val changeRequiresEmails = changeTrackingService.hasBookingChanged(videoBookingId, bookingRequest, amendedBy)
+
+    // Amend regardless of changes (this is in-case new fields ever are introduced but not covered by the change check).
     val (booking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
-    sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
+
+    // Only send emails on back of change check above.
+    if (changeRequiresEmails) {
+      sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
+    } else {
+      log.info("No changes detected for video booking $videoBookingId, not sending email")
+    }
+
     sendTelemetry(BookingAction.AMEND, booking, amendedBy)
-    return booking.videoBookingId
+
+    return videoBookingId
   }
 
   fun cancel(videoBookingId: Long, cancelledBy: PrisonUser) {

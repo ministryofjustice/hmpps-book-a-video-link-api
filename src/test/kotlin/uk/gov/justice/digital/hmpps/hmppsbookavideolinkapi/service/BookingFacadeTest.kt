@@ -14,6 +14,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
@@ -118,6 +119,7 @@ class BookingFacadeTest {
   private val telemetryCaptor = argumentCaptor<TelemetryEvent>()
   private val availabilityService: AvailabilityService = mock()
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository = mock()
+  private val changeTrackingService: ChangeTrackingService = mock()
   private val facade = BookingFacade(
     videoBookingServiceDelegate,
     contactsService,
@@ -130,6 +132,7 @@ class BookingFacadeTest {
     telemetryService,
     availabilityService,
     additionalBookingDetailRepository,
+    changeTrackingService,
   )
   private val courtBooking = courtBooking(notesForStaff = "court notes for staff")
     .addAppointment(
@@ -205,6 +208,7 @@ class BookingFacadeTest {
     whenever(locationsService.getLocationById(birminghamLocation.id)) doReturn birminghamLocation.toModel(locationAttributes().copy(prisonVideoUrl = "birmingham-video-url"))
     whenever(availabilityService.isAvailable(any<CreateVideoBookingRequest>())) doReturn true
     whenever(availabilityService.isAvailable(anyLong(), any())) doReturn true
+    whenever(changeTrackingService.hasBookingChanged(any(), any(), any())) doReturn true
   }
 
   @Nested
@@ -1404,6 +1408,36 @@ class BookingFacadeTest {
 
       val error = assertThrows<IllegalArgumentException> { facade.amend(1, amendRequest, PROBATION_USER) }
       error.message isEqualTo "Unable to amend probation booking, booking overlaps with an existing appointment."
+    }
+
+    @Test
+    fun `should not send emails when no actual changes`() {
+      setupProbationPrimaryContacts(PRISON_USER_BIRMINGHAM)
+
+      val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
+
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+
+      val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
+
+      whenever(videoBookingServiceDelegate.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(
+        probationBookingAtBirminghamPrison.apply {
+          amendedTime = now()
+          amendedBy = PRISON_USER_BIRMINGHAM.username
+        },
+        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!),
+      )
+
+      whenever(changeTrackingService.hasBookingChanged(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn false
+
+      facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+
+      verify(changeTrackingService).hasBookingChanged(1, amendRequest, PRISON_USER_BIRMINGHAM)
+      verify(videoBookingServiceDelegate).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+      verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
+      verifyNoInteractions(emailService)
+      verifyNoInteractions(notificationRepository)
+      verify(telemetryService).track(any())
     }
   }
 
