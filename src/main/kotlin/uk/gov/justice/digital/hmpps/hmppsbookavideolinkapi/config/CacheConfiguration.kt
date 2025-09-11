@@ -29,6 +29,7 @@ class CacheConfiguration {
 
     const val TWO = 2L
     const val FIVE = 5L
+    const val THIRTY = 30L
   }
 
   @Bean
@@ -79,8 +80,8 @@ class CacheConfiguration {
   }
 
   @CacheEvict(value = [LOCATION_BY_KEY_CACHE_NAME], allEntries = true)
-  @Scheduled(fixedDelay = FIVE, timeUnit = TimeUnit.SECONDS)
+  @Scheduled(fixedDelay = THIRTY, timeUnit = TimeUnit.SECONDS)
   fun cacheEvictLocationByKey() {
-    log.info("Evicting cache: $LOCATION_BY_KEY_CACHE_NAME after $FIVE seconds")
+    log.info("Evicting cache: $LOCATION_BY_KEY_CACHE_NAME after $THIRTY seconds")
   }
 }
