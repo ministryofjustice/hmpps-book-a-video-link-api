@@ -19,6 +19,7 @@ import java.util.UUID
  * It must be used before any changes are made to the existing entities.
  */
 @Service
+@Transactional(readOnly = true)
 class ChangeTrackingService(
   private val videoBookingRepository: VideoBookingRepository,
   private val locationsService: LocationsService,
@@ -27,13 +28,12 @@ class ChangeTrackingService(
   /**
    * Will return the change type NONE if there are no actual changes.
    */
-  @Transactional
-  fun determineChangeType(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: User): ChangeType {
+  fun determineChangeType(videoBookingId: Long, requestedBookingChanges: AmendVideoBookingRequest, amendedBy: User): ChangeType {
     require(amendedBy is PrisonUser || amendedBy is ExternalUser) {
       "Only prison users and external users are supported. ${amendedBy::class.simpleName} is not supported."
     }
 
-    val (cb1, cb2) = getComparableBookings(videoBookingId, request, amendedBy)
+    val (cb1, cb2) = getComparableBookings(videoBookingId, requestedBookingChanges, amendedBy)
 
     when {
       cb1 == cb2 -> return ChangeType.NONE
@@ -58,20 +58,18 @@ class ChangeTrackingService(
     } ?: ChangeType.GLOBAL
   }
 
-  private fun getComparableBookings(videoBookingId: Long, request: AmendVideoBookingRequest, amendedBy: User) = run {
+  private fun getComparableBookings(videoBookingId: Long, requestedBookingChanges: AmendVideoBookingRequest, amendedBy: User) = run {
     val existingBooking = videoBookingRepository
       .findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
       .also {
-        require(request.bookingType!!.name == it.bookingType.name) {
-          "Request type and existing booking type must be the same. Request type is ${request.bookingType} and booking type is ${it.bookingType}."
+        require(requestedBookingChanges.bookingType!!.name == it.bookingType.name) {
+          "Request type and existing booking type must be the same. Request type is ${requestedBookingChanges.bookingType} and booking type is ${it.bookingType}."
         }
       }
       .toComparableBooking(additionalBookingDetailRepository, amendedBy)
 
-    val suggestedBookingChanges = request.toComparableBooking(amendedBy, locationsService)
-
-    existingBooking to suggestedBookingChanges
+    existingBooking to requestedBookingChanges.toComparableBooking(amendedBy, locationsService)
   }
 }
 
