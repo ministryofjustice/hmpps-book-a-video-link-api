@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.CO
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
@@ -70,8 +69,8 @@ class BookingFacade(
 
     val (booking, prisoner) = videoBookingServiceDelegate.create(bookingRequest, createdBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
-    sendBookingEmails(BookingAction.CREATE, booking, prisoner, createdBy)
-    sendTelemetry(BookingAction.CREATE, booking, createdBy)
+    sendEmails(BookingAction.CREATE, booking, prisoner, createdBy)
+    trackTelemetry(BookingAction.CREATE, booking, createdBy)
     return booking.videoBookingId
   }
 
@@ -85,20 +84,20 @@ class BookingFacade(
     }
 
     // Need to check before amendment to see before picture.
-    val changeRequiresEmails = changeTrackingService.hasBookingChanged(videoBookingId, bookingRequest, amendedBy)
+    val changeType = changeTrackingService.determineChangeType(videoBookingId, bookingRequest, amendedBy)
 
     // Amend regardless of changes (this is in-case new fields ever are introduced but not covered by the change check).
     val (booking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
 
     // Only send emails on back of change check above.
-    if (changeRequiresEmails) {
-      sendBookingEmails(BookingAction.AMEND, booking, prisoner, amendedBy)
+    if (changeType != ChangeType.NONE) {
+      sendEmails(BookingAction.AMEND, booking, prisoner, amendedBy, changeType)
     } else {
       log.info("No changes detected for video booking $videoBookingId, not sending email")
     }
 
-    sendTelemetry(BookingAction.AMEND, booking, amendedBy)
+    trackTelemetry(BookingAction.AMEND, booking, amendedBy)
 
     return videoBookingId
   }
@@ -119,16 +118,16 @@ class BookingFacade(
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, cancelledBy)
     log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
-    sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
-    sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
+    sendEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
+    trackTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
   fun cancel(videoBookingId: Long, cancelledBy: ServiceUser) {
     // No events should be raised on the back of calling this function, this is by design.
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, cancelledBy)
     log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
-    sendBookingEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
-    sendTelemetry(BookingAction.CANCEL, booking, cancelledBy)
+    sendEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
+    trackTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
   fun courtHearingLinkReminder(videoBooking: VideoBooking, user: ServiceUser) {
@@ -136,33 +135,33 @@ class BookingFacade(
     require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
     require(videoBooking.videoUrl == null) { "Video booking with id ${videoBooking.videoBookingId} already has a court hearing link" }
-    sendBookingEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
+    sendEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
   fun sendProbationOfficerDetailsReminder(videoBooking: VideoBooking, user: ServiceUser) {
     require(videoBooking.isBookingType(PROBATION) && videoBooking.isStatus(StatusCode.ACTIVE)) { "Video booking with id ${videoBooking.videoBookingId} must be an active probation booking" }
     require(videoBooking.probationTeam!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled probation team" }
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
-    sendProbationBookingEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
+    sendProbationEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
   fun prisonerTransferred(videoBookingId: Long, user: ServiceUser) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
-    sendBookingEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
-    sendTelemetry(BookingAction.TRANSFERRED, booking, user)
+    sendEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+    trackTelemetry(BookingAction.TRANSFERRED, booking, user)
   }
 
   fun prisonerReleased(videoBookingId: Long, user: ServiceUser) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
-    sendBookingEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
-    sendTelemetry(BookingAction.RELEASED, booking, user)
+    sendEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+    trackTelemetry(BookingAction.RELEASED, booking, user)
   }
 
-  private fun sendTelemetry(action: BookingAction, booking: VideoBooking, user: User) {
+  private fun trackTelemetry(action: BookingAction, booking: VideoBooking, user: User) {
     when {
       action == BookingAction.CREATE && booking.isBookingType(COURT) -> CourtBookingCreatedTelemetryEvent(booking)
       action == BookingAction.CREATE && booking.isBookingType(PROBATION) -> ProbationBookingCreatedTelemetryEvent(booking)
@@ -182,15 +181,15 @@ class BookingFacade(
 
   private fun getReleasedOrTransferredPrisoner(prisonerNumber: String) = prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.lastPrisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
 
-  private fun sendBookingEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User) {
+  private fun sendEmails(action: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User, changeType: ChangeType = ChangeType.GLOBAL) {
     when (booking.bookingType) {
-      COURT -> sendCourtBookingEmails(action, booking, prisoner, user)
-      PROBATION -> sendProbationBookingEmails(action, booking, prisoner, user)
+      COURT -> sendCourtEmails(action, booking, prisoner, user, changeType)
+      PROBATION -> sendProbationEmails(action, booking, prisoner, user, changeType)
     }
   }
 
-  private fun sendCourtBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User) {
-    val (pre, main, post) = booking.courtAppointments()
+  private fun sendCourtEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User, changeType: ChangeType = ChangeType.GLOBAL) {
+    val (pre, main, post) = Triple(booking.preHearing(), booking.mainHearing()!!, booking.postHearing())
     val prison = prisonRepository.findByCode(booking.prisonCode())!!
     val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
     val locations = setOfNotNull(pre?.prisonLocationId, main.prisonLocationId, post?.prisonLocationId).mapNotNull { locationsService.getLocationById(it) }.associateBy { it.dpsLocationId }
@@ -198,8 +197,8 @@ class BookingFacade(
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> CourtEmailFactory.user(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user is PrisonUser || user is ExternalUser }
-        ContactType.COURT -> CourtEmailFactory.court(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { user is PrisonUser || user is ServiceUser }
-        ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType)
+        ContactType.COURT -> CourtEmailFactory.court(contact, prisoner, booking, prison, main, pre, post, locations, eventType).takeIf { (user is PrisonUser || user is ServiceUser) && changeType in setOf(ChangeType.GLOBAL) }
+        ContactType.PRISON -> CourtEmailFactory.prison(contact, prisoner, booking, prison, contacts, main, pre, post, locations, eventType).takeIf { changeType in setOf(ChangeType.GLOBAL, ChangeType.PRISON) }
         else -> null
       }
     }
@@ -207,7 +206,7 @@ class BookingFacade(
     emails.forEach { courtEmail -> sendEmailAndSaveNotification(courtEmail, booking, eventType) }
   }
 
-  private fun sendProbationBookingEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User) {
+  private fun sendProbationEmails(eventType: BookingAction, booking: VideoBooking, prisoner: Prisoner, user: User, changeType: ChangeType = ChangeType.GLOBAL) {
     val appointment = booking.appointments().single()
     val prison = prisonRepository.findByCode(booking.prisonCode())!!
     val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
@@ -217,8 +216,8 @@ class BookingFacade(
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> ProbationEmailFactory.user(contact, prisoner, booking, prison, appointment, location, eventType, additionalBookingDetail).takeIf { user is PrisonUser || user is ExternalUser }
-        ContactType.PROBATION -> ProbationEmailFactory.probation(contact, prisoner, booking, prison, appointment, location, eventType, additionalBookingDetail).takeIf { user is PrisonUser || user is ServiceUser }
-        ContactType.PRISON -> ProbationEmailFactory.prison(contact, prisoner, booking, prison, appointment, location, eventType, contacts, additionalBookingDetail)
+        ContactType.PROBATION -> ProbationEmailFactory.probation(contact, prisoner, booking, prison, appointment, location, eventType, additionalBookingDetail).takeIf { (user is PrisonUser || user is ServiceUser) && changeType in setOf(ChangeType.GLOBAL) }
+        ContactType.PRISON -> ProbationEmailFactory.prison(contact, prisoner, booking, prison, appointment, location, eventType, contacts, additionalBookingDetail).takeIf { changeType in setOf(ChangeType.GLOBAL, ChangeType.PRISON) }
         else -> null
       }
     }
@@ -242,17 +241,7 @@ class BookingFacade(
     }
   }
 
-  private fun VideoBooking.courtAppointments(): Triple<PrisonAppointment?, PrisonAppointment, PrisonAppointment?> = appointments().prisonAppointmentsForCourtHearing()
-
   private fun Collection<BookingContact>.withAnEmailAddress() = filter { it.email != null }
-
-  private fun Collection<PrisonAppointment>.prisonAppointmentsForCourtHearing() = Triple(pre(), main(), post())
-
-  private fun Collection<PrisonAppointment>.pre() = singleOrNull { it.isType("VLB_COURT_PRE") }
-
-  private fun Collection<PrisonAppointment>.main() = single { it.isType("VLB_COURT_MAIN") }
-
-  private fun Collection<PrisonAppointment>.post() = singleOrNull { it.isType("VLB_COURT_POST") }
 }
 
 enum class BookingAction {

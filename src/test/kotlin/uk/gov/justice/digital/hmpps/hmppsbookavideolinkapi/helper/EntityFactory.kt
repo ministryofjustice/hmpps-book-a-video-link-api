@@ -177,7 +177,7 @@ fun VideoBooking.withPreMainPostCourtPrisonAppointment(
     locationId = location.id,
     date = date,
     startTime = startTime.minusMinutes(15),
-    endTime = endTime.minusMinutes(15),
+    endTime = startTime,
   )
   addAppointment(
     prison = prison(prisonCode = prisonCode),
@@ -194,7 +194,7 @@ fun VideoBooking.withPreMainPostCourtPrisonAppointment(
     appointmentType = "VLB_COURT_POST",
     locationId = location.id,
     date = date,
-    startTime = startTime.plusMinutes(15),
+    startTime = endTime,
     endTime = endTime.plusMinutes(15),
   )
 }
