@@ -208,7 +208,7 @@ class BookingFacadeTest {
     whenever(locationsService.getLocationById(birminghamLocation.id)) doReturn birminghamLocation.toModel(locationAttributes().copy(prisonVideoUrl = "birmingham-video-url"))
     whenever(availabilityService.isAvailable(any<CreateVideoBookingRequest>())) doReturn true
     whenever(availabilityService.isAvailable(anyLong(), any())) doReturn true
-    whenever(changeTrackingService.hasBookingChanged(any(), any(), any())) doReturn true
+    whenever(changeTrackingService.determineChangeType(any(), any(), any())) doReturn ChangeType.GLOBAL
   }
 
   @Nested
@@ -1221,6 +1221,69 @@ class BookingFacadeTest {
     }
 
     @Test
+    fun `should send events and reduced emails on amendment of court booking by prison user`() {
+      setupCourtPrimaryContactsFor(PRISON_USER_BIRMINGHAM)
+
+      val amendRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
+
+      whenever(videoBookingServiceDelegate.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn
+        Pair(
+          courtBooking.apply {
+            amendedTime = now()
+            amendedBy = PRISON_USER_BIRMINGHAM.username
+          },
+          prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH),
+        )
+
+      whenever(emailService.send(any<AmendedCourtBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
+      whenever(emailService.send(any<AmendedCourtBookingCourtEmail>())) doReturn Result.success(emailNotificationId to "court template id")
+      whenever(changeTrackingService.determineChangeType(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn ChangeType.PRISON
+
+      facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+
+      inOrder(videoBookingServiceDelegate, emailService, notificationRepository, telemetryService) {
+        verify(videoBookingServiceDelegate).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+      }
+
+      emailCaptor.allValues hasSize 1
+      with(emailCaptor.firstValue) {
+        this isInstanceOf AmendedCourtBookingUserEmail::class.java
+        address isEqualTo PRISON_USER_BIRMINGHAM.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "userName" to PRISON_USER_BIRMINGHAM.name,
+          "court" to DERBY_JUSTICE_CENTRE,
+          "offenderNo" to "123456",
+          "prisonerName" to "Fred Bloggs",
+          "date" to "1 Jan 2100",
+          "preAppointmentInfo" to "Not required",
+          "mainAppointmentInfo" to "${wandsworthLocation.localName} - 11:00 to 11:30",
+          "postAppointmentInfo" to "Not required",
+          "comments" to "court notes for staff",
+          "prison" to "Wandsworth",
+          "courtHearingLink" to "https://court.hearing.link",
+          "prePrisonVideoUrl" to "",
+          "postPrisonVideoUrl" to "",
+        )
+      }
+
+      notificationCaptor.allValues hasSize 1
+      with(notificationCaptor.firstValue) {
+        email isEqualTo PRISON_USER_BIRMINGHAM.email
+        templateName isEqualTo "user template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo courtBooking
+        reason isEqualTo "AMEND"
+      }
+
+      with(telemetryCaptor.firstValue as CourtBookingAmendedTelemetryEvent) {
+        properties()["amended_by"] isEqualTo "prison"
+      }
+    }
+
+    @Test
     fun `should send events and emails on amendment of probation booking by probation user`() {
       setupProbationPrimaryContacts(PROBATION_USER)
 
@@ -1325,7 +1388,7 @@ class BookingFacadeTest {
           amendedTime = now()
           amendedBy = PRISON_USER_BIRMINGHAM.username
         },
-        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!),
+        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId),
       )
       whenever(emailService.send(any<AmendedProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
@@ -1425,19 +1488,84 @@ class BookingFacadeTest {
           amendedTime = now()
           amendedBy = PRISON_USER_BIRMINGHAM.username
         },
-        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!),
+        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId),
       )
 
-      whenever(changeTrackingService.hasBookingChanged(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn false
+      whenever(changeTrackingService.determineChangeType(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn ChangeType.NONE
 
       facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
 
-      verify(changeTrackingService).hasBookingChanged(1, amendRequest, PRISON_USER_BIRMINGHAM)
+      verify(changeTrackingService).determineChangeType(1, amendRequest, PRISON_USER_BIRMINGHAM)
       verify(videoBookingServiceDelegate).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
       verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
       verifyNoInteractions(emailService)
       verifyNoInteractions(notificationRepository)
       verify(telemetryService).track(any())
+    }
+
+    @Test
+    fun `should send events and reduced emails on amendment of probation booking by prison user`() {
+      setupProbationPrimaryContacts(PRISON_USER_BIRMINGHAM)
+
+      val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
+
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+
+      val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
+
+      whenever(videoBookingServiceDelegate.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(
+        probationBookingAtBirminghamPrison.apply {
+          amendedTime = now()
+          amendedBy = PRISON_USER_BIRMINGHAM.username
+        },
+        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId),
+      )
+      whenever(emailService.send(any<AmendedProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
+      whenever(emailService.send(any<AmendedProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
+      whenever(changeTrackingService.determineChangeType(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn ChangeType.PRISON
+
+      facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+
+      inOrder(videoBookingServiceDelegate, outboundEventsService, emailService, notificationRepository, telemetryService) {
+        verify(videoBookingServiceDelegate).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+      }
+
+      emailCaptor.allValues hasSize 1
+      with(emailCaptor.firstValue) {
+        this isInstanceOf AmendedProbationBookingUserEmail::class.java
+        address isEqualTo PRISON_USER_BIRMINGHAM.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "userName" to PRISON_USER_BIRMINGHAM.name,
+          "probationTeam" to "probation team description",
+          "prison" to "Birmingham",
+          "offenderNo" to "654321",
+          "prisonerName" to "Fred Bloggs",
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "probation notes for staff",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "Not yet known",
+          "probationOfficerEmailAddress" to "Not yet known",
+          "probationOfficerContactNumber" to "Not yet known",
+        )
+      }
+
+      notificationCaptor.allValues hasSize 1
+      with(notificationCaptor.firstValue) {
+        email isEqualTo PRISON_USER_BIRMINGHAM.email
+        templateName isEqualTo "user template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo probationBookingAtBirminghamPrison
+        reason isEqualTo "AMEND"
+      }
+
+      with(telemetryCaptor.firstValue as ProbationBookingAmendedTelemetryEvent) {
+        properties()["amended_by"] isEqualTo "prison"
+      }
     }
   }
 
