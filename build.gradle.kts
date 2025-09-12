@@ -5,11 +5,11 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.0"
-  id("org.openapi.generator") version "7.14.0"
-  kotlin("plugin.spring") version "2.2.10"
-  kotlin("plugin.jpa") version "2.2.10"
-  id("dev.zacsweers.redacted") version "1.14.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.1"
+  id("org.openapi.generator") version "7.15.0"
+  kotlin("plugin.spring") version "2.2.20"
+  kotlin("plugin.jpa") version "2.2.20"
+  id("dev.zacsweers.redacted") version "1.15.0"
 }
 
 allOpen {
@@ -37,21 +37,21 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.10")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.19.2")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.20.0")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:postgresql:42.7.7")
 
   // OpenAPI
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
 
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.19.0")
 
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.13")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.14")
 
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.13.0")
