@@ -196,7 +196,7 @@ class CourtEmailFactoryTest {
     email?.personalisation()!! containsEntry Pair("comments", "Court hearing staff notes")
 
     if (listOf(BookingAction.CREATE, BookingAction.CANCEL).contains(action)) {
-      email.personalisation() containsEntry Pair("courtHearingLink", "HMCTS54321@meet.video.justice.gov.uk")
+      email.personalisation() containsEntry Pair("courtHearingLink", "https://join.meet.video.justice.gov.uk/#?conference=HMCTS54321@meet.video.justice.gov.uk")
     }
   }
 

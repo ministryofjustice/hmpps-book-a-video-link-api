@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
 import java.util.UUID
 
+const val DEFAULT_COURT_URL_PREFIX = "https://join.meet.video.justice.gov.uk/#?conference="
 const val DEFAULT_COURT_URL_SUFFIX = "meet.video.justice.gov.uk"
 
 object CourtEmailFactory {
@@ -439,5 +440,5 @@ object CourtEmailFactory {
     require(isStatus(CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
   }
 
-  private fun VideoBooking.fullCvpVideoUrl() = hmctsNumber?.let { "HMCTS$it@$DEFAULT_COURT_URL_SUFFIX" } ?: videoUrl
+  private fun VideoBooking.fullCvpVideoUrl() = hmctsNumber?.let { "${DEFAULT_COURT_URL_PREFIX}HMCTS$it@$DEFAULT_COURT_URL_SUFFIX" } ?: videoUrl
 }
