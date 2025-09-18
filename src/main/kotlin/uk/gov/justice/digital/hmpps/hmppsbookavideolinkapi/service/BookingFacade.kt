@@ -25,12 +25,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Domain
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCancelledTelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingAmendedTelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCancelledTelemetryEvent
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.ProbationBookingCreatedTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryEventFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType as RequestBookingType
@@ -162,19 +157,7 @@ class BookingFacade(
   }
 
   private fun trackTelemetry(action: BookingAction, booking: VideoBooking, user: User) {
-    when {
-      action == BookingAction.CREATE && booking.isBookingType(COURT) -> CourtBookingCreatedTelemetryEvent(booking)
-      action == BookingAction.CREATE && booking.isBookingType(PROBATION) -> ProbationBookingCreatedTelemetryEvent(booking)
-      action == BookingAction.AMEND && booking.isBookingType(COURT) -> CourtBookingAmendedTelemetryEvent(booking, user)
-      action == BookingAction.AMEND && booking.isBookingType(PROBATION) -> ProbationBookingAmendedTelemetryEvent(booking, user)
-      action == BookingAction.CANCEL && booking.isBookingType(COURT) -> CourtBookingCancelledTelemetryEvent.user(booking, user)
-      action == BookingAction.CANCEL && booking.isBookingType(PROBATION) -> ProbationBookingCancelledTelemetryEvent.user(booking, user)
-      action == BookingAction.TRANSFERRED && booking.isBookingType(COURT) -> CourtBookingCancelledTelemetryEvent.transferred(booking)
-      action == BookingAction.TRANSFERRED && booking.isBookingType(PROBATION) -> ProbationBookingCancelledTelemetryEvent.transferred(booking)
-      action == BookingAction.RELEASED && booking.isBookingType(COURT) -> CourtBookingCancelledTelemetryEvent.released(booking)
-      action == BookingAction.RELEASED && booking.isBookingType(PROBATION) -> ProbationBookingCancelledTelemetryEvent.released(booking)
-      else -> null
-    }?.let(telemetryService::track)
+    TelemetryEventFactory.event(action, booking, user)?.let(telemetryService::track)
   }
 
   private fun getPrisoner(prisonerNumber: String) = prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
