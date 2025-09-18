@@ -82,7 +82,7 @@ class CourtEmailFactoryTest {
     fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED, BookingAction.COURT_HEARING_LINK_REMINDER)
 
     @JvmStatic
-    fun supportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED, BookingAction.COURT_HEARING_LINK_REMINDER)
+    fun supportedCourtBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED, BookingAction.COURT_HEARING_LINK_REMINDER)
   }
 
   private val userEmails = mapOf(
@@ -118,6 +118,10 @@ class CourtEmailFactoryTest {
     email isInstanceOf userEmails[action]!!
 
     email?.personalisation()!! containsEntry Pair("comments", "Court hearing staff notes")
+
+    if (listOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL).contains(action)) {
+      email.personalisation() containsEntry Pair("courtHearingLink", "https://join.meet.video.justice.gov.uk/#?conference=HMCTS54321@meet.video.justice.gov.uk")
+    }
   }
 
   @ParameterizedTest
@@ -195,8 +199,8 @@ class CourtEmailFactoryTest {
 
     email?.personalisation()!! containsEntry Pair("comments", "Court hearing staff notes")
 
-    if (listOf(BookingAction.CREATE, BookingAction.CANCEL).contains(action)) {
-      email.personalisation() containsEntry Pair("courtHearingLink", "HMCTS54321@meet.video.justice.gov.uk")
+    if (listOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL).contains(action)) {
+      email.personalisation() containsEntry Pair("courtHearingLink", "https://join.meet.video.justice.gov.uk/#?conference=HMCTS54321@meet.video.justice.gov.uk")
     }
   }
 
