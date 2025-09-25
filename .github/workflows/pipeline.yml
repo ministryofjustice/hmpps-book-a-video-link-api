@@ -42,6 +42,8 @@ jobs:
     name: Run the integration tests
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_localstack_postgres_verify.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
+    needs:
+      - gradle_validate
     with:
       gradle-command: './gradlew integrationTest'
       postgres-db: book-a-video-link-test-db
