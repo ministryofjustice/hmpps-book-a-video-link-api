@@ -2,7 +2,7 @@ name: Cancel outdated waiting workflows
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 11 * * MON-FRI" # Every weekday at 11:00 UTC
+    - cron: "0 6 * * MON-FRI" # Every weekday at 06:00 UTC
 jobs:
   cancel-waiting-workflows:
     permissions:
