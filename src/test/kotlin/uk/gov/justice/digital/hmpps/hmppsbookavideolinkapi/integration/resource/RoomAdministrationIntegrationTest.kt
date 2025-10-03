@@ -18,6 +18,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
@@ -93,6 +95,63 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationStatus.name isEqualTo ModelLocationStatus.INACTIVE.name
       allowedParties.isEmpty() isBool true
       prisonVideoUrl isEqualTo "shared-prison-video-url-2"
+    }
+  }
+
+  @Test
+  fun `should create temporarily blocked probation decorated room`() {
+    locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation2)
+
+    val decoratedRoom = webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.PROBATION,
+        locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
+        blockedFrom = today(),
+        blockedTo = tomorrow(),
+      ),
+      wandsworthLocation2.toModel(),
+      PROBATION_USER,
+    )
+
+    with(decoratedRoom.extraAttributes!!) {
+      locationUsage.name isEqualTo ModelLocationUsage.PROBATION.name
+      locationStatus.name isEqualTo ModelLocationStatus.TEMPORARILY_BLOCKED.name
+      blockedFrom isEqualTo today()
+      blockedTo isEqualTo tomorrow()
+    }
+  }
+
+  @Test
+  fun `should amend temporarily blocked probation decorated room`() {
+    locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation2)
+
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.PROBATION,
+        locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
+        blockedFrom = today(),
+        blockedTo = tomorrow(),
+      ),
+      wandsworthLocation2.toModel(),
+      PROBATION_USER,
+    )
+
+    val amendedRoom = webTestClient.amendDecoratedRoom(
+      AmendDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.PROBATION,
+        locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
+        blockedFrom = today(),
+        blockedTo = tomorrow().plusDays(1),
+      ),
+      wandsworthLocation2.toModel(),
+      PROBATION_USER,
+    )
+
+    with(amendedRoom.extraAttributes!!) {
+      locationUsage.name isEqualTo ModelLocationUsage.PROBATION.name
+      locationStatus.name isEqualTo ModelLocationStatus.TEMPORARILY_BLOCKED.name
+      blockedFrom isEqualTo today()
+      blockedTo isEqualTo tomorrow().plusDays(1)
     }
   }
 
@@ -318,8 +377,8 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationUsage isEqualTo ModelLocationScheduleUsage.PROBATION
       startDayOfWeek isEqualTo DayOfWeek.of(2)
       endDayOfWeek isEqualTo DayOfWeek.of(5)
-      startTime isEqualTo java.time.LocalTime.of(9, 0)
-      endTime isEqualTo java.time.LocalTime.of(12, 0)
+      startTime isEqualTo LocalTime.of(9, 0)
+      endTime isEqualTo LocalTime.of(12, 0)
       allowedParties containsExactly setOf("PROBATION")
     }
   }

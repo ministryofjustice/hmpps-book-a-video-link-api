@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.cache.CacheManager
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
@@ -54,10 +55,19 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 abstract class IntegrationTestBase {
 
   @Autowired
+  private lateinit var cacheManager: CacheManager
+
+  @Autowired
   protected lateinit var webTestClient: WebTestClient
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthHelper
+
+  @BeforeEach
+  fun clearAllCaches() {
+    // Clear the caches so tests don't interfere with each other when stubbed API calls could overlap with another.
+    cacheManager.cacheNames.forEach { cacheManager.getCache(it)?.clear() }
+  }
 
   @BeforeEach
   fun `stub default users`() {

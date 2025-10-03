@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilitySt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.LocationAvailableRequest.Type
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -21,24 +22,12 @@ class LocationAttributesAvailableService(
     val attribute = locationAttributeRepository.findById(request.attributeId)
       .orElseThrow { EntityNotFoundException("Location attribute ${request.attributeId} not found") }
 
-    return when (request.type) {
-      LocationAvailableRequest.Type.COURT -> {
-        attribute.isAvailableFor(
-          courtRepository.findByCode(request.code) ?: throw EntityNotFoundException("Court code ${request.code} not found"),
-          request.onDate,
-          request.startTime,
-          request.endTime,
-        )
-      }
-      LocationAvailableRequest.Type.PROBATION -> {
-        attribute.isAvailableFor(
-          probationTeamRepository.findByCode(request.code) ?: throw EntityNotFoundException("Probation team ${request.code} not found"),
-          request.onDate,
-          request.startTime,
-          request.endTime,
-        )
-      }
+    val locationUsageType = when (request.type) {
+      Type.COURT -> courtRepository.findByCode(request.code) ?: throw EntityNotFoundException("Court code ${request.code} not found")
+      Type.PROBATION -> probationTeamRepository.findByCode(request.code) ?: throw EntityNotFoundException("Probation team ${request.code} not found")
     }
+
+    return attribute.isAvailableFor(locationUsageType, request.onDate, request.startTime, request.endTime)
   }
 }
 

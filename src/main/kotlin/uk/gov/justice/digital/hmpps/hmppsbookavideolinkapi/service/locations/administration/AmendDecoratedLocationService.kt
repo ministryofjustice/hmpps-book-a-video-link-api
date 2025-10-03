@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.ad
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
@@ -28,13 +29,16 @@ class AmendDecoratedLocationService(
       ?: throw EntityNotFoundException("Existing room decoration for DPS location ID $dpsLocationId not found.")
 
     locationAttributeRepository.saveAndFlush(
-      decoratedRoom.amend(
+      LocationAttribute.amend(
+        decoratedRoom,
         locationUsage = LocationUsage.valueOf(request.locationUsage!!.name),
         locationStatus = LocationStatus.valueOf(request.locationStatus!!.name),
         prisonVideoUrl = request.prisonVideoUrl,
         allowedParties = request.allowedParties ?: emptySet(),
         comments = request.comments,
         amendedBy = amendedBy,
+        blockedFrom = request.blockedFrom,
+        blockedTo = request.blockedTo,
       ),
     )
 

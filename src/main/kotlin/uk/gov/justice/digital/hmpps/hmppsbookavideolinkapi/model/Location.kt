@@ -34,14 +34,11 @@ data class RoomAttributes(
   @Schema(description = "The internal ID for this room attribute", example = "123", required = true)
   val attributeId: Long,
 
-  @Schema(description = "The status of the room (ACTIVE or INACTIVE)", example = "ACTIVE", required = true)
+  @Schema(description = "The status of the room (ACTIVE, INACTIVE, TEMPORARILY_BLOCKED)", example = "ACTIVE", required = true)
   val locationStatus: LocationStatus,
 
   @Schema(description = "An optional message relating to an inactive status", example = "Room damaged")
   val statusMessage: String?,
-
-  @Schema(description = "The date the room is expected to be operational again", example = "2025-02-12")
-  val expectedActiveDate: LocalDate?,
 
   @Schema(description = "The preferred usage for this room (COURT, PROBATION, SHARED, BLOCKED, SCHEDULE)", example = "SHARED", required = true)
   val locationUsage: LocationUsage,
@@ -56,6 +53,12 @@ data class RoomAttributes(
   val notes: String?,
 
   val schedule: List<RoomSchedule> = emptyList(),
+
+  @Schema(description = "The start date which a room is blocked from. Only applies to temporarily blocked rooms.")
+  val blockedFrom: LocalDate? = null,
+
+  @Schema(description = "The end date which a room is blocked to. Only applies to temporarily blocked rooms.")
+  val blockedTo: LocalDate? = null,
 )
 
 @Schema(description = "The additional schedule of usage for a video room")

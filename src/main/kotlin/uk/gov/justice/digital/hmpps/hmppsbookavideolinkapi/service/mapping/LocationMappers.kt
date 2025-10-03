@@ -29,12 +29,13 @@ fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   attributeId = this.locationAttributeId,
   locationStatus = LocationStatus.valueOf(this.locationStatus.name),
   statusMessage = this.statusMessage,
-  expectedActiveDate = this.expectedActiveDate,
   locationUsage = LocationUsage.valueOf(this.locationUsage.name),
   allowedParties = this.allowedParties.let { this.allowedParties?.split(",") } ?: emptyList(),
   prisonVideoUrl = this.prisonVideoUrl,
   notes = this.notes,
   schedule = this.schedule().toRoomSchedule(),
+  blockedTo = this.blockedTo,
+  blockedFrom = this.blockedFrom,
 )
 
 fun List<LocationSchedule>.toRoomSchedule() = map { it.toModel() }

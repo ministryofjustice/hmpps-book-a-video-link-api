@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
+import java.time.LocalDate
 
 data class CreateDecoratedRoomRequest(
   @field:NotNull(message = "The location usage is mandatory")
@@ -25,4 +27,12 @@ data class CreateDecoratedRoomRequest(
   @field:Size(max = 400, message = "Comments should not exceed {max} characters")
   @Schema(description = "Optional comments for the decorated location, can be null", example = "Temporarily unavailable due to ongoing work", required = false)
   val comments: String? = null,
+
+  @field:FutureOrPresent(message = "The blocked from date must be in the future or present")
+  @Schema(description = "The start date which a location is blocked from. Only applies to temporarily blocked locations.", required = false)
+  val blockedFrom: LocalDate? = null,
+
+  @field:FutureOrPresent(message = "The blocked to date must be in the future or present")
+  @Schema(description = "The end date which a location is blocked to, must be on or after the blocked from date. Only applies to temporarily blocked locations.", required = false)
+  val blockedTo: LocalDate? = null,
 )

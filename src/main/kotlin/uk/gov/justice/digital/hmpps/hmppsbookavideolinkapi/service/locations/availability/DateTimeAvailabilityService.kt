@@ -18,9 +18,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 
 /**
- * This provides a snapshot (date and time) of available rooms at time of calling. Note this does not guarantee the
- * rooms can be booked, by the time the user attempts to save the booking the room could already have been taken by
- * another user of the service.
+ * This provides a snapshot of available rooms at the time of calling for the given date and time. Note this does not
+ * guarantee the rooms can be booked, by the time the user attempts to save the booking, the room could already have
+ * been taken by another user of the service.
  */
 @Service
 @Transactional
@@ -95,7 +95,7 @@ class DateTimeAvailabilityService(
     location.dpsLocationId == prisonAppointment.prisonLocationId && prisonAppointment.appointmentDate == request.date && prisonAppointment.startTime == request.startTime && prisonAppointment.endTime == request.endTime
   }
 
-  protected fun Location.allowsByAnyRuleOrSchedule(request: DateTimeAvailabilityRequest): AvailabilityStatus {
+  private fun Location.allowsByAnyRuleOrSchedule(request: DateTimeAvailabilityRequest): AvailabilityStatus {
     if (extraAttributes != null) {
       return when (request.bookingType!!) {
         BookingType.COURT -> locationAttributesService.isLocationAvailableFor(
