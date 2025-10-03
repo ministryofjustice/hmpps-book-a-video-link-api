@@ -82,7 +82,6 @@ fun locationAttributes() = RoomAttributes(
   attributeId = 1,
   locationUsage = LocationUsage.SHARED,
   locationStatus = LocationStatus.ACTIVE,
-  expectedActiveDate = LocalDate.now(),
   notes = null,
   prisonVideoUrl = "decorated-video-link-url",
   statusMessage = null,

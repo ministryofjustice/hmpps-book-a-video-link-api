@@ -1,13 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.cache.CacheManager
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -146,19 +144,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Autowired
   private lateinit var prisonRepository: PrisonRepository
-
-  @Autowired
-  private lateinit var cacheManager: CacheManager
-
-  @BeforeEach
-  fun before() {
-    // Some location endpoints are being cached, so we need to clear them so as not to impact the unit tests in this class.
-    cacheManager.clearAllCaches()
-  }
-
-  private fun CacheManager.clearAllCaches() {
-    cacheNames.forEach { cacheManager.getCache(it)?.clear() }
-  }
 
   @Test
   fun `should create a Derby court booking as court users and emails sent to Pentonville prison`() {

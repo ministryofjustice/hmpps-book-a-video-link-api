@@ -18,9 +18,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.Loc
 import java.time.LocalTime
 
 /**
- * This provides a snapshot (time slot) of available rooms at time of calling. Note this does not guarantee the
- * rooms can be booked, by the time the user attempts to save the booking the room could already have been taken by
- * another user of the service.
+ * This provides a snapshot of available rooms at the time of calling in the given time slot(s). Note this does not
+ * guarantee the rooms can be booked, by the time the user attempts to save the booking, the room could already have
+ * been taken by another user of the service.
  *
  * This service works on the principle of the single room model. For example, it won't provide times for pre/main/post
  * court hearings at different locations, the assumption is they would all be in the same room.
