@@ -295,7 +295,7 @@ class CsvDataExtractionServiceTest {
       "MDI,\"HMP Moorland\",MDI-RM-6,\"Room 6\",/video-link-url,Customised,Active,Court,,No\n" +
       "MDI,\"HMP Moorland\",MDI-RM-7,\"Room 7\",/video-link-url,Customised,Active,Probation,TeamA:TeamB,No\n" +
       "MDI,\"HMP Moorland\",MDI-RM-8,\"Room 8\",/video-link-url,Customised,\"Out of use\",Court,,No\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-9,\"Room 9\",/video-link-url,Customised,\"Temporarily blocked\",Shared,,No\n"
+      "MDI,\"HMP Moorland\",MDI-RM-9,\"Room 9\",/video-link-url,Customised,Blocked,Shared,,No\n"
   }
 
   private val listOfPrisons = listOf(
@@ -330,7 +330,6 @@ class CsvDataExtractionServiceTest {
     prisonVideoUrl = "/video-link-url",
     allowedParties = emptyList(),
     notes = null,
-    statusMessage = null,
     schedule = roomSchedules,
   )
 

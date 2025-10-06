@@ -34,8 +34,6 @@ class LocationAttribute private constructor(
   @JoinColumn(name = "prison_id")
   val prison: Prison,
 
-  val statusMessage: String? = null,
-
   val createdBy: String,
 
   val createdTime: LocalDateTime = LocalDateTime.now(),

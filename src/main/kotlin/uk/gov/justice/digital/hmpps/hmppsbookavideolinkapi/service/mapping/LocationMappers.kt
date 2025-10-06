@@ -28,7 +28,6 @@ fun List<Location>.toModel(attributes: List<LocationAttribute>) = map {
 fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   attributeId = this.locationAttributeId,
   locationStatus = LocationStatus.valueOf(this.locationStatus.name),
-  statusMessage = this.statusMessage,
   locationUsage = LocationUsage.valueOf(this.locationUsage.name),
   allowedParties = this.allowedParties.let { this.allowedParties?.split(",") } ?: emptyList(),
   prisonVideoUrl = this.prisonVideoUrl,

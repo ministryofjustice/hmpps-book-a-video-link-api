@@ -37,9 +37,6 @@ data class RoomAttributes(
   @Schema(description = "The status of the room (ACTIVE, INACTIVE, TEMPORARILY_BLOCKED)", example = "ACTIVE", required = true)
   val locationStatus: LocationStatus,
 
-  @Schema(description = "An optional message relating to an inactive status", example = "Room damaged")
-  val statusMessage: String?,
-
   @Schema(description = "The preferred usage for this room (COURT, PROBATION, SHARED, BLOCKED, SCHEDULE)", example = "SHARED", required = true)
   val locationUsage: LocationUsage,
 
