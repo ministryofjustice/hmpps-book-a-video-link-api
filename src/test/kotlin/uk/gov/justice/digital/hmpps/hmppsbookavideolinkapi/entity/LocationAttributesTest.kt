@@ -6,6 +6,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -251,6 +252,52 @@ class LocationAttributesTest {
         comments = null,
       )
     }.message isEqualTo "The blocked to date must be on after the blocked from date."
+  }
+
+  @Test
+  fun `should be reactivate a blocked booking`() {
+    val blockedRoom = LocationAttribute.decoratedRoom(
+      dpsLocationId = UUID.randomUUID(),
+      prison = pentonvillePrison,
+      locationUsage = LocationUsage.PROBATION,
+      locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      notes = null,
+      blockedFrom = today(),
+      blockedTo = tomorrow(),
+      createdBy = PROBATION_USER,
+    )
+
+    val activeRoom = LocationAttribute.reactivate(blockedRoom, SERVICE_USER)
+
+    with(activeRoom) {
+      locationStatus isEqualTo LocationStatus.ACTIVE
+      blockedFrom isEqualTo null
+      blockedTo isEqualTo null
+      amendedBy isEqualTo SERVICE_USER.username
+      amendedTime isCloseTo LocalDateTime.now()
+    }
+  }
+
+  @Test
+  fun `should be fail to reactivate when room is not blocked`() {
+    val activeRoom = LocationAttribute.decoratedRoom(
+      dpsLocationId = UUID.randomUUID(),
+      prison = pentonvillePrison,
+      locationUsage = LocationUsage.PROBATION,
+      locationStatus = LocationStatus.ACTIVE,
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      notes = null,
+      blockedFrom = today(),
+      blockedTo = tomorrow(),
+      createdBy = PROBATION_USER,
+    )
+
+    assertThrows<IllegalArgumentException> {
+      LocationAttribute.reactivate(activeRoom, SERVICE_USER)
+    }.message isEqualTo "Cannot reactivate a location attribute that is not currently temporarily blocked."
   }
 
   @Nested

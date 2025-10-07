@@ -16,6 +16,7 @@ import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -129,18 +130,18 @@ class LocationAttribute private constructor(
   override fun toString(): String = this::class.simpleName +
     "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
 
-  fun isAvailableFor(usageType: LocationUsageType, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
+  fun isAvailableFor(bookingType: LocationBookingType, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
     if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED && onDate.between(blockedFrom!!, blockedTo)) return AvailabilityStatus.NONE
 
-    when (usageType) {
-      is Court -> check(usageType, onDate, startTime, endTime)
-      is ProbationTeam -> check(usageType, onDate, startTime, endTime)
+    when (bookingType) {
+      is Court -> checkCourt(bookingType, onDate, startTime, endTime)
+      is ProbationTeam -> checkProbation(bookingType, onDate, startTime, endTime)
     }
   }
 
-  private fun check(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
+  private fun checkProbation(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
     return when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.PROBATION -> when {
@@ -180,7 +181,7 @@ class LocationAttribute private constructor(
     }
   }
 
-  private fun check(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
+  private fun checkCourt(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
     return when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.COURT -> when {
@@ -301,6 +302,20 @@ class LocationAttribute private constructor(
         this.blockedTo = blockedTo.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
       }
     }
+
+    fun reactivate(locationAttributeToReactivate: LocationAttribute, activatedBy: User) = run {
+      require(locationAttributeToReactivate.locationStatus == LocationStatus.TEMPORARILY_BLOCKED) {
+        "Cannot reactivate a location attribute that is not currently temporarily blocked."
+      }
+
+      locationAttributeToReactivate.apply {
+        this.locationStatus = LocationStatus.ACTIVE
+        this.amendedBy = activatedBy.username
+        this.amendedTime = LocalDateTime.now()
+        this.blockedFrom = null
+        this.blockedTo = null
+      }
+    }
   }
 }
 
@@ -327,4 +342,4 @@ enum class AvailabilityStatus {
 }
 
 // A marker interface to help identify the types of supported location usages e.g., Court, ProbationTeam
-sealed interface LocationUsageType
+sealed interface LocationBookingType

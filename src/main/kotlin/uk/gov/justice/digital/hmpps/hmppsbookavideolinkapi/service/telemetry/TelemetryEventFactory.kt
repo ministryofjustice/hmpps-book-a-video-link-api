@@ -14,10 +14,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 object TelemetryEventFactory {
 
   fun event(action: BookingAction, booking: VideoBooking, user: User): TelemetryEvent? = run {
-    when {
-      booking.isBookingType(COURT) -> courtEvent(action, booking, user)
-      booking.isBookingType(PROBATION) -> probationEvent(action, booking, user)
-      else -> throw IllegalArgumentException("Unsupported booking type for telemetry.")
+    when (booking.bookingType) {
+      COURT -> courtEvent(action, booking, user)
+      PROBATION -> probationEvent(action, booking, user)
     }
   }
 

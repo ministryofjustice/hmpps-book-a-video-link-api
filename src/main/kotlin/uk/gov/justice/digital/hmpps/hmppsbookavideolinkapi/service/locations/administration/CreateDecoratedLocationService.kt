@@ -13,6 +13,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.LocationAttributeTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.util.UUID
 
 @Service
@@ -20,6 +22,7 @@ class CreateDecoratedLocationService(
   private val locationAttributeRepository: LocationAttributeRepository,
   private val locationsService: LocationsService,
   private val prisonRepository: PrisonRepository,
+  private val telemetryService: TelemetryService,
 ) {
   @Transactional
   fun create(dpsLocationId: UUID, request: CreateDecoratedRoomRequest, createdBy: ExternalUser): Location {
@@ -41,7 +44,7 @@ class CreateDecoratedLocationService(
         createdBy = createdBy,
         blockedFrom = request.blockedFrom,
         blockedTo = request.blockedTo,
-      ),
+      ).also { telemetryService.track(LocationAttributeTelemetryEvent(it, createdBy)) },
     ).let { location.copy(extraAttributes = it.toRoomAttributes()) }
   }
 }

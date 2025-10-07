@@ -31,7 +31,7 @@ class Court(
   val createdBy: String,
 
   val createdTime: LocalDateTime = LocalDateTime.now(),
-) : LocationUsageType {
+) : LocationBookingType {
   var amendedBy: String? = null
     private set
 

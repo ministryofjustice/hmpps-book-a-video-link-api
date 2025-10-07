@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.ad
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
@@ -11,14 +12,17 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationScheduleRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration.AmendDecoratedLocationService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.LocationAttributeTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
@@ -28,7 +32,8 @@ class AmendDecoratedLocationsServiceTest {
   private val locationsService: LocationsService = mock()
   private val locationAttributeRepository: LocationAttributeRepository = mock()
   private val locationScheduleRepository: LocationScheduleRepository = mock()
-  private val service = AmendDecoratedLocationService(locationsService, locationAttributeRepository, locationScheduleRepository)
+  private val telemetryService: TelemetryService = mock()
+  private val service = AmendDecoratedLocationService(locationsService, locationAttributeRepository, locationScheduleRepository, telemetryService)
   private val decoratedRoom = LocationAttribute.decoratedRoom(
     dpsLocationId = wandsworthLocation.id,
     prison = wandsworthPrison,
@@ -39,6 +44,7 @@ class AmendDecoratedLocationsServiceTest {
     notes = "some comments",
     createdBy = COURT_USER,
   )
+  private val telemetryEventCaptor = argumentCaptor<TelemetryEvent>()
 
   @Test
   fun `should amend already decorated room`() {
@@ -77,6 +83,9 @@ class AmendDecoratedLocationsServiceTest {
     }
 
     verify(locationAttributeRepository).saveAndFlush(decoratedRoom)
+
+    verify(telemetryService).track(telemetryEventCaptor.capture())
+    telemetryEventCaptor.firstValue isInstanceOf LocationAttributeTelemetryEvent::class.java
   }
 
   @Test

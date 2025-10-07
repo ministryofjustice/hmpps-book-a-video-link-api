@@ -15,6 +15,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationSc
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.LocationAttributeTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import java.util.UUID
 
 @Service
@@ -23,6 +25,7 @@ class AmendDecoratedLocationService(
   private val locationsService: LocationsService,
   private val locationAttributeRepository: LocationAttributeRepository,
   private val locationScheduleRepository: LocationScheduleRepository,
+  private val telemetryService: TelemetryService,
 ) {
   fun amend(dpsLocationId: UUID, request: AmendDecoratedRoomRequest, amendedBy: ExternalUser): Location {
     val decoratedRoom = locationAttributeRepository.findByDpsLocationId(dpsLocationId)
@@ -39,7 +42,7 @@ class AmendDecoratedLocationService(
         amendedBy = amendedBy,
         blockedFrom = request.blockedFrom,
         blockedTo = request.blockedTo,
-      ),
+      ).also { telemetryService.track(LocationAttributeTelemetryEvent(it, amendedBy)) },
     )
 
     return locationsService.getLocationById(dpsLocationId) ?: throw EntityNotFoundException("DPS location with ID $dpsLocationId not found.")
