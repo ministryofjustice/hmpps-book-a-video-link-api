@@ -133,8 +133,6 @@ class DateTimeAvailabilityServiceTest {
       extraAttributes = RoomAttributes(
         attributeId = 1,
         locationStatus = LocationStatus.ACTIVE,
-        statusMessage = null,
-        yesterday(),
         LocationUsage.PROBATION,
         allowedParties = emptyList(),
         prisonVideoUrl = null,
@@ -146,8 +144,6 @@ class DateTimeAvailabilityServiceTest {
       extraAttributes = RoomAttributes(
         attributeId = 2,
         locationStatus = LocationStatus.ACTIVE,
-        statusMessage = null,
-        yesterday(),
         LocationUsage.PROBATION,
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,

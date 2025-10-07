@@ -39,6 +39,8 @@ class CreateDecoratedLocationService(
         prisonVideoUrl = request.prisonVideoUrl,
         notes = request.comments,
         createdBy = createdBy,
+        blockedFrom = request.blockedFrom,
+        blockedTo = request.blockedTo,
       ),
     ).let { location.copy(extraAttributes = it.toRoomAttributes()) }
   }

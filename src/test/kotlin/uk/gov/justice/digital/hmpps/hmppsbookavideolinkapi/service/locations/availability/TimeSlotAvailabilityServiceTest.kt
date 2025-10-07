@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
@@ -341,8 +340,6 @@ class TimeSlotAvailabilityServiceTest {
       extraAttributes = RoomAttributes(
         attributeId = 1,
         locationStatus = LocationStatus.ACTIVE,
-        statusMessage = null,
-        yesterday(),
         LocationUsage.PROBATION,
         allowedParties = emptyList(),
         prisonVideoUrl = null,
@@ -354,8 +351,6 @@ class TimeSlotAvailabilityServiceTest {
       extraAttributes = RoomAttributes(
         attributeId = 2,
         locationStatus = LocationStatus.ACTIVE,
-        statusMessage = null,
-        yesterday(),
         LocationUsage.PROBATION,
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,
@@ -569,7 +564,7 @@ class TimeSlotAvailabilityServiceTest {
     endTime = endTime,
     dpsLocationKey = location.key,
     dpsLocationId = location.dpsLocationId,
-    usage = usage?.let { uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage.valueOf(usage.name) },
+    usage = usage?.let { LocationUsage.valueOf(usage.name) },
     timeSlot = slot(startTime),
   )
 }

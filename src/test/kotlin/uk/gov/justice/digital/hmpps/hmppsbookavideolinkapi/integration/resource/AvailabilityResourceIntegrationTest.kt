@@ -5,25 +5,42 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.TimeSlot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.DateTimeAvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.LocationAndInterval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlotAvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailabilityResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
 import java.time.LocalTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
 
 class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
   @Autowired
@@ -213,6 +230,117 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     }
   }
 
+  @Test
+  fun `should find 16 available times in the morning for room 1 by time slot when nothing booked tomorrow`() {
+    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
+
+    val response = webTestClient.findByTimeSlot(
+      TimeSlotAvailabilityRequest(
+        prisonCode = RISLEY,
+        bookingType = BookingType.PROBATION,
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        date = tomorrow(),
+        timeSlots = listOf(TimeSlot.AM),
+        courtCode = null,
+        bookingDuration = 30,
+        vlbIdToExclude = null,
+      ),
+    )
+
+    response.locations hasSize 16
+    response.locations.all { it.name == risleyLocation.localName } isBool true
+  }
+
+  @Test
+  fun `should find no available times in the morning if room is blocked`() {
+    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
+
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.PROBATION,
+        locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
+        blockedFrom = today(),
+        blockedTo = tomorrow(),
+      ),
+      risleyLocation.toModel(),
+      PROBATION_USER,
+    )
+
+    val response = webTestClient.findByTimeSlot(
+      TimeSlotAvailabilityRequest(
+        prisonCode = RISLEY,
+        bookingType = BookingType.PROBATION,
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        date = tomorrow(),
+        timeSlots = listOf(TimeSlot.AM),
+        courtCode = null,
+        bookingDuration = 30,
+        vlbIdToExclude = null,
+      ),
+    )
+
+    response.locations hasSize 0
+  }
+
+  @Test
+  fun `should find two available room by date and time when nothing booked tomorrow`() {
+    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
+
+    val response = webTestClient.findByDateAndTime(
+      DateTimeAvailabilityRequest(
+        prisonCode = RISLEY,
+        bookingType = BookingType.COURT,
+        courtCode = DERBY_JUSTICE_CENTRE,
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(9, 30),
+        probationTeamCode = null,
+        appointmentToExclude = null,
+      ),
+    )
+
+    response.locations hasSize 2
+    response.locations.single { it.name == risleyLocation.localName }
+    response.locations.single { it.name == risleyLocation2.localName }
+  }
+
+  @Test
+  fun `should find one available room by date and time when one room is blocked and nothing booked tomorrow`() {
+    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
+
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.PROBATION,
+        locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
+        blockedFrom = today(),
+        blockedTo = tomorrow(),
+      ),
+      risleyLocation.toModel(),
+      PROBATION_USER,
+    )
+
+    val response = webTestClient.findByDateAndTime(
+      DateTimeAvailabilityRequest(
+        prisonCode = RISLEY,
+        bookingType = BookingType.COURT,
+        courtCode = DERBY_JUSTICE_CENTRE,
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(9, 30),
+        probationTeamCode = null,
+        appointmentToExclude = null,
+      ),
+    )
+
+    response.locations hasSize 1
+    response.locations.single { it.name == risleyLocation2.localName }
+  }
+
   private fun WebTestClient.availabilityCheck(request: AvailabilityRequest) = this
     .post()
     .uri("/availability")
@@ -223,5 +351,41 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
     .expectBody(AvailabilityResponse::class.java)
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.findByTimeSlot(request: TimeSlotAvailabilityRequest) = this
+    .post()
+    .uri("/availability/by-time-slot")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(AvailableLocationsResponse::class.java)
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.findByDateAndTime(request: DateTimeAvailabilityRequest) = this
+    .post()
+    .uri("/availability/by-date-and-time")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(AvailableLocationsResponse::class.java)
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.createDecoratedRoom(request: CreateDecoratedRoomRequest, location: Location, user: ExternalUser) = this
+    .post()
+    .uri("/room-admin/${location.dpsLocationId}")
+    .bodyValue(request)
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isCreated
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(Location::class.java)
     .returnResult().responseBody!!
 }

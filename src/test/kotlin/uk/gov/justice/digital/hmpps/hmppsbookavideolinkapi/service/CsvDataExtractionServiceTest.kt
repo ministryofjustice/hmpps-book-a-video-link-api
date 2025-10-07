@@ -293,7 +293,9 @@ class CsvDataExtractionServiceTest {
       "MDI,\"HMP Moorland\",MDI-RM-4,\"Room 4\",/video-link-url,Customised,Active,Shared,,No\n" +
       "MDI,\"HMP Moorland\",MDI-RM-5,\"Room 5\",/video-link-url,Customised,Active,Probation,,No\n" +
       "MDI,\"HMP Moorland\",MDI-RM-6,\"Room 6\",/video-link-url,Customised,Active,Court,,No\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-7,\"Room 7\",/video-link-url,Customised,Active,Probation,TeamA:TeamB,No\n"
+      "MDI,\"HMP Moorland\",MDI-RM-7,\"Room 7\",/video-link-url,Customised,Active,Probation,TeamA:TeamB,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-8,\"Room 8\",/video-link-url,Customised,\"Out of use\",Court,,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-9,\"Room 9\",/video-link-url,Customised,Blocked,Shared,,No\n"
   }
 
   private val listOfPrisons = listOf(
@@ -328,8 +330,6 @@ class CsvDataExtractionServiceTest {
     prisonVideoUrl = "/video-link-url",
     allowedParties = emptyList(),
     notes = null,
-    expectedActiveDate = null,
-    statusMessage = null,
     schedule = roomSchedules,
   )
 
@@ -338,7 +338,9 @@ class CsvDataExtractionServiceTest {
   private val roomAttributes4 = roomAttributes1.copy(attributeId = 4L, schedule = emptyList(), locationUsage = LocationUsage.SHARED)
   private val roomAttributes5 = roomAttributes1.copy(attributeId = 5L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION)
   private val roomAttributes6 = roomAttributes1.copy(attributeId = 6L, schedule = emptyList(), locationUsage = LocationUsage.COURT)
-  private val roomAttributes7 = roomAttributes1.copy(attributeId = 6L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION, allowedParties = listOf("A", "B"))
+  private val roomAttributes7 = roomAttributes1.copy(attributeId = 7L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION, allowedParties = listOf("A", "B"))
+  private val roomAttributes8 = roomAttributes1.copy(attributeId = 8L, schedule = emptyList(), locationUsage = LocationUsage.COURT, locationStatus = LocationStatus.INACTIVE)
+  private val roomAttributes9 = roomAttributes1.copy(attributeId = 9L, schedule = emptyList(), locationUsage = LocationUsage.SHARED, locationStatus = LocationStatus.TEMPORARILY_BLOCKED, blockedFrom = today(), blockedTo = today())
 
   private val locationsAtMoorland = listOf(
     Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-1", prisonCode = "MDI", description = "Room 1", enabled = true, extraAttributes = roomAttributes1),
@@ -348,6 +350,8 @@ class CsvDataExtractionServiceTest {
     Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-5", prisonCode = "MDI", description = "Room 5", enabled = true, extraAttributes = roomAttributes5),
     Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-6", prisonCode = "MDI", description = "Room 6", enabled = true, extraAttributes = roomAttributes6),
     Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-7", prisonCode = "MDI", description = "Room 7", enabled = true, extraAttributes = roomAttributes7),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-8", prisonCode = "MDI", description = "Room 8", enabled = true, extraAttributes = roomAttributes8),
+    Location(dpsLocationId = UUID.randomUUID(), key = "MDI-RM-9", prisonCode = "MDI", description = "Room 9", enabled = true, extraAttributes = roomAttributes9),
   )
 
   private val listOfCourts = listOf(

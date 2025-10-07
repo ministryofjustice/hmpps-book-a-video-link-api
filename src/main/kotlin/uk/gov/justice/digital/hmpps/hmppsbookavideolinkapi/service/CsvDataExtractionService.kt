@@ -413,6 +413,7 @@ data class RoomItem(
       when (it) {
         LocationStatus.ACTIVE -> "Active"
         LocationStatus.INACTIVE -> "Out of use"
+        LocationStatus.TEMPORARILY_BLOCKED -> "Blocked"
       }
     } ?: "Active",
     permission = location.extraAttributes?.locationUsage?.let {

@@ -13,6 +13,8 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,10 +33,6 @@ class LocationAttribute private constructor(
   @OneToOne
   @JoinColumn(name = "prison_id")
   val prison: Prison,
-
-  val statusMessage: String? = null,
-
-  val expectedActiveDate: LocalDate? = null,
 
   val createdBy: String,
 
@@ -63,29 +61,16 @@ class LocationAttribute private constructor(
   var amendedTime: LocalDateTime? = null
     private set
 
+  var blockedFrom: LocalDate? = null
+    private set
+
+  var blockedTo: LocalDate? = null
+    private set
+
   @OneToMany(mappedBy = "locationAttribute", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val locationSchedule: MutableList<LocationSchedule> = mutableListOf()
 
-  fun amend(
-    locationStatus: LocationStatus,
-    locationUsage: LocationUsage,
-    allowedParties: Set<String>,
-    prisonVideoUrl: String?,
-    comments: String?,
-    amendedBy: ExternalUser,
-  ) = apply {
-    this.locationStatus = locationStatus
-    this.locationUsage = locationUsage
-    this.prisonVideoUrl = prisonVideoUrl
-    this.notes = comments
-    this.amendedBy = amendedBy.username
-    this.amendedTime = LocalDateTime.now()
-    this.allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(",")
-  }
-
   fun schedule() = locationSchedule.toList()
-
-  fun isLocationUsage(usage: LocationUsage) = locationUsage == usage
 
   /**
    * You can add a schedule row to a location attribute even when it is not a scheduled attribute, however it won't have
@@ -144,11 +129,18 @@ class LocationAttribute private constructor(
   override fun toString(): String = this::class.simpleName +
     "(locationAttributeId = $locationAttributeId, prisonId = ${prison.prisonId}, dpsLocationId = $dpsLocationId)"
 
-  fun isAvailableFor(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = check(probationTeam, onDate, startTime, endTime)
-
-  private fun check(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
+  fun isAvailableFor(usageType: LocationUsageType, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
+    if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED && onDate.between(blockedFrom!!, blockedTo)) return AvailabilityStatus.NONE
+
+    when (usageType) {
+      is Court -> check(usageType, onDate, startTime, endTime)
+      is ProbationTeam -> check(usageType, onDate, startTime, endTime)
+    }
+  }
+
+  private fun check(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
     return when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.PROBATION -> when {
@@ -178,21 +170,17 @@ class LocationAttribute private constructor(
       fallsWithin(freeForProbationTeam) -> AvailabilityStatus.PROBATION_ROOM
       fallsWithin(freeForAnyProbationTeam) -> AvailabilityStatus.PROBATION_ANY
 
-      // If none of the above match we need to make sure the requested probation slot date and times to not overlap any court schedules
+      // If none of the above match, we need to make sure the requested probation slot date and times to not overlap any court schedules
       fallsWithin(overlapsWithCourtSlot) -> AvailabilityStatus.NONE
 
-      // If none of the above match we need to make sure the requested probation slot date and times to not overlap any other probation team room schedules
+      // If none of the above match, we need to make sure the requested probation slot date and times to not overlap any other probation team room schedules
       fallsWithin(overlapsWithOtherProbationTeamSlot) -> AvailabilityStatus.NONE
 
       else -> AvailabilityStatus.SHARED
     }
   }
 
-  fun isAvailableFor(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = check(court, onDate, startTime, endTime)
-
   private fun check(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
-    if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
-
     return when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.COURT -> when {
@@ -222,10 +210,10 @@ class LocationAttribute private constructor(
       fallsWithin(freeForCourtRoom) -> AvailabilityStatus.COURT_ROOM
       fallsWithin(freeForAnyCourtRoom) -> AvailabilityStatus.COURT_ANY
 
-      // If none of the above match we need to make sure the requested court slot date and times to not overlap any probation schedules
+      // If none of the above match, we need to make sure the requested court slot date and times to not overlap any probation schedules
       fallsWithin(overlapsWithProbationSlot) -> AvailabilityStatus.NONE
 
-      // If none of the above match we need to make sure the requested court slot date and times to not overlap any other court room schedules
+      // If none of the above match, we need to make sure the requested court slot date and times to not overlap any other court room schedules
       fallsWithin(overlapsWithOtherCourtRoomSlot) -> AvailabilityStatus.NONE
 
       else -> AvailabilityStatus.SHARED
@@ -245,17 +233,73 @@ class LocationAttribute private constructor(
       locationStatus: LocationStatus,
       prisonVideoUrl: String?,
       notes: String?,
+      blockedFrom: LocalDate? = null,
+      blockedTo: LocalDate? = null,
       createdBy: ExternalUser,
     ) = LocationAttribute(
       dpsLocationId = dpsLocationId,
       prison = prison,
       createdBy = createdBy.username,
     ).apply {
+      if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED) {
+        require(blockedFrom != null && blockedTo != null) {
+          "Cannot create a temporary location attribute without a blocked from and blocked to date."
+        }
+
+        requireNot(blockedFrom.isBefore(LocalDate.now())) {
+          "The blocked from date must be today or later."
+        }
+
+        requireNot(blockedFrom.isAfter(blockedTo)) {
+          "The blocked to date must be on after the blocked from date."
+        }
+      }
+
       this.locationStatus = locationStatus
       this.locationUsage = locationUsage
       this.prisonVideoUrl = prisonVideoUrl
       this.notes = notes
       this.allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(",")
+      this.blockedFrom = blockedFrom.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
+      this.blockedTo = blockedTo.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
+    }
+
+    fun amend(
+      locationAttributeToAmend: LocationAttribute,
+      locationStatus: LocationStatus,
+      locationUsage: LocationUsage,
+      allowedParties: Set<String>,
+      prisonVideoUrl: String?,
+      comments: String?,
+      blockedFrom: LocalDate? = null,
+      blockedTo: LocalDate? = null,
+      amendedBy: ExternalUser,
+    ) = run {
+      if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED) {
+        require(blockedFrom != null && blockedTo != null) {
+          "Cannot amend a temporary blocked location attribute without a blocked from and blocked to date."
+        }
+
+        requireNot(blockedFrom.isAfter(blockedTo)) {
+          "The blocked to date must be on after the blocked from date."
+        }
+
+        requireNot(blockedTo.isBefore(LocalDate.now())) {
+          "The blocked to date must be today or later."
+        }
+      }
+
+      locationAttributeToAmend.apply {
+        this.locationStatus = locationStatus
+        this.locationUsage = locationUsage
+        this.prisonVideoUrl = prisonVideoUrl
+        this.notes = comments
+        this.amendedBy = amendedBy.username
+        this.amendedTime = LocalDateTime.now()
+        this.allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(",")
+        this.blockedFrom = blockedFrom.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
+        this.blockedTo = blockedTo.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
+      }
     }
   }
 }
@@ -263,6 +307,7 @@ class LocationAttribute private constructor(
 enum class LocationStatus {
   ACTIVE,
   INACTIVE,
+  TEMPORARILY_BLOCKED,
 }
 
 enum class LocationUsage {
@@ -280,3 +325,6 @@ enum class AvailabilityStatus {
   SHARED,
   NONE,
 }
+
+// A marker interface to help identify the types of supported location usages e.g., Court, ProbationTeam
+sealed interface LocationUsageType
