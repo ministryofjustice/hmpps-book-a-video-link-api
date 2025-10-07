@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttrib
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributesWithoutSchedule
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPrison
@@ -22,6 +23,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.Loc
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration.CreateDecoratedLocationService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.LocationAttributeTelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryEvent
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus as EntityLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage as EntityLocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
@@ -31,12 +35,15 @@ class CreateDecoratedLocationsServiceTest {
   private val locationsService: LocationsService = mock()
   private val prisonRepository: PrisonRepository = mock()
   private val locationAttributeRepository: LocationAttributeRepository = mock()
+  private val telemetryService: TelemetryService = org.mockito.kotlin.mock()
   private val service = CreateDecoratedLocationService(
     locationAttributeRepository,
     locationsService,
     prisonRepository,
+    telemetryService,
   )
   private val locationAttributeCaptor = argumentCaptor<LocationAttribute>()
+  private val telemetryEventCaptor = argumentCaptor<TelemetryEvent>()
 
   @Test
   fun `should create an active decorated location`() {
@@ -70,6 +77,9 @@ class CreateDecoratedLocationsServiceTest {
       allowedParties isEqualTo "DRBYMC,DRBYCC"
       notes isEqualTo "some comments"
     }
+
+    verify(telemetryService).track(telemetryEventCaptor.capture())
+    telemetryEventCaptor.firstValue isInstanceOf LocationAttributeTelemetryEvent::class.java
   }
 
   @Test
