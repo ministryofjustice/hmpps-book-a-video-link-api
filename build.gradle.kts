@@ -1,12 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
-import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
-import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.1"
-  id("org.openapi.generator") version "7.15.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.2"
+  id("org.openapi.generator") version "7.16.0"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
   id("dev.zacsweers.redacted") version "1.15.0"
@@ -81,14 +79,6 @@ tasks {
     compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
     compilerOptions.freeCompilerArgs.add("-Xannotation-default-target=param-property")
     compilerOptions.freeCompilerArgs.add("-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled")
-  }
-  withType<KtLintCheckTask> {
-    // Under gradle 8 we must declare the dependency here, even if we're not going to be linting the model
-    mustRunAfter("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel")
-  }
-  withType<KtLintFormatTask> {
-    // Under gradle 8 we must declare the dependency here, even if we're not going to be linting the model
-    mustRunAfter("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel")
   }
 }
 
@@ -169,11 +159,15 @@ kotlin {
   }
 }
 
+tasks.named("runKtlintCheckOverMainSourceSet") {
+  dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel")
+}
+
 configure<KtlintExtension> {
   filter {
     generatedProjectDirs.forEach { generatedProject ->
       exclude { element ->
-        element.file.path.contains("build/generated/$generatedProject/src/main/")
+        element.file.path.contains("$buildDirectory/generated/$generatedProject/src/main/")
       }
     }
   }
