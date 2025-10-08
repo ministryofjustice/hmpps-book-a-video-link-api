@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: reactivate-blocked-locations
+spec:
+  schedule:  "{{ .Values.cron.reactivateBlockedLocationsJob }}"
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 43200
+  successfulJobsHistoryLimit: 5
+  timeZone: "Europe/London"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 345600 # 4 days
+      template:
+        spec:
+          containers:
+            - name: reactivate-blocked-locations-job
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
+              args:
+                - /bin/sh
+                - -c
+                - curl --fail --retry 2 -XPOST http://hmpps-book-a-video-link-api/job-admin/run/REACTIVATE_BLOCKED_LOCATIONS
+          restartPolicy: Never

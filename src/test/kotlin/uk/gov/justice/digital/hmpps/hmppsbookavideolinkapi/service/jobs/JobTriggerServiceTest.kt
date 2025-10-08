@@ -6,6 +6,7 @@ import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType.COURT_HEARING_LINK_REMINDER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType.NEW_PRISON_VIDEO_ROOM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType.PROBATION_OFFICER_DETAILS_REMINDER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType.REACTIVATE_BLOCKED_LOCATIONS
 
 class JobTriggerServiceTest {
 
@@ -13,7 +14,8 @@ class JobTriggerServiceTest {
   private val courtHearingLinkReminderJob: CourtHearingLinkReminderJob = mock()
   private val probationOfficerDetailsReminderJob: ProbationOfficerDetailsReminderJob = mock()
   private val newPrisonVideoRoomsJob: NewPrisonVideoRoomsJob = mock()
-  private val jobTriggerService: JobTriggerService = JobTriggerService(jobRunner, courtHearingLinkReminderJob, probationOfficerDetailsReminderJob, newPrisonVideoRoomsJob)
+  private val reactivateBlockedLocationsJob: ReactivateBlockedLocationsJob = mock()
+  private val jobTriggerService: JobTriggerService = JobTriggerService(jobRunner, courtHearingLinkReminderJob, probationOfficerDetailsReminderJob, newPrisonVideoRoomsJob, reactivateBlockedLocationsJob)
 
   @Test
   fun `should run court hearing link reminder job when job type is COURT_HEARING_LINK_REMINDER`() {
@@ -31,5 +33,11 @@ class JobTriggerServiceTest {
   fun `should run new video room job when job type is NEW_VIDEO_ROOMS`() {
     jobTriggerService.run(NEW_PRISON_VIDEO_ROOM)
     verify(jobRunner).runJob(newPrisonVideoRoomsJob)
+  }
+
+  @Test
+  fun `should run reactivate blocked locations job when job type is REACTIVE_BLOCKED_LOCATIONS`() {
+    jobTriggerService.run(REACTIVATE_BLOCKED_LOCATIONS)
+    verify(jobRunner).runJob(reactivateBlockedLocationsJob)
   }
 }

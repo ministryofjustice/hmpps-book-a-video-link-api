@@ -13,6 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
@@ -33,6 +34,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -49,6 +51,7 @@ import java.time.DayOfWeek.THURSDAY
 import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalTime
+import java.util.UUID
 import kotlin.reflect.KClass
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
@@ -314,6 +317,28 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
       val notifications = notificationRepository.findAll().also { it hasSize 1 }
 
       notifications.isPresent(email = "recipient@somewhere.com", template = AdministrationNewVideoRoomEmail::class)
+    }
+  }
+
+  @Nested
+  @DisplayName("Location attribute reactivation")
+  inner class LocationAttributeReactivation {
+
+    @Autowired
+    private lateinit var locationAttributeRepository: LocationAttributeRepository
+
+    @Sql("classpath:integration-test-data/seed-blocked-locations.sql")
+    @Test
+    fun `should only reactivate historic blocked locations`() {
+      locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000000"))!!.locationStatus isEqualTo LocationStatus.TEMPORARILY_BLOCKED
+      locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000001"))!!.locationStatus isEqualTo LocationStatus.TEMPORARILY_BLOCKED
+      locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000002"))!!.locationStatus isEqualTo LocationStatus.ACTIVE
+
+      webTestClient.triggerJob(JobType.REACTIVATE_BLOCKED_LOCATIONS)
+
+      locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000000"))!!.locationStatus isEqualTo LocationStatus.ACTIVE
+      locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000001"))!!.locationStatus isEqualTo LocationStatus.TEMPORARILY_BLOCKED
+      locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000002"))!!.locationStatus isEqualTo LocationStatus.ACTIVE
     }
   }
 

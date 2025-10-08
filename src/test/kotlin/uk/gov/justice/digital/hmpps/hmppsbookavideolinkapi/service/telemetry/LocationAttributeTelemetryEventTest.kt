@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
@@ -34,7 +35,7 @@ class LocationAttributeTelemetryEventTest {
   private val inactiveLocationAttribute = LocationAttribute.decoratedRoom(
     dpsLocationId = UUID.fromString("e58ed763-928c-4155-bee9-bbbbbbbbbbbb"),
     prison = wandsworthPrison,
-    locationUsage = LocationUsage.SHARED,
+    locationUsage = LocationUsage.COURT,
     allowedParties = emptySet(),
     locationStatus = LocationStatus.INACTIVE,
     prisonVideoUrl = null,
@@ -45,14 +46,14 @@ class LocationAttributeTelemetryEventTest {
   private val blockedLocationAttribute = LocationAttribute.decoratedRoom(
     dpsLocationId = UUID.fromString("e58ed763-928c-4155-bee9-cccccccccccc"),
     prison = pentonvillePrison,
-    locationUsage = LocationUsage.SHARED,
+    locationUsage = LocationUsage.PROBATION,
     allowedParties = emptySet(),
     locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
     blockedFrom = today(),
     blockedTo = tomorrow(),
     prisonVideoUrl = null,
     notes = null,
-    createdBy = COURT_USER,
+    createdBy = PROBATION_USER,
   )
 
   @Test
@@ -64,6 +65,7 @@ class LocationAttributeTelemetryEventTest {
       "dps_location_id" to UUID.fromString("e58ed763-928c-4155-bee9-aaaaaaaaaaaa").toString(),
       "prison_code" to RISLEY,
       "location_status" to LocationStatus.ACTIVE.name,
+      "location_usage" to "SHARED",
       "created_by" to "user",
     )
   }
@@ -87,6 +89,7 @@ class LocationAttributeTelemetryEventTest {
       "dps_location_id" to UUID.fromString("e58ed763-928c-4155-bee9-aaaaaaaaaaaa").toString(),
       "prison_code" to RISLEY,
       "location_status" to LocationStatus.INACTIVE.name,
+      "location_usage" to "SHARED",
       "amended_by" to "user",
     )
   }
@@ -112,6 +115,7 @@ class LocationAttributeTelemetryEventTest {
       "dps_location_id" to UUID.fromString("e58ed763-928c-4155-bee9-aaaaaaaaaaaa").toString(),
       "prison_code" to RISLEY,
       "location_status" to LocationStatus.TEMPORARILY_BLOCKED.name,
+      "location_usage" to "SHARED",
       "blocked_from" to today().toIsoDate(),
       "blocked_to" to tomorrow().toIsoDate(),
       "amended_by" to "user",
@@ -127,19 +131,21 @@ class LocationAttributeTelemetryEventTest {
       "dps_location_id" to UUID.fromString("e58ed763-928c-4155-bee9-bbbbbbbbbbbb").toString(),
       "prison_code" to WANDSWORTH,
       "location_status" to LocationStatus.INACTIVE.name,
+      "location_usage" to "COURT",
       "created_by" to "user",
     )
   }
 
   @Test
   fun `should capture custom event for blocked location attribute`() {
-    val properties = LocationAttributeTelemetryEvent(blockedLocationAttribute, COURT_USER).properties()
+    val properties = LocationAttributeTelemetryEvent(blockedLocationAttribute, PROBATION_USER).properties()
 
     properties containsEntriesExactlyInAnyOrder mapOf(
       "location_attribute_id" to blockedLocationAttribute.locationAttributeId.toString(),
       "dps_location_id" to UUID.fromString("e58ed763-928c-4155-bee9-cccccccccccc").toString(),
       "prison_code" to PENTONVILLE,
       "location_status" to LocationStatus.TEMPORARILY_BLOCKED.name,
+      "location_usage" to "PROBATION",
       "blocked_from" to today().toIsoDate(),
       "blocked_to" to tomorrow().toIsoDate(),
       "created_by" to "user",
@@ -157,6 +163,7 @@ class LocationAttributeTelemetryEventTest {
       "dps_location_id" to UUID.fromString("e58ed763-928c-4155-bee9-cccccccccccc").toString(),
       "prison_code" to PENTONVILLE,
       "location_status" to LocationStatus.ACTIVE.name,
+      "location_usage" to "PROBATION",
       "amended_by" to "service",
     )
   }
