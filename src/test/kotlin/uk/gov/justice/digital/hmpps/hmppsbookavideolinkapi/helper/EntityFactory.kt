@@ -349,6 +349,8 @@ fun videoRoomAttributesWithoutSchedule(
   dpsLocationId: UUID,
   locationStatus: LocationStatus = LocationStatus.ACTIVE,
   locationUsage: LocationUsage = LocationUsage.SHARED,
+  blockedFrom: LocalDate? = null,
+  blockedTo: LocalDate? = null,
 ) = LocationAttribute.decoratedRoom(
   dpsLocationId = dpsLocationId,
   prison = Prison(
@@ -365,6 +367,8 @@ fun videoRoomAttributesWithoutSchedule(
   prisonVideoUrl = null,
   notes = null,
   createdBy = COURT_USER,
+  blockedFrom = blockedFrom,
+  blockedTo = blockedTo,
 )
 
 fun additionalDetails(

@@ -25,6 +25,7 @@ class LocationAttributeTelemetryEvent(private val attribute: LocationAttribute, 
       put("prison_code", attribute.prison.code)
       put("dps_location_id", attribute.dpsLocationId.toString())
       put("location_status", attribute.locationStatus.name)
+      put("location_usage", attribute.locationUsage.name)
 
       if (attribute.locationStatus == LocationStatus.TEMPORARILY_BLOCKED) {
         put("blocked_from", (attribute.blockedFrom?.toIsoDate() ?: ""))
