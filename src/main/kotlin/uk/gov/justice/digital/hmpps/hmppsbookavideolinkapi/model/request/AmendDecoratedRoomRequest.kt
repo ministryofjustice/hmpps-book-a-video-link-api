@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.GroupSequence
+import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
@@ -8,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import java.time.LocalDate
 
+@GroupSequence(AmendDecoratedRoomRequest::class, BlockedDateValidationExtension::class)
 data class AmendDecoratedRoomRequest(
   @field:NotNull(message = "The location usage is mandatory")
   @Schema(description = "The location usage for the location", example = "PROBATION", required = true)
@@ -34,4 +38,8 @@ data class AmendDecoratedRoomRequest(
   @field:FutureOrPresent(message = "The blocked to date must be in the future or present")
   @Schema(description = "The end date which a location is blocked to, must be on or after the blocked from date. Only applies to temporarily blocked locations.", required = false)
   val blockedTo: LocalDate? = null,
-)
+) {
+  @JsonIgnore
+  @AssertTrue(message = "The blocked to must be on or after the blocked from date", groups = [BlockedDateValidationExtension::class])
+  private fun isInvalidBlocked() = LocationStatus.TEMPORARILY_BLOCKED != locationStatus || (blockedTo?.isBefore(blockedFrom) == false)
+}
