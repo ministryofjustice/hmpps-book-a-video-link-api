@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.locationAttrib
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -189,6 +190,7 @@ class ScheduleServiceTest {
       assertThat(item.probationTeamCode).isNull()
       assertThat(item.dpsLocationId).isEqualTo(pentonvilleLocation.id)
       assertThat(item.prisonLocDesc).isEqualTo(pentonvilleLocation.localName)
+      assertThat(item.checkAvailability).isEqualTo(false)
 
       // if appointment type is main then should be the CVP link, otherwise it should be the room link.
       when (item.appointmentType) {
@@ -234,7 +236,7 @@ class ScheduleServiceTest {
   }
 
   @Test
-  fun `Returns the list of prison items`() {
+  fun `Should returns the list of prison items for active location not requiring availability check`() {
     val response = service.getScheduleForPrison(PENTONVILLE, LocalDate.now(), false)
     assertThat(response).isNotNull
     assertThat(response).hasSize(3)
@@ -244,6 +246,45 @@ class ScheduleServiceTest {
     assertThat(response).extracting("prisonLocDesc").containsOnly(pentonvilleLocation.localName)
     assertThat(response).extracting("notesForStaff").containsOnly("notes for staff")
     assertThat(response).extracting("notesForPrisoners").containsOnly("notes for prisoners")
+    assertThat(response).extracting("checkAvailability").containsOnly(false)
+  }
+
+  @Test
+  fun `Should return the list of prison items for inactive locations requiring availability check`() {
+    whenever(locationsService.getLocationById(any())) doReturn pentonvilleLocation.toModel(locationAttributes().copy(locationStatus = LocationStatus.INACTIVE))
+
+    val response = service.getScheduleForPrison(PENTONVILLE, LocalDate.now(), false)
+    assertThat(response).isNotNull
+    assertThat(response).hasSize(3)
+    assertThat(response).extracting("courtCode").containsOnly(courtCode, null)
+    assertThat(response).extracting("probationTeamCode").containsOnly(probationTeamCode, null)
+    assertThat(response).extracting("dpsLocationId").containsOnly(pentonvilleLocation.id)
+    assertThat(response).extracting("prisonLocDesc").containsOnly(pentonvilleLocation.localName)
+    assertThat(response).extracting("notesForStaff").containsOnly("notes for staff")
+    assertThat(response).extracting("notesForPrisoners").containsOnly("notes for prisoners")
+    assertThat(response).extracting("checkAvailability").containsOnly(true)
+  }
+
+  @Test
+  fun `Should return the list of prison items for blocked locations requiring availability check`() {
+    whenever(locationsService.getLocationById(any())) doReturn pentonvilleLocation.toModel(
+      locationAttributes().copy(
+        locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+        blockedFrom = today(),
+        blockedTo = today(),
+      ),
+    )
+
+    val response = service.getScheduleForPrison(PENTONVILLE, today(), false)
+    assertThat(response).isNotNull
+    assertThat(response).hasSize(3)
+    assertThat(response).extracting("courtCode").containsOnly(courtCode, null)
+    assertThat(response).extracting("probationTeamCode").containsOnly(probationTeamCode, null)
+    assertThat(response).extracting("dpsLocationId").containsOnly(pentonvilleLocation.id)
+    assertThat(response).extracting("prisonLocDesc").containsOnly(pentonvilleLocation.localName)
+    assertThat(response).extracting("notesForStaff").containsOnly("notes for staff")
+    assertThat(response).extracting("notesForPrisoners").containsOnly("notes for prisoners")
+    assertThat(response).extracting("checkAvailability").containsOnly(true)
   }
 
   @Test
