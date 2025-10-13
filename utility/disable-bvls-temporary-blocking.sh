@@ -11,7 +11,7 @@ fi
 while true; do
 
 echo
-read -r -p "You are about to enable the BVLS HMCTS link and guest pin features in the Digital Prisons '$ENV' environment. Are you sure you want to proceed? (y/n) " yn
+read -r -p "You are about to disable the BVLS temporary blocking of rooms feature on the UI's in the '$ENV' environment. Do you want to proceed? (y/n) " yn
 
 case $yn in
 	[yY] ) echo ok, proceeding...;
@@ -22,8 +22,8 @@ case $yn in
 esac
 done
 
-NAMESPACE="digital-prison-services-$ENV"
-SECRETS_FILE="digital-prisons-secrets.yaml"
+NAMESPACE="hmpps-book-a-video-link-$ENV"
+SECRETS_FILE="book-a-video-link-secrets.yaml"
 
 # Create the secrets YAML file
 cat <<EOF > $SECRETS_FILE
@@ -34,7 +34,7 @@ metadata:
   namespace: $NAMESPACE
 type: Opaque
 stringData:
-  BVLS_HMCTS_LINK_GUEST_PIN_FEATURE_TOGGLE_ENABLED: "true"
+  FEATURE_TEMPORARY_BLOCKING_LOCATIONS: "false"
 EOF
 
 # Apply the secret
@@ -46,5 +46,9 @@ rm -f ./$SECRETS_FILE
 
 # Restart the deployment pods
 echo
-echo "Restarting digital prisons deployment on namespace $NAMESPACE"
-kubectl -n "$NAMESPACE" rollout restart deployments/digital-prison-services
+echo "Restarting BVLS UI deployment on namespace $NAMESPACE"
+kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-book-a-video-link-ui
+
+echo
+echo "Restarting Daily Schedule deployment on namespace $NAMESPACE"
+kubectl -n "$NAMESPACE" rollout restart deployments/hmpps-video-conference-schedule-ui
