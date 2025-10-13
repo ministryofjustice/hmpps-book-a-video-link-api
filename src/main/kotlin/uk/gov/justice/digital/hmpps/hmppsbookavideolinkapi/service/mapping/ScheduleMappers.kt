@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Bookin
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem as ScheduleItemEntity
 
-fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
+fun ScheduleItemEntity.toModel(locations: List<Location>, availabilityChecker: (Location) -> Boolean) = ScheduleItem(
   videoBookingId = videoBookingId,
   prisonAppointmentId = prisonAppointmentId,
   bookingType = BookingType.valueOf(bookingType),
@@ -47,6 +47,7 @@ fun ScheduleItemEntity.toModel(locations: List<Location>) = ScheduleItem(
   notesForPrisoners = notesForPrisoners,
   hmctsNumber = hmctsNumber,
   guestPin = guestPin,
+  checkAvailability = availabilityChecker(locations.first { it.dpsLocationId == prisonLocationId }),
 )
 
-fun List<ScheduleItemEntity>.toModel(locations: List<Location>) = map { it.toModel(locations) }
+fun List<ScheduleItemEntity>.toModel(locations: List<Location>, availabilityChecker: (Location) -> Boolean) = map { it.toModel(locations, availabilityChecker) }

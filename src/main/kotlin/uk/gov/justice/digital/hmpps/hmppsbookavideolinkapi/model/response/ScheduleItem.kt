@@ -148,4 +148,7 @@ data class ScheduleItem(
   @Schema(description = "The guest PIN to access the video booking.", example = "46385765")
   @Redacted
   val guestPin: String?,
+
+  @Schema(description = "A boolean flag to indicate the schedule item may need checking e.g. the location is out of use via room admin.", example = "true")
+  val checkAvailability: Boolean,
 )
