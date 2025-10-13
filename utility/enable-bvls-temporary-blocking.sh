@@ -11,7 +11,7 @@ fi
 while true; do
 
 echo
-read -r -p "You are about to disable the BVLS HMCTS link and guest pin feature in the BVLS '$ENV' environment. Do you want to proceed? (y/n) " yn
+read -r -p "You are about to enable the BVLS temporary blocking of rooms feature on the UI's in the '$ENV' environment. Do you want to proceed? (y/n) " yn
 
 case $yn in
 	[yY] ) echo ok, proceeding...;
@@ -34,7 +34,7 @@ metadata:
   namespace: $NAMESPACE
 type: Opaque
 stringData:
-  FEATURE_HMCTS_LINK_GUEST_PIN: "false"
+  FEATURE_TEMPORARY_BLOCKING_LOCATIONS: "true"
 EOF
 
 # Apply the secret
