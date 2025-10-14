@@ -37,12 +37,12 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     probationTeamRepository.findAll() hasSize 54 // Including 1 read-only team
 
     val enabledOnlyTeams = webTestClient.getProbationTeams(true)
-    enabledOnlyTeams hasSize 51
+    enabledOnlyTeams hasSize 50
     enabledOnlyTeams.all { it.enabled } isBool true
 
     val allTeams = webTestClient.getProbationTeams(false)
-    allTeams hasSize 53
-    allTeams.count { it.enabled } isEqualTo 51
+    allTeams hasSize 52
+    allTeams.count { it.enabled } isEqualTo 50
     allTeams.count { !it.enabled } isEqualTo 2
   }
 
