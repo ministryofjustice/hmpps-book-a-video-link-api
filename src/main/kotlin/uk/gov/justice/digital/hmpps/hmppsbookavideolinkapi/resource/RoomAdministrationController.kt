@@ -247,8 +247,9 @@ class RoomAdministrationController(
   fun deleteSchedule(
     @PathVariable("dpsLocationId") dpsLocationId: UUID,
     @PathVariable("scheduleId") scheduleId: Long,
+    httpRequest: HttpServletRequest,
   ) {
-    decoratedLocationsService.deleteSchedule(dpsLocationId, scheduleId)
+    decoratedLocationsService.deleteSchedule(dpsLocationId, scheduleId, httpRequest.getBvlsRequestContext().user as ExternalUser)
   }
 
   @Operation(

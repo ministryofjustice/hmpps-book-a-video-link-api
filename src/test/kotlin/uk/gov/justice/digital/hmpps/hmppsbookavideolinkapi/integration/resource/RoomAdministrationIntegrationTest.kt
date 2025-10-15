@@ -305,7 +305,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     webTestClient.createDecoratedRoom(
       CreateDecoratedRoomRequest(
         locationUsage = ModelLocationUsage.SCHEDULE,
-        locationStatus = ModelLocationStatus.INACTIVE,
+        locationStatus = ModelLocationStatus.ACTIVE,
       ),
       risleyLocation2.toModel(),
       PROBATION_USER,
@@ -327,9 +327,13 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
     val persistedLocationAttributeId = locationAttributeRepository.findByDpsLocationId(risleyLocation2.id)!!.locationAttributeId
     val decoratedLocationWithSchedule = getLocationAttribute(persistedLocationAttributeId)
 
+    decoratedLocationWithSchedule.locationUsage isEqualTo EntityLocationUsage.SCHEDULE
+
     webTestClient.deleteSchedule(risleyLocation2.id, decoratedLocationWithSchedule.schedule().single().locationScheduleId, PROBATION_USER)
 
-    getLocationAttribute(persistedLocationAttributeId).schedule().isEmpty() isBool true
+    val deocratedLocationWithoutSchedule = getLocationAttribute(persistedLocationAttributeId)
+    deocratedLocationWithoutSchedule.schedule().isEmpty() isBool true
+    deocratedLocationWithoutSchedule.locationUsage isEqualTo EntityLocationUsage.SHARED
   }
 
   @Test

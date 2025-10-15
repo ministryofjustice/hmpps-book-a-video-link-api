@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrison
@@ -61,9 +62,7 @@ class LocationAttributesTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = COURT_USER,
-    )
-
-    roomAttributes.apply {
+    ).apply {
       addSchedule(
         usage = LocationScheduleUsage.COURT,
         startDayOfWeek = DayOfWeek.MONDAY.value,
@@ -119,20 +118,8 @@ class LocationAttributesTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = COURT_USER,
-    )
-
-    roomAttributes.addSchedule(
-      usage = LocationScheduleUsage.COURT,
-      startDayOfWeek = DayOfWeek.MONDAY.value,
-      endDayOfWeek = DayOfWeek.SUNDAY.value,
-      startTime = LocalTime.of(1, 0),
-      endTime = LocalTime.of(23, 0),
-      allowedParties = emptySet(),
-      createdBy = COURT_USER,
-    )
-
-    assertThrows<IllegalArgumentException> {
-      roomAttributes.addSchedule(
+    ).apply {
+      addSchedule(
         usage = LocationScheduleUsage.COURT,
         startDayOfWeek = DayOfWeek.MONDAY.value,
         endDayOfWeek = DayOfWeek.SUNDAY.value,
@@ -141,7 +128,19 @@ class LocationAttributesTest {
         allowedParties = emptySet(),
         createdBy = COURT_USER,
       )
-    }.message isEqualTo "Cannot add a duplicate schedule row to location attribute with ID 0."
+
+      assertThrows<IllegalArgumentException> {
+        addSchedule(
+          usage = LocationScheduleUsage.COURT,
+          startDayOfWeek = DayOfWeek.MONDAY.value,
+          endDayOfWeek = DayOfWeek.SUNDAY.value,
+          startTime = LocalTime.of(1, 0),
+          endTime = LocalTime.of(23, 0),
+          allowedParties = emptySet(),
+          createdBy = COURT_USER,
+        )
+      }.message isEqualTo "Cannot add a duplicate schedule row to location attribute with ID 0."
+    }
   }
 
   @Test
@@ -298,6 +297,72 @@ class LocationAttributesTest {
     assertThrows<IllegalArgumentException> {
       LocationAttribute.reactivate(activeRoom, SERVICE_USER)
     }.message isEqualTo "Cannot reactivate a location attribute that is not currently temporarily blocked."
+  }
+
+  @Test
+  fun `should delete only schedule from location attributes and reset to SHARED usage`() {
+    val roomAttributes = LocationAttribute.decoratedRoom(
+      dpsLocationId = UUID.randomUUID(),
+      prison = pentonvillePrison,
+      locationStatus = LocationStatus.ACTIVE,
+      locationUsage = LocationUsage.SCHEDULE,
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      notes = null,
+      createdBy = COURT_USER,
+    ).apply {
+      addSchedule(
+        usage = LocationScheduleUsage.COURT,
+        startDayOfWeek = 1,
+        endDayOfWeek = 5,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(17, 0),
+        allowedParties = emptySet(),
+        notes = null,
+        createdBy = COURT_USER,
+      )
+    }
+
+    roomAttributes.schedule().isEmpty() isBool false
+    roomAttributes.locationUsage isEqualTo LocationUsage.SCHEDULE
+
+    roomAttributes.deleteSchedule(roomAttributes.schedule().first(), COURT_USER)
+
+    roomAttributes.schedule().isEmpty() isBool true
+    roomAttributes.locationUsage isEqualTo LocationUsage.SHARED
+  }
+
+  @Test
+  fun `should fail to removed schedule from location attributes when schedule not present`() {
+    val roomAttributes = LocationAttribute.decoratedRoom(
+      dpsLocationId = UUID.randomUUID(),
+      prison = pentonvillePrison,
+      locationStatus = LocationStatus.ACTIVE,
+      locationUsage = LocationUsage.SCHEDULE,
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      notes = null,
+      createdBy = COURT_USER,
+    ).apply {
+      addSchedule(
+        usage = LocationScheduleUsage.COURT,
+        startDayOfWeek = 1,
+        endDayOfWeek = 5,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(17, 0),
+        allowedParties = emptySet(),
+        notes = null,
+        createdBy = COURT_USER,
+      )
+    }
+
+    with(roomAttributes.schedule().first()) {
+      roomAttributes.deleteSchedule(this, COURT_USER)
+
+      assertThrows<IllegalArgumentException> {
+        roomAttributes.deleteSchedule(this, COURT_USER)
+      }.message isEqualTo "Cannot remove a schedule row that is not attached to this location attribute."
+    }
   }
 
   @Nested
