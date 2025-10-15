@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration
 
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
@@ -46,8 +47,14 @@ class DecoratedLocationsService(
     amendDecoratedLocationService.amend(dpsLocationId, scheduleId, request, amendedBy)
   }
 
-  fun deleteSchedule(dpsLocationId: UUID, scheduleId: Long) {
-    locationScheduleRepository.deleteSchedule(scheduleId, dpsLocationId)
+  fun deleteSchedule(dpsLocationId: UUID, scheduleId: Long, deletedBy: ExternalUser) = run {
+    val locationAttribute = locationAttributeRepository.findByDpsLocationId(dpsLocationId)
+      ?: throw EntityNotFoundException("Location attribute with DPS location ID $dpsLocationId not found")
+
+    val schedule = locationScheduleRepository.findById(scheduleId)
+      .orElseThrow { EntityNotFoundException("Location schedule ID $scheduleId not found for DPS location ID $dpsLocationId") }
+
+    locationAttribute.deleteSchedule(schedule, deletedBy)
   }
 
   fun reactivateBlockedLocationsBefore(beforeDate: LocalDate) = run {

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.ad
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -11,8 +12,12 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoRoomAttributesWithoutSchedule
@@ -20,6 +25,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAt
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationScheduleRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
+import java.time.LocalTime
+import java.util.Optional
 import java.util.UUID
 
 class DecoratedLocationsServiceTest {
@@ -55,6 +62,7 @@ class DecoratedLocationsServiceTest {
     prisonCode = RISLEY,
     dpsLocationId = UUID.randomUUID(),
     locationStatus = LocationStatus.ACTIVE,
+    locationUsage = LocationUsage.SCHEDULE,
   )
   private val blockedLocations = mutableListOf(blockedLocation1, blockedLocation2)
   private val telemetryEventCaptor = argumentCaptor<TelemetryEvent>()
@@ -99,5 +107,33 @@ class DecoratedLocationsServiceTest {
     verify(locationAttributeRepository).findByBlockedToNotNullAndBlockedToIsBefore(today())
     verifyNoMoreInteractions(locationAttributeRepository)
     verifyNoInteractions(telemetryService)
+  }
+
+  @Test
+  fun `should delete schedule from location attributes`() {
+    locationAttributeRepository.stub {
+      on { findByDpsLocationId(activeLocation.dpsLocationId) } doReturn activeLocation
+    }
+
+    activeLocation.addSchedule(
+      usage = LocationScheduleUsage.COURT,
+      startDayOfWeek = 1,
+      endDayOfWeek = 5,
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(17, 0),
+      allowedParties = emptySet(),
+      notes = null,
+      createdBy = COURT_USER,
+    )
+
+    activeLocation.schedule().isEmpty() isBool false
+
+    locationScheduleRepository.stub {
+      on { findById(any()) } doReturn Optional.of(activeLocation.schedule().first())
+    }
+
+    service.deleteSchedule(activeLocation.dpsLocationId, 0, COURT_USER)
+
+    activeLocation.schedule().isEmpty() isBool true
   }
 }
