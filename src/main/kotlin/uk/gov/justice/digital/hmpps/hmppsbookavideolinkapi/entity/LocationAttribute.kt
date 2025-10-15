@@ -115,6 +115,20 @@ class LocationAttribute private constructor(
     )
   }
 
+  fun deleteSchedule(schedule: LocationSchedule, deletedBy: ExternalUser) {
+    require(locationSchedule.contains(schedule)) {
+      "Cannot remove a schedule row that is not attached to this location attribute."
+    }
+
+    locationSchedule.remove(schedule)
+    amendedBy = deletedBy.username
+    amendedTime = LocalDateTime.now()
+
+    if (locationSchedule.isEmpty()) {
+      locationUsage = LocationUsage.SHARED
+    }
+  }
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
