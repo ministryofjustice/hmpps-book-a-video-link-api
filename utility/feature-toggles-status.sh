@@ -6,6 +6,7 @@ BVLS_NAMESPACE="hmpps-book-a-video-link-$ENV"
 FEATURE_GREY_RELEASE_PRISONS=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_GREY_RELEASE_PRISONS}' | base64 -d)
 FEATURE_PROBATION_ONLY_PRISONS=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_PROBATION_ONLY_PRISONS}' | base64 -d)
 FEATURE_COURT_ONLY_PRISONS=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_COURT_ONLY_PRISONS}' | base64 -d)
+FEATURE_TEMPORARY_BLOCKING_LOCATIONS=$(kubectl -n "$BVLS_NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_TEMPORARY_BLOCKING_LOCATIONS}' | base64 -d)
 
 echo ENVIRONMENT="$ENV"
 echo "-----------------------"
