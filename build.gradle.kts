@@ -3,7 +3,7 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.3"
   id("org.openapi.generator") version "7.16.0"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
@@ -32,7 +32,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.7.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.11")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.5.0")
 
   // CSV dependencies
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.20.0")
@@ -49,7 +49,7 @@ dependencies {
 
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.20.1")
 
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.15")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.16")
 
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.13.0")
