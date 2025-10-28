@@ -7,6 +7,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
@@ -43,7 +44,27 @@ class ReferenceCodeServiceTest {
     verify(referenceCodeRepository).findAllByGroupCodeEquals("GROUP_CODE")
   }
 
-  private fun referenceCodeEntity(id: Long, groupCode: String, code: String, description: String, enabled: Boolean = true) = ReferenceCodeEntity(id, groupCode, code, description, "name", enabled = enabled)
+  @Test
+  fun `Should return a list of of ordered references codes by display sequence for a given group code`() {
+    val one = referenceCodeEntity(1L, "GROUP_CODE", "SENTENCE", "Sentence hearing", displaySequence = 1)
+    val two = referenceCodeEntity(3L, "GROUP_CODE", "COMMITTAL", "Committal", displaySequence = 2)
+    val three = referenceCodeEntity(2L, "GROUP_CODE", "APPEAL", "Appeal", displaySequence = 3)
+
+    whenever(referenceCodeRepository.findAllByGroupCodeEquals("GROUP_CODE")).thenReturn(listOf(two, three, one))
+
+    service.getReferenceDataByGroup("GROUP_CODE", false) containsExactly listOf(one, two, three).toModel()
+
+    verify(referenceCodeRepository).findAllByGroupCodeEquals("GROUP_CODE")
+  }
+
+  private fun referenceCodeEntity(
+    id: Long,
+    groupCode: String,
+    code: String,
+    description: String,
+    enabled: Boolean = true,
+    displaySequence: Int? = null,
+  ) = ReferenceCodeEntity(id, groupCode, code, description, "name", enabled = enabled, displaySequence = displaySequence)
 
   @Test
   fun `Should return an empty list when no reference codes are matched`() {

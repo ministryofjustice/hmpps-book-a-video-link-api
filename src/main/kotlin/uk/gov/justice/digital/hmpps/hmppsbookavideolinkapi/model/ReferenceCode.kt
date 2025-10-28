@@ -19,4 +19,7 @@ data class ReferenceCode(
 
   @Schema(description = "A boolean value to show whether enabled or not.", example = "true")
   val enabled: Boolean,
+
+  @Schema(description = "An integer value to indicate its display sequence in a list of related reference codes.", example = "1")
+  val displaySequence: Int? = null,
 )

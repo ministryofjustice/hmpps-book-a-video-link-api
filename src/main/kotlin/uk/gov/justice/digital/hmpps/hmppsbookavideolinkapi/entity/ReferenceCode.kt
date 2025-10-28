@@ -26,6 +26,8 @@ class ReferenceCode(
   val createdTime: LocalDateTime = LocalDateTime.now(),
 
   val enabled: Boolean,
+
+  val displaySequence: Int? = null,
 ) {
   var amendedBy: String? = null
     private set
@@ -45,5 +47,5 @@ class ReferenceCode(
   override fun hashCode(): Int = referenceCodeId.hashCode()
 
   @Override
-  override fun toString(): String = this::class.simpleName + "(referenceCodeId = $referenceCodeId)"
+  override fun toString(): String = this::class.simpleName + "(referenceCodeId = $referenceCodeId, description = $description)"
 }
