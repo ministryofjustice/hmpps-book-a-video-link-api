@@ -9,6 +9,7 @@ fun ReferenceCodeEntity.toModel() = ReferenceCode(
   code = code,
   description = description,
   enabled = enabled,
+  displaySequence = displaySequence,
 )
 
 fun List<ReferenceCodeEntity>.toModel() = map { it.toModel() }.sortedBy { it.description }
