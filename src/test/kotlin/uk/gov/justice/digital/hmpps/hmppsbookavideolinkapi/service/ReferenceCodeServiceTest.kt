@@ -52,7 +52,7 @@ class ReferenceCodeServiceTest {
 
     whenever(referenceCodeRepository.findAllByGroupCodeEquals("GROUP_CODE")).thenReturn(listOf(two, three, one))
 
-    service.getReferenceDataByGroup("GROUP_CODE", false) containsExactly listOf(one, two, three).toModel()
+    service.getReferenceDataByGroup("GROUP_CODE", false) containsExactly listOf(one.toModel(), two.toModel(), three.toModel())
 
     verify(referenceCodeRepository).findAllByGroupCodeEquals("GROUP_CODE")
   }
