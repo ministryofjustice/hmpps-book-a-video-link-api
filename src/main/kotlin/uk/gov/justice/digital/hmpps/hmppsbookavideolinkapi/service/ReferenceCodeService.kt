@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 @Service
 class ReferenceCodeService(private val referenceCodeRepository: ReferenceCodeRepository) {
   fun getReferenceDataByGroup(groupCode: String, enabled: Boolean): List<ReferenceCode> = run {
-    referenceCodeRepository.findAllByGroupCodeEquals(groupCode).filter { !enabled || it.enabled }
-      .sortedBy { it.displaySequence }.toModel()
+    referenceCodeRepository.findAllByGroupCodeEquals(groupCode).filter { !enabled || it.enabled }.toModel()
+      .sortedWith(compareBy({ it.displaySequence }, { it.description }))
   }
 }

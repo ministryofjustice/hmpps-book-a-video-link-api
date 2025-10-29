@@ -45,14 +45,42 @@ class ReferenceCodeServiceTest {
   }
 
   @Test
-  fun `Should return a list of of ordered references codes by display sequence for a given group code`() {
+  fun `Should return a list of of ordered references codes by display sequence`() {
     val one = referenceCodeEntity(1L, "GROUP_CODE", "SENTENCE", "Sentence hearing", displaySequence = 1)
     val two = referenceCodeEntity(3L, "GROUP_CODE", "COMMITTAL", "Committal", displaySequence = 2)
     val three = referenceCodeEntity(2L, "GROUP_CODE", "APPEAL", "Appeal", displaySequence = 3)
 
     whenever(referenceCodeRepository.findAllByGroupCodeEquals("GROUP_CODE")).thenReturn(listOf(two, three, one))
 
-    service.getReferenceDataByGroup("GROUP_CODE", false) containsExactly listOf(one, two, three).toModel()
+    service.getReferenceDataByGroup("GROUP_CODE", false) containsExactly listOf(one.toModel(), two.toModel(), three.toModel())
+
+    verify(referenceCodeRepository).findAllByGroupCodeEquals("GROUP_CODE")
+  }
+
+  @Test
+  fun `Should return a list of of ordered references codes by description when no display sequence`() {
+    val one = referenceCodeEntity(2L, "GROUP_CODE", "APPEAL", "Appeal")
+    val two = referenceCodeEntity(3L, "GROUP_CODE", "COMMITTAL", "Committal")
+    val three = referenceCodeEntity(1L, "GROUP_CODE", "SENTENCE", "Sentence hearing")
+
+    whenever(referenceCodeRepository.findAllByGroupCodeEquals("GROUP_CODE")).thenReturn(listOf(two, three, one))
+
+    service.getReferenceDataByGroup("GROUP_CODE", false) containsExactly listOf(one.toModel(), two.toModel(), three.toModel())
+
+    verify(referenceCodeRepository).findAllByGroupCodeEquals("GROUP_CODE")
+  }
+
+  @Test
+  fun `Should return a list of of ordered references codes by display sequenc and description`() {
+    val oneA = referenceCodeEntity(1L, "GROUP_CODE", "X", "A", displaySequence = 1)
+    val oneB = referenceCodeEntity(9L, "GROUP_CODE", "G", "B", displaySequence = 1)
+    val twoA = referenceCodeEntity(4L, "GROUP_CODE", "W", "A", displaySequence = 2)
+    val twoB = referenceCodeEntity(8L, "GROUP_CODE", "I", "B", displaySequence = 2)
+    val three = referenceCodeEntity(10L, "GROUP_CODE", "P", "A", displaySequence = 3)
+
+    whenever(referenceCodeRepository.findAllByGroupCodeEquals("GROUP_CODE")).thenReturn(listOf(twoB, twoA, oneB, oneA, three))
+
+    service.getReferenceDataByGroup("GROUP_CODE", false) containsExactly listOf(oneA.toModel(), oneB.toModel(), twoA.toModel(), twoB.toModel(), three.toModel())
 
     verify(referenceCodeRepository).findAllByGroupCodeEquals("GROUP_CODE")
   }

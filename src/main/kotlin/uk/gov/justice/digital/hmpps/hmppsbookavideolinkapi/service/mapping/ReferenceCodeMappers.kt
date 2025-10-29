@@ -12,4 +12,4 @@ fun ReferenceCodeEntity.toModel() = ReferenceCode(
   displaySequence = displaySequence,
 )
 
-fun List<ReferenceCodeEntity>.toModel() = map { it.toModel() }.sortedBy { it.description }
+fun List<ReferenceCodeEntity>.toModel() = map { it.toModel() }
