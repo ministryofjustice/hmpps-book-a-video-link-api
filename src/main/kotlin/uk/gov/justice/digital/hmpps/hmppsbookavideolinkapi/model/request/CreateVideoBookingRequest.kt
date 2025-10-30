@@ -145,11 +145,22 @@ enum class CourtHearingType {
   UNKNOWN,
 }
 
-enum class ProbationMeetingType {
-  OTHER,
-  PSR,
-  RR,
-  UNKNOWN,
+enum class ProbationMeetingType(val description: String) {
+  // Description added for clarity (even if not used)
+  BR("Bail report"),
+  HDC("Home detention curfew"),
+  IOM("Integrated offender management (IOM)"),
+  MALRAP("Multi-agency lifer risk assessment panel (MALRAP)"),
+  OASYS("OAYSys"),
+  OTHER("Other"),
+  PR("Parole Report (PAROM)"),
+  PRP("Pre-release planning"),
+  PSR("Pre-sentence report (PSR)"),
+  RCAT("R-CAT (recategorisation) assessments"),
+  ROTL("ROTL (release on temporary licence)"),
+  RR("Recall report (PRARR - parts B or C)"),
+  RTSCR("Response to supervision (court report)"),
+  UNKNOWN("Unknown"),
 }
 
 data class PrisonerDetails(
