@@ -55,7 +55,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     probationResponse contains "video-links-by-probation-booking-date-from-2024-01-01-for-2-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user,probationOfficerName,probationOfficerEmail\n"
-    probationResponse contains "-3000,2024-01-01T01:00:00,-3000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report\",probation_user,\"Not known\",\"Not known\""
+    probationResponse contains "-3000,2024-01-01T01:00:00,-3000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-24T16:00:00,2099-01-24T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report (PSR)\",probation_user,\"Not known\",\"Not known\""
   }
 
   @Sql("classpath:integration-test-data/seed-probation-events-by-meeting-date-data.sql")
@@ -65,8 +65,8 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
 
     probationResponse contains "video-links-by-probation-meeting-date-from-2099-01-25-for-365-days.csv"
     probationResponse contains "eventId,timestamp,videoLinkBookingId,eventType,agencyId,probationTeam,probationTeamId,madeByProbation,mainStartTime,mainEndTime,preStartTime,preEndTime,postStartTime,postEndTime,mainLocationName,preLocationName,postLocationName,meetingType,user,probationOfficerName,probationOfficerEmail\n"
-    probationResponse contains "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Free text probation team name\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report\",probation_user,\"Not known\",\"Not known\"\n"
-    probationResponse contains "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report\",probation_user,\"officer name\",officer@email.com\n"
+    probationResponse contains "-4100,2024-01-01T01:00:00,-4100,CREATE,PVI,\"Free text probation team name\",UNKNOWN,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report (PSR)\",probation_user,\"Not known\",\"Not known\"\n"
+    probationResponse contains "-4000,2024-01-01T01:00:00,-4000,CREATE,PVI,\"Blackpool Magistrates - Probation\",BLKPPP,true,2099-01-25T16:00:00,2099-01-25T17:00:00,,,,,\"Pentonville room 3\",,,\"Pre-sentence report (PSR)\",probation_user,\"officer name\",officer@email.com\n"
   }
 
   @Test

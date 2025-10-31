@@ -923,7 +923,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasProbationTeam(BLACKPOOL_MC_PPOC)
       .hasProbationTeamDescription("Blackpool Magistrates - Probation")
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasMeetingTypeDescription("Pre-sentence report")
+      .hasMeetingTypeDescription("Pre-sentence report (PSR)")
       .hasVideoUrl("https://probation-url")
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())

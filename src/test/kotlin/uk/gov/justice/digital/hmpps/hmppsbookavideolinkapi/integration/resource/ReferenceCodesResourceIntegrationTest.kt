@@ -39,18 +39,26 @@ class ReferenceCodesResourceIntegrationTest : IntegrationTestBase() {
   @Test
   fun `should return a list of probation meeting type reference codes`() {
     val groupCode = "PROBATION_MEETING_TYPE"
-    referenceCodeRepository.findAllByGroupCodeEquals(groupCode) hasSize 4
+    referenceCodeRepository.findAllByGroupCodeEquals(groupCode) hasSize 14
 
     val enabledOnlyProbationMeetingTypes = webTestClient.getReferenceCodes(groupCode)
 
-    assertThat(enabledOnlyProbationMeetingTypes).extracting("code").containsExactlyInAnyOrder("PSR", "RR", "OTHER")
-
-    val allProbationMeetingTypes = webTestClient.getReferenceCodes(groupCode, false)
-
-    // Should be an extra one as UNKNOWN is disabled for probation teams
-    assertThat(allProbationMeetingTypes).extracting("code").containsExactlyInAnyOrder("PSR", "RR", "OTHER", "UNKNOWN")
-    allProbationMeetingTypes.count { it.enabled } isEqualTo 3
-    allProbationMeetingTypes.single { it.enabled.not() && it.code == "UNKNOWN" }
+    assertThat(enabledOnlyProbationMeetingTypes).extracting("code").containsExactlyInAnyOrder(
+      "PSR",
+      "RR",
+      "PR",
+      "HDC",
+      "OASYS",
+      "MALRAP",
+      "PRP",
+      "IOM",
+      "RTSCR",
+      "BR",
+      "RCAT",
+      "ROTL",
+      "OTHER",
+      "UNKNOWN",
+    )
   }
 
   @Test
