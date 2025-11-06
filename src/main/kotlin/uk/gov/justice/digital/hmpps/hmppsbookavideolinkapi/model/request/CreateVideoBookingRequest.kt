@@ -151,7 +151,7 @@ enum class ProbationMeetingType(val description: String) {
   HDC("Home detention curfew"),
   IOM("Integrated offender management (IOM)"),
   MALRAP("Multi-agency lifer risk assessment panel (MALRAP)"),
-  OASYS("OAYSys"),
+  OASYS("OASys"),
   OTHER("Other"),
   PR("Parole Report (PAROM)"),
   PRP("Pre-release planning"),
