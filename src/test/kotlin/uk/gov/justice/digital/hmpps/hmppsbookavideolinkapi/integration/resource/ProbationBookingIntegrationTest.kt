@@ -168,7 +168,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
         dpsLocationId = birminghamLocation.id,
-        comments = null,
+        extraInformation = null,
+        prisonerExtraInformation = null,
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
     }
@@ -233,7 +234,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(12, 30),
         dpsLocationId = birminghamLocation.id,
-        comments = null,
+        extraInformation = null,
+        prisonerExtraInformation = null,
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
     }
@@ -307,7 +309,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
         dpsLocationId = birminghamLocation.id,
-        comments = null,
+        extraInformation = null,
+        prisonerExtraInformation = null,
       )
     }
 
@@ -361,8 +364,9 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(14, 0),
         endTime = LocalTime.of(15, 30),
         dpsLocationId = birminghamLocation.id,
-        comments = null,
+        extraInformation = null,
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
+        prisonerExtraInformation = null,
       )
     }
 
@@ -438,7 +442,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(14, 30),
         endTime = LocalTime.of(15, 30),
         dpsLocationId = birminghamLocation.id,
-        comments = "other integration test probation prisoner notes amended",
+        extraInformation = "other integration test probation prisoner notes amended",
+        prisonerExtraInformation = null,
       )
     }
 
@@ -489,8 +494,9 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(16, 0),
         endTime = LocalTime.of(16, 30),
         dpsLocationId = birminghamLocation.id,
-        comments = "psr integration test probation prisoner notes",
+        extraInformation = "psr integration test probation prisoner notes",
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
+        prisonerExtraInformation = null,
       )
     }
 
@@ -562,6 +568,11 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       ),
       timeSlot = AppointmentSearchResult.TimeSlot.AM,
       createdTime = LocalDateTime.now(),
+      isDeleted = false,
+      customName = null,
+      updatedTime = null,
+      cancelledTime = null,
+      cancelledBy = null,
     )
   }
 }

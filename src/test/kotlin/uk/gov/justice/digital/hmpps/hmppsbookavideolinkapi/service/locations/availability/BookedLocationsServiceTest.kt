@@ -274,6 +274,11 @@ class BookedLocationsServiceTest {
       internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
       timeSlot = AppointmentSearchResult.TimeSlot.AM,
       createdTime = LocalDateTime.now(),
+      isDeleted = false,
+      customName = null,
+      updatedTime = null,
+      cancelledTime = null,
+      cancelledBy = null,
     )
   }
 

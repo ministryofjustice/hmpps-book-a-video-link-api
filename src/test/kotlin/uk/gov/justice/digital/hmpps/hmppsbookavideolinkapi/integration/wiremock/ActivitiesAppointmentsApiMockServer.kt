@@ -35,6 +35,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     endTime: LocalTime,
     dpsLocationsId: UUID,
     extraInformation: String,
+    prisonerExtraInformation: String,
     appointmentType: SupportedAppointmentTypes.Type,
   ) {
     val request = AppointmentSeriesCreateRequest(
@@ -49,6 +50,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
       endTime = endTime.toHourMinuteStyle(),
       dpsLocationId = dpsLocationsId,
       extraInformation = extraInformation,
+      prisonerExtraInformation = prisonerExtraInformation,
     )
 
     stubFor(
@@ -133,6 +135,11 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
         timeSlot = AppointmentSearchResult.TimeSlot.AM,
         createdTime = LocalDateTime.now(),
+        isDeleted = false,
+        customName = null,
+        updatedTime = null,
+        cancelledTime = null,
+        cancelledBy = null,
       )
     }
 

@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 
@@ -15,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 class ActivitiesAndAppointmentsService(
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
   private val supportedAppointmentTypes: SupportedAppointmentTypes,
+  private val featureSwitches: FeatureSwitches,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -27,6 +30,8 @@ class ActivitiesAndAppointmentsService(
   fun findMatchingAppointments(appointment: BookingHistoryAppointment) = AppointmentsMatcher().findMatchingAppointments(appointment)
 
   fun createAppointment(appointment: PrisonAppointment) = run {
+    val featureEnabled = featureSwitches.isEnabled(Feature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)
+
     activitiesAppointmentsClient.createAppointment(
       prisonCode = appointment.prisonCode(),
       prisonerNumber = appointment.prisonerNumber,
@@ -34,7 +39,8 @@ class ActivitiesAndAppointmentsService(
       startTime = appointment.startTime,
       endTime = appointment.endTime,
       dpsLocationId = appointment.prisonLocationId,
-      comments = appointment.notesForPrisoners,
+      extraInformation = if (featureEnabled) appointment.notesForStaff else appointment.notesForPrisoners,
+      prisonerExtraInformation = if (featureEnabled) appointment.notesForPrisoners else null,
       appointmentType = supportedAppointmentTypes.typeOf(appointment.bookingType()),
     )
   }
@@ -44,13 +50,16 @@ class ActivitiesAndAppointmentsService(
   }
 
   fun patchAppointment(appointmentId: Long, appointment: PrisonAppointment) {
+    val featureEnabled = featureSwitches.isEnabled(Feature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)
+
     activitiesAppointmentsClient.patchAppointment(
       appointmentId = appointmentId,
       startDate = appointment.appointmentDate,
       startTime = appointment.startTime,
       endTime = appointment.endTime,
       dpsLocationId = appointment.prisonLocationId,
-      comments = appointment.notesForPrisoners,
+      extraInformation = if (featureEnabled) appointment.notesForStaff else appointment.notesForPrisoners,
+      prisonerExtraInformation = if (featureEnabled) appointment.notesForPrisoners else null,
     )
   }
 

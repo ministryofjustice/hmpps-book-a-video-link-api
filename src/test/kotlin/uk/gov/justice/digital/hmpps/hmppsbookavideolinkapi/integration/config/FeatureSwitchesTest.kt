@@ -23,7 +23,7 @@ class FeatureSwitchesTest : IntegrationTestBase() {
   @MockitoBean
   private lateinit var listener: InboundEventsListener
 
-  @TestPropertySource(properties = ["feature.placeholder.example=true"])
+  @TestPropertySource(properties = ["feature.placeholder.example=true", "feature.public.private.comments.sync=true"])
   @Nested
   @DisplayName("Features are enabled when set")
   inner class EnabledFeatures(@Autowired val featureSwitches: FeatureSwitches) {
