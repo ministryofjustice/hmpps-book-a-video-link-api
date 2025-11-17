@@ -29,4 +29,5 @@ class FeatureSwitches(private val environment: Environment) {
 
 enum class Feature(val label: String) {
   FEATURE_PLACEHOLDER("feature.placeholder.example"),
+  FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC("feature.public.private.comments.sync"),
 }

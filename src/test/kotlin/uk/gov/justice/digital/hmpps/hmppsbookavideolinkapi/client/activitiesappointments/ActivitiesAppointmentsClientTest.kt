@@ -4,11 +4,13 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.Spy
 import org.springframework.web.reactive.function.client.WebClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiMockServer
 import java.time.LocalTime
@@ -32,19 +34,23 @@ class ActivitiesAppointmentsClientTest {
       endTime = LocalTime.MIDNIGHT.plusHours(1),
       dpsLocationsId = dpsLocationId,
       extraInformation = "extra info",
+      prisonerExtraInformation = "prisoner extra info",
       appointmentType = SupportedAppointmentTypes.Type.COURT,
     )
 
-    client.createAppointment(
+    val response = client.createAppointment(
       prisonCode = BIRMINGHAM,
       prisonerNumber = "123456",
       startDate = tomorrow(),
       startTime = LocalTime.MIDNIGHT,
       endTime = LocalTime.MIDNIGHT.plusHours(1),
       dpsLocationId = dpsLocationId,
-      comments = "extra info",
+      extraInformation = "extra info",
+      prisonerExtraInformation = "prisoner extra info",
       appointmentType = SupportedAppointmentTypes.Type.COURT,
     )
+
+    response isInstanceOf AppointmentSeries::class.java
   }
 
   @Test

@@ -67,6 +67,9 @@ generic-service:
       HMPPS_SQS_QUEUES_BVLS_QUEUE_NAME: "sqs_queue_name"
     sqs-domain-event-dlq-secret:
       HMPPS_SQS_QUEUES_BVLS_DLQ_NAME: "sqs_queue_name"
+    feature-toggles:
+      FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC: "FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC"
+
 
   allowlist:
     groups:

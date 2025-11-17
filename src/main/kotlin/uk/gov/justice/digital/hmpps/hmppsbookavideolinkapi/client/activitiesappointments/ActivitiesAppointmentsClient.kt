@@ -49,7 +49,8 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     startTime: LocalTime,
     endTime: LocalTime,
     dpsLocationId: UUID,
-    comments: String?,
+    extraInformation: String?,
+    prisonerExtraInformation: String?,
     appointmentType: SupportedAppointmentTypes.Type,
   ): AppointmentSeries? = activitiesAppointmentsApiWebClient.post()
     .uri("/appointment-series")
@@ -65,7 +66,8 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
         startTime = startTime.toHourMinuteStyle(),
         endTime = endTime.toHourMinuteStyle(),
         dpsLocationId = dpsLocationId,
-        extraInformation = comments,
+        extraInformation = extraInformation,
+        prisonerExtraInformation = prisonerExtraInformation,
       ),
     )
     .retrieve()
@@ -93,8 +95,8 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
   }
 
   /**
-   * @param appointmentId refers the appointment identifier held in Activities and Appointments, not BVLS.
-   * @param deleteOnCancel true will hard delete the appointment whereas a soft delete will keep a history of the cancellation.
+   * @param appointmentId refers to the appointment identifier held in Activities and Appointments, not BVLS.
+   * @param deleteOnCancel true will hard delete the appointment, whereas a soft delete will keep a history of the cancellation.
    */
   fun cancelAppointment(appointmentId: Long, deleteOnCancel: Boolean = false) {
     activitiesAppointmentsApiWebClient.put()
@@ -117,7 +119,8 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     startTime: LocalTime,
     endTime: LocalTime,
     dpsLocationId: UUID,
-    comments: String?,
+    extraInformation: String?,
+    prisonerExtraInformation: String?,
   ): AppointmentSeries? = activitiesAppointmentsApiWebClient.patch()
     .uri("/appointments/$appointmentId")
     .bodyValue(
@@ -128,7 +131,8 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
         startTime = startTime.toHourMinuteStyle(),
         endTime = endTime.toHourMinuteStyle(),
         dpsLocationId = dpsLocationId,
-        extraInformation = comments,
+        extraInformation = extraInformation,
+        prisonerExtraInformation = prisonerExtraInformation,
       ),
     )
     .retrieve()
@@ -136,8 +140,8 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     .block()
 
   /**
-   * Returns all matching appointment types for a prison, not just video link bookings. It will however filter down to
-   * the supplied location IDs where there is match.
+   * Returns all matching appointment types for a prison, not just video link bookings. It will filter down to the
+   * supplied location IDs where there is a match.
    */
   fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<Long>) = if (locationIds.isNotEmpty()) {
     log.info("A&A CLIENT: query params - prisonCode=$prisonCode, onDate=$onDate, locationIds=${locationIds.toList()}")
