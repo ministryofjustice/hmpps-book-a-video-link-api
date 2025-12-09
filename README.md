@@ -10,7 +10,7 @@ API to support the front end service allowing court and probation users to book 
 
 Tools required:
 
-* JDK v21+
+* JDK v25+
 * Kotlin (Intellij)
 * docker
 * docker-compose
