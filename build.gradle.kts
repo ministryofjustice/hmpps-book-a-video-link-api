@@ -3,11 +3,11 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.2.0"
-  id("org.openapi.generator") version "7.16.0"
-  kotlin("plugin.spring") version "2.2.21"
-  kotlin("plugin.jpa") version "2.2.21"
-  id("dev.zacsweers.redacted") version "1.15.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.3.0"
+  id("org.openapi.generator") version "7.18.0"
+  kotlin("plugin.spring") version "2.3.0"
+  kotlin("plugin.jpa") version "2.3.0"
+  id("dev.zacsweers.redacted") version "1.15.1"
 }
 
 allOpen {
@@ -16,10 +16,6 @@ allOpen {
     "javax.persistence.MappedSuperclass",
     "javax.persistence.Embeddable",
   )
-}
-
-configurations {
-  testImplementation { exclude(group = "org.junit.vintage") }
 }
 
 redacted {
@@ -32,10 +28,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.5.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.6.3")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.20.0")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.20.1")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
@@ -47,9 +43,9 @@ dependencies {
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
 
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.20.1")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.23.0")
 
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.16")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.21")
 
   // Test dependencies
   testImplementation("io.jsonwebtoken:jjwt-impl:0.13.0")
@@ -73,17 +69,11 @@ kotlin {
   jvmToolchain(25)
 }
 
-java {
-  sourceCompatibility = JavaVersion.VERSION_24
-  targetCompatibility = JavaVersion.VERSION_24
-}
-
 tasks {
   withType<KotlinCompile> {
     dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel")
-    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_24
+    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
     compilerOptions.freeCompilerArgs.add("-Xannotation-default-target=param-property")
-    compilerOptions.freeCompilerArgs.add("-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled")
   }
 }
 
