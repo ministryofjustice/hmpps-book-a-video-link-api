@@ -262,9 +262,9 @@ class VideoLinkBookingsServiceTest {
         )
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
-          prisonerNumber = searchRequest.prisonerNumber!!,
+          prisonerNumber = searchRequest.prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-          date = searchRequest.date!!,
+          date = searchRequest.date,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
           locationId = wandsworthLocation.id,
@@ -351,9 +351,9 @@ class VideoLinkBookingsServiceTest {
         )
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
-          prisonerNumber = searchRequest.prisonerNumber!!,
+          prisonerNumber = searchRequest.prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-          date = searchRequest.date!!,
+          date = searchRequest.date,
           startTime = searchRequest.startTime!!,
           endTime = searchRequest.endTime!!,
           locationId = wandsworthLocation.id,

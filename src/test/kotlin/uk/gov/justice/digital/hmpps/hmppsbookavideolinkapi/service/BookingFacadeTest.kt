@@ -404,7 +404,7 @@ class BookingFacadeTest {
         endTime = LocalTime.MIDNIGHT.plusHours(1),
       )
 
-      whenever(videoBookingServiceDelegate.create(request, PROBATION_USER)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
+      whenever(videoBookingServiceDelegate.create(request, PROBATION_USER)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
       whenever(emailService.send(any<NewProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<NewProbationBookingPrisonNoProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
       whenever(additionalBookingDetailRepository.findByVideoBooking(probationBookingAtBirminghamPrison)) doReturn additionalDetails(probationBookingAtBirminghamPrison, "probation officer name", "probation.officer@email.com", "0114 2345678")
@@ -498,7 +498,7 @@ class BookingFacadeTest {
         endTime = LocalTime.MIDNIGHT.plusHours(1),
       )
 
-      whenever(videoBookingServiceDelegate.create(request, PRISON_USER_BIRMINGHAM)) doReturn Pair(probationBookingAtBirminghamPrisonCreatedByPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
+      whenever(videoBookingServiceDelegate.create(request, PRISON_USER_BIRMINGHAM)) doReturn Pair(probationBookingAtBirminghamPrisonCreatedByPrison, prisoner(prisonCode = prisoner.prisonId, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
       whenever(emailService.send(any<NewProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<NewProbationBookingProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
       whenever(additionalBookingDetailRepository.findByVideoBooking(probationBookingAtBirminghamPrison)) doReturn additionalDetails(probationBookingAtBirminghamPrison, "probation officer name", "probation.officer@email.com", "0114 2345678")
@@ -1298,7 +1298,7 @@ class BookingFacadeTest {
           amendedTime = now()
           amendedBy = PROBATION_USER.username
         },
-        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!),
+        prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId),
       )
       whenever(emailService.send(any<AmendedProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
       whenever(emailService.send(any<AmendedProbationBookingPrisonNoProbationEmail>())) doReturn Result.success(emailNotificationId to "prison template id")

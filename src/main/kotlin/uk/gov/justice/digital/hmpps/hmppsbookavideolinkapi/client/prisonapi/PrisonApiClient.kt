@@ -63,8 +63,6 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     emptyList()
   }
 
-  private fun PrisonerSchedule.redacted() = copy(firstName = "xxxx", lastName = "xxxx")
-
   private fun getPrisonersAppointments(prisonCode: String, prisonerNumber: String, onDate: LocalDate): List<PrisonerSchedule> = prisonApiWebClient
     .post()
     .uri("/api/schedules/{prisonCode}/appointments?date={date}", prisonCode, onDate.toIsoDate())
@@ -105,7 +103,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     .block() ?: emptyList()
 
   /**
-   * Returns all matching appointment types for a prison, not just video link bookings. It will however filter down to
+   * Returns all matching appointment types for a prison, not just video link bookings. It will, however, filter down to
    * the supplied location IDs where there is match.
    */
   fun getScheduledAppointments(prisonCode: String, date: LocalDate, locationIds: Collection<Long>) = run {
@@ -123,7 +121,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       ).filter { appointment -> locationIds.isEmpty() || appointment.locationId in locationIds }
   }
 
-  fun getLatestPrisonerMovementOnDate(prisonerNumber: String, date: LocalDate) = run {
+  fun getLatestPrisonerMovementOnDate(prisonerNumber: String, date: LocalDate): Movement.MovementType? = run {
     if (date.isAfter(LocalDate.now())) return null
 
     prisonApiWebClient.get()

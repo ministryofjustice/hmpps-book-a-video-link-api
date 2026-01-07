@@ -182,7 +182,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
 
     // Check the user email and name are as expected
     val userObject = listOfContacts.find { it.contactType == ContactType.USER }
-    assertThat(userObject?.email).isEqualTo(COURT_USER.email!!)
+    assertThat(userObject?.email).isEqualTo(COURT_USER.email)
     assertThat(userObject?.name).isEqualTo(COURT_USER.name)
   }
 

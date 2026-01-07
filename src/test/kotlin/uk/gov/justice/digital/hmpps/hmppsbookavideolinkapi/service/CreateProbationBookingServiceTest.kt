@@ -107,7 +107,7 @@ class CreateProbationBookingServiceTest {
 
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
-    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
+    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
@@ -169,7 +169,7 @@ class CreateProbationBookingServiceTest {
 
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
-    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
+    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
@@ -233,7 +233,7 @@ class CreateProbationBookingServiceTest {
       on { endTime } doReturn LocalTime.of(10, 0)
     }
 
-    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
+    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
@@ -290,7 +290,7 @@ class CreateProbationBookingServiceTest {
     val probationBookingRequest = probationBookingRequest(prisonCode = prisonCode, prisonerNumber = prisonerNumber, appointmentType = AppointmentType.VLB_COURT_MAIN)
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
-    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode!!)) doReturn requestedProbationTeam
+    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
     whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
