@@ -58,9 +58,10 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
   fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String) = locationsInsidePrisonApiWebClient.get()
     .uri { uriBuilder: UriBuilder ->
       uriBuilder
-        .path("/locations/prison/{prisonCode}/non-residential-usage-type/APPOINTMENT")
+        .path("/locations/non-residential/prison/{prisonCode}/service/APPOINTMENT")
         .queryParam("sortByLocalName", true)
         .queryParam("formatLocalName", true)
+        .queryParam("filterParents", true)
         .build(prisonCode)
     }
     .retrieve()
