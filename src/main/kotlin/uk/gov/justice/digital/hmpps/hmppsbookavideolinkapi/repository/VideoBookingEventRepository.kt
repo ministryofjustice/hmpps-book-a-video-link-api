@@ -13,7 +13,7 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
 
   @QueryHints(
     value = [
-      QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "" + Integer.MAX_VALUE),
+      QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "25"),
       QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_CACHEABLE, value = "false"),
       QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true"),
     ],
@@ -34,7 +34,7 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
    */
   @QueryHints(
     value = [
-      QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "" + Integer.MAX_VALUE),
+      QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "25"),
       QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_CACHEABLE, value = "false"),
       QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true"),
     ],
