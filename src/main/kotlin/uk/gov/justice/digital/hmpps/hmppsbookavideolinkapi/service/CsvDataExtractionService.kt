@@ -82,7 +82,7 @@ class CsvDataExtractionService(
         courtEvents.forEach { event ->
           writer.write(event)
           counter++
-          if (counter % 100 == 0) log.info("CSV: extracted $counter court events so far ...")
+          if (counter % 5000 == 0) log.info("CSV: extracted $counter court events so far ...")
         }
       }
 
@@ -133,7 +133,7 @@ class CsvDataExtractionService(
         probationEvents.forEach { event ->
           writer.write(event)
           counter++
-          if (counter % 100 == 0) log.info("CSV: extracted $counter probation events so far ...")
+          if (counter % 5000 == 0) log.info("CSV: extracted $counter probation events so far ...")
         }
       }
 
