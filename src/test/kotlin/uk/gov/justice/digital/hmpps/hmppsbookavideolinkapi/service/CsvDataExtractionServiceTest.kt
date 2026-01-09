@@ -64,6 +64,7 @@ class CsvDataExtractionServiceTest {
     videoBookingId = 1,
     dateOfBooking = today(),
     timestamp = LocalDateTime.of(2024, Month.JULY, 1, 9, 0),
+    timestampDatePart = LocalDate.of(2024, Month.JULY, 1),
     eventType = "CREATE",
     prisonCode = WANDSWORTH,
     courtDescription = "court description",
