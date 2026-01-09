@@ -33,7 +33,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should return a list of enabled prisons`() {
-    prisonRepository.findAllByEnabledIsTrue() hasSize 19
+    prisonRepository.findAllByEnabledIsTrue() hasSize 20
 
     val listOfEnabledPrisons = webTestClient.getPrisons(true)
 
@@ -43,6 +43,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfEnabledPrisons).extracting("code").contains("BXI")
     assertThat(listOfEnabledPrisons).extracting("code").contains("CDI")
     assertThat(listOfEnabledPrisons).extracting("code").contains("NHI")
+    assertThat(listOfEnabledPrisons).extracting("code").contains("HOI")
     assertThat(listOfEnabledPrisons).extracting("code").doesNotContain("LEI")
   }
 
