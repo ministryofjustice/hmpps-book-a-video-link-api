@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
@@ -73,4 +76,48 @@ interface ScheduleRepository : ReadOnlyRepository<ScheduleItem, Long> {
     """,
   )
   fun getScheduleForProbationTeamIncludingCancelled(probationTeamCode: String, date: LocalDate): List<ScheduleItem>
+
+  @Query(
+    value = """
+      FROM ScheduleItem si
+      WHERE si.appointmentDate = :date
+      AND si.bookingType = "COURT"
+      AND si.courtCode in :courtCodes
+      AND si.statusCode = "ACTIVE"
+    """,
+  )
+  fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, pageable: Pageable): Page<ScheduleItem>
+
+  @Query(
+    value = """
+      FROM ScheduleItem si
+      WHERE si.appointmentDate = :date
+      AND si.bookingType = "PROBATION"
+      AND si.probationTeamCode in :probationTeamCodes
+      AND si.statusCode = "ACTIVE"
+    """,
+  )
+  fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, pageable: Pageable): Page<ScheduleItem>
+
+  @Query(
+    value = """
+      FROM ScheduleItem si
+      WHERE si.appointmentDate = :date
+      AND si.bookingType = "COURT"
+      AND si.courtCode in :courtCodes
+      AND si.statusCode = "ACTIVE"
+    """,
+  )
+  fun getScheduleForCourtsUnpaginated(courtCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem>
+
+  @Query(
+    value = """
+      FROM ScheduleItem si
+      WHERE si.appointmentDate = :date
+      AND si.bookingType = "PROBATION"
+      AND si.probationTeamCode in :probationTeamCodes
+      AND si.statusCode = "ACTIVE"
+    """,
+  )
+  fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem>
 }
