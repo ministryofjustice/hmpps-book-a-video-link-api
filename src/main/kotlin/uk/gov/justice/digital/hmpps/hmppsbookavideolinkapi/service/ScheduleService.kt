@@ -41,13 +41,13 @@ class ScheduleService(
   }
 
   fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, pageable: Pageable): Page<ScheduleItem> {
-    val pageOfResults = scheduleRepository.getScheduleForProbationTeamsPaginated(probationTeamCodes, date, pageable)
+    val pageOfResults = scheduleRepository.getScheduleForProbationTeamsPaginated(probationTeamCodes.distinct(), date, pageable)
     val modelContent = pageOfResults.content.mapScheduleToModel(date)
     return PageImpl(modelContent, pageable, pageOfResults.totalElements)
   }
 
   fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, pageable: Pageable): Page<ScheduleItem> {
-    val pageOfResults = scheduleRepository.getScheduleForCourtsPaginated(courtCodes, date, pageable)
+    val pageOfResults = scheduleRepository.getScheduleForCourtsPaginated(courtCodes.distinct(), date, pageable)
     val modelContent = pageOfResults.content.mapScheduleToModel(date)
     return PageImpl(modelContent, pageable, pageOfResults.totalElements)
   }

@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.http.MediaType
@@ -63,8 +62,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
   @GetMapping(value = ["/prison/{prisonCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getScheduleForPrison(
-    @Parameter(description = "A prison code", required = true)
-    @PathVariable("prisonCode")
+    @PathVariable @Parameter(description = "A prison code", required = true)
     prisonCode: String,
     @Parameter(description = "A date in ISO format (YYYY-MM-DD). Defaults to today if not supplied.")
     @RequestParam(name = "date")
@@ -102,8 +100,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
   @GetMapping(value = ["/court/{courtCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getCourtSchedule(
-    @Parameter(description = "A court code", required = true)
-    @PathVariable("courtCode")
+    @PathVariable @Parameter(description = "A court code", required = true)
     courtCode: String,
     @Parameter(description = "A date in ISO format (YYYY-MM-DD). Defaults to today if not supplied.")
     @RequestParam(name = "date")
@@ -141,8 +138,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
   @GetMapping(value = ["/probation/{probationTeamCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getProbationSchedule(
-    @Parameter(description = "A probation team code", required = true)
-    @PathVariable("probationTeamCode")
+    @PathVariable @Parameter(description = "A probation team code", required = true)
     probationTeamCode: String,
     @Parameter(description = "A date in ISO format (YYYY-MM-DD). Defaults to today if not supplied.")
     @RequestParam(name = "date")
@@ -177,7 +173,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     @Valid @RequestBody @Parameter(description = "A request to find bookings for a date and list of court codes", required = true)
     request: FindCourtBookingsRequest,
     @Parameter(hidden = true)
-    pageable: Pageable = PageRequest.of(0, 10, Sort.by("appointmentDate", "startTime").ascending()),
+    pageable: Pageable,
   ): Page<ScheduleItem> = prisonScheduleService.getScheduleForCourtsPaginated(request.courtCodes!!, request.date, pageable)
 
   @Operation(summary = "Endpoint to retrieve a paginated schedule of video link bookings for one or more probation teams")
@@ -205,7 +201,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     @Valid @RequestBody @Parameter(description = "A request to find bookings for a date and list of probation team codes", required = true)
     request: FindProbationBookingsRequest,
     @Parameter(hidden = true)
-    pageable: Pageable = PageRequest.of(0, 10, Sort.by("appointmentDate", "startTime").ascending()),
+    pageable: Pageable,
   ): Page<ScheduleItem> = prisonScheduleService.getScheduleForProbationTeamsPaginated(request.probationTeamCodes!!, request.date, pageable)
 
   @Operation(summary = "Endpoint to retrieve an unpaginated list of video link bookings for one or more courts")
@@ -233,7 +229,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     @Valid @RequestBody @Parameter(description = "A request to find bookings for a date and list of court codes", required = true)
     request: FindCourtBookingsRequest,
     @Parameter(hidden = true)
-    sort: Sort = Sort.by("appointmentDate", "startTime").ascending(),
+    sort: Sort,
   ): List<ScheduleItem> = prisonScheduleService.getScheduleForCourtsUnpaginated(request.courtCodes!!, request.date, sort)
 
   @Operation(summary = "Endpoint to retrieve an unpaginated list of video link bookings for one or more probation teams")
@@ -261,6 +257,6 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     @Valid @RequestBody @Parameter(description = "A request to find bookings for a date and list of probation team codes", required = true)
     request: FindProbationBookingsRequest,
     @Parameter(hidden = true)
-    sort: Sort = Sort.by("appointmentDate", "startTime").ascending(),
+    sort: Sort,
   ): List<ScheduleItem> = prisonScheduleService.getScheduleForProbationTeamsUnpaginated(request.probationTeamCodes!!, request.date, sort)
 }

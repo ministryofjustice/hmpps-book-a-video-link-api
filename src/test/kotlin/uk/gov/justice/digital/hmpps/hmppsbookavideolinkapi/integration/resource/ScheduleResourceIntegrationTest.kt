@@ -1,13 +1,23 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.JsonNode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBodyList
+import org.springframework.web.util.UriComponentsBuilder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
@@ -22,6 +32,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.FindCourtBookingsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -137,15 +148,11 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       assertThat(scheduleResponse).hasSize(2)
 
       assertThat(scheduleResponse.map { it.bookingType }).containsAll(listOf(BookingType.COURT, BookingType.PROBATION))
-
       assertThat(scheduleResponse.map { it.appointmentType }).containsAll(listOf(AppointmentType.VLB_COURT_MAIN, AppointmentType.VLB_PROBATION))
-
       assertThat(scheduleResponse.map { it.appointmentDate }).containsOnly(tomorrow())
-
       assertThat(scheduleResponse.map { it.startTime }).containsAll(
         listOf(LocalTime.of(9, 0), LocalTime.of(12, 0)),
       )
-
       assertThat(scheduleResponse.map { it.videoUrl }).containsAll(
         listOf("https://video.link.com"),
       )
@@ -186,7 +193,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `Court - return items when bookings are present for this court`() {
+    fun `Court - return items when bookings are present for a single court`() {
       videoBookingRepository.findAll() hasSize 0
 
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
@@ -224,6 +231,77 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         assertThat(endTime).isEqualTo(LocalTime.of(12, 30))
         assertThat(notesForStaff).isEqualTo("Some private staff notes")
       }
+    }
+
+    @Test
+    fun `Court - return paginated list of bookings for multiple courts (default sort date and time)`() {
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeCourtBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      val scheduleResponsePage1 = webTestClient.getPaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        date = tomorrow(),
+        page = 0,
+        size = 2,
+      )
+
+      assertThat(scheduleResponsePage1.content).hasSize(2)
+      assertThat(scheduleResponsePage1.number).isEqualTo(0)
+      with(scheduleResponsePage1.content.first()) {
+        assertThat(startTime).isEqualTo("12:00")
+      }
+
+      val scheduleResponsePage2 = webTestClient.getPaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        date = tomorrow(),
+        page = 1,
+        size = 2,
+      )
+
+      assertThat(scheduleResponsePage2.content).hasSize(1)
+      assertThat(scheduleResponsePage2.number).isEqualTo(1)
+      with(scheduleResponsePage2.content.first()) {
+        assertThat(startTime).isEqualTo("15:00")
+      }
+    }
+
+    private fun createThreeCourtBookings() {
+      // Bookings will default to tomorrow's date
+      val courtBookingRequest1 = courtBookingRequest(
+        courtCode = DERBY_JUSTICE_CENTRE,
+        prisonerNumber = "A1111AA",
+        prisonCode = PENTONVILLE,
+        location = pentonvilleLocation,
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(12, 30),
+      )
+
+      webTestClient.createBooking(courtBookingRequest1, COURT_USER)
+
+      val courtBookingRequest2 = courtBookingRequest(
+        courtCode = DERBY_JUSTICE_CENTRE,
+        prisonerNumber = "A1111AA",
+        prisonCode = PENTONVILLE,
+        location = pentonvilleLocation,
+        startTime = LocalTime.of(14, 0),
+        endTime = LocalTime.of(14, 30),
+      )
+
+      webTestClient.createBooking(courtBookingRequest2, COURT_USER)
+
+      val courtBookingRequest3 = courtBookingRequest(
+        courtCode = CHESTERFIELD_JUSTICE_CENTRE,
+        prisonerNumber = "A1111AA",
+        prisonCode = PENTONVILLE,
+        location = pentonvilleLocation,
+        startTime = LocalTime.of(15, 0),
+        endTime = LocalTime.of(15, 30),
+      )
+
+      webTestClient.createBooking(courtBookingRequest3, COURT_USER)
     }
   }
 
@@ -315,7 +393,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
-    .expectBodyList(ScheduleItem::class.java)
+    .expectBodyList<ScheduleItem>()
     .returnResult().responseBody!!
 
   private fun WebTestClient.getCourtSchedule(courtCode: String, date: LocalDate, cancelled: Boolean = false) = this
@@ -326,7 +404,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
-    .expectBodyList(ScheduleItem::class.java)
+    .expectBodyList<ScheduleItem>()
     .returnResult().responseBody!!
 
   private fun WebTestClient.getProbationSchedule(probationTeamCode: String, date: LocalDate, cancelled: Boolean = false) = this
@@ -337,6 +415,55 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
-    .expectBodyList(ScheduleItem::class.java)
+    .expectBodyList<ScheduleItem>()
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.getPaginatedCourtsSchedule(
+    courtCodes: List<String>,
+    date: LocalDate,
+    page: Int? = 0,
+    size: Int? = 10,
+    sortField1: String? = "appointmentDate",
+    sortField2: String? = "startTime",
+  ) = this.post()
+    .uri(
+      UriComponentsBuilder.fromPath("/schedule/courts/paginated")
+        .queryParam("page", page)
+        .queryParam("size", size)
+        .queryParam("sort", sortField1)
+        .queryParam("sort", sortField2)
+        .build()
+        .toUri().toString(),
+    )
+    .bodyValue(FindCourtBookingsRequest(courtCodes = courtCodes, date = date))
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody(typeReference<RestPageImpl<ScheduleItem>>())
     .returnResult().responseBody!!
 }
+
+/*
+** Fake page class to allow the JSON paged response to be constructed from the web test client response body.
+** It ignores the sortable element - so even though the sort is implemented correctly, the page implementation
+** resulting from this conversion (for testing) considers it unsorted.
+ */
+
+inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+class RestPageImpl<T>
+@JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+constructor(
+  @JsonProperty("content") content: MutableList<T?>,
+  @JsonProperty("number") number: Int,
+  @JsonProperty("size") size: Int,
+  @JsonProperty("totalElements") totalElements: Long,
+  @JsonProperty("pageable") pageable: JsonNode?,
+  @JsonProperty("last") last: Boolean,
+  @JsonProperty("totalPages") totalPages: Int,
+  @JsonProperty("sort") sort: JsonNode?,
+  @JsonProperty("numberOfElements") numberOfElements: Int,
+) : PageImpl<T>(content, PageRequest.of(number, numberOfElements), totalElements)
