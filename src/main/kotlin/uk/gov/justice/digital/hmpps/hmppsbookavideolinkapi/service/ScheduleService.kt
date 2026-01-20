@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
@@ -40,16 +40,16 @@ class ScheduleService(
     scheduleRepository.getScheduleForProbationTeam(probationTeamCode, date).mapScheduleToModel(date)
   }
 
-  fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, pageable: Pageable): Page<ScheduleItem> {
+  fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, pageable: Pageable): PagedModel<ScheduleItem> {
     val pageOfResults = scheduleRepository.getScheduleForProbationTeamsPaginated(probationTeamCodes.distinct(), date, pageable)
     val modelContent = pageOfResults.content.mapScheduleToModel(date)
-    return PageImpl(modelContent, pageable, pageOfResults.totalElements)
+    return PagedModel(PageImpl(modelContent, pageable, pageOfResults.totalElements))
   }
 
-  fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, pageable: Pageable): Page<ScheduleItem> {
+  fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, pageable: Pageable): PagedModel<ScheduleItem> {
     val pageOfResults = scheduleRepository.getScheduleForCourtsPaginated(courtCodes.distinct(), date, pageable)
     val modelContent = pageOfResults.content.mapScheduleToModel(date)
-    return PageImpl(modelContent, pageable, pageOfResults.totalElements)
+    return PagedModel(PageImpl(modelContent, pageable, pageOfResults.totalElements))
   }
 
   fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem> = run {

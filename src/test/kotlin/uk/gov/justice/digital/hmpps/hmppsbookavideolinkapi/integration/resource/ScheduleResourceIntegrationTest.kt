@@ -1,20 +1,15 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.JsonNode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
+import org.springframework.data.web.PagedModel
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.util.UriComponentsBuilder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
@@ -249,7 +244,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       )
 
       assertThat(scheduleResponsePage1.content).hasSize(2)
-      assertThat(scheduleResponsePage1.number).isEqualTo(0)
+      assertThat(scheduleResponsePage1.page.number).isEqualTo(0)
       with(scheduleResponsePage1.content.first()) {
         assertThat(startTime).isEqualTo("12:00")
       }
@@ -262,7 +257,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       )
 
       assertThat(scheduleResponsePage2.content).hasSize(1)
-      assertThat(scheduleResponsePage2.number).isEqualTo(1)
+      assertThat(scheduleResponsePage2.page.number).isEqualTo(1)
       with(scheduleResponsePage2.content.first()) {
         assertThat(startTime).isEqualTo("15:00")
       }
@@ -441,29 +436,11 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
-    .expectBody(typeReference<RestPageImpl<ScheduleItem>>())
+    .expectBody<PaginatedResponse>()
     .returnResult().responseBody!!
 }
 
-/*
-** Fake page class to allow the JSON paged response to be constructed from the web test client response body.
-** It ignores the sortable element - so even though the sort is implemented correctly, the page implementation
-** resulting from this conversion (for testing) considers it unsorted.
- */
-
-inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-class RestPageImpl<T>
-@JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-constructor(
-  @JsonProperty("content") content: MutableList<T?>,
-  @JsonProperty("number") number: Int,
-  @JsonProperty("size") size: Int,
-  @JsonProperty("totalElements") totalElements: Long,
-  @JsonProperty("pageable") pageable: JsonNode?,
-  @JsonProperty("last") last: Boolean,
-  @JsonProperty("totalPages") totalPages: Int,
-  @JsonProperty("sort") sort: JsonNode?,
-  @JsonProperty("numberOfElements") numberOfElements: Int,
-) : PageImpl<T>(content, PageRequest.of(number, numberOfElements), totalElements)
+data class PaginatedResponse(
+  val content: List<ScheduleItem>,
+  val page: PagedModel.PageMetadata,
+)

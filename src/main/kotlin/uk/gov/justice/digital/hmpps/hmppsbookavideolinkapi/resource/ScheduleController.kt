@@ -9,9 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.data.web.PagedModel
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -174,7 +174,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     request: FindCourtBookingsRequest,
     @Parameter(hidden = true)
     pageable: Pageable,
-  ): Page<ScheduleItem> = prisonScheduleService.getScheduleForCourtsPaginated(request.courtCodes!!, request.date, pageable)
+  ): PagedModel<ScheduleItem> = prisonScheduleService.getScheduleForCourtsPaginated(request.courtCodes!!, request.date, pageable)
 
   @Operation(summary = "Endpoint to retrieve a paginated schedule of video link bookings for one or more probation teams")
   @ApiResponses(
@@ -202,7 +202,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     request: FindProbationBookingsRequest,
     @Parameter(hidden = true)
     pageable: Pageable,
-  ): Page<ScheduleItem> = prisonScheduleService.getScheduleForProbationTeamsPaginated(request.probationTeamCodes!!, request.date, pageable)
+  ): PagedModel<ScheduleItem> = prisonScheduleService.getScheduleForProbationTeamsPaginated(request.probationTeamCodes!!, request.date, pageable)
 
   @Operation(summary = "Endpoint to retrieve an unpaginated list of video link bookings for one or more courts")
   @ApiResponses(
