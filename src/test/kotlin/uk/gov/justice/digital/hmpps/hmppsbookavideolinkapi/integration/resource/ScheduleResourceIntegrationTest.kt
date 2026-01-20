@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Additio
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.FindCourtBookingsRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.FindProbationBookingsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -233,7 +234,9 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
 
       videoBookingRepository.findAll() hasSize 0
+
       createThreeCourtBookings()
+
       videoBookingRepository.findAll() hasSize 3
 
       val scheduleResponsePage1 = webTestClient.getPaginatedCourtsSchedule(
@@ -378,6 +381,79 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         assertThat(probationOfficerEmailAddress).isEqualTo("probation.contact@email.com")
       }
     }
+
+    @Test
+    fun `Probation - return paginated list of bookings for multiple teams (default sort date and time)`() {
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+
+      videoBookingRepository.findAll() hasSize 0
+
+      createThreeProbationBookings()
+
+      videoBookingRepository.findAll() hasSize 3
+
+      val scheduleResponsePage1 = webTestClient.getPaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        date = tomorrow(),
+        page = 0,
+        size = 2,
+      )
+
+      assertThat(scheduleResponsePage1.content).hasSize(2)
+      assertThat(scheduleResponsePage1.page.number).isEqualTo(0)
+      with(scheduleResponsePage1.content.first()) {
+        assertThat(startTime).isEqualTo("09:00")
+      }
+
+      val scheduleResponsePage2 = webTestClient.getPaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        date = tomorrow(),
+        page = 1,
+        size = 2,
+      )
+
+      assertThat(scheduleResponsePage2.content).hasSize(1)
+      assertThat(scheduleResponsePage2.page.number).isEqualTo(1)
+      with(scheduleResponsePage2.content.first()) {
+        assertThat(startTime).isEqualTo("11:00")
+      }
+    }
+
+    private fun createThreeProbationBookings() {
+      // Bookings will default to tomorrow's date
+      val probationBookingRequest1 = probationBookingRequest(
+        probationTeamCode = "BLKPPP",
+        prisonCode = PENTONVILLE,
+        prisonerNumber = "A1111AA",
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(9, 30),
+        location = pentonvilleLocation,
+      )
+
+      webTestClient.createBooking(probationBookingRequest1, PROBATION_USER)
+
+      val probationBookingRequest2 = probationBookingRequest(
+        probationTeamCode = "BLKPPP",
+        prisonCode = PENTONVILLE,
+        prisonerNumber = "A1111AA",
+        startTime = LocalTime.of(10, 0),
+        endTime = LocalTime.of(10, 30),
+        location = pentonvilleLocation,
+      )
+
+      webTestClient.createBooking(probationBookingRequest2, PROBATION_USER)
+
+      val probationBookingRequest3 = probationBookingRequest(
+        probationTeamCode = "SHEFCC",
+        prisonCode = PENTONVILLE,
+        prisonerNumber = "A1111AA",
+        startTime = LocalTime.of(11, 0),
+        endTime = LocalTime.of(11, 30),
+        location = pentonvilleLocation,
+      )
+
+      webTestClient.createBooking(probationBookingRequest3, PROBATION_USER)
+    }
   }
 
   private fun WebTestClient.getPrisonSchedule(prisonCode: String, date: LocalDate, cancelled: Boolean = false) = this
@@ -431,6 +507,32 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         .toUri().toString(),
     )
     .bodyValue(FindCourtBookingsRequest(courtCodes = courtCodes, date = date))
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody<PaginatedResponse>()
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.getPaginatedProbationTeamsSchedule(
+    probationTeamCodes: List<String>,
+    date: LocalDate,
+    page: Int? = 0,
+    size: Int? = 10,
+    sortField1: String? = "appointmentDate",
+    sortField2: String? = "startTime",
+  ) = this.post()
+    .uri(
+      UriComponentsBuilder.fromPath("/schedule/probation-teams/paginated")
+        .queryParam("page", page)
+        .queryParam("size", size)
+        .queryParam("sort", sortField1)
+        .queryParam("sort", sortField2)
+        .build()
+        .toUri().toString(),
+    )
+    .bodyValue(FindProbationBookingsRequest(probationTeamCodes = probationTeamCodes, date = date))
     .accept(MediaType.APPLICATION_JSON)
     .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
