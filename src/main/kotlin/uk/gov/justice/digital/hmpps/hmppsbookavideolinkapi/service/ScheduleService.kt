@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem a
 class ScheduleService(
   private val scheduleRepository: ScheduleRepository,
   private val locationsService: LocationsService,
+  private val prisonerSearchClient: PrisonerSearchClient,
 ) {
   fun getScheduleForPrison(prisonCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> = if (includeCancelled) {
     scheduleRepository.getScheduleForPrisonIncludingCancelled(prisonCode, date).mapScheduleToModel(date)
@@ -61,7 +63,11 @@ class ScheduleService(
   }
 
   private fun List<ScheduleItemEntity>.mapScheduleToModel(onDate: LocalDate): List<ScheduleItem> = run {
-    toModel(mapNotNull { locationsService.getLocationById(it.prisonLocationId) }) { it.checkAvailability(onDate) }
+    toModel(
+      prisoners = prisonerSearchClient.findByPrisonerNumbers(map { it.prisonerNumber }.toSet()),
+      locations = mapNotNull { locationsService.getLocationById(it.prisonLocationId) },
+      availabilityChecker = { it.checkAvailability(onDate) },
+    )
   }
 
   private fun Location.checkAvailability(onDate: LocalDate) = run {

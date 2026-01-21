@@ -85,6 +85,7 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
       AND si.bookingType = "COURT"
       AND si.courtCode in :courtCodes
       AND si.statusCode = "ACTIVE"
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
     """,
   )
   fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, pageable: Pageable): Page<ScheduleItem>
@@ -96,6 +97,7 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
       AND si.bookingType = "PROBATION"
       AND si.probationTeamCode in :probationTeamCodes
       AND si.statusCode = "ACTIVE"
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
     """,
   )
   fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, pageable: Pageable): Page<ScheduleItem>
@@ -107,6 +109,7 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
       AND si.bookingType = "COURT"
       AND si.courtCode in :courtCodes
       AND si.statusCode = "ACTIVE"
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
     """,
   )
   fun getScheduleForCourtsUnpaginated(courtCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem>
@@ -118,6 +121,7 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
       AND si.bookingType = "PROBATION"
       AND si.probationTeamCode in :probationTeamCodes
       AND si.statusCode = "ACTIVE"
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
     """,
   )
   fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem>
