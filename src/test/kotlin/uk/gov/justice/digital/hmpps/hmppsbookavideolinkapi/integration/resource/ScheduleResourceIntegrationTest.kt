@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -266,6 +267,32 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       }
     }
 
+    @Test
+    fun `Court - unpaginated list of bookings for multiple teams sorted by court description, date and time)`() {
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeCourtBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      val scheduleResponse = webTestClient.getUnpaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        date = tomorrow(),
+        sort1 = "courtDescription",
+        sort2 = "appointmentDate",
+        sort3 = "startTime",
+      )
+
+      assertThat(scheduleResponse).hasSize(3)
+      assertThat(scheduleResponse).extracting("courtCode", "startTime").containsExactlyElementsOf(
+        listOf(
+          Tuple(CHESTERFIELD_JUSTICE_CENTRE, LocalTime.of(15, 0)),
+          Tuple(DERBY_JUSTICE_CENTRE, LocalTime.of(12, 0)),
+          Tuple(DERBY_JUSTICE_CENTRE, LocalTime.of(14, 0)),
+        ),
+      )
+    }
+
     private fun createThreeCourtBookings() {
       // Bookings will default to tomorrow's date
       val courtBookingRequest1 = courtBookingRequest(
@@ -419,6 +446,32 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       }
     }
 
+    @Test
+    fun `Probation - unpaginated list of bookings for multiple teams sorted by team description, date and time)`() {
+      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeProbationBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      val scheduleResponse = webTestClient.getUnpaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        date = tomorrow(),
+        sort1 = "probationTeamDescription",
+        sort2 = "appointmentDate",
+        sort3 = "startTime",
+      )
+
+      assertThat(scheduleResponse).hasSize(3)
+      assertThat(scheduleResponse).extracting("probationTeamCode", "startTime").containsExactlyElementsOf(
+        listOf(
+          Tuple("BLKPPP", LocalTime.of(9, 0)),
+          Tuple("BLKPPP", LocalTime.of(10, 0)),
+          Tuple("SHEFCC", LocalTime.of(11, 0)),
+        ),
+      )
+    }
+
     private fun createThreeProbationBookings() {
       // Bookings will default to tomorrow's date
       val probationBookingRequest1 = probationBookingRequest(
@@ -539,6 +592,54 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
     .expectBody<PaginatedResponse>()
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.getUnpaginatedCourtsSchedule(
+    courtCodes: List<String>,
+    date: LocalDate,
+    sort1: String? = "courtDescription",
+    sort2: String? = "appointmentDate",
+    sort3: String? = "startTime",
+  ) = this.post()
+    .uri(
+      UriComponentsBuilder.fromPath("/schedule/courts")
+        .queryParam("sort", sort1)
+        .queryParam("sort", sort2)
+        .queryParam("sort", sort3)
+        .build()
+        .toUri().toString(),
+    )
+    .bodyValue(FindCourtBookingsRequest(courtCodes = courtCodes, date = date))
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody<List<ScheduleItem>>()
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.getUnpaginatedProbationTeamsSchedule(
+    probationTeamCodes: List<String>,
+    date: LocalDate,
+    sort1: String? = "probationTeamDescription",
+    sort2: String? = "appointmentDate",
+    sort3: String? = "startTime",
+  ) = this.post()
+    .uri(
+      UriComponentsBuilder.fromPath("/schedule/probation-teams")
+        .queryParam("sort", sort1)
+        .queryParam("sort", sort2)
+        .queryParam("sort", sort3)
+        .build()
+        .toUri().toString(),
+    )
+    .bodyValue(FindProbationBookingsRequest(probationTeamCodes = probationTeamCodes, date = date))
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody<List<ScheduleItem>>()
     .returnResult().responseBody!!
 }
 
