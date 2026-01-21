@@ -72,6 +72,12 @@ data class ScheduleItem(
   @Schema(description = "The prisoner number (NOMS ID)", example = "A1234AA")
   val prisonerNumber: String,
 
+  @Schema(description = "The prisoners first name", example = "Jon")
+  val prisonerFirstName: String,
+
+  @Schema(description = "The prisoners last name", example = "Doe")
+  val prisonerLastName: String,
+
   @Schema(description = "The appointment type", example = "1234")
   val appointmentType: AppointmentType,
 
