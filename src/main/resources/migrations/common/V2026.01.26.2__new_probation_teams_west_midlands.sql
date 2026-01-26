@@ -1,0 +1,26 @@
+-- New probation teams for the West Midlands region
+insert into probation_team (code, description, enabled, read_only, notes, created_by, created_time)
+values
+    ( 'BIRMCC', 'Birmingham Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'BIRMMC', 'Birmingham Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'CANNMC', 'Cannock Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'COVNCC', 'Coventry Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'COVNMC', 'Coventry Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'DUDLMC', 'Dudley Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'HERECC', 'Hereford Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'HEREMC', 'Hereford Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'KIDDMC', 'Kidderminster Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'LEAMMC', 'Leamington Spa Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'NSTFJC', 'North Staffordshire Justice Centre  – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'REDDCC', 'Redditch Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'REDDMC', 'Redditch Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'SHRWCC', 'Shrewsbury Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'STAFCC', 'Stafford Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'STOKCC', 'Stoke on Trent Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'TELFJC', 'Telford Justice Centre – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'WALSMC', 'Walsall Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'WARWCC', 'Warwick Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'WOLVCC', 'Wolverhampton Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'WOLVMC', 'Wolverhampton Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'WORCCC', 'Worcester Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ( 'WORCMC', 'Worcester Magistrates - Probation', true, false, null, 'TIM', current_timestamp);
