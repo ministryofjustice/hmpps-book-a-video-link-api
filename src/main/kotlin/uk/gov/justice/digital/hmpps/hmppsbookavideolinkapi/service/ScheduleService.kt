@@ -46,28 +46,28 @@ class ScheduleService(
   }
 
   fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, pageable: Pageable): PagedModel<ScheduleItem> {
-    val pageOfResults = scheduleRepository.getScheduleForProbationTeamsPaginated(probationTeamCodes.distinct(), date, getCourtOnlyPrisons(), pageable)
+    val pageOfResults = scheduleRepository.getScheduleForProbationTeamsPaginated(probationTeamCodes.distinct(), date, excludeCourtOnlyPrisons(), pageable)
     val modelContent = pageOfResults.content.mapScheduleToModel(date)
     return PagedModel(PageImpl(modelContent, pageable, pageOfResults.totalElements))
   }
 
   fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, pageable: Pageable): PagedModel<ScheduleItem> {
-    val pageOfResults = scheduleRepository.getScheduleForCourtsPaginated(courtCodes.distinct(), date, getProbationOnlyPrisons(), pageable)
+    val pageOfResults = scheduleRepository.getScheduleForCourtsPaginated(courtCodes.distinct(), date, excludeProbationOnlyPrisons(), pageable)
     val modelContent = pageOfResults.content.mapScheduleToModel(date)
     return PagedModel(PageImpl(modelContent, pageable, pageOfResults.totalElements))
   }
 
   fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem> = run {
-    scheduleRepository.getScheduleForProbationTeamsUnpaginated(probationTeamCodes, date, getCourtOnlyPrisons(), sort).mapScheduleToModel(date)
+    scheduleRepository.getScheduleForProbationTeamsUnpaginated(probationTeamCodes, date, excludeCourtOnlyPrisons(), sort).mapScheduleToModel(date)
   }
 
   fun getScheduleForCourtsUnpaginated(courtCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem> = run {
-    scheduleRepository.getScheduleForCourtsUnpaginated(courtCodes, date, getProbationOnlyPrisons(), sort).mapScheduleToModel(date)
+    scheduleRepository.getScheduleForCourtsUnpaginated(courtCodes, date, excludeProbationOnlyPrisons(), sort).mapScheduleToModel(date)
   }
 
-  private fun getCourtOnlyPrisons() = featureSwitches.getValue(StringFeature.FEATURE_COURT_ONLY_PRISONS, null)?.split(',')
+  private fun excludeCourtOnlyPrisons() = featureSwitches.getValue(StringFeature.FEATURE_COURT_ONLY_PRISONS, null)?.split(',')
 
-  private fun getProbationOnlyPrisons() = featureSwitches.getValue(StringFeature.FEATURE_PROBATION_ONLY_PRISONS, null)?.split(',')
+  private fun excludeProbationOnlyPrisons() = featureSwitches.getValue(StringFeature.FEATURE_PROBATION_ONLY_PRISONS, null)?.split(',')
 
   private fun List<ScheduleItemEntity>.mapScheduleToModel(onDate: LocalDate): List<ScheduleItem> = run {
     toModel(
