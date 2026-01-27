@@ -15,9 +15,11 @@ class FeatureSwitches(private val environment: Environment) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun isEnabled(feature: Feature, defaultValue: Boolean = false): Boolean = get(feature.label, Boolean::class.java, defaultValue)
+  fun isEnabled(feature: BooleanFeature, defaultValue: Boolean = false): Boolean = get(feature.label, Boolean::class.java, defaultValue) == true
 
-  private inline fun <reified T> get(property: String, type: Class<T>, defaultValue: T) = environment.getProperty(property, type).let {
+  fun getValue(feature: StringFeature, defaultValue: String? = null): String? = get(feature.label, String::class.java, defaultValue)
+
+  private inline fun <reified T> get(property: String, type: Class<T>, defaultValue: T?) = environment.getProperty(property, type).let {
     if (it == null) {
       log.info("property '$property' not configured, defaulting to $defaultValue")
       defaultValue
@@ -27,7 +29,12 @@ class FeatureSwitches(private val environment: Environment) {
   }
 }
 
-enum class Feature(val label: String) {
+enum class BooleanFeature(val label: String) {
   FEATURE_PLACEHOLDER("feature.placeholder.example"),
   FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC("feature.public.private.comments.sync"),
+}
+
+enum class StringFeature(val label: String) {
+  FEATURE_PROBATION_ONLY_PRISONS("feature.probation.only.prisons"),
+  FEATURE_COURT_ONLY_PRISONS("feature.court.only.prisons"),
 }
