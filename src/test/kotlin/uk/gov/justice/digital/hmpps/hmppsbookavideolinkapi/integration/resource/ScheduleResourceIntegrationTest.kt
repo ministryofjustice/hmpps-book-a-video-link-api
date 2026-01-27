@@ -5,6 +5,8 @@ import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.stub
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.web.PagedModel
 import org.springframework.http.MediaType
@@ -13,6 +15,8 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.util.UriComponentsBuilder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.StringFeature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -44,6 +48,9 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
   @MockitoBean
   private lateinit var outboundEventsService: OutboundEventsService
+
+  @MockitoBean
+  private lateinit var featureSwitches: FeatureSwitches
 
   @Nested
   @DisplayName("Prison schedule")
@@ -273,6 +280,38 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `Court - returns empty paginated list of bookings for probation only prison`() {
+      featureSwitches.stub { on { getValue(StringFeature.FEATURE_PROBATION_ONLY_PRISONS) } doReturn "$PENTONVILLE,$WANDSWORTH" }
+
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+
+      createThreeCourtBookings()
+
+      videoBookingRepository.findAll() hasSize 3
+
+      val scheduleResponsePage1 = webTestClient.getPaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        date = tomorrow(),
+        page = 0,
+        size = 2,
+      )
+
+      assertThat(scheduleResponsePage1.content).isEmpty()
+
+      val scheduleResponsePage2 = webTestClient.getPaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        date = tomorrow(),
+        page = 1,
+        size = 2,
+      )
+
+      assertThat(scheduleResponsePage2.content).isEmpty()
+    }
+
+    @Test
     fun `Court - unpaginated list of bookings for multiple teams sorted by court description, date and time)`() {
       prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
       prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
@@ -297,6 +336,28 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
           Tuple(DERBY_JUSTICE_CENTRE, LocalTime.of(14, 0)),
         ),
       )
+    }
+
+    @Test
+    fun `Court - empty unpaginated list of bookings for probation only prison`() {
+      featureSwitches.stub { on { getValue(StringFeature.FEATURE_PROBATION_ONLY_PRISONS) } doReturn "$PENTONVILLE,$WANDSWORTH" }
+
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeCourtBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      val scheduleResponse = webTestClient.getUnpaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        date = tomorrow(),
+        sort1 = "courtDescription",
+        sort2 = "appointmentDate",
+        sort3 = "startTime",
+      )
+
+      assertThat(scheduleResponse).isEmpty()
     }
 
     private fun createThreeCourtBookings() {
@@ -456,7 +517,38 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `Probation - unpaginated list of bookings for multiple teams sorted by team description, date and time)`() {
+    fun `Probation - return empty paginated list of bookings for court only prison`() {
+      featureSwitches.stub { on { getValue(StringFeature.FEATURE_COURT_ONLY_PRISONS) } doReturn "$PENTONVILLE,$WANDSWORTH" }
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+
+      createThreeProbationBookings()
+
+      videoBookingRepository.findAll() hasSize 3
+
+      val scheduleResponsePage1 = webTestClient.getPaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        date = tomorrow(),
+        page = 0,
+        size = 2,
+      )
+
+      assertThat(scheduleResponsePage1.content).isEmpty()
+
+      val scheduleResponsePage2 = webTestClient.getPaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        date = tomorrow(),
+        page = 1,
+        size = 2,
+      )
+
+      assertThat(scheduleResponsePage2.content).isEmpty()
+    }
+
+    @Test
+    fun `Probation - unpaginated list of bookings for multiple teams sorted by team description, date and time`() {
       prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
       prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
 
@@ -480,6 +572,27 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
           Tuple("SHEFCC", LocalTime.of(11, 0)),
         ),
       )
+    }
+
+    @Test
+    fun `Probation - empty unpaginated list of bookings for court only prison`() {
+      featureSwitches.stub { on { getValue(StringFeature.FEATURE_COURT_ONLY_PRISONS) } doReturn "$PENTONVILLE,$WANDSWORTH" }
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeProbationBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      val scheduleResponse = webTestClient.getUnpaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        date = tomorrow(),
+        sort1 = "probationTeamDescription",
+        sort2 = "appointmentDate",
+        sort3 = "startTime",
+      )
+
+      assertThat(scheduleResponse).isEmpty()
     }
 
     private fun createThreeProbationBookings() {
