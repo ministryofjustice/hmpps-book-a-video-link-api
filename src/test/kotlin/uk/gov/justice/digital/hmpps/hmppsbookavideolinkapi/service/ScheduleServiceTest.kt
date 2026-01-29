@@ -8,6 +8,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.locationAttributes
@@ -29,8 +31,10 @@ import java.time.LocalTime
 class ScheduleServiceTest {
   private val scheduleRepository: ScheduleRepository = mock()
   private val locationsService: LocationsService = mock()
+  private val prisonerSearchClient: PrisonerSearchClient = mock()
+  private val featureSwitches: FeatureSwitches = mock()
 
-  private val service = ScheduleService(scheduleRepository, locationsService)
+  private val service = ScheduleService(scheduleRepository, locationsService, prisonerSearchClient, featureSwitches)
 
   private val courtCode = "COURT"
   private val probationTeamCode = "PROBATION"

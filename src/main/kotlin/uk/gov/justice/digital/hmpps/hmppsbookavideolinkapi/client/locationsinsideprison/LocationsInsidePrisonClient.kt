@@ -23,6 +23,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  @Cacheable(CacheConfiguration.LOCATION_BY_KEY_CACHE_NAME)
   fun getLocationById(id: UUID): Location? = locationsInsidePrisonApiWebClient.get()
     .uri { uriBuilder: UriBuilder ->
       uriBuilder

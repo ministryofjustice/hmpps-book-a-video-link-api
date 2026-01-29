@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -9,7 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Bookin
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem as ScheduleItemEntity
 
-fun ScheduleItemEntity.toModel(locations: List<Location>, availabilityChecker: (Location) -> Boolean) = ScheduleItem(
+fun ScheduleItemEntity.toModel(prisoners: List<Prisoner>, locations: List<Location>, availabilityChecker: (Location) -> Boolean) = ScheduleItem(
   videoBookingId = videoBookingId,
   prisonAppointmentId = prisonAppointmentId,
   bookingType = BookingType.valueOf(bookingType),
@@ -48,6 +49,8 @@ fun ScheduleItemEntity.toModel(locations: List<Location>, availabilityChecker: (
   hmctsNumber = hmctsNumber,
   guestPin = guestPin,
   checkAvailability = availabilityChecker(locations.first { it.dpsLocationId == prisonLocationId }),
+  prisonerFirstName = prisoners.singleOrNull { it.prisonerNumber == prisonerNumber }?.firstName ?: "",
+  prisonerLastName = prisoners.singleOrNull { it.prisonerNumber == prisonerNumber }?.lastName ?: "",
 )
 
-fun List<ScheduleItemEntity>.toModel(locations: List<Location>, availabilityChecker: (Location) -> Boolean) = map { it.toModel(locations, availabilityChecker) }
+fun List<ScheduleItemEntity>.toModel(prisoners: List<Prisoner>, locations: List<Location>, availabilityChecker: (Location) -> Boolean) = map { it.toModel(prisoners, locations, availabilityChecker) }

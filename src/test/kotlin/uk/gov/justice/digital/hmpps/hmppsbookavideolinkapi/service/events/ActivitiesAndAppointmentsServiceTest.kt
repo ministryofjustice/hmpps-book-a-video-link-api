@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Feature
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BooleanFeature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
@@ -48,7 +48,7 @@ class ActivitiesAndAppointmentsServiceTest {
   inner class CreateAndPatchWithFeatureToggleOff {
     @BeforeEach
     fun before() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn false
+      whenever(featureSwitches.isEnabled(BooleanFeature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn false
     }
 
     @Test
@@ -95,12 +95,12 @@ class ActivitiesAndAppointmentsServiceTest {
   inner class CreateAndPatchWithFeatureToggleOn {
     @BeforeEach
     fun before() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
+      whenever(featureSwitches.isEnabled(BooleanFeature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
     }
 
     @Test
     fun `should create VLB court appointment`() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
+      whenever(featureSwitches.isEnabled(BooleanFeature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
 
       val courtBookingByPrison = courtBooking(createdByPrison = true, notesForStaff = "Some private staff comments", notesForPrisoners = "Some public prisoners comments").withMainCourtPrisonAppointment()
 
@@ -121,7 +121,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should create VLPM probation appointment`() {
-      whenever(featureSwitches.isEnabled(Feature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
+      whenever(featureSwitches.isEnabled(BooleanFeature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
 
       val probationBookingByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM, notesForStaff = "Some private staff comments", notesForPrisoners = "Some public prisoners comments").withProbationPrisonAppointment()
 

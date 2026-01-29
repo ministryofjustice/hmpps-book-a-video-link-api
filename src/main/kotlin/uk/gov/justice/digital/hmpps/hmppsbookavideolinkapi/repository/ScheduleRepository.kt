@@ -1,12 +1,16 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
 import java.time.LocalDate
 
 @Repository
-interface ScheduleRepository : ReadOnlyRepository<ScheduleItem, Long> {
+interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
   @Query(
     value = """
       FROM ScheduleItem si 
@@ -73,4 +77,56 @@ interface ScheduleRepository : ReadOnlyRepository<ScheduleItem, Long> {
     """,
   )
   fun getScheduleForProbationTeamIncludingCancelled(probationTeamCode: String, date: LocalDate): List<ScheduleItem>
+
+  @Query(
+    value = """
+      FROM ScheduleItem si
+      WHERE si.appointmentDate = :date
+      AND si.bookingType = "COURT"
+      AND si.courtCode in :courtCodes
+      AND si.statusCode = "ACTIVE"
+      AND (:excludingPrisons is null or si.prisonCode not in (:excludingPrisons))
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
+    """,
+  )
+  fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, excludingPrisons: List<String>?, pageable: Pageable): Page<ScheduleItem>
+
+  @Query(
+    value = """
+      FROM ScheduleItem si
+      WHERE si.appointmentDate = :date
+      AND si.bookingType = "PROBATION"
+      AND si.probationTeamCode in :probationTeamCodes
+      AND si.statusCode = "ACTIVE"
+      AND (:excludingPrisons is null or si.prisonCode not in (:excludingPrisons))
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
+    """,
+  )
+  fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, excludingPrisons: List<String>?, pageable: Pageable): Page<ScheduleItem>
+
+  @Query(
+    value = """
+      FROM ScheduleItem si
+      WHERE si.appointmentDate = :date
+      AND si.bookingType = "COURT"
+      AND si.courtCode in :courtCodes
+      AND si.statusCode = "ACTIVE"
+      AND (:excludingPrisons is null or si.prisonCode not in (:excludingPrisons))
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
+    """,
+  )
+  fun getScheduleForCourtsUnpaginated(courtCodes: List<String>, date: LocalDate, excludingPrisons: List<String>?, sort: Sort): List<ScheduleItem>
+
+  @Query(
+    value = """
+      FROM ScheduleItem si
+      WHERE si.appointmentDate = :date
+      AND si.bookingType = "PROBATION"
+      AND si.probationTeamCode in :probationTeamCodes
+      AND si.statusCode = "ACTIVE"
+      AND (:excludingPrisons is null or si.prisonCode not in (:excludingPrisons))
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
+    """,
+  )
+  fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, date: LocalDate, excludingPrisons: List<String>?, sort: Sort): List<ScheduleItem>
 }

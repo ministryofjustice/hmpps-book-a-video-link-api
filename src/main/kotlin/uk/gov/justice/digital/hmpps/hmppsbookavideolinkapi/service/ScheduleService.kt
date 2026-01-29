@@ -1,8 +1,15 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.StringFeature
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
@@ -17,6 +24,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem a
 class ScheduleService(
   private val scheduleRepository: ScheduleRepository,
   private val locationsService: LocationsService,
+  private val prisonerSearchClient: PrisonerSearchClient,
+  private val featureSwitches: FeatureSwitches,
 ) {
   fun getScheduleForPrison(prisonCode: String, date: LocalDate, includeCancelled: Boolean): List<ScheduleItem> = if (includeCancelled) {
     scheduleRepository.getScheduleForPrisonIncludingCancelled(prisonCode, date).mapScheduleToModel(date)
@@ -36,8 +45,36 @@ class ScheduleService(
     scheduleRepository.getScheduleForProbationTeam(probationTeamCode, date).mapScheduleToModel(date)
   }
 
+  fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, pageable: Pageable): PagedModel<ScheduleItem> {
+    val pageOfResults = scheduleRepository.getScheduleForProbationTeamsPaginated(probationTeamCodes.distinct(), date, excludeCourtOnlyPrisons(), pageable)
+    val modelContent = pageOfResults.content.mapScheduleToModel(date)
+    return PagedModel(PageImpl(modelContent, pageable, pageOfResults.totalElements))
+  }
+
+  fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, pageable: Pageable): PagedModel<ScheduleItem> {
+    val pageOfResults = scheduleRepository.getScheduleForCourtsPaginated(courtCodes.distinct(), date, excludeProbationOnlyPrisons(), pageable)
+    val modelContent = pageOfResults.content.mapScheduleToModel(date)
+    return PagedModel(PageImpl(modelContent, pageable, pageOfResults.totalElements))
+  }
+
+  fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem> = run {
+    scheduleRepository.getScheduleForProbationTeamsUnpaginated(probationTeamCodes, date, excludeCourtOnlyPrisons(), sort).mapScheduleToModel(date)
+  }
+
+  fun getScheduleForCourtsUnpaginated(courtCodes: List<String>, date: LocalDate, sort: Sort): List<ScheduleItem> = run {
+    scheduleRepository.getScheduleForCourtsUnpaginated(courtCodes, date, excludeProbationOnlyPrisons(), sort).mapScheduleToModel(date)
+  }
+
+  private fun excludeCourtOnlyPrisons() = featureSwitches.getValue(StringFeature.FEATURE_COURT_ONLY_PRISONS, null)?.split(',')
+
+  private fun excludeProbationOnlyPrisons() = featureSwitches.getValue(StringFeature.FEATURE_PROBATION_ONLY_PRISONS, null)?.split(',')
+
   private fun List<ScheduleItemEntity>.mapScheduleToModel(onDate: LocalDate): List<ScheduleItem> = run {
-    toModel(mapNotNull { locationsService.getLocationById(it.prisonLocationId) }) { it.checkAvailability(onDate) }
+    toModel(
+      prisoners = prisonerSearchClient.findByPrisonerNumbers(map { it.prisonerNumber }.toSet()),
+      locations = mapNotNull { locationsService.getLocationById(it.prisonLocationId) },
+      availabilityChecker = { it.checkAvailability(onDate) },
+    )
   }
 
   private fun Location.checkAvailability(onDate: LocalDate) = run {
