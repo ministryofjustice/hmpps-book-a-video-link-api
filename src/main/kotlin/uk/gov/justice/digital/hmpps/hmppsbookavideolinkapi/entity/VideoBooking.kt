@@ -9,8 +9,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
@@ -33,13 +33,13 @@ class VideoBooking private constructor(
   @Enumerated(EnumType.STRING)
   val bookingType: BookingType,
 
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "court_id")
   val court: Court?,
 
   var hearingType: String?,
 
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "probation_team_id")
   val probationTeam: ProbationTeam?,
 
