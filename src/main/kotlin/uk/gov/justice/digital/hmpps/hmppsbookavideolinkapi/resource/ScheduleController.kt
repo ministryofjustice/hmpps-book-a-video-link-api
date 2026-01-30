@@ -174,7 +174,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     request: FindCourtBookingsRequest,
     @Parameter(hidden = true)
     pageable: Pageable,
-  ): PagedModel<ScheduleItem> = prisonScheduleService.getScheduleForCourtsPaginated(request.courtCodes!!, request.date, pageable)
+  ): PagedModel<ScheduleItem> = prisonScheduleService.getScheduleForCourtsPaginated(request, pageable)
 
   @Operation(summary = "Endpoint to retrieve a paginated schedule of video link bookings for one or more probation teams")
   @ApiResponses(
@@ -202,7 +202,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     request: FindProbationBookingsRequest,
     @Parameter(hidden = true)
     pageable: Pageable,
-  ): PagedModel<ScheduleItem> = prisonScheduleService.getScheduleForProbationTeamsPaginated(request.probationTeamCodes!!, request.date, pageable)
+  ): PagedModel<ScheduleItem> = prisonScheduleService.getScheduleForProbationTeamsPaginated(request, pageable)
 
   @Operation(summary = "Endpoint to retrieve an unpaginated list of video link bookings for one or more courts")
   @ApiResponses(
@@ -230,7 +230,7 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     request: FindCourtBookingsRequest,
     @Parameter(hidden = true)
     sort: Sort,
-  ): List<ScheduleItem> = prisonScheduleService.getScheduleForCourtsUnpaginated(request.courtCodes!!, request.date, sort)
+  ): List<ScheduleItem> = prisonScheduleService.getScheduleForCourtsUnpaginated(request, sort)
 
   @Operation(summary = "Endpoint to retrieve an unpaginated list of video link bookings for one or more probation teams")
   @ApiResponses(
@@ -258,5 +258,5 @@ class ScheduleController(val prisonScheduleService: ScheduleService) {
     request: FindProbationBookingsRequest,
     @Parameter(hidden = true)
     sort: Sort,
-  ): List<ScheduleItem> = prisonScheduleService.getScheduleForProbationTeamsUnpaginated(request.probationTeamCodes!!, request.date, sort)
+  ): List<ScheduleItem> = prisonScheduleService.getScheduleForProbationTeamsUnpaginated(request, sort)
 }
