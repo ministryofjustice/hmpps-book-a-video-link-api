@@ -81,7 +81,7 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
   @Query(
     value = """
       FROM ScheduleItem si
-      WHERE si.appointmentDate = :date
+      WHERE ((CAST(:toDate as date) is null AND si.appointmentDate = :fromDate) OR si.appointmentDate between :fromDate and :toDate)
       AND si.bookingType = "COURT"
       AND si.courtCode in :courtCodes
       AND si.statusCode = "ACTIVE"
@@ -89,12 +89,12 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
       AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
     """,
   )
-  fun getScheduleForCourtsPaginated(courtCodes: List<String>, date: LocalDate, excludingPrisons: List<String>?, pageable: Pageable): Page<ScheduleItem>
+  fun getScheduleForCourtsPaginated(courtCodes: List<String>, fromDate: LocalDate, toDate: LocalDate?, excludingPrisons: List<String>?, pageable: Pageable): Page<ScheduleItem>
 
   @Query(
     value = """
       FROM ScheduleItem si
-      WHERE si.appointmentDate = :date
+      WHERE ((CAST(:toDate as date) is null AND si.appointmentDate = :fromDate) OR si.appointmentDate between :fromDate and :toDate)
       AND si.bookingType = "PROBATION"
       AND si.probationTeamCode in :probationTeamCodes
       AND si.statusCode = "ACTIVE"
@@ -102,12 +102,12 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
       AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
     """,
   )
-  fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, date: LocalDate, excludingPrisons: List<String>?, pageable: Pageable): Page<ScheduleItem>
+  fun getScheduleForProbationTeamsPaginated(probationTeamCodes: List<String>, fromDate: LocalDate, toDate: LocalDate?, excludingPrisons: List<String>?, pageable: Pageable): Page<ScheduleItem>
 
   @Query(
     value = """
       FROM ScheduleItem si
-      WHERE si.appointmentDate = :date
+      WHERE ((CAST(:toDate as date) is null AND si.appointmentDate = :fromDate) OR si.appointmentDate between :fromDate and :toDate)
       AND si.bookingType = "COURT"
       AND si.courtCode in :courtCodes
       AND si.statusCode = "ACTIVE"
@@ -115,12 +115,12 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
       AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
     """,
   )
-  fun getScheduleForCourtsUnpaginated(courtCodes: List<String>, date: LocalDate, excludingPrisons: List<String>?, sort: Sort): List<ScheduleItem>
+  fun getScheduleForCourtsUnpaginated(courtCodes: List<String>, fromDate: LocalDate, toDate: LocalDate?, excludingPrisons: List<String>?, sort: Sort): List<ScheduleItem>
 
   @Query(
     value = """
       FROM ScheduleItem si
-      WHERE si.appointmentDate = :date
+      WHERE ((CAST(:toDate as date) is null AND si.appointmentDate = :fromDate) OR si.appointmentDate between :fromDate and :toDate)
       AND si.bookingType = "PROBATION"
       AND si.probationTeamCode in :probationTeamCodes
       AND si.statusCode = "ACTIVE"
@@ -128,5 +128,5 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
       AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
     """,
   )
-  fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, date: LocalDate, excludingPrisons: List<String>?, sort: Sort): List<ScheduleItem>
+  fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, fromDate: LocalDate, toDate: LocalDate?, excludingPrisons: List<String>?, sort: Sort): List<ScheduleItem>
 }
