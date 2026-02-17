@@ -37,14 +37,15 @@ class ReferenceCodesResourceIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return a list of probation meeting type reference codes`() {
+  fun `should return a list of ordered probation meeting type reference codes`() {
     val groupCode = "PROBATION_MEETING_TYPE"
-    referenceCodeRepository.findAllByGroupCodeEquals(groupCode) hasSize 14
+    referenceCodeRepository.findAllByGroupCodeEquals(groupCode) hasSize 15
 
     val enabledOnlyProbationMeetingTypes = webTestClient.getReferenceCodes(groupCode)
 
-    assertThat(enabledOnlyProbationMeetingTypes).extracting("code").containsExactlyInAnyOrder(
+    assertThat(enabledOnlyProbationMeetingTypes).extracting("code").containsExactly(
       "PSR",
+      "FTR56",
       "RR",
       "PR",
       "HDC",
