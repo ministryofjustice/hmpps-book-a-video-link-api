@@ -35,3 +35,7 @@ api:
 bvls:
   frontend:
     url: http://localhost:3000
+
+hmpps:
+  sar:
+    additionalAccessRole: ROLE_BOOK_A_VIDEO_LINK_ADMIN
