@@ -1,0 +1,4 @@
+# To assist with testing SAR with better quality and potentially larger data sets
+hmpps:
+  sar:
+    additionalAccessRole: ROLE_BOOK_A_VIDEO_LINK_ADMIN
