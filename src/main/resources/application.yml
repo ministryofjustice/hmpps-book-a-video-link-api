@@ -200,6 +200,10 @@ video-link-booking:
 hmpps:
   sqs:
     queueAdminRole: BOOK_A_VIDEO_LINK_ADMIN
+  sar:
+    template:
+      path: /sar/templates/sar_template.mustache
+      enabled: true
 
 applications:
   max-appointment-start-date-from-today: 1826

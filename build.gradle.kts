@@ -48,6 +48,7 @@ dependencies {
   implementation("com.googlecode.libphonenumber:libphonenumber:9.0.21")
 
   // Test dependencies
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:1.2.1")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.13.0")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
   testImplementation("net.javacrumbs.json-unit:json-unit:4.1.1")
