@@ -37,11 +37,7 @@ data class TimeSlotAvailabilityRequest(
   val date: LocalDate?,
 
   @field:NotNull(message = "The booking duration is mandatory")
-  @Schema(
-    description = "Rooms can be booked in 30 minutes slots upto a maximum of 120 minutes (two hours)",
-    example = "60",
-    required = true,
-  )
+  @Schema(description = "Rooms can be booked in multiples of 15 minute slots", example = "60", required = true)
   val bookingDuration: Int?,
 
   @Schema(description = "The time slots to look up available locations. If null, then all time slots are considered.", example = "[\"AM\"]", required = false)
@@ -61,6 +57,6 @@ data class TimeSlotAvailabilityRequest(
   private fun isProbationBooking() = (BookingType.PROBATION != bookingType) || (probationTeamCode != null)
 
   @JsonIgnore
-  @AssertTrue(message = "The booking duration can only be one of 30, 60, 90 or 120 minutes")
-  private fun isAllowedDuration() = bookingDuration == null || bookingDuration.mod(30) == 0
+  @AssertTrue(message = "The booking duration must be a multiple of 15 minutes")
+  private fun isAllowedDuration() = bookingDuration == null || bookingDuration.mod(15) == 0
 }
