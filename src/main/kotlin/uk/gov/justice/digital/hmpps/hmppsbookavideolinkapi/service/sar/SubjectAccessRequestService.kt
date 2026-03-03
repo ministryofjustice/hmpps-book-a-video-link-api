@@ -4,6 +4,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SubjectAccessResponseData
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.SubjectAccessRequestRepository
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonSubjectAccessRequestService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
@@ -43,6 +44,13 @@ class SubjectAccessRequestService(private val repository: SubjectAccessRequestRe
 
     log.info("SAR: matches found for prisoner $prn, from $from to $to.")
 
-    HmppsSubjectAccessRequestContent(content = matchingPrisonerData)
+    HmppsSubjectAccessRequestContent(
+      SubjectAccessResponseData(
+        prisonerNumber = prn,
+        fromDate = from,
+        toDate = to,
+        videoLinkBookings = matchingPrisonerData,
+      ),
+    )
   }
 }

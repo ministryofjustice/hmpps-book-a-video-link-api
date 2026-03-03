@@ -1,1 +1,56 @@
 <h1 class="title">Book a video link</h1>
+<br>
+{{#.}}
+  <table class="summary-list">
+    <tr>
+      <td>Prisoner number</td>
+      <td>{{ optionalString prisonerNumber }}</td>
+    </tr>
+    <tr>
+       <td>Date from</td>
+        <td>{{ optionalValue (formatDate fromDate) }}</td>
+    </tr>
+    <tr>
+       <td>Date to</td>
+        <td>{{ optionalValue (formatDate toDate) }}</td>
+    </tr>
+  </table>
+
+  <br>
+
+  {{#videoLinkBookings}}
+  <h2>Video link bookings</h2>
+    <br>
+    <h3>Video link bookings</h3>
+    <table class="data-table">
+      <tr>
+        <td class="data-column-20">Prison name</td>
+        <td class="data-column-20">Prisoner number</td>
+        <td class="data-column-15">Created date</td>
+        <td class="data-column-20">Booking type</td>
+        <td class="data-column-15">Appointment date</td>
+        <td class="data-column-20">Hearing type</td>
+        <td class="data-column-20">Probation meeting type</td>
+        <td class="data-column-10">Start time</td>
+        <td class="data-column-10">End time</td>
+        <td class="data-column-40">Staff notes</td>
+        <td class="data-column-40">Prisoner notes</td>
+        <td class="data-column-40">Location</td>
+      </tr>
+      <tr>
+        <td>{{ getPrisonName prisonCode }}</td>
+        <td>{{ optionalString prisonerNumber }}</td>
+        <td>{{ formatDate createdTime }}</td>
+        <td>{{ optionalValue appointmentType }}</td>
+        <td>{{ formatDate appointmentDate }}</td>
+        <td>{{ optionalString hearingType }}</td>
+        <td>{{ optionalString probationMeetingType }}</td>
+        <td>{{ formatDate startTime }}</td>
+        <td>{{ formatDate endTime }}</td>
+        <td>{{ optionalString staffNotes }}</td>
+        <td>{{ optionalString prisonerNotes }}</td>
+        <td>{{ getLocationNameByDpsId prisonLocationId }}</td>
+     </tr>
+    </table>
+  {{/videoLinkBookings}}
+{{/.}}
