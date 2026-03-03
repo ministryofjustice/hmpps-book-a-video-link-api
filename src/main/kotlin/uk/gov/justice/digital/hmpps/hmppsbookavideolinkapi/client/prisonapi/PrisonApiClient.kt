@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi
 
 import org.slf4j.LoggerFactory
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.util.UriBuilder
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
@@ -17,8 +17,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-
-inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 const val DO_NOT_PROPAGATE = true.toString()
 
@@ -50,7 +48,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       ),
     )
     .retrieve()
-    .bodyToMono(ScheduledEvent::class.java)
+    .bodyToMono<ScheduledEvent>()
     .block()
 
   /**
@@ -68,7 +66,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
     .uri("/api/schedules/{prisonCode}/appointments?date={date}", prisonCode, onDate.toIsoDate())
     .bodyValue(listOf(prisonerNumber))
     .retrieve()
-    .bodyToMono(typeReference<List<PrisonerSchedule>>())
+    .bodyToMono<List<PrisonerSchedule>>()
     .doOnError { error -> log.info("Error looking up prisoners appointments by prison code $prisonCode, prisoner number $prisonerNumber, on date $onDate in prison api client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block() ?: emptyList()
@@ -81,7 +79,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
       .uri("/api/appointments/{appointmentId}", appointmentId)
       .header("no-event-propagation", DO_NOT_PROPAGATE)
       .retrieve()
-      .bodyToMono(Void::class.java)
+      .bodyToMono<Void>()
       .doOnError { error -> log.info("Error cancelling appointment by appointment id $appointmentId in prison api client", error) }
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
@@ -99,7 +97,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
         .build(prisonCode)
     }
     .retrieve()
-    .bodyToMono(typeReference<List<ScheduledAppointment>>())
+    .bodyToMono<List<ScheduledAppointment>>()
     .block() ?: emptyList()
 
   /**
@@ -116,7 +114,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
             .build(prisonCode)
         }
         .retrieve()
-        .bodyToMono(typeReference<List<ScheduledAppointment>>())
+        .bodyToMono<List<ScheduledAppointment>>()
         .block() ?: emptyList()
       ).filter { appointment -> locationIds.isEmpty() || appointment.locationId in locationIds }
   }
@@ -132,7 +130,7 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
           .build(prisonerNumber)
       }
       .retrieve()
-      .bodyToMono(typeReference<List<Movement>>())
+      .bodyToMono<List<Movement>>()
       .block()?.filter { it.movementDate == date }?.maxByOrNull { it.movementDateTime() }?.movementType
   }
 }

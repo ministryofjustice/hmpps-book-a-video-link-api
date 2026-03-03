@@ -2,10 +2,10 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesapp
 
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCancelRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchRequest
@@ -20,8 +20,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfigura
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
-
-inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 // These constants map to values in the A&A DB appointment cancellation reasons.
 const val CANCELLED_BY_EXTERNAL_SERVICE = 4L
@@ -38,7 +36,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     .get()
     .uri("/rollout/{prisonCode}", prisonCode)
     .retrieve()
-    .bodyToMono(RolloutPrisonPlan::class.java)
+    .bodyToMono<RolloutPrisonPlan>()
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()?.prisonLive == true
 
@@ -71,7 +69,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       ),
     )
     .retrieve()
-    .bodyToMono(AppointmentSeries::class.java)
+    .bodyToMono<AppointmentSeries>()
     .block()
 
   /**
@@ -89,7 +87,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
         ),
       )
       .retrieve()
-      .bodyToMono(typeReference<List<AppointmentSearchResult>>())
+      .bodyToMono<List<AppointmentSearchResult>>()
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block() ?: emptyList()
   }
@@ -108,7 +106,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
         ),
       )
       .retrieve()
-      .bodyToMono(AppointmentSeries::class.java)
+      .bodyToMono<AppointmentSeries>()
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
   }
@@ -136,7 +134,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       ),
     )
     .retrieve()
-    .bodyToMono(AppointmentSeries::class.java)
+    .bodyToMono<AppointmentSeries>()
     .block()
 
   /**
@@ -154,7 +152,7 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
     .uri("/appointments/{prisonCode}/search", prisonCode)
     .bodyValue(AppointmentSearchRequest(startDate = onDate))
     .retrieve()
-    .bodyToMono(typeReference<List<AppointmentSearchResult>>())
+    .bodyToMono<List<AppointmentSearchResult>>()
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block() ?: emptyList()
 }

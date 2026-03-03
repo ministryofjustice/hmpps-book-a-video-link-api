@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
@@ -11,7 +12,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
  */
 abstract class MockServer(port: Int, private val urlPrefix: String = "") : WireMockServer(port) {
 
-  protected val mapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+  protected val mapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).disable(WRITE_DATES_AS_TIMESTAMPS)
 
   fun stubHealthPing(status: Int) {
     stubFor(

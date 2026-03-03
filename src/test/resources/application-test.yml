@@ -44,7 +44,7 @@ administration:
 hmpps:
   sar:
     tests:
-      attachments-expected: true
+      attachments-expected: false
       expected-flyway-schema-version: 2026.02.18
       expected-jpa-entity-schema:
         path: /sar/entity-schema.json

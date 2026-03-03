@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -111,6 +112,7 @@ class AmendProbationBookingServiceTest {
 
     whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(additionalBookingDetailRepository.saveAndFlush(any())) doReturn AdditionalBookingDetail.newDetails(probationBooking, "contact name", "contact@email.com", "07928 660553")
 
     val (booking, prisoner) = service.amend(2, probationBookingRequest, PROBATION_USER)
 
@@ -290,6 +292,7 @@ class AmendProbationBookingServiceTest {
 
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
+    whenever(additionalBookingDetailRepository.saveAndFlush(any())) doReturn AdditionalBookingDetail.newDetails(probationBooking, "contact name", "contact@email.com", null)
 
     assertDoesNotThrow {
       service.amend(2, probationBookingRequest, prisonUser(activeCaseLoadId = probationBooking.prisonCode()))

@@ -19,7 +19,7 @@ class FeatureSwitches(private val environment: Environment) {
 
   fun getValue(feature: StringFeature, defaultValue: String? = null): String? = get(feature.label, String::class.java, defaultValue)
 
-  private inline fun <reified T> get(property: String, type: Class<T>, defaultValue: T?) = environment.getProperty(property, type).let {
+  private inline fun <reified T : Any> get(property: String, type: Class<T>, defaultValue: T?) = environment.getProperty(property, type).let {
     if (it == null) {
       log.info("property '$property' not configured, defaulting to $defaultValue")
       defaultValue
