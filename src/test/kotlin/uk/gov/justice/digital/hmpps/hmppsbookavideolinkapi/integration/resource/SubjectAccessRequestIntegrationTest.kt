@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.AmendCourtBookingRequestBuilder
@@ -34,10 +35,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.Integrati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.TestConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.SubjectAccessRequestDto
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SubjectAccessResponseData
 import java.time.LocalDate
 import java.time.LocalDateTime.now
 import java.time.LocalTime
+
+/**
+ * These tests check that the SAR endpoint returns the expected data.
+ * They do not check that the SAR template is rendered Ok or that it contains the correct information.
+ */
 
 @Import(TestConfiguration::class)
 class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
@@ -82,10 +88,11 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
     fun `SAR API should return expected data`() {
       val response = webTestClient.getSarContent(pentonvillePrisoner.number, yesterday(), today())
 
-      response.content hasSize 6
+      response.content.prisonerNumber isEqualTo pentonvillePrisoner.number
+      response.content.videoLinkBookings hasSize 6
 
-      // Creatied PRE
-      with(response.content.first()) {
+      // Created PRE
+      with(response.content.videoLinkBookings.first()) {
         prisonCode isEqualTo PENTONVILLE
         prisonerNumber isEqualTo pentonvillePrisoner.number
         historyType isEqualTo HistoryType.CREATE
@@ -102,8 +109,9 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
         createdBy isEqualTo PRISON_USER_PENTONVILLE.username
         createdTime isCloseTo now()
       }
+
       // Created MAIN
-      with(response.content.second()) {
+      with(response.content.videoLinkBookings.second()) {
         prisonCode isEqualTo PENTONVILLE
         prisonerNumber isEqualTo pentonvillePrisoner.number
         historyType isEqualTo HistoryType.CREATE
@@ -120,8 +128,9 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
         createdBy isEqualTo PRISON_USER_PENTONVILLE.username
         createdTime isCloseTo now()
       }
+
       // Created POST
-      with(response.content.third()) {
+      with(response.content.videoLinkBookings.third()) {
         prisonCode isEqualTo PENTONVILLE
         prisonerNumber isEqualTo pentonvillePrisoner.number
         historyType isEqualTo HistoryType.CREATE
@@ -140,7 +149,7 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
       }
 
       // Amended PRE
-      with(response.content.fourth()) {
+      with(response.content.videoLinkBookings.fourth()) {
         prisonCode isEqualTo PENTONVILLE
         prisonerNumber isEqualTo pentonvillePrisoner.number
         historyType isEqualTo HistoryType.AMEND
@@ -157,8 +166,9 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
         createdBy isEqualTo PRISON_USER_PENTONVILLE.username
         createdTime isCloseTo now()
       }
+
       // Amended MAIN
-      with(response.content.fifth()) {
+      with(response.content.videoLinkBookings.fifth()) {
         prisonCode isEqualTo PENTONVILLE
         prisonerNumber isEqualTo pentonvillePrisoner.number
         historyType isEqualTo HistoryType.AMEND
@@ -175,8 +185,9 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
         createdBy isEqualTo PRISON_USER_PENTONVILLE.username
         createdTime isCloseTo now()
       }
+
       // Amended POST
-      with(response.content.sixth()) {
+      with(response.content.videoLinkBookings.sixth()) {
         prisonCode isEqualTo PENTONVILLE
         prisonerNumber isEqualTo pentonvillePrisoner.number
         historyType isEqualTo HistoryType.AMEND
@@ -222,10 +233,11 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
     fun `SAR API should return expected data`() {
       val response = webTestClient.getSarContent(pentonvillePrisoner.number, yesterday(), today())
 
-      response.content hasSize 2
+      response.content.prisonerNumber isEqualTo pentonvillePrisoner.number
+      response.content.videoLinkBookings hasSize 2
 
       // Created MAIN
-      with(response.content.first()) {
+      with(response.content.videoLinkBookings.first()) {
         prisonCode isEqualTo PENTONVILLE
         prisonerNumber isEqualTo pentonvillePrisoner.number
         historyType isEqualTo HistoryType.CREATE
@@ -244,7 +256,7 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
       }
 
       // Amended MAIN
-      with(response.content.second()) {
+      with(response.content.videoLinkBookings.second()) {
         prisonCode isEqualTo PENTONVILLE
         prisonerNumber isEqualTo pentonvillePrisoner.number
         historyType isEqualTo HistoryType.AMEND
@@ -271,7 +283,7 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
-    .expectBody(SubjectAccessRequestContent::class.java)
+    .expectBody<SubjectAccessRequestContent>()
     .returnResult().responseBody!!
 
   @Nested
@@ -290,4 +302,4 @@ class SubjectAccessRequestIntegrationTest : IntegrationTestBase() {
     .expectStatus().isNoContent
 }
 
-data class SubjectAccessRequestContent(val content: List<SubjectAccessRequestDto>)
+data class SubjectAccessRequestContent(val content: SubjectAccessResponseData)
