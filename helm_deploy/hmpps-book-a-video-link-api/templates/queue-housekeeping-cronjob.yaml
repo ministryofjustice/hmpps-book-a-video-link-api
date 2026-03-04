@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: hmpps-book-a-video-link-api-queue-housekeeping
 spec:
-  schedule: "*/10 * * * *"
+  schedule: "*/30 * * * *"
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 5
   startingDeadlineSeconds: 600
