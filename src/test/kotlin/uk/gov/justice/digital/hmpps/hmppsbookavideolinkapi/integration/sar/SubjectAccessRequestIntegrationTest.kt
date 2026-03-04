@@ -16,6 +16,11 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarJpaEntitiesTest
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarReportTest
 import javax.sql.DataSource
 
+/**
+ * These tests check that the SAR endpoint returns the expected data and that the SAR template
+ * is rendered and contains the correct information.
+ */
+
 @Import(TestConfiguration::class, SarIntegrationTestHelperConfig::class)
 class SubjectAccessRequestIntegrationTest :
   IntegrationTestBase(),
