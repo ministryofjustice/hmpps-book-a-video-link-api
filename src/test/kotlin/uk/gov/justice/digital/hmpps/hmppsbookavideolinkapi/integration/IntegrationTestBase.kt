@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.cache.CacheManager
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -53,6 +54,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
   "classpath:test_data/seed-contacts.sql",
   "classpath:test_data/seed-video-booking-user-preferences.sql",
 )
+@AutoConfigureWebTestClient
 abstract class IntegrationTestBase {
 
   @Autowired

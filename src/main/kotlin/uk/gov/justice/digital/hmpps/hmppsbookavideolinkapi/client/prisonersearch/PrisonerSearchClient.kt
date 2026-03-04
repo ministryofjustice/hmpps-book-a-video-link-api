@@ -2,14 +2,12 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearc
 
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import java.time.LocalDate
-
-inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 @Component
 class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
@@ -38,7 +36,7 @@ class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
         .uri("/prisoner-search/prisoner-numbers")
         .bodyValue(PrisonerNumbers(it))
         .retrieve()
-        .bodyToMono(typeReference<List<Prisoner>>())
+        .bodyToMono<List<Prisoner>>()
         .block() ?: emptyList()
     }
   }

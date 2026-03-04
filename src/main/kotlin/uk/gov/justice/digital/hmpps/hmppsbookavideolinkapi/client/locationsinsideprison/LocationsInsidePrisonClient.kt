@@ -3,10 +3,10 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsi
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.util.UriBuilder
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isActive
@@ -14,8 +14,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.util.UUID
-
-inline fun <reified T> typeReference() = object : ParameterizedTypeReference<T>() {}
 
 @Component
 class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient: WebClient) {
@@ -32,7 +30,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
         .build(id)
     }
     .retrieve()
-    .bodyToMono(Location::class.java)
+    .bodyToMono<Location>()
     .doOnError { error -> log.info("Error looking up location by location id $id in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()
@@ -41,7 +39,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
   fun getLocationByKey(key: String): Location? = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/key/{key}", key)
     .retrieve()
-    .bodyToMono(Location::class.java)
+    .bodyToMono<Location>()
     .doOnError { error -> log.info("Error looking up location by location key $key in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()
@@ -50,7 +48,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .uri("/locations/keys")
     .bodyValue(keys)
     .retrieve()
-    .bodyToMono(typeReference<List<Location>>())
+    .bodyToMono<List<Location>>()
     .doOnError { error -> log.info("Error looking up locations by location keys $keys in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block() ?: emptyList()
@@ -66,7 +64,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
         .build(prisonCode)
     }
     .retrieve()
-    .bodyToMono(typeReference<List<Location>>())
+    .bodyToMono<List<Location>>()
     .doOnError { error -> log.info("Error looking up non-residential appointment locations by prison code $prisonCode in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block() ?: emptyList()
@@ -81,7 +79,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
         .build(prisonCode)
     }
     .retrieve()
-    .bodyToMono(typeReference<List<Location>>())
+    .bodyToMono<List<Location>>()
     .doOnError { error -> log.info("Error looking up video link locations by prison code $prisonCode in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()?.filter(Location::leafLevel) ?: emptyList()

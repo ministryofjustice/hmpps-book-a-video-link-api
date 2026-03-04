@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelpe
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarJpaEntitiesTest
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarReportTest
+import java.time.LocalDate
 import javax.sql.DataSource
 
 /**
@@ -49,6 +50,11 @@ class SubjectAccessRequestIntegrationTest :
   override fun getWebTestClientInstance(): WebTestClient = webTestClient
 
   override fun getPrn(): String? = "A4567AZ"
+
+  // fix the 'to' date because we currently use it in the template and the test lib
+  // defaults to "current date" which means the date in the expected output will keep
+  // changing, causing the comparison with the baseline report to fail
+  override fun getToDate(): LocalDate? = LocalDate.parse("2026-03-03")
 
   @Test
   @Sql("classpath:test_data/clean-all-data.sql", "classpath:sar/seed-sar-data.sql")
