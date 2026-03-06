@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import java.time.LocalDateTime
@@ -80,10 +79,11 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     key = it.key,
                     isResidential = true,
                     lastModifiedBy = "test user",
-                    lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+                    lastModifiedDate = LocalDateTime.now(),
                     level = 2,
                     leafLevel = true,
                     status = Location.Status.ACTIVE,
+                    locked = false,
                   )
                 },
               ),
@@ -95,7 +95,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
 
   fun stubNonResidentialAppointmentLocationsAtPrison(prisonCode: String, vararg locations: Location) {
     stubFor(
-      get("/locations/non-residential/prison/$prisonCode/service/APPOINTMENT?sortByLocalName=true&formatLocalName=true&filterParents=true")
+      get("/locations/non-residential/prison/$prisonCode/service/APPOINTMENT?sortByLocalName=true&formatLocalName=true&filterParents=false")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -112,7 +112,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     leafLevel: Boolean = true,
   ) {
     stubFor(
-      get("/locations/non-residential/prison/$prisonCode/service/APPOINTMENT?sortByLocalName=true&formatLocalName=true")
+      get("/locations/non-residential/prison/$prisonCode/service/APPOINTMENT?sortByLocalName=true&formatLocalName=true&filterParents=false")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -133,10 +133,11 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     key = it.key,
                     isResidential = false,
                     lastModifiedBy = "test user",
-                    lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+                    lastModifiedDate = LocalDateTime.now(),
                     level = 2,
                     leafLevel = leafLevel,
-                    status = Location.Status.ACTIVE,
+                    status = if (enabled) Location.Status.ACTIVE else Location.Status.INACTIVE,
+                    locked = false,
                   )
                 },
               ),
@@ -153,7 +154,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     leafLevel: Boolean = true,
   ) {
     stubFor(
-      get("/locations/prison/$prisonCode/location-type/VIDEO_LINK?sortByLocalName=true&formatLocalName=true")
+      get("/locations/non-residential/prison/$prisonCode/service/VIDEO_LINK?sortByLocalName=true&formatLocalName=true&filterParents=true")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -174,10 +175,11 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     key = it.key,
                     isResidential = false,
                     lastModifiedBy = "test user",
-                    lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+                    lastModifiedDate = LocalDateTime.now(),
                     level = 2,
                     leafLevel = leafLevel,
-                    status = Location.Status.ACTIVE,
+                    status = if (enabled) Location.Status.ACTIVE else Location.Status.INACTIVE,
+                    locked = false,
                   )
                 },
               ),
@@ -192,7 +194,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
     vararg locations: Location,
   ) {
     stubFor(
-      get("/locations/prison/$prisonCode/location-type/VIDEO_LINK?sortByLocalName=true&formatLocalName=true")
+      get("/locations/non-residential/prison/$prisonCode/service/VIDEO_LINK?sortByLocalName=true&formatLocalName=true&filterParents=true")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
