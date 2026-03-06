@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location.Status
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -134,7 +135,7 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should be no video link locations if not enabled`() {
-    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(active = false))
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(status = Status.INACTIVE))
 
     val response = webTestClient.getAppointmentLocations(WANDSWORTH, "?enabledOnly=true")
 
