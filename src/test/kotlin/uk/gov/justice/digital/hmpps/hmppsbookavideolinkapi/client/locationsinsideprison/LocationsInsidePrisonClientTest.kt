@@ -4,12 +4,9 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiMockServer
 import java.util.UUID
@@ -44,21 +41,15 @@ class LocationsInsidePrisonClientTest {
   }
 
   @Test
-  fun `should only return leaf level video link locations`() {
+  fun `should return video link locations`() {
     server.stubVideoLinkLocationsAtPrison(listOf(LocationKeyValue(wandsworthLocation.key, locationId)), leafLevel = true)
     client.getVideoLinkLocationsAtPrison(WANDSWORTH).single().key isEqualTo wandsworthLocation.key
-
-    server.stubVideoLinkLocationsAtPrison(listOf(LocationKeyValue(pentonvilleLocation.key, UUID.randomUUID())), leafLevel = false)
-    client.getVideoLinkLocationsAtPrison(PENTONVILLE) hasSize 0
   }
 
   @Test
-  fun `should return all non-residential locations`() {
-    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation.copy(leafLevel = false))
+  fun `should all non-residential locations`() {
+    server.stubNonResidentialAppointmentLocationsAtPrison(WANDSWORTH, wandsworthLocation)
     client.getNonResidentialAppointmentLocationsAtPrison(WANDSWORTH).single().key isEqualTo wandsworthLocation.key
-
-    server.stubNonResidentialAppointmentLocationsAtPrison(PENTONVILLE, pentonvilleLocation.copy(leafLevel = false))
-    client.getNonResidentialAppointmentLocationsAtPrison(PENTONVILLE).single().key isEqualTo pentonvilleLocation.key
   }
 
   @AfterEach

@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isActive
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.extensions.isAtPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.ServiceUsingLocationDto.ServiceType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.util.UUID
 
@@ -54,35 +55,25 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .block() ?: emptyList()
 
   @Cacheable(CacheConfiguration.NON_RESIDENTIAL_LOCATIONS_CACHE_NAME)
-  fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String) = locationsInsidePrisonApiWebClient.get()
-    .uri { uriBuilder: UriBuilder ->
-      uriBuilder
-        .path("/locations/non-residential/prison/{prisonCode}/service/APPOINTMENT")
-        .queryParam("sortByLocalName", true)
-        .queryParam("formatLocalName", true)
-        .queryParam("filterParents", true)
-        .build(prisonCode)
-    }
-    .retrieve()
-    .bodyToMono<List<Location>>()
-    .doOnError { error -> log.info("Error looking up non-residential appointment locations by prison code $prisonCode in locations inside prison client", error) }
-    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block() ?: emptyList()
+  fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String) = getLocationsForServiceType(prisonCode, ServiceType.APPOINTMENT)
 
   @Cacheable(CacheConfiguration.VIDEO_LINK_LOCATIONS_CACHE_NAME)
-  fun getVideoLinkLocationsAtPrison(prisonCode: String): List<Location> = locationsInsidePrisonApiWebClient.get()
+  fun getVideoLinkLocationsAtPrison(prisonCode: String): List<Location> = getLocationsForServiceType(prisonCode, ServiceType.VIDEO_LINK)
+
+  private fun getLocationsForServiceType(prisonCode: String, serviceType: ServiceType): List<Location> = locationsInsidePrisonApiWebClient.get()
     .uri { uriBuilder: UriBuilder ->
       uriBuilder
-        .path("/locations/prison/{prisonCode}/location-type/VIDEO_LINK")
+        .path("/locations/non-residential/prison/{prisonCode}/service/{serviceType}")
         .queryParam("sortByLocalName", true)
         .queryParam("formatLocalName", true)
-        .build(prisonCode)
+        .queryParam("filterParents", serviceType == ServiceType.VIDEO_LINK)
+        .build(prisonCode, serviceType).also { log.info("URI = $it") }
     }
     .retrieve()
     .bodyToMono<List<Location>>()
-    .doOnError { error -> log.info("Error looking up video link locations by prison code $prisonCode in locations inside prison client", error) }
+    .doOnError { error -> log.info("Error looking up $serviceType locations by prison code $prisonCode in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()?.filter(Location::leafLevel) ?: emptyList()
+    .block() ?: emptyList()
 }
 
 @Component
