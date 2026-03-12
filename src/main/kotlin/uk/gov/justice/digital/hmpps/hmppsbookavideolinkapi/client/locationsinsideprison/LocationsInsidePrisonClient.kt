@@ -66,7 +66,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
         .path("/locations/non-residential/prison/{prisonCode}/service/{serviceType}")
         .queryParam("sortByLocalName", true)
         .queryParam("formatLocalName", true)
-        .queryParam("filterParents", serviceType == ServiceType.VIDEO_LINK)
+        .queryParam("filterParents", true)
         .build(prisonCode, serviceType).also { log.info("URI = $it") }
     }
     .retrieve()
