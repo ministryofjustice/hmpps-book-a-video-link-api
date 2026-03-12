@@ -108,12 +108,12 @@ class CreateProbationBookingServiceTest {
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
-    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(videoBookingRepository.saveAndFlush(any<VideoBooking>())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
     whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
-    whenever(additionalBookingDetailRepository.saveAndFlush(any())) doReturn persistedAdditionalBookingDetail
+    whenever(additionalBookingDetailRepository.saveAndFlush(any<AdditionalBookingDetail>())) doReturn persistedAdditionalBookingDetail
     val (booking, prisoner) = service.create(probationBookingRequest, PROBATION_USER)
 
     booking isEqualTo persistedVideoBooking
@@ -170,12 +170,12 @@ class CreateProbationBookingServiceTest {
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
-    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(videoBookingRepository.saveAndFlush(any<VideoBooking>())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
     whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
-    whenever(additionalBookingDetailRepository.saveAndFlush(any())) doReturn persistedAdditionalBookingDetail
+    whenever(additionalBookingDetailRepository.saveAndFlush(any<AdditionalBookingDetail>())) doReturn persistedAdditionalBookingDetail
     val (booking, prisoner) = service.create(probationBookingRequest, PRISON_USER_BIRMINGHAM)
 
     booking isEqualTo persistedVideoBooking
@@ -234,7 +234,7 @@ class CreateProbationBookingServiceTest {
     }
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
-    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(videoBookingRepository.saveAndFlush(any<VideoBooking>())) doReturn persistedVideoBooking
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
@@ -291,7 +291,7 @@ class CreateProbationBookingServiceTest {
     val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
 
     whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
-    whenever(videoBookingRepository.saveAndFlush(any())) doReturn persistedVideoBooking
+    whenever(videoBookingRepository.saveAndFlush(any<VideoBooking>())) doReturn persistedVideoBooking
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
     whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)

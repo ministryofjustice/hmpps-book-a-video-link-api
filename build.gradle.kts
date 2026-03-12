@@ -3,8 +3,8 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.3"
-  id("org.openapi.generator") version "7.18.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.5"
+  id("org.openapi.generator") version "7.20.0"
   kotlin("plugin.spring") version "2.3.10"
   kotlin("plugin.jpa") version "2.3.10"
   id("dev.zacsweers.redacted") version "1.15.1"
@@ -24,7 +24,7 @@ redacted {
 
 dependencies {
   // HMPPS dependencies
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.0.2")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.0.1")
 
   // Spring boot dependencies
@@ -36,26 +36,26 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.20.1")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.21.1")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:postgresql:42.7.10")
 
   // OpenAPI
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.1")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
-  implementation("org.springdoc:springdoc-openapi-starter-common:3.0.1")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.2")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
+  implementation("org.springdoc:springdoc-openapi-starter-common:3.0.2")
 
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
 
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.23.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.25.0")
 
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.21")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.25")
 
   // Test dependencies
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.1")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.2")
   testImplementation("org.springframework.security:spring-security-test:7.0.2")
   testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
   testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
@@ -67,7 +67,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-impl:0.13.0")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.0.3")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.0.4")
 
   testImplementation("net.javacrumbs.json-unit:json-unit:5.1.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.0")
