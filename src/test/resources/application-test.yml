@@ -52,3 +52,9 @@ hmpps:
         path: /sar/sar-api-response.json
       expected-render-result:
         path: /sar/sar-generated-report.html
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
