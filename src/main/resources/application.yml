@@ -183,10 +183,12 @@ notify:
       probation-officer-details-reminder:
         probation: "459a1bff-466f-42ed-bf6d-ad7206342fbb"
 
-
 springdoc:
   swagger-ui:
     tags-sorter: alpha
+    enabled: false
+  api-docs:
+    enabled: false
 
 # Options to configure suggested alternative booking times
 video-link-booking:

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.info.Contact
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
+import io.swagger.v3.oas.models.servers.Server
 import jakarta.annotation.PostConstruct
 import org.springdoc.core.customizers.OperationCustomizer
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,6 +35,14 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
 
   @Bean
   fun customOpenAPI(buildProperties: BuildProperties): OpenAPI? = OpenAPI()
+    .servers(
+      listOf(
+        Server().url("https://book-a-video-link-api-dev.prison.service.justice.gov.uk").description("Development"),
+        Server().url("https://book-a-video-link-api-preprod.prison.service.justice.gov.uk").description("Pre-Production"),
+        Server().url("https://book-a-video-link-api.prison.service.justice.gov.uk").description("Production"),
+        Server().url("http://localhost:8080").description("Local"),
+      ),
+    )
     .components(
       Components().addSecuritySchemes(
         "bearer-jwt",
