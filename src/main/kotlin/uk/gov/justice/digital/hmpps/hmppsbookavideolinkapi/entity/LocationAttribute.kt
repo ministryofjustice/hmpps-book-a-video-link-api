@@ -41,32 +41,23 @@ class LocationAttribute private constructor(
 ) {
   @Enumerated(EnumType.STRING)
   var locationStatus: LocationStatus = LocationStatus.ACTIVE
-    private set
 
   @Enumerated(EnumType.STRING)
   var locationUsage: LocationUsage = LocationUsage.SHARED
-    private set
 
   var prisonVideoUrl: String? = null
-    private set
 
   var notes: String? = null
-    private set
 
   var amendedBy: String? = null
-    private set
 
   var allowedParties: String? = null
-    private set
 
   var amendedTime: LocalDateTime? = null
-    private set
 
   var blockedFrom: LocalDate? = null
-    private set
 
   var blockedTo: LocalDate? = null
-    private set
 
   @OneToMany(mappedBy = "locationAttribute", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val locationSchedule: MutableList<LocationSchedule> = mutableListOf()

@@ -29,10 +29,8 @@ class Prison(
   val createdTime: LocalDateTime = LocalDateTime.now(),
 ) {
   var amendedBy: String? = null
-    private set
 
   var amendedTime: LocalDateTime? = null
-    private set
 
   var pickUpTime: Int? = null
 
