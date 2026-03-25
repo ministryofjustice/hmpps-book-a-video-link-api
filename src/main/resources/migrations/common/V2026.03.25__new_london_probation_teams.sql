@@ -1,0 +1,28 @@
+-- New probation teams
+insert into probation_team (code, description, enabled, read_only, notes, created_by, created_time)
+values
+    ('BRKDSM', 'Barking Dagenham and Havering - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('BRNTSM', 'Brent - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('CAMISM', 'Camden and Islington - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('CROYSM', 'Croydon - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('EALISM', 'Ealing - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('HLDNSM', 'Hillingdon - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('ENFDSM', 'Enfield - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('GRWNSM', 'Greenwich - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('BEXLSM', 'Bexley - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('HCKNSM', 'Hackney and City - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('HNFMSM', 'Hammersmith and Fulham - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('KNCHSM', 'Kensington and Chelsea - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('WSTMSM', 'Westminster - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('KNGNSM', 'Kingston - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('RCHDSM', 'Richmond - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('HOUNSM', 'Hounslow - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('LAMBSM', 'Lambeth - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('LWSHSM', 'Lewisham - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('BRMYSM', 'Bromley - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('NWHMSM', 'Newham - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('STHKSM', 'Southwark - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('TWHMSM', 'Tower Hamlets - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('WNDHSM', 'Wandsworth - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('MRTNSM', 'Merton - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp),
+    ('SUTNSM', 'Sutton - Sentence Management - Probation', true, false, null, 'TIM', current_timestamp);
