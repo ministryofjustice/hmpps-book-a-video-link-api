@@ -34,15 +34,15 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-enabled-probation-team-data.sql")
   @Test
   fun `should return filtered and unfiltered probation teams`() {
-    probationTeamRepository.findAll() hasSize 164 // Including enabled, read ony, and not enabled
+    probationTeamRepository.findAll() hasSize 189 // Including enabled, read ony, and not enabled
 
     val enabledOnlyTeams = webTestClient.getProbationTeams(true)
-    enabledOnlyTeams hasSize 158
+    enabledOnlyTeams hasSize 183
     enabledOnlyTeams.all { it.enabled } isBool true
 
     val allTeams = webTestClient.getProbationTeams(false)
-    allTeams hasSize 160
-    allTeams.count { it.enabled } isEqualTo 158
+    allTeams hasSize 185
+    allTeams.count { it.enabled } isEqualTo 183
     allTeams.count { !it.enabled } isEqualTo 2
   }
 
