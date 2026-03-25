@@ -3,19 +3,11 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.5"
-  id("org.openapi.generator") version "7.20.0"
-  kotlin("plugin.spring") version "2.3.10"
-  kotlin("plugin.jpa") version "2.3.10"
-  id("dev.zacsweers.redacted") version "1.15.1"
-}
-
-allOpen {
-  annotations(
-    "javax.persistence.Entity",
-    "javax.persistence.MappedSuperclass",
-    "javax.persistence.Embeddable",
-  )
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.1.0"
+  id("org.openapi.generator") version "7.21.0"
+  kotlin("plugin.spring") version "2.3.20"
+  kotlin("plugin.jpa") version "2.3.20"
+  id("dev.zacsweers.redacted") version "1.16.0"
 }
 
 redacted {
@@ -24,8 +16,8 @@ redacted {
 
 dependencies {
   // HMPPS dependencies
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.0.2")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.1.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.2.0")
 
   // Spring boot dependencies
   implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -36,7 +28,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.21.1")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.21.2")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
@@ -50,9 +42,9 @@ dependencies {
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
 
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.25.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.26.1")
 
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.25")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.26")
 
   // Test dependencies
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.2")
