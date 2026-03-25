@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -169,6 +170,103 @@ class AmendCourtBookingRequestBuilder {
       videoLinkUrl = cvpLinkDetails?.videoUrl,
       hmctsNumber = cvpLinkDetails?.hmctsNumber,
       guestPin = guestPin,
+      notesForStaff = notesForStaff,
+      notesForPrisoners = notesForPrisoners,
+    )
+  }
+}
+
+class CreateProbationBookingRequestBuilder {
+  private lateinit var probationTeamCode: String
+  private lateinit var prisoner: Prisoner
+  private lateinit var mainLocation: Location
+  private lateinit var main: Appointment
+  private var probationMeetingType: ProbationMeetingType? = null
+  private var notesForStaff: String? = null
+  private var notesForPrisoners: String? = null
+
+  companion object {
+    fun builder(init: CreateProbationBookingRequestBuilder.() -> Unit) = CreateProbationBookingRequestBuilder().also { it.init() }
+  }
+
+  fun probationTeam(probationTeamCode: String) = apply { this.probationTeamCode = probationTeamCode }
+  fun meetingType(type: ProbationMeetingType) = apply { this.probationMeetingType = type }
+  fun prisoner(prisoner: Prisoner) = apply { this.prisoner = prisoner }
+  fun staffNotes(notes: String) = apply { this.notesForStaff = notes }
+  fun prisonerNotes(notes: String) = apply { this.notesForPrisoners = notes }
+
+  fun main(location: Location, date: LocalDate, startTime: LocalTime, endTime: LocalTime) = apply {
+    mainLocation = location
+    main = Appointment(
+      type = AppointmentType.VLB_PROBATION,
+      locationKey = location.key,
+      date = date,
+      startTime = startTime,
+      endTime = endTime,
+    )
+  }
+
+  fun build() = run {
+    require(prisoner.prison == mainLocation.prisonId)
+
+    CreateVideoBookingRequest(
+      probationTeamCode = probationTeamCode,
+      bookingType = BookingType.PROBATION,
+      prisoners = listOf(
+        PrisonerDetails(
+          prisonCode = prisoner.prison,
+          prisonerNumber = prisoner.number,
+          listOfNotNull(main),
+        ),
+      ),
+      probationMeetingType = probationMeetingType ?: ProbationMeetingType.RR,
+      notesForStaff = notesForStaff,
+      notesForPrisoners = notesForPrisoners,
+    )
+  }
+}
+
+class AmendProbationBookingRequestBuilder {
+  private lateinit var prisoner: Prisoner
+  private lateinit var mainLocation: Location
+  private lateinit var main: Appointment
+  private var probationMeetingType: ProbationMeetingType? = null
+  private var notesForStaff: String? = null
+  private var notesForPrisoners: String? = null
+
+  companion object {
+    fun builder(init: AmendProbationBookingRequestBuilder.() -> Unit) = AmendProbationBookingRequestBuilder().also { it.init() }
+  }
+
+  fun meetingType(type: ProbationMeetingType) = apply { this.probationMeetingType = type }
+  fun prisoner(prisoner: Prisoner) = apply { this.prisoner = prisoner }
+  fun staffNotes(notes: String) = apply { this.notesForStaff = notes }
+  fun prisonerNotes(notes: String) = apply { this.notesForPrisoners = notes }
+
+  fun main(location: Location, date: LocalDate, startTime: LocalTime, endTime: LocalTime) = apply {
+    mainLocation = location
+    main = Appointment(
+      type = AppointmentType.VLB_PROBATION,
+      locationKey = location.key,
+      date = date,
+      startTime = startTime,
+      endTime = endTime,
+    )
+  }
+
+  fun build() = run {
+    require(prisoner.prison == mainLocation.prisonId)
+
+    AmendVideoBookingRequest(
+      bookingType = BookingType.PROBATION,
+      prisoners = listOf(
+        PrisonerDetails(
+          prisonCode = prisoner.prison,
+          prisonerNumber = prisoner.number,
+          listOfNotNull(main),
+        ),
+      ),
+      probationMeetingType = probationMeetingType ?: ProbationMeetingType.RR,
       notesForStaff = notesForStaff,
       notesForPrisoners = notesForPrisoners,
     )

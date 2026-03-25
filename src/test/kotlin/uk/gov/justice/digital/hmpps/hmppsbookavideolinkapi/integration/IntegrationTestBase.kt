@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.cache.CacheManager
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -35,6 +36,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
+import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -52,6 +54,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
   "classpath:test_data/seed-contacts.sql",
   "classpath:test_data/seed-video-booking-user-preferences.sql",
 )
+@AutoConfigureWebTestClient
 abstract class IntegrationTestBase {
 
   @Autowired
@@ -61,7 +64,7 @@ abstract class IntegrationTestBase {
   protected lateinit var webTestClient: WebTestClient
 
   @Autowired
-  protected lateinit var jwtAuthHelper: JwtAuthHelper
+  protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
 
   @BeforeEach
   fun clearAllCaches() {
@@ -89,7 +92,7 @@ abstract class IntegrationTestBase {
     user: String = "AUTH_ADM",
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
-  ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles, scopes)
+  ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = user, roles = roles, scope = scopes)
 
   protected fun stubPingWithResponse(status: Int) {
     ActivitiesAppointmentsApiExtension.server.stubHealthPing(status)

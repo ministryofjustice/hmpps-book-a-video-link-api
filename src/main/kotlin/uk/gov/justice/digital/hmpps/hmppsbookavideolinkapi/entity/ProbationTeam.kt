@@ -33,10 +33,8 @@ class ProbationTeam(
   val createdTime: LocalDateTime = LocalDateTime.now(),
 ) : LocationBookingType {
   var amendedBy: String? = null
-    private set
 
   var amendedTime: LocalDateTime? = null
-    private set
 
   fun isUnknown() = code == UNKNOWN_PROBATION_TEAM_CODE
 

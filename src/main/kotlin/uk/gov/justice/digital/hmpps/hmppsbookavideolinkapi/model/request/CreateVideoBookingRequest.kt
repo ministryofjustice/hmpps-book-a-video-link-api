@@ -148,6 +148,7 @@ enum class CourtHearingType {
 enum class ProbationMeetingType(val description: String) {
   // Description added for clarity (even if not used)
   BR("Bail report"),
+  FTR56("56-day fixed term recall (FTR56)"),
   HDC("Home detention curfew"),
   IOM("Integrated offender management (IOM)"),
   MALRAP("Multi-agency lifer risk assessment panel (MALRAP)"),

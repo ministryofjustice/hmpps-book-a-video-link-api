@@ -1,3 +1,7 @@
 spring:
   flyway:
     locations: classpath:/migrations/common,classpath:/migrations/dev
+
+hmpps:
+  sar:
+    additionalAccessRole: ROLE_BOOK_A_VIDEO_LINK_ADMIN

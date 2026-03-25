@@ -1,0 +1,26 @@
+-- New probation teams
+insert into probation_team (code, description, enabled, read_only, notes, created_by, created_time)
+values
+    ('BATHMC', 'Bath Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('BODMMC', 'Bodmin Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('BRNMCC', 'Bournemouth Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('BRISCC', 'Bristol Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('BRISMC', 'Bristol Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('CHELMC', 'Cheltenham Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('GLOUCC', 'Gloucester Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('PLYMCC', 'Plymouth Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('PLYMMC', 'Plymouth Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('POOLMC', 'Poole Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('SALICC', 'Salisbury Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('SALIMC', 'Salisbury Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('SWINCC', 'Swindon Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('SWINMC', 'Swindon Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('TAUNCC', 'Taunton Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('TAUNMC', 'Taunton Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('TRURCC', 'Truro Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('TRURMC', 'Truro Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('WNSMMC', 'Weston-Super-Mare Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('WEYMMC', 'Weymouth Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('YEOVMC', 'Yeovil Magistrates – Probation', true, false, null, 'TIM', current_timestamp),
+    ('IPSWCC', 'Ipswich Crown – Probation', true, false, null, 'TIM', current_timestamp),
+    ('IPSWMC', 'Ipswich Magistrates – Probation', true, false, null, 'TIM', current_timestamp);

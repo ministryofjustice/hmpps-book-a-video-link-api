@@ -78,9 +78,9 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var additionalBookingDetailRepository: AdditionalBookingDetailRepository
 
-  private val psrProbationBookingRequest = probationBookingRequest(
+  private val ftr56ProbationBookingRequest = probationBookingRequest(
     probationTeamCode = BLACKPOOL_MC_PPOC,
-    probationMeetingType = ProbationMeetingType.PSR,
+    probationMeetingType = ProbationMeetingType.FTR56,
     prisonCode = BIRMINGHAM,
     prisonerNumber = "123456",
     startTime = LocalTime.of(9, 0),
@@ -151,14 +151,14 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   )
 
   @Test
-  fun `should create a pre-sentence report probation booking using the VLPM appointment type`() {
+  fun `should create a 56-day fixed term recall (FTR56) probation booking using the VLPM appointment type`() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
     prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
     activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
-    val bookingId = webTestClient.createBooking(psrProbationBookingRequest, PROBATION_USER)
+    val bookingId = webTestClient.createBooking(ftr56ProbationBookingRequest, PROBATION_USER)
 
     waitUntil {
       verify(activitiesAppointmentsClient).createAppointment(
@@ -180,7 +180,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .findById(bookingId)
       .orElseThrow()
       .hasBookingType(BookingType.PROBATION)
-      .hasMeetingType(ProbationMeetingType.PSR)
+      .hasMeetingType(ProbationMeetingType.FTR56)
       .hasNotesForStaff("psr integration test probation staff notes")
       .hasNotesForPrisoner(null)
       .hasCreatedBy(PROBATION_USER)
@@ -205,7 +205,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
       .first()
       .hasHistoryType(HistoryType.CREATE)
-      .hasProbationMeetingType(ProbationMeetingType.PSR)
+      .hasProbationMeetingType(ProbationMeetingType.FTR56)
       .hasProbationTeam(persistedBooking.probationTeam!!)
       .also { it.appointments() hasSize 1 }
 

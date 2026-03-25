@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.mo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
@@ -46,18 +45,6 @@ val wandsworthLocation2 =
 val wandsworthLocation3 =
   location(prisonCode = WANDSWORTH, locationKeySuffix = "ABCEDFG3", localName = "Wandsworth room 3")
 
-val allLocations = setOf(
-  birminghamLocation,
-  inactiveBirminghamLocation,
-  norwichLocation,
-  pentonvilleLocation,
-  risleyLocation,
-  risleyLocation2,
-  wandsworthLocation,
-  wandsworthLocation2,
-  wandsworthLocation3,
-)
-
 fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = true, localName: String? = null, id: UUID = UUID.randomUUID()) = Location(
   id = id,
   prisonId = prisonCode,
@@ -72,10 +59,11 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   isResidential = false,
   localName = localName,
   lastModifiedBy = "test user",
-  lastModifiedDate = LocalDateTime.now().toIsoDateTime(),
+  lastModifiedDate = LocalDateTime.now(),
   level = 2,
   leafLevel = true,
-  status = Location.Status.ACTIVE,
+  status = if (active) Location.Status.ACTIVE else Location.Status.INACTIVE,
+  locked = false,
 )
 
 fun locationAttributes() = RoomAttributes(

@@ -36,32 +36,23 @@ class LocationSchedule private constructor(
   val createdTime: LocalDateTime = LocalDateTime.now(),
 ) {
   var startDayOfWeek: Int = -1
-    private set
 
   var endDayOfWeek: Int = -1
-    private set
 
   var startTime: LocalTime = LocalTime.MIN
-    private set
 
   var endTime: LocalTime = LocalTime.MIN
-    private set
 
   @Enumerated(EnumType.STRING)
   var locationUsage: LocationScheduleUsage = LocationScheduleUsage.BLOCKED
-    private set
 
   var allowedParties: String? = null
-    private set
 
   var notes: String? = null
-    private set
 
   var amendedBy: String? = null
-    private set
 
   var amendedTime: LocalDateTime? = null
-    private set
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

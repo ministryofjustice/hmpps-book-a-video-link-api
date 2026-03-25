@@ -8,9 +8,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.ScheduleItem
+import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem as ScheduleItemEntity
 
-fun ScheduleItemEntity.toModel(prisoners: List<Prisoner>, locations: List<Location>, availabilityChecker: (Location) -> Boolean) = ScheduleItem(
+fun ScheduleItemEntity.toModel(prisoners: List<Prisoner>, locations: List<Location>, availabilityChecker: (Location, LocalDate) -> Boolean) = ScheduleItem(
   videoBookingId = videoBookingId,
   prisonAppointmentId = prisonAppointmentId,
   bookingType = BookingType.valueOf(bookingType),
@@ -20,12 +21,12 @@ fun ScheduleItemEntity.toModel(prisoners: List<Prisoner>, locations: List<Locati
   courtId = courtId,
   courtCode = courtCode,
   courtDescription = courtDescription,
-  hearingType = hearingType?.let { CourtHearingType.valueOf(hearingType) },
+  hearingType = hearingType?.let { CourtHearingType.valueOf(it) },
   hearingTypeDescription = hearingTypeDescription,
   probationTeamId = probationTeamId,
   probationTeamCode = probationTeamCode,
   probationTeamDescription = probationTeamDescription,
-  probationMeetingType = probationMeetingType?.let { ProbationMeetingType.valueOf(probationMeetingType) },
+  probationMeetingType = probationMeetingType?.let { ProbationMeetingType.valueOf(it) },
   probationMeetingTypeDescription = probationMeetingTypeDescription,
   prisonCode = prisonCode,
   prisonName = prisonName,
@@ -48,9 +49,9 @@ fun ScheduleItemEntity.toModel(prisoners: List<Prisoner>, locations: List<Locati
   notesForPrisoners = notesForPrisoners,
   hmctsNumber = hmctsNumber,
   guestPin = guestPin,
-  checkAvailability = availabilityChecker(locations.first { it.dpsLocationId == prisonLocationId }),
+  checkAvailability = availabilityChecker(locations.first { it.dpsLocationId == prisonLocationId }, appointmentDate),
   prisonerFirstName = prisoners.singleOrNull { it.prisonerNumber == prisonerNumber }?.firstName ?: "",
   prisonerLastName = prisoners.singleOrNull { it.prisonerNumber == prisonerNumber }?.lastName ?: "",
 )
 
-fun List<ScheduleItemEntity>.toModel(prisoners: List<Prisoner>, locations: List<Location>, availabilityChecker: (Location) -> Boolean) = map { it.toModel(prisoners, locations, availabilityChecker) }
+fun List<ScheduleItemEntity>.toModel(prisoners: List<Prisoner>, locations: List<Location>, availabilityChecker: (Location, LocalDate) -> Boolean) = map { it.toModel(prisoners, locations, availabilityChecker) }

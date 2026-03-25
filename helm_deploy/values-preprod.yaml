@@ -8,6 +8,7 @@ generic-service:
     host: book-a-video-link-api-preprod.prison.service.justice.gov.uk
 
   env:
+    SPRING_PROFILES_ACTIVE: preprod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
     API_BASE_URL_ACTIVITIES_APPOINTMENTS: "https://activities-api-preprod.prison.service.justice.gov.uk"
     API_BASE_URL_HMPPS_AUTH: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"

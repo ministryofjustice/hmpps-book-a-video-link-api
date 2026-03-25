@@ -60,26 +60,20 @@ class VideoBooking private constructor(
 
   @Enumerated(EnumType.STRING)
   var statusCode: StatusCode = StatusCode.ACTIVE
-    private set
 
   var amendedBy: String? = null
 
   var amendedTime: LocalDateTime? = null
 
   var notesForStaff: String? = null
-    private set
 
   var notesForPrisoners: String? = null
-    private set
 
   var videoUrl: String? = null
-    private set
 
   var hmctsNumber: String? = null
-    private set
 
   var guestPin: String? = null
-    private set
 
   fun isBookingType(bookingType: BookingType) = this.bookingType == bookingType
 
