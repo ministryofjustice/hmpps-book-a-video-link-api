@@ -6,7 +6,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMinutePrecision
@@ -26,7 +25,7 @@ class PrisonAppointment private constructor(
   @JoinColumn(name = "video_booking_id")
   val videoBooking: VideoBooking,
 
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "prison_id")
   val prison: Prison,
 

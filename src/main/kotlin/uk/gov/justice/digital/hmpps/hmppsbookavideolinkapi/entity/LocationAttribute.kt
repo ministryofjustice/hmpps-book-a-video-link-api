@@ -9,8 +9,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
@@ -31,7 +31,7 @@ class LocationAttribute private constructor(
 
   val dpsLocationId: UUID,
 
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "prison_id")
   val prison: Prison,
 
