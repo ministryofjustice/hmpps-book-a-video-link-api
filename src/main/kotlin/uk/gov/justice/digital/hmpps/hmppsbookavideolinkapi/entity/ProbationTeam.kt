@@ -36,6 +36,10 @@ class ProbationTeam(
 
   var amendedTime: LocalDateTime? = null
 
+  var courtTeam: Boolean = false
+
+  var sentenceManagementTeam = false
+
   fun isUnknown() = code == UNKNOWN_PROBATION_TEAM_CODE
 
   fun isReadable() = !readOnly
