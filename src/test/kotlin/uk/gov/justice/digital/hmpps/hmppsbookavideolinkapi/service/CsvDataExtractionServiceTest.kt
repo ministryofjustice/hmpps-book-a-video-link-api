@@ -362,9 +362,9 @@ class CsvDataExtractionServiceTest {
   )
 
   private val listOfTeams = listOf(
-    ProbationTeam(1L, "A", "TeamA", true, ""),
-    ProbationTeam(2L, "B", "TeamB", true, ""),
-    ProbationTeam(3L, "C", "TeamC", true, ""),
+    ProbationTeam(1L, "A", "TeamA", enabled = true, "", courtTeam = false, sentenceManagementTeam = false),
+    ProbationTeam(2L, "B", "TeamB", enabled = true, "", courtTeam = false, sentenceManagementTeam = false),
+    ProbationTeam(3L, "C", "TeamC", enabled = true, "", courtTeam = false, sentenceManagementTeam = false),
   )
 
   @Test

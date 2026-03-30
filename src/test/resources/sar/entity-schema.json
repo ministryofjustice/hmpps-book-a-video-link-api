@@ -133,13 +133,15 @@
     "amendedBy": "String",
     "amendedTime": "LocalDateTime",
     "code": "String",
+    "courtTeam":"boolean",
     "createdBy": "String",
     "createdTime": "LocalDateTime",
     "description": "String",
     "enabled": "boolean",
     "notes": "String",
     "probationTeamId": "long",
-    "readOnly": "boolean"
+    "readOnly": "boolean",
+    "sentenceManagementTeam":"boolean"
   },
   "ReferenceCode": {
     "amendedBy": "String",

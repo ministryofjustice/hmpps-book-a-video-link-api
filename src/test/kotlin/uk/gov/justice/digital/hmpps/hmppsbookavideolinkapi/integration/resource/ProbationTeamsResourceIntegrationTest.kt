@@ -44,6 +44,8 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     allTeams hasSize 185
     allTeams.count { it.enabled } isEqualTo 183
     allTeams.count { !it.enabled } isEqualTo 2
+    allTeams.none { it.courtTeam } isBool true
+    allTeams.none { it.sentenceManagementTeam } isBool true
   }
 
   @Sql("classpath:integration-test-data/seed-user-probation-team-data.sql")
