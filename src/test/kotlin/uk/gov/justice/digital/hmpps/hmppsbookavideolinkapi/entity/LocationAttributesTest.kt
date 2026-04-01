@@ -850,6 +850,48 @@ class LocationAttributesTest {
         LocalTime.of(10, 0),
       ) isEqualTo AvailabilityStatus.SHARED
     }
+
+    @Test
+    fun `should be PROBATION_COURT for any probation court schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = PROBATION_USER,
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_COURT) }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(isCourtTeam = true),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.PROBATION_COURT
+    }
+
+    @Test
+    fun `should be PROBATION_SENTENCE for any probation sentence management schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = PROBATION_USER,
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_SENTENCE) }
+
+      roomAttributes.isAvailableFor(
+        probationTeam(isSentenceManagementTeam = true),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.PROBATION_SENTENCE
+    }
   }
 
   @Nested
