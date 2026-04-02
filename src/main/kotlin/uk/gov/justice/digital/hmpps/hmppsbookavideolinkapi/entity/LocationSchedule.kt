@@ -143,6 +143,8 @@ class LocationSchedule private constructor(
 enum class LocationScheduleUsage {
   COURT,
   PROBATION,
+  PROBATION_COURT,
+  PROBATION_SENTENCE,
   BLOCKED,
 }
 
@@ -178,21 +180,36 @@ class OverlappingRoomSpecification(
   }
 }
 
-/**
- * Returns true if court location usage, the supplied start and end times are between the schedules and the court matches allowed parties.
- */
-class CourtRoomSpecification(
-  private val court: Court,
+abstract class AbstractSpecification(
+  private val usage: LocationScheduleUsage,
   private val dayOfWeek: DayOfWeek,
   private val startTime: LocalTime,
   private val endTime: LocalTime,
 ) : Specification {
   override fun predicate(schedule: LocationSchedule): Boolean = run {
-    schedule.isUsage(LocationScheduleUsage.COURT) &&
+    schedule.isUsage(usage) &&
       dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) &&
-      schedule.allowedParties.orEmpty().split(",").contains(court.code) &&
       startTime.isOnOrAfter(schedule.startTime) &&
       endTime.isOnOrBefore(schedule.endTime)
+  }
+}
+
+/**
+ * Returns true if court location usage, the supplied start and end times are between the schedules and the court matches allowed parties.
+ */
+class CourtRoomSpecification(
+  private val court: Court,
+  dayOfWeek: DayOfWeek,
+  startTime: LocalTime,
+  endTime: LocalTime,
+) : AbstractSpecification(
+  LocationScheduleUsage.COURT,
+  dayOfWeek,
+  startTime,
+  endTime,
+) {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    super.predicate(schedule) && schedule.allowedParties.orEmpty().split(",").contains(court.code)
   }
 }
 
@@ -200,16 +217,17 @@ class CourtRoomSpecification(
  * Returns true if court location usage and the supplied start and end times are between the schedules.
  */
 class CourtAnySpecification(
-  private val dayOfWeek: DayOfWeek,
-  private val startTime: LocalTime,
-  private val endTime: LocalTime,
-) : Specification {
+  dayOfWeek: DayOfWeek,
+  startTime: LocalTime,
+  endTime: LocalTime,
+) : AbstractSpecification(
+  LocationScheduleUsage.COURT,
+  dayOfWeek,
+  startTime,
+  endTime,
+) {
   override fun predicate(schedule: LocationSchedule): Boolean = run {
-    schedule.isUsage(LocationScheduleUsage.COURT) &&
-      dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) &&
-      schedule.allowedParties.isNullOrBlank() &&
-      startTime.isOnOrAfter(schedule.startTime) &&
-      endTime.isOnOrBefore(schedule.endTime)
+    super.predicate(schedule) && schedule.allowedParties.isNullOrBlank()
   }
 }
 
@@ -218,16 +236,17 @@ class CourtAnySpecification(
  */
 class ProbationTeamSpecification(
   private val probationTeam: ProbationTeam,
-  private val dayOfWeek: DayOfWeek,
-  private val startTime: LocalTime,
-  private val endTime: LocalTime,
-) : Specification {
+  dayOfWeek: DayOfWeek,
+  startTime: LocalTime,
+  endTime: LocalTime,
+) : AbstractSpecification(
+  LocationScheduleUsage.PROBATION,
+  dayOfWeek,
+  startTime,
+  endTime,
+) {
   override fun predicate(schedule: LocationSchedule): Boolean = run {
-    schedule.isUsage(LocationScheduleUsage.PROBATION) &&
-      dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) &&
-      schedule.allowedParties.orEmpty().split(",").contains(probationTeam.code) &&
-      startTime.isOnOrAfter(schedule.startTime) &&
-      endTime.isOnOrBefore(schedule.endTime)
+    super.predicate(schedule) && schedule.allowedParties.orEmpty().split(",").contains(probationTeam.code)
   }
 }
 
@@ -235,15 +254,54 @@ class ProbationTeamSpecification(
  * Returns true if probation team usage and the supplied start and end times are between the schedules.
  */
 class ProbationAnySpecification(
-  private val dayOfWeek: DayOfWeek,
-  private val startTime: LocalTime,
-  private val endTime: LocalTime,
-) : Specification {
+  dayOfWeek: DayOfWeek,
+  startTime: LocalTime,
+  endTime: LocalTime,
+) : AbstractSpecification(
+  LocationScheduleUsage.PROBATION,
+  dayOfWeek,
+  startTime,
+  endTime,
+) {
   override fun predicate(schedule: LocationSchedule): Boolean = run {
-    schedule.isUsage(LocationScheduleUsage.PROBATION) &&
-      dayOfWeek.between(schedule.startDayOfWeek, schedule.endDayOfWeek) &&
-      schedule.allowedParties.isNullOrBlank() &&
-      startTime.isOnOrAfter(schedule.startTime) &&
-      endTime.isOnOrBefore(schedule.endTime)
+    super.predicate(schedule) && schedule.allowedParties.isNullOrBlank()
+  }
+}
+
+/**
+ * Returns true if probation court usage and the supplied start and end times are between the schedules.
+ */
+class ProbationCourtSpecification(
+  private val probationTeam: ProbationTeam,
+  dayOfWeek: DayOfWeek,
+  startTime: LocalTime,
+  endTime: LocalTime,
+) : AbstractSpecification(
+  LocationScheduleUsage.PROBATION_COURT,
+  dayOfWeek,
+  startTime,
+  endTime,
+) {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    super.predicate(schedule) && schedule.allowedParties.isNullOrBlank() && probationTeam.courtTeam
+  }
+}
+
+/**
+ * Returns true if probation sentence usage and the supplied start and end times are between the schedules.
+ */
+class ProbationSentenceManagementSpecification(
+  private val probationTeam: ProbationTeam,
+  dayOfWeek: DayOfWeek,
+  startTime: LocalTime,
+  endTime: LocalTime,
+) : AbstractSpecification(
+  LocationScheduleUsage.PROBATION_SENTENCE,
+  dayOfWeek,
+  startTime,
+  endTime,
+) {
+  override fun predicate(schedule: LocationSchedule): Boolean = run {
+    super.predicate(schedule) && schedule.allowedParties.isNullOrBlank() && probationTeam.sentenceManagementTeam
   }
 }

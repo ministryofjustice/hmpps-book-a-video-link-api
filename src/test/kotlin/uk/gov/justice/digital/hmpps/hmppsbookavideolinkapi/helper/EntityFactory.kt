@@ -59,7 +59,7 @@ fun prison(prisonCode: String = BIRMINGHAM, enabled: Boolean = true) = Prison(
   createdBy = "Test",
 )
 
-fun probationTeam(code: String = "BLKPPP", enabled: Boolean = true, readOnly: Boolean = false) = ProbationTeam(
+fun probationTeam(code: String = "BLKPPP", enabled: Boolean = true, readOnly: Boolean = false, isCourtTeam: Boolean = false, isSentenceManagementTeam: Boolean = false) = ProbationTeam(
   probationTeamId = 0,
   code = code,
   description = "probation team description",
@@ -67,7 +67,10 @@ fun probationTeam(code: String = "BLKPPP", enabled: Boolean = true, readOnly: Bo
   readOnly = readOnly,
   notes = null,
   createdBy = "Test",
-)
+).apply {
+  courtTeam = isCourtTeam
+  sentenceManagementTeam = isSentenceManagementTeam
+}
 
 fun courtBooking(
   createdBy: String = "court_user",

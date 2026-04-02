@@ -92,7 +92,7 @@ class AdministrationEmailServiceTest {
     with(emailCaptor.allValues.single()) {
       this isInstanceOf AdministrationNewVideoRoomEmail::class.java
       address isEqualTo "email@domain.com"
-      personalisation() isEqualTo mapOf("prisonsAndRooms" to "Pentonville (HMP & YOI)\nPentonville room 3\n\nWandsworth\nWandsworth room\nWandsworth room 2\n\n")
+      personalisation() isEqualTo mapOf("prisonsAndRooms" to "Pentonville (HMP & YOI)\nPentonville room 3\n\nWandsworth\nWandsworth room 1\nWandsworth room 2\n\n")
     }
 
     with(notificationCaptor.allValues.single()) {

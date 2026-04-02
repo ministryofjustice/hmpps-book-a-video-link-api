@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
 import java.time.DayOfWeek

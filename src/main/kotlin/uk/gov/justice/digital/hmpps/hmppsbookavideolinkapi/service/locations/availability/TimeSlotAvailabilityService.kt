@@ -140,6 +140,8 @@ class TimeSlotLocationsBuilder private constructor() : LocationAvailabilityServi
 
     val probation = buildList {
       addAll(dedicatedProbationTeamLocations)
+      addAll(probationCourtTeamLocations.filter { that -> filter(this, that) })
+      addAll(probationSentenceTeamLocations.filter { that -> filter(this, that) })
       addAll(anyProbationTeamLocations.filter { that -> filter(this, that) })
     }
 
