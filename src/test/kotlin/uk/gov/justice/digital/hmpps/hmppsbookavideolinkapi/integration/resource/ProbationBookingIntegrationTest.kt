@@ -87,11 +87,11 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     endTime = LocalTime.of(9, 30),
     appointmentType = AppointmentType.VLB_PROBATION,
     location = birminghamLocation,
-    notesForStaff = "psr integration test probation staff notes",
-    notesForPrisoners = "psr integration test probation prisoner notes",
+    notesForStaff = "ftr 56 integration test probation staff notes",
+    notesForPrisoners = "ftr 56 integration test probation prisoner notes",
     additionalBookingDetails = AdditionalBookingDetails(
-      contactName = "psr probation contact",
-      contactEmail = "psr_probation_contact@email.com",
+      contactName = "ftr 56 probation contact",
+      contactEmail = "ftr_56_probation_contact@email.com",
       contactNumber = null,
     ),
   )
@@ -141,11 +141,11 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     endTime = LocalTime.of(16, 30),
     appointmentType = AppointmentType.VLB_PROBATION,
     location = birminghamLocation,
-    notesForStaff = "psr integration test probation staff notes",
-    notesForPrisoners = "psr integration test probation prisoner notes",
+    notesForStaff = "tnl integration test probation staff notes",
+    notesForPrisoners = "tnl integration test probation prisoner notes",
     additionalBookingDetails = AdditionalBookingDetails(
-      contactName = "psr probation contact",
-      contactEmail = "psr_probation_contact@email.com",
+      contactName = "tnl probation contact",
+      contactEmail = "tnl_probation_contact@email.com",
       contactNumber = null,
     ),
   )
@@ -168,7 +168,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
         dpsLocationId = birminghamLocation.id,
-        extraInformation = null,
+        extraInformation = "ftr 56 integration test probation staff notes",
         prisonerExtraInformation = null,
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
@@ -181,7 +181,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .orElseThrow()
       .hasBookingType(BookingType.PROBATION)
       .hasMeetingType(ProbationMeetingType.FTR56)
-      .hasNotesForStaff("psr integration test probation staff notes")
+      .hasNotesForStaff("ftr 56 integration test probation staff notes")
       .hasNotesForPrisoner(null)
       .hasCreatedBy(PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
@@ -198,7 +198,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasStartTime(LocalTime.of(9, 0))
       .hasEndTime(LocalTime.of(9, 30))
       .hasLocation(birminghamLocation)
-      .hasNotesForStaff("psr integration test probation staff notes")
+      .hasNotesForStaff("ftr 56 integration test probation staff notes")
       .hasNotesForPrisoner(null)
 
     bookingHistoryRepository
@@ -211,8 +211,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
     additionalBookingDetailRepository
       .findByVideoBooking(persistedBooking)!!
-      .also { it.contactName isEqualTo "psr probation contact" }
-      .also { it.contactEmail isEqualTo "psr_probation_contact@email.com" }
+      .also { it.contactName isEqualTo "ftr 56 probation contact" }
+      .also { it.contactEmail isEqualTo "ftr_56_probation_contact@email.com" }
       .also { it.contactNumber isEqualTo null }
   }
 
@@ -234,7 +234,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(12, 30),
         dpsLocationId = birminghamLocation.id,
-        extraInformation = null,
+        extraInformation = "rr integration test probation staff notes",
         prisonerExtraInformation = null,
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
       )
@@ -309,7 +309,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
         dpsLocationId = birminghamLocation.id,
-        extraInformation = null,
+        extraInformation = "rr integration test probation staff notes amended",
         prisonerExtraInformation = null,
       )
     }
@@ -364,7 +364,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(14, 0),
         endTime = LocalTime.of(15, 30),
         dpsLocationId = birminghamLocation.id,
-        extraInformation = null,
+        extraInformation = "other integration test probation staff notes",
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
         prisonerExtraInformation = null,
       )
@@ -442,8 +442,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(14, 30),
         endTime = LocalTime.of(15, 30),
         dpsLocationId = birminghamLocation.id,
-        extraInformation = "other integration test probation prisoner notes amended",
-        prisonerExtraInformation = null,
+        extraInformation = "other integration test probation staff notes amended",
+        prisonerExtraInformation = "other integration test probation prisoner notes amended",
       )
     }
 
@@ -494,9 +494,9 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(16, 0),
         endTime = LocalTime.of(16, 30),
         dpsLocationId = birminghamLocation.id,
-        extraInformation = "psr integration test probation prisoner notes",
+        extraInformation = "tnl integration test probation staff notes",
         appointmentType = SupportedAppointmentTypes.Type.PROBATION,
-        prisonerExtraInformation = null,
+        prisonerExtraInformation = "tnl integration test probation prisoner notes",
       )
     }
 
@@ -507,8 +507,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .orElseThrow()
       .hasBookingType(BookingType.PROBATION)
       .hasMeetingType(ProbationMeetingType.PSR)
-      .hasNotesForStaff("psr integration test probation staff notes")
-      .hasNotesForPrisoner("psr integration test probation prisoner notes")
+      .hasNotesForStaff("tnl integration test probation staff notes")
+      .hasNotesForPrisoner("tnl integration test probation prisoner notes")
       .hasCreatedBy(PRISON_USER_BIRMINGHAM)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(true)
@@ -524,8 +524,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasStartTime(LocalTime.of(16, 0))
       .hasEndTime(LocalTime.of(16, 30))
       .hasLocation(birminghamLocation)
-      .hasNotesForStaff("psr integration test probation staff notes")
-      .hasNotesForPrisoner("psr integration test probation prisoner notes")
+      .hasNotesForStaff("tnl integration test probation staff notes")
+      .hasNotesForPrisoner("tnl integration test probation prisoner notes")
 
     bookingHistoryRepository
       .findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
@@ -537,8 +537,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
     additionalBookingDetailRepository
       .findByVideoBooking(persistedBooking)!!
-      .also { it.contactName isEqualTo "psr probation contact" }
-      .also { it.contactEmail isEqualTo "psr_probation_contact@email.com" }
+      .also { it.contactName isEqualTo "tnl probation contact" }
+      .also { it.contactEmail isEqualTo "tnl_probation_contact@email.com" }
       .also { it.contactNumber isEqualTo null }
   }
 

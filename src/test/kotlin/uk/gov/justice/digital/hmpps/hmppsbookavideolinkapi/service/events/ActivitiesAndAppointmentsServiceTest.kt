@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -16,8 +15,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BooleanFeature
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
@@ -36,72 +33,18 @@ private const val VLPM = "VLPM"
 class ActivitiesAndAppointmentsServiceTest {
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val supportedAppointmentTypes = SupportedAppointmentTypes()
-  private val featureSwitches: FeatureSwitches = mock()
-  private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, supportedAppointmentTypes, featureSwitches)
+  private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, supportedAppointmentTypes)
 
   private val birminghamNomisLocation = Location(locationId = 123456, locationType = VLB, "VIDEO LINK", BIRMINGHAM)
   private val courtBookingByCourt = courtBooking().withMainCourtPrisonAppointment()
   private val probationBookingByProbationTeam = probationBooking().withProbationPrisonAppointment()
 
   @Nested
-  @DisplayName("Create and patch with public private comments sync feature toggle off")
-  inner class CreateAndPatchWithFeatureToggleOff {
-    @BeforeEach
-    fun before() {
-      whenever(featureSwitches.isEnabled(BooleanFeature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn false
-    }
+  @DisplayName("Create and patch")
+  inner class CreateAndPatch {
 
     @Test
     fun `should create VLB court appointment`() {
-      val courtBookingByPrison = courtBooking(createdByPrison = true, notesForPrisoners = "Some public prisoners comments").withMainCourtPrisonAppointment()
-
-      service.createAppointment(courtBookingByPrison.mainHearing()!!)
-
-      verify(activitiesAppointmentsClient).createAppointment(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = courtBookingByPrison.mainHearing()!!.prisonerNumber,
-        startDate = courtBookingByPrison.mainHearing()!!.appointmentDate,
-        startTime = courtBookingByPrison.mainHearing()!!.startTime,
-        endTime = courtBookingByPrison.mainHearing()!!.endTime,
-        dpsLocationId = courtBookingByPrison.mainHearing()!!.prisonLocationId,
-        extraInformation = "Some public prisoners comments",
-        prisonerExtraInformation = null,
-        appointmentType = SupportedAppointmentTypes.Type.COURT,
-      )
-    }
-
-    @Test
-    fun `should create VLPM probation appointment`() {
-      val probationBookingByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM, notesForPrisoners = "Some public prisoners comments").withProbationPrisonAppointment()
-
-      service.createAppointment(probationBookingByPrison.probationMeeting()!!)
-
-      verify(activitiesAppointmentsClient).createAppointment(
-        prisonCode = BIRMINGHAM,
-        prisonerNumber = probationBookingByPrison.probationMeeting()!!.prisonerNumber,
-        startDate = probationBookingByPrison.probationMeeting()!!.appointmentDate,
-        startTime = probationBookingByPrison.probationMeeting()!!.startTime,
-        endTime = probationBookingByPrison.probationMeeting()!!.endTime,
-        dpsLocationId = probationBookingByPrison.probationMeeting()!!.prisonLocationId,
-        extraInformation = "Some public prisoners comments",
-        prisonerExtraInformation = null,
-        appointmentType = SupportedAppointmentTypes.Type.PROBATION,
-      )
-    }
-  }
-
-  @Nested
-  @DisplayName("Create and patch with public private comments sync feature toggle on")
-  inner class CreateAndPatchWithFeatureToggleOn {
-    @BeforeEach
-    fun before() {
-      whenever(featureSwitches.isEnabled(BooleanFeature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
-    }
-
-    @Test
-    fun `should create VLB court appointment`() {
-      whenever(featureSwitches.isEnabled(BooleanFeature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
-
       val courtBookingByPrison = courtBooking(createdByPrison = true, notesForStaff = "Some private staff comments", notesForPrisoners = "Some public prisoners comments").withMainCourtPrisonAppointment()
 
       service.createAppointment(courtBookingByPrison.mainHearing()!!)
@@ -121,8 +64,6 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should create VLPM probation appointment`() {
-      whenever(featureSwitches.isEnabled(BooleanFeature.FEATURE_PUBLIC_PRIVATE_COMMENTS_SYNC)) doReturn true
-
       val probationBookingByPrison = probationBooking(createdBy = PRISON_USER_BIRMINGHAM, notesForStaff = "Some private staff comments", notesForPrisoners = "Some public prisoners comments").withProbationPrisonAppointment()
 
       service.createAppointment(probationBookingByPrison.probationMeeting()!!)
