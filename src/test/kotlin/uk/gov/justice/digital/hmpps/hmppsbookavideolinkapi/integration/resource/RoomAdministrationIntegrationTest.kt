@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
@@ -156,7 +157,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should add a scheduled row to a room schedule`() {
+  fun `should add a probation scheduled row to a room schedule`() {
     val id = locationAttributeRepository.saveAndFlush(
       LocationAttribute.decoratedRoom(
         dpsLocationId = wandsworthLocation.id,
@@ -179,13 +180,100 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         endDayOfWeek = 7,
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(12, 0),
-        notes = "some notes for the schedule",
+        notes = "some notes for the probation schedule",
       ),
       wandsworthLocation.toModel(),
       PROBATION_USER,
     )
 
-    getLocationAttribute(id).schedule().size isEqualTo 1
+    with(getLocationAttribute(id).schedule().single()) {
+      this.locationUsage isEqualTo LocationScheduleUsage.PROBATION
+      this.startDayOfWeek isEqualTo DayOfWeek.MONDAY.value
+      this.endDayOfWeek isEqualTo DayOfWeek.SUNDAY.value
+      this.startTime isEqualTo LocalTime.of(9, 0)
+      this.endTime isEqualTo LocalTime.of(12, 0)
+      this.notes isEqualTo "some notes for the probation schedule"
+    }
+  }
+
+  @Test
+  fun `should add a probation court scheduled row to a room schedule`() {
+    val id = locationAttributeRepository.saveAndFlush(
+      LocationAttribute.decoratedRoom(
+        dpsLocationId = wandsworthLocation.id,
+        prison = prisonRepository.findByCode(WANDSWORTH)!!,
+        createdBy = PROBATION_USER,
+        locationUsage = EntityLocationUsage.SCHEDULE,
+        prisonVideoUrl = "https://probation-url",
+        allowedParties = emptySet(),
+        notes = null,
+        locationStatus = EntityLocationStatus.ACTIVE,
+      ),
+    ).locationAttributeId
+
+    getLocationAttribute(id).schedule().size isEqualTo 0
+
+    webTestClient.createSchedule(
+      CreateRoomScheduleRequest(
+        locationUsage = ModelLocationScheduleUsage.PROBATION_COURT,
+        startDayOfWeek = 1,
+        endDayOfWeek = 7,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(12, 0),
+        notes = "some notes for the probation court schedule",
+      ),
+      wandsworthLocation.toModel(),
+      PROBATION_USER,
+    )
+
+    with(getLocationAttribute(id).schedule().single()) {
+      this.locationUsage isEqualTo LocationScheduleUsage.PROBATION_COURT
+      this.startDayOfWeek isEqualTo DayOfWeek.MONDAY.value
+      this.endDayOfWeek isEqualTo DayOfWeek.SUNDAY.value
+      this.startTime isEqualTo LocalTime.of(9, 0)
+      this.endTime isEqualTo LocalTime.of(12, 0)
+      this.notes isEqualTo "some notes for the probation court schedule"
+    }
+  }
+
+  @Test
+  fun `should add a probation sentence scheduled row to a room schedule`() {
+    val id = locationAttributeRepository.saveAndFlush(
+      LocationAttribute.decoratedRoom(
+        dpsLocationId = wandsworthLocation.id,
+        prison = prisonRepository.findByCode(WANDSWORTH)!!,
+        createdBy = PROBATION_USER,
+        locationUsage = EntityLocationUsage.SCHEDULE,
+        prisonVideoUrl = "https://probation-url",
+        allowedParties = emptySet(),
+        notes = null,
+        locationStatus = EntityLocationStatus.ACTIVE,
+      ),
+    ).locationAttributeId
+
+    getLocationAttribute(id).schedule().size isEqualTo 0
+
+    webTestClient.createSchedule(
+      CreateRoomScheduleRequest(
+        locationUsage = ModelLocationScheduleUsage.PROBATION_SENTENCE,
+        startDayOfWeek = 1,
+        endDayOfWeek = 7,
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(12, 0),
+        notes = "some notes for the probation sentence schedule",
+      ),
+      wandsworthLocation.toModel(),
+      PROBATION_USER,
+    )
+
+    with(getLocationAttribute(id).schedule().single()) {
+      this.locationUsage isEqualTo LocationScheduleUsage.PROBATION_SENTENCE
+      this.startDayOfWeek isEqualTo DayOfWeek.MONDAY.value
+      this.endDayOfWeek isEqualTo DayOfWeek.SUNDAY.value
+      this.startTime isEqualTo LocalTime.of(9, 0)
+      this.endTime isEqualTo LocalTime.of(12, 0)
+      this.notes isEqualTo "some notes for the probation sentence schedule"
+    }
   }
 
   @Test

@@ -19,4 +19,10 @@ data class ProbationTeam(
 
   @Schema(description = "Notes relating to this probation team for opening hours, postal address, main contact.", example = "Free form notes")
   val notes: String?,
+
+  @Schema(description = "Boolean flag to indicate if the team is a court team or not.", example = "true")
+  val courtTeam: Boolean,
+
+  @Schema(description = "Boolean flag to indicate if the team is a sentence management team or not.", example = "false")
+  val sentenceManagementTeam: Boolean,
 )

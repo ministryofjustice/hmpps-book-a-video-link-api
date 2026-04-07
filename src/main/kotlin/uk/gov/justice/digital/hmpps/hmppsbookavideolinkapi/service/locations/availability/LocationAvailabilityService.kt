@@ -13,6 +13,8 @@ abstract class LocationAvailabilityService<REQUEST>(private val locationsService
 
   abstract class AvailableLocationBuilder {
     protected val dedicatedProbationTeamLocations = mutableSetOf<AvailableLocation>()
+    protected val probationCourtTeamLocations = mutableSetOf<AvailableLocation>()
+    protected val probationSentenceTeamLocations = mutableSetOf<AvailableLocation>()
     protected val anyProbationTeamLocations = mutableSetOf<AvailableLocation>()
     protected val dedicatedCourtLocations = mutableSetOf<AvailableLocation>()
     protected val anyCourtLocations = mutableSetOf<AvailableLocation>()
@@ -21,6 +23,8 @@ abstract class LocationAvailabilityService<REQUEST>(private val locationsService
     fun add(availabilityStatus: AvailabilityStatus, availableLocation: AvailableLocation) {
       when (availabilityStatus) {
         AvailabilityStatus.PROBATION_ROOM -> dedicatedProbationTeamLocations.add(availableLocation)
+        AvailabilityStatus.PROBATION_COURT -> probationCourtTeamLocations.add(availableLocation)
+        AvailabilityStatus.PROBATION_SENTENCE -> probationSentenceTeamLocations.add(availableLocation)
         AvailabilityStatus.PROBATION_ANY -> anyProbationTeamLocations.add(availableLocation)
         AvailabilityStatus.COURT_ROOM -> dedicatedCourtLocations.add(availableLocation)
         AvailabilityStatus.COURT_ANY -> anyCourtLocations.add(availableLocation)

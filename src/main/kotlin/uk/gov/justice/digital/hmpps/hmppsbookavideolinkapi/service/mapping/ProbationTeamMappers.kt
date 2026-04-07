@@ -9,6 +9,8 @@ fun ProbationTeamEntity.toModel() = ProbationTeam(
   description = description,
   enabled = enabled,
   notes = notes,
+  courtTeam = courtTeam,
+  sentenceManagementTeam = sentenceManagementTeam,
 )
 
 fun List<ProbationTeamEntity>.toModel() = map { it.toModel() }

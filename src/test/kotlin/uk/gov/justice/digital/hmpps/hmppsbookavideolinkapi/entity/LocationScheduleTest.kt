@@ -38,6 +38,22 @@ class LocationScheduleTest {
     endTime = LocalTime.of(10, 0),
   )
 
+  private val probationCourtSchedule = schedule(
+    locationUsage = LocationScheduleUsage.PROBATION_COURT,
+    start = DayOfWeek.MONDAY,
+    end = DayOfWeek.SUNDAY,
+    startTime = LocalTime.of(9, 0),
+    endTime = LocalTime.of(10, 0),
+  )
+
+  private val probationSentenceManagementSchedule = schedule(
+    locationUsage = LocationScheduleUsage.PROBATION_SENTENCE,
+    start = DayOfWeek.MONDAY,
+    end = DayOfWeek.SUNDAY,
+    startTime = LocalTime.of(9, 0),
+    endTime = LocalTime.of(10, 0),
+  )
+
   private val courtSchedule = schedule(
     locationUsage = LocationScheduleUsage.COURT,
     allowedParties = setOf("COURT"),
@@ -185,6 +201,50 @@ class LocationScheduleTest {
       daysOfWeek.forEach { day ->
         probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(8, 0), LocalTime.of(9, 30))) isBool false
         probationAnySchedule.isSatisfiedBy(ProbationAnySpecification(day, LocalTime.of(9, 30), LocalTime.of(10, 30))) isBool false
+      }
+    }
+
+    @Test
+    fun `should be for probation court team`() {
+      val probationCourtTeam = probationTeam(isCourtTeam = true)
+
+      daysOfWeek.forEach { day ->
+        probationCourtSchedule.isSatisfiedBy(ProbationCourtSpecification(probationCourtTeam, day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        probationCourtSchedule.isSatisfiedBy(ProbationCourtSpecification(probationCourtTeam, day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        probationCourtSchedule.isSatisfiedBy(ProbationCourtSpecification(probationCourtTeam, day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+      }
+    }
+
+    @Test
+    fun `should not be for probation court team`() {
+      val probationNotCourtTeam = probationTeam(isCourtTeam = false)
+
+      daysOfWeek.forEach { day ->
+        probationCourtSchedule.isSatisfiedBy(ProbationCourtSpecification(probationNotCourtTeam, day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool false
+        probationCourtSchedule.isSatisfiedBy(ProbationCourtSpecification(probationNotCourtTeam, day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool false
+        probationCourtSchedule.isSatisfiedBy(ProbationCourtSpecification(probationNotCourtTeam, day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
+      }
+    }
+
+    @Test
+    fun `should be for probation sentence management team`() {
+      val probationCourtTeam = probationTeam(isSentenceManagementTeam = true)
+
+      daysOfWeek.forEach { day ->
+        probationSentenceManagementSchedule.isSatisfiedBy(ProbationSentenceManagementSpecification(probationCourtTeam, day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool true
+        probationSentenceManagementSchedule.isSatisfiedBy(ProbationSentenceManagementSpecification(probationCourtTeam, day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool true
+        probationSentenceManagementSchedule.isSatisfiedBy(ProbationSentenceManagementSpecification(probationCourtTeam, day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool true
+      }
+    }
+
+    @Test
+    fun `should not be for probation sentence management team`() {
+      val probationNotCourtTeam = probationTeam(isSentenceManagementTeam = false)
+
+      daysOfWeek.forEach { day ->
+        probationSentenceManagementSchedule.isSatisfiedBy(ProbationSentenceManagementSpecification(probationNotCourtTeam, day, LocalTime.of(9, 0), LocalTime.of(10, 0))) isBool false
+        probationSentenceManagementSchedule.isSatisfiedBy(ProbationSentenceManagementSpecification(probationNotCourtTeam, day, LocalTime.of(9, 0), LocalTime.of(9, 30))) isBool false
+        probationSentenceManagementSchedule.isSatisfiedBy(ProbationSentenceManagementSpecification(probationNotCourtTeam, day, LocalTime.of(9, 30), LocalTime.of(10, 0))) isBool false
       }
     }
   }

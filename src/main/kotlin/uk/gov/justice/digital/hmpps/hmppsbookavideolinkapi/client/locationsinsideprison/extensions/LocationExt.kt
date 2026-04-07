@@ -2,6 +2,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsi
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 
-fun Location.isActive() = active
+fun Location.isActive() = status == Location.Status.ACTIVE
 
 fun Location.isAtPrison(prisonCode: String) = prisonId == prisonCode

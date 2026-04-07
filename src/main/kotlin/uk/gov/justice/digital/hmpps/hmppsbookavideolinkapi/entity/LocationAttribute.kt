@@ -146,17 +146,18 @@ class LocationAttribute private constructor(
     }
   }
 
-  private fun checkProbation(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
-    return when (locationUsage) {
+  private fun checkProbation(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
+    when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.PROBATION -> when {
+        // TODO need to add check here for the court or sentence attribute
         allowedParties.isNullOrBlank() -> AvailabilityStatus.PROBATION_ANY
         isPartyAllowed(probationTeam.code) -> AvailabilityStatus.PROBATION_ROOM
         else -> AvailabilityStatus.NONE
       }
 
       LocationUsage.SCHEDULE -> getScheduleAvailability(probationTeam, onDate, startTime, endTime)
-      else -> return AvailabilityStatus.NONE
+      else -> AvailabilityStatus.NONE
     }
   }
 
@@ -166,6 +167,8 @@ class LocationAttribute private constructor(
   private fun getScheduleAvailability(team: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     val blocked = OverlappingSpecification(LocationScheduleUsage.BLOCKED, onDate.dayOfWeek, startTime, endTime)
     val freeForProbationTeam = ProbationTeamSpecification(team, onDate.dayOfWeek, startTime, endTime)
+    val freeForProbationCourtTeam = ProbationCourtSpecification(team, onDate.dayOfWeek, startTime, endTime)
+    val freeForProbationSentenceTeam = ProbationSentenceManagementSpecification(team, onDate.dayOfWeek, startTime, endTime)
     val freeForAnyProbationTeam = ProbationAnySpecification(onDate.dayOfWeek, startTime, endTime)
     val overlapsWithCourtSlot = OverlappingSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)
     val overlapsWithOtherProbationTeamSlot = OverlappingRoomSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)
@@ -174,6 +177,8 @@ class LocationAttribute private constructor(
     return when {
       fallsWithin(blocked) -> AvailabilityStatus.NONE
       fallsWithin(freeForProbationTeam) -> AvailabilityStatus.PROBATION_ROOM
+      fallsWithin(freeForProbationCourtTeam) -> AvailabilityStatus.PROBATION_COURT
+      fallsWithin(freeForProbationSentenceTeam) -> AvailabilityStatus.PROBATION_SENTENCE
       fallsWithin(freeForAnyProbationTeam) -> AvailabilityStatus.PROBATION_ANY
 
       // If none of the above match, we need to make sure the requested probation slot date and times to not overlap any court schedules
@@ -339,6 +344,8 @@ enum class LocationUsage {
 
 enum class AvailabilityStatus {
   PROBATION_ROOM,
+  PROBATION_COURT,
+  PROBATION_SENTENCE,
   PROBATION_ANY,
   COURT_ROOM,
   COURT_ANY,
