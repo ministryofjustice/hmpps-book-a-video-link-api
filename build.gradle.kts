@@ -40,7 +40,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-common:3.0.2")
 
   // Gov Notify client
-  implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
+  implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
 
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.26.1")
 
