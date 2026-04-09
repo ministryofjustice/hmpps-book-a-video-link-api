@@ -24,6 +24,8 @@ generic-service:
   namespace_secrets:
     administration:
       ADMINISTRATION_EMAILS: "ADMINISTRATION_EMAILS"
+    feature-toggles:
+      FEATURE_EMAIL_FACADE_ENABLED: "true"
 
   allowlist:
     groups:
