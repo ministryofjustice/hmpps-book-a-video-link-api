@@ -70,7 +70,7 @@ generic-service:
     feature-toggles:
       FEATURE_PROBATION_ONLY_PRISONS: "FEATURE_PROBATION_ONLY_PRISONS?"
       FEATURE_COURT_ONLY_PRISONS: "FEATURE_COURT_ONLY_PRISONS?"
-
+      FEATURE_EMAIL_FACADE_ENABLED: "false"
 
   allowlist:
     groups:

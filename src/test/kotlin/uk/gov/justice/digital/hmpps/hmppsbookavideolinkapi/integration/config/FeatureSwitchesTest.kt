@@ -31,6 +31,7 @@ class FeatureSwitchesTest : IntegrationTestBase() {
       "feature.public.private.comments.sync=true",
       "feature.court.only.prisons=PVI",
       "feature.probation.only.prisons=MDI",
+      "feature.email.facade.enabled=true",
     ],
   )
   @Nested
