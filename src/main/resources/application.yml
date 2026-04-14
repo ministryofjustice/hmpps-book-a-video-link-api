@@ -190,9 +190,6 @@ springdoc:
   api-docs:
     enabled: false
 
-# pinning version - see 10.0.6 release note here https://github.com/ministryofjustice/hmpps-gradle-spring-boot/blob/main/release-notes/10.x.md
-springdoc.swagger-ui.version: 5.32.1
-
 # Options to configure suggested alternative booking times
 video-link-booking:
   options:
