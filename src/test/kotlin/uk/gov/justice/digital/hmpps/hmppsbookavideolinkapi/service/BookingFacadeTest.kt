@@ -57,7 +57,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime.now
 import java.time.LocalTime
 
-class ReplacementBookingFacadeTest {
+class BookingFacadeTest {
   private val videoBookingServiceDelegate: VideoBookingServiceDelegate = mock()
   private val outboundEventsService: OutboundEventsService = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
@@ -66,7 +66,7 @@ class ReplacementBookingFacadeTest {
   private val availabilityService: AvailabilityService = mock()
   private val changeTrackingService: ChangeTrackingService = mock()
   private val emailFacade: EmailFacade = mock()
-  private val facade = ReplacementBookingFacade(
+  private val facade = BookingFacade(
     videoBookingServiceDelegate,
     outboundEventsService,
     prisonerSearchClient,

@@ -6,7 +6,6 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.context.jdbc.Sql
@@ -75,7 +74,6 @@ import java.time.LocalTime
 import kotlin.reflect.KClass
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
-@TestPropertySource(properties = ["feature.email.facade.enabled=true"])
 class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
   @MockitoSpyBean
