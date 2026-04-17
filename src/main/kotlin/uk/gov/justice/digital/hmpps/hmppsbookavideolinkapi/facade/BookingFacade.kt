@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -11,7 +11,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.EmailFacade
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeTrackingService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoBookingServiceDelegate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
