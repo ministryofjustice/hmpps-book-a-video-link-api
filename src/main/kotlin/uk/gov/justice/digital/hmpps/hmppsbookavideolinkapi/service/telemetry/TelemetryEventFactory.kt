@@ -3,12 +3,12 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction.AMEND
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction.CANCEL
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction.CREATE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction.RELEASED
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingAction.TRANSFERRED
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction.AMEND
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction.CANCEL
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction.CREATE
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction.RELEASED
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction.TRANSFERRED
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 
 object TelemetryEventFactory {
