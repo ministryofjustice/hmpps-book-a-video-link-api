@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailTemplates
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.administration.AdministrationNewVideoRoomEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.AmendedCourtBookingPrisonNoCourtEmail
@@ -28,6 +29,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingProbationEmail
@@ -39,6 +44,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerDetailsReminderEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingUserEmail
 import uk.gov.service.notify.NotificationClient
 import uk.gov.service.notify.NotificationClientException
 import uk.gov.service.notify.SendEmailResponse
@@ -76,6 +85,10 @@ class GovNotifyEmailServiceTest {
     releaseCourtBookingCourt = "releaseCourtBookingCourt",
     releaseCourtBookingPrisonCourtEmail = "releaseCourtBookingPrisonCourtEmail",
     releaseCourtBookingPrisonNoCourtEmail = "releaseCourtBookingPrisonNoCourtEmail",
+    rescheduledCourtBookingUser = "rescheduledCourtBookingUser",
+    rescheduledCourtBookingCourtEmail = "rescheduledCourtBookingCourtEmail",
+    rescheduledCourtBookingPrisonCourtEmail = "rescheduledCourtBookingPrisonCourtEmail",
+    rescheduledCourtBookingPrisonNoCourtEmail = "rescheduledCourtBookingPrisonNoCourtEmail",
     newProbationBookingUser = "newProbationBookingUser",
     newProbationBookingProbation = "newProbationBookingProbation",
     newProbationBookingPrisonProbationEmail = "newProbationBookingPrisonProbationEmail",
@@ -97,6 +110,10 @@ class GovNotifyEmailServiceTest {
     courtHearingLinkReminderEmail = "courtHearingLinkReminderEmail",
     probationOfficerDetailsReminderEmail = "probationOfficerDetailsReminderEmail",
     administrationNewVideoRoom = "administrationNewVideoRoomEmail",
+    rescheduledProbationBookingUser = "rescheduledProbationBookingUser",
+    rescheduledProbationBookingPrisonProbationEmail = "rescheduledProbationBookingPrisonProbationEmail",
+    rescheduledProbationBookingPrisonNoProbationEmail = "rescheduledProbationBookingPrisonNoProbationEmail",
+    rescheduledProbationBookingProbationEmail = "rescheduledProbationBookingProbationEmail",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates, "http://localhost:3000")
@@ -1260,6 +1277,409 @@ class GovNotifyEmailServiceTest {
       "administrationNewVideoRoomEmail",
       "recipient@emailaddress.com",
       mapOf("prisonsAndRooms" to "Moorland\nRoom 1\nRoom 2\nRoom 3\n\nRisley\nRoom 10\nRoom 12\nRoom 18\n\n", "frontendDomain" to "http://localhost:3000"),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send court rescheduled booking user email and return a notification ID`() {
+    val result = service.send(
+      RescheduledCourtBookingUserEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        userName = "username",
+        appointmentDate = today,
+        comments = "comments for bob",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
+        court = "the court",
+        prison = "the prison",
+        courtHearingLink = "https://video.link.com",
+        oldAppointmentDate = tomorrow(),
+        oldPreAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        oldMainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        oldPostAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "rescheduledCourtBookingUser")
+
+    verify(client).sendEmail(
+      "rescheduledCourtBookingUser",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "userName" to "username",
+        "court" to "the court",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
+        "courtHearingLink" to "https://video.link.com",
+        "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
+        "oldAppointmentDate" to tomorrow().toMediumFormatStyle(),
+        "oldPreAppointmentInfo" to "pre - 11:00 to 11:15",
+        "oldMainAppointmentInfo" to "main - 11:15 to 11:30",
+        "oldPostAppointmentInfo" to "post - 11:30 to 11:45",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send court rescheduled booking court email and return a notification ID`() {
+    val result = service.send(
+      RescheduledCourtBookingCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
+        court = "the court",
+        prison = "the prison",
+        courtHearingLink = "https://video.link.com",
+        oldAppointmentDate = tomorrow(),
+        oldPreAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        oldMainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        oldPostAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "rescheduledCourtBookingCourtEmail")
+
+    verify(client).sendEmail(
+      "rescheduledCourtBookingCourtEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
+        "courtHearingLink" to "https://video.link.com",
+        "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
+        "oldAppointmentDate" to tomorrow().toMediumFormatStyle(),
+        "oldPreAppointmentInfo" to "pre - 11:00 to 11:15",
+        "oldMainAppointmentInfo" to "main - 11:15 to 11:30",
+        "oldPostAppointmentInfo" to "post - 11:30 to 11:45",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison rescheduled booking from court with email and return a notification ID`() {
+    val result = service.send(
+      RescheduledCourtBookingPrisonCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
+        court = "the court",
+        courtEmailAddress = "court@emailaddress.com",
+        prison = "the prison",
+        courtHearingLink = "https://video.link.com",
+        oldAppointmentDate = tomorrow(),
+        oldPreAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        oldMainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        oldPostAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "rescheduledCourtBookingPrisonCourtEmail")
+
+    verify(client).sendEmail(
+      "rescheduledCourtBookingPrisonCourtEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "courtEmailAddress" to "court@emailaddress.com",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
+        "courtHearingLink" to "https://video.link.com",
+        "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
+        "oldAppointmentDate" to tomorrow().toMediumFormatStyle(),
+        "oldPreAppointmentInfo" to "pre - 11:00 to 11:15",
+        "oldMainAppointmentInfo" to "main - 11:15 to 11:30",
+        "oldPostAppointmentInfo" to "post - 11:30 to 11:45",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send prison rescheduled booking from court with no email and return a notification ID`() {
+    val result = service.send(
+      RescheduledCourtBookingPrisonNoCourtEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        preAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        mainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        postAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
+        court = "the court",
+        prison = "the prison",
+        courtHearingLink = "https://video.link.com",
+        oldAppointmentDate = tomorrow(),
+        oldPreAppointmentDetails = AppointmentDetails("pre", LocalTime.of(11, 0), LocalTime.of(11, 15), "pre-link"),
+        oldMainAppointmentDetails = AppointmentDetails("main", LocalTime.of(11, 15), LocalTime.of(11, 30), "main-link"),
+        oldPostAppointmentDetails = AppointmentDetails("post", LocalTime.of(11, 30), LocalTime.of(11, 45), "post-link"),
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "rescheduledCourtBookingPrisonNoCourtEmail")
+
+    verify(client).sendEmail(
+      "rescheduledCourtBookingPrisonNoCourtEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "offenderNo" to "123456",
+        "comments" to "comments for bob",
+        "court" to "the court",
+        "prison" to "the prison",
+        "preAppointmentInfo" to "pre - 11:00 to 11:15",
+        "mainAppointmentInfo" to "main - 11:15 to 11:30",
+        "postAppointmentInfo" to "post - 11:30 to 11:45",
+        "courtHearingLink" to "https://video.link.com",
+        "frontendDomain" to "http://localhost:3000",
+        "prePrisonVideoUrl" to "Pre-court hearing link (PVL): pre-link",
+        "postPrisonVideoUrl" to "Post-court hearing link (PVL): post-link",
+        "oldAppointmentDate" to tomorrow().toMediumFormatStyle(),
+        "oldPreAppointmentInfo" to "pre - 11:00 to 11:15",
+        "oldMainAppointmentInfo" to "main - 11:15 to 11:30",
+        "oldPostAppointmentInfo" to "post - 11:30 to 11:45",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send rescheduled probation user amend booking email and return a notification ID`() {
+    val result = service.send(
+      RescheduledProbationBookingUserEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        userName = "username",
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+        oldAppointmentDate = tomorrow(),
+        oldAppointmentInfo = "bobs appointment info",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "rescheduledProbationBookingUser")
+
+    verify(client).sendEmail(
+      "rescheduledProbationBookingUser",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "userName" to "username",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+        "oldAppointmentDate" to tomorrow().toMediumFormatStyle(),
+        "oldAppointmentInfo" to "bobs appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send rescheduled probation booking email and return a notification ID`() {
+    val result = service.send(
+      RescheduledProbationBookingProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+        oldAppointmentDate = tomorrow(),
+        oldAppointmentInfo = "bobs appointment info",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "rescheduledProbationBookingProbationEmail")
+
+    verify(client).sendEmail(
+      "rescheduledProbationBookingProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+        "prisonVideoUrl" to "prison-video-url",
+        "oldAppointmentDate" to tomorrow().toMediumFormatStyle(),
+        "oldAppointmentInfo" to "bobs appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send rescheduled probation booking prison probation email and return a notification ID`() {
+    val result = service.send(
+      RescheduledProbationBookingPrisonProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        probationEmailAddress = "probation.team@email.address",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+        oldAppointmentDate = tomorrow(),
+        oldAppointmentInfo = "bobs appointment info",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "rescheduledProbationBookingPrisonProbationEmail")
+
+    verify(client).sendEmail(
+      "rescheduledProbationBookingPrisonProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "probationEmailAddress" to "probation.team@email.address",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+        "prisonVideoUrl" to "prison-video-url",
+        "oldAppointmentDate" to tomorrow().toMediumFormatStyle(),
+        "oldAppointmentInfo" to "bobs appointment info",
+      ),
+      null,
+    )
+  }
+
+  @Test
+  fun `should send rescheduled probation booking prison no probation email and return a notification ID`() {
+    val result = service.send(
+      RescheduledProbationBookingPrisonNoProbationEmail(
+        address = "recipient@emailaddress.com",
+        prisonerFirstName = "builder",
+        prisonerLastName = "bob",
+        prisonerNumber = "123456",
+        appointmentDate = today,
+        comments = "comments for bob",
+        appointmentInfo = "bobs appointment info",
+        probationTeam = "the probation team",
+        prison = "the prison",
+        prisonVideoUrl = "prison-video-url",
+        probationOfficerName = "probation officer name",
+        probationOfficerEmailAddress = "probation.officer@email.address",
+        probationOfficerContactNumber = "123456",
+        oldAppointmentDate = tomorrow(),
+        oldAppointmentInfo = "bobs appointment info",
+      ),
+    )
+
+    result.getOrThrow() isEqualTo Pair(notificationId, "rescheduledProbationBookingPrisonNoProbationEmail")
+
+    verify(client).sendEmail(
+      "rescheduledProbationBookingPrisonNoProbationEmail",
+      "recipient@emailaddress.com",
+      mapOf(
+        "date" to today.toMediumFormatStyle(),
+        "prisonerName" to "builder bob",
+        "comments" to "comments for bob",
+        "offenderNo" to "123456",
+        "probationTeam" to "the probation team",
+        "prison" to "the prison",
+        "appointmentInfo" to "bobs appointment info",
+        "frontendDomain" to "http://localhost:3000",
+        "prisonVideoUrl" to "prison-video-url",
+        "probationOfficerName" to "probation officer name",
+        "probationOfficerEmailAddress" to "probation.officer@email.address",
+        "probationOfficerContactNumber" to "123456",
+        "prisonVideoUrl" to "prison-video-url",
+        "oldAppointmentDate" to tomorrow().toMediumFormatStyle(),
+        "oldAppointmentInfo" to "bobs appointment info",
+      ),
       null,
     )
   }

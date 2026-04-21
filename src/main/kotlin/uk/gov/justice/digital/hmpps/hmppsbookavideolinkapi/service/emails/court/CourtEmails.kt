@@ -685,3 +685,163 @@ class CourtHearingLinkReminderEmail(
     addPersonalisation("bookingId", bookingId)
   }
 }
+
+class RescheduledCourtBookingUserEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  appointmentDate: LocalDate,
+  userName: String,
+  court: String,
+  prison: String,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
+  comments: String?,
+  courtHearingLink: String?,
+  oldAppointmentDate: LocalDate,
+  oldPreAppointmentDetails: AppointmentDetails?,
+  oldMainAppointmentDetails: AppointmentDetails,
+  oldPostAppointmentDetails: AppointmentDetails?,
+) : CourtEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  appointmentDate = appointmentDate,
+  userName = userName,
+  court = court,
+  prison = prison,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
+  comments = comments,
+  courtHearingLink = courtHearingLink,
+) {
+  init {
+    addPersonalisation("oldAppointmentDate", oldAppointmentDate.toMediumFormatStyle())
+    addPersonalisation("oldPreAppointmentInfo", oldPreAppointmentDetails?.toString() ?: "Not required")
+    addPersonalisation("oldMainAppointmentInfo", oldMainAppointmentDetails.toString())
+    addPersonalisation("oldPostAppointmentInfo", oldPostAppointmentDetails?.toString() ?: "Not required")
+  }
+}
+
+class RescheduledCourtBookingCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  appointmentDate: LocalDate,
+  court: String,
+  prison: String,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
+  comments: String?,
+  courtHearingLink: String?,
+  oldAppointmentDate: LocalDate,
+  oldPreAppointmentDetails: AppointmentDetails?,
+  oldMainAppointmentDetails: AppointmentDetails,
+  oldPostAppointmentDetails: AppointmentDetails?,
+) : CourtEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  appointmentDate = appointmentDate,
+  court = court,
+  prison = prison,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
+  comments = comments,
+  courtHearingLink = courtHearingLink,
+) {
+  init {
+    addPersonalisation("oldAppointmentDate", oldAppointmentDate.toMediumFormatStyle())
+    addPersonalisation("oldPreAppointmentInfo", oldPreAppointmentDetails?.toString() ?: "Not required")
+    addPersonalisation("oldMainAppointmentInfo", oldMainAppointmentDetails.toString())
+    addPersonalisation("oldPostAppointmentInfo", oldPostAppointmentDetails?.toString() ?: "Not required")
+  }
+}
+
+class RescheduledCourtBookingPrisonCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  appointmentDate: LocalDate,
+  court: String,
+  courtEmailAddress: String,
+  prison: String,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
+  comments: String?,
+  courtHearingLink: String?,
+  oldAppointmentDate: LocalDate,
+  oldPreAppointmentDetails: AppointmentDetails?,
+  oldMainAppointmentDetails: AppointmentDetails,
+  oldPostAppointmentDetails: AppointmentDetails?,
+) : CourtEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  appointmentDate = appointmentDate,
+  court = court,
+  courtEmailAddress = courtEmailAddress,
+  prison = prison,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
+  comments = comments,
+  courtHearingLink = courtHearingLink,
+) {
+  init {
+    addPersonalisation("oldAppointmentDate", oldAppointmentDate.toMediumFormatStyle())
+    addPersonalisation("oldPreAppointmentInfo", oldPreAppointmentDetails?.toString() ?: "Not required")
+    addPersonalisation("oldMainAppointmentInfo", oldMainAppointmentDetails.toString())
+    addPersonalisation("oldPostAppointmentInfo", oldPostAppointmentDetails?.toString() ?: "Not required")
+  }
+}
+
+class RescheduledCourtBookingPrisonNoCourtEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  appointmentDate: LocalDate,
+  court: String,
+  prison: String,
+  preAppointmentDetails: AppointmentDetails?,
+  mainAppointmentDetails: AppointmentDetails,
+  postAppointmentDetails: AppointmentDetails?,
+  comments: String?,
+  courtHearingLink: String?,
+  oldAppointmentDate: LocalDate,
+  oldPreAppointmentDetails: AppointmentDetails?,
+  oldMainAppointmentDetails: AppointmentDetails,
+  oldPostAppointmentDetails: AppointmentDetails?,
+) : CourtEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  appointmentDate = appointmentDate,
+  court = court,
+  prison = prison,
+  preAppointmentDetails = preAppointmentDetails,
+  mainAppointmentDetails = mainAppointmentDetails,
+  postAppointmentDetails = postAppointmentDetails,
+  comments = comments,
+  courtHearingLink = courtHearingLink,
+) {
+  init {
+    addPersonalisation("oldAppointmentDate", oldAppointmentDate.toMediumFormatStyle())
+    addPersonalisation("oldPreAppointmentInfo", oldPreAppointmentDetails?.toString() ?: "Not required")
+    addPersonalisation("oldMainAppointmentInfo", oldMainAppointmentDetails.toString())
+    addPersonalisation("oldPostAppointmentInfo", oldPostAppointmentDetails?.toString() ?: "Not required")
+  }
+}

@@ -40,6 +40,7 @@ class BookingFacade(
   private val availabilityService: AvailabilityService,
   private val changeTrackingService: ChangeTrackingService,
   private val emailFacade: EmailFacade,
+  private val rescheduleEmailsFacade: RescheduleEmailsFacade,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -70,6 +71,8 @@ class BookingFacade(
       }
     }
 
+    val originalBooking = videoBookingServiceDelegate.getVideoBookingById(videoBookingId, amendedBy)
+
     // Need to check before amendment to see before picture.
     val changeType = changeTrackingService.determineChangeType(videoBookingId, bookingRequest, amendedBy)
 
@@ -79,6 +82,7 @@ class BookingFacade(
 
     // Only send emails on back of change check above.
     if (changeType != ChangeType.NONE) {
+      // TODO check if a reschedule is required here and use the appropriate facade.
       emailFacade.sendEmails(BookingAction.AMEND, booking, prisoner, amendedBy, changeType)
     } else {
       log.info("No changes detected for video booking $videoBookingId, not sending email")

@@ -23,6 +23,7 @@ class VideoBookingServiceDelegate(
   private val amendProbationBookingService: AmendProbationBookingService,
   private val cancelVideoBookingService: CancelVideoBookingService,
   private val requestBookingService: RequestBookingService,
+  private val videoLinkBookingsService: VideoLinkBookingsService,
   @Value("\${applications.max-appointment-start-date-from-today:1000}") private val maxStartDateOffsetDays: Long,
 ) {
   companion object {
@@ -75,4 +76,7 @@ class VideoBookingServiceDelegate(
       throw ValidationException("Date must be within the next $maxStartDateOffsetDays days")
     }
   }
+
+  @Transactional(readOnly = true)
+  fun getVideoBookingById(bookingId: Long, user: User) = videoLinkBookingsService.getVideoLinkBookingById(bookingId, user)
 }

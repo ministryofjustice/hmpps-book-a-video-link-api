@@ -68,6 +68,7 @@ class BookingFacadeTest {
   private val availabilityService: AvailabilityService = mock()
   private val changeTrackingService: ChangeTrackingService = mock()
   private val emailFacade: EmailFacade = mock()
+  private val rescheduleEmailsFacade: RescheduleEmailsFacade = mock()
   private val facade = BookingFacade(
     videoBookingServiceDelegate,
     outboundEventsService,
@@ -76,6 +77,7 @@ class BookingFacadeTest {
     availabilityService,
     changeTrackingService,
     emailFacade,
+    rescheduleEmailsFacade,
   )
   private val courtBooking = courtBooking(notesForStaff = "court notes for staff")
     .addAppointment(
