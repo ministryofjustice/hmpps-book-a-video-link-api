@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BooleanFeature
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
@@ -11,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeTrackingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
@@ -40,6 +43,7 @@ class BookingFacade(
   private val availabilityService: AvailabilityService,
   private val changeTrackingService: ChangeTrackingService,
   private val emailFacade: EmailFacade,
+  private val featureSwitches: FeatureSwitches,
   private val rescheduleEmailsFacade: RescheduleEmailsFacade,
 ) {
   companion object {
@@ -77,20 +81,39 @@ class BookingFacade(
     val changeType = changeTrackingService.determineChangeType(videoBookingId, bookingRequest, amendedBy)
 
     // Amend regardless of changes (this is in-case new fields ever are introduced but not covered by the change check).
-    val (booking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
+    val (amendedBooking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
 
     // Only send emails on back of change check above.
     if (changeType != ChangeType.NONE) {
-      // TODO check if a reschedule is required here and use the appropriate facade.
-      emailFacade.sendEmails(BookingAction.AMEND, booking, prisoner, amendedBy, changeType)
+      if (featureSwitches.isEnabled(BooleanFeature.FEATURE_SEND_RESCHEDULED_EMAILS) && isRescheduled(originalBooking, amendedBooking)) {
+        rescheduleEmailsFacade.sendEmails(originalBooking, amendedBooking, changeType, prisoner, amendedBy)
+      } else {
+        emailFacade.sendEmails(BookingAction.AMEND, amendedBooking, prisoner, amendedBy, changeType)
+      }
     } else {
       log.info("No changes detected for video booking $videoBookingId, not sending email")
     }
 
-    trackTelemetry(BookingAction.AMEND, booking, amendedBy)
+    trackTelemetry(BookingAction.AMEND, amendedBooking, amendedBy)
 
     return videoBookingId
+  }
+
+  private fun isRescheduled(originalBooking: VideoLinkBooking, amendedBooking: VideoBooking) = run {
+    originalBooking.startDateTime() != amendedBooking.startDateTime()
+  }
+
+  private fun VideoBooking.startDateTime() = run {
+    val appointment = this.mainHearing() ?: this.probationMeeting()!!
+
+    appointment.appointmentDate.atTime(appointment.startTime)
+  }
+
+  private fun VideoLinkBooking.startDateTime() = run {
+    val appointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_MAIN" } ?: prisonAppointments.single { it.appointmentType == "VLB_PROBATION" }
+
+    appointment.appointmentDate.atTime(appointment.startTime)
   }
 
   fun cancel(videoBookingId: Long, cancelledBy: PrisonUser) {

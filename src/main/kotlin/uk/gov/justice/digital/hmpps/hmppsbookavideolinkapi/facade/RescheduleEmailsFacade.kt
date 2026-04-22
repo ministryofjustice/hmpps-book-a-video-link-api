@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationEmailFactory
 
 @Component
-@Transactional(readOnly = true)
+@Transactional
 class RescheduleEmailsFacade(
   private val prisonRepository: PrisonRepository,
   private val contactsService: ContactsService,

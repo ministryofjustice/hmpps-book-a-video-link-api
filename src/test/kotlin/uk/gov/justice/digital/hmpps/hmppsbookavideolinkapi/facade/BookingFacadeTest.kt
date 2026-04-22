@@ -16,6 +16,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
@@ -68,6 +69,7 @@ class BookingFacadeTest {
   private val availabilityService: AvailabilityService = mock()
   private val changeTrackingService: ChangeTrackingService = mock()
   private val emailFacade: EmailFacade = mock()
+  private val featureSwitches: FeatureSwitches = mock()
   private val rescheduleEmailsFacade: RescheduleEmailsFacade = mock()
   private val facade = BookingFacade(
     videoBookingServiceDelegate,
@@ -77,6 +79,7 @@ class BookingFacadeTest {
     availabilityService,
     changeTrackingService,
     emailFacade,
+    featureSwitches,
     rescheduleEmailsFacade,
   )
   private val courtBooking = courtBooking(notesForStaff = "court notes for staff")
