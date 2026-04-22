@@ -1166,7 +1166,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should be PROBATION ANY for any probation schedule`() {
+    fun `should be COURT_ANY for any court schedule`() {
       val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
         prison = pentonvillePrison,
@@ -1187,7 +1187,7 @@ class LocationAttributesTest {
     }
 
     @Test
-    fun `should be PROBATION_TEAM for probation team schedule`() {
+    fun `should be COURT_ROOM for court team schedule`() {
       val roomAttributes = LocationAttribute.decoratedRoom(
         dpsLocationId = UUID.randomUUID(),
         prison = pentonvillePrison,
@@ -1291,6 +1291,48 @@ class LocationAttributesTest {
         notes = null,
         createdBy = COURT_USER,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION) }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be NONE for probation sentence schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_SENTENCE) }
+
+      roomAttributes.isAvailableFor(
+        court(),
+        today(),
+        LocalTime.of(12, 0),
+        LocalTime.of(12, 30),
+      ) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be NONE for probation court schedule`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SCHEDULE,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        createdBy = COURT_USER,
+      ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_COURT) }
 
       roomAttributes.isAvailableFor(
         court(),
