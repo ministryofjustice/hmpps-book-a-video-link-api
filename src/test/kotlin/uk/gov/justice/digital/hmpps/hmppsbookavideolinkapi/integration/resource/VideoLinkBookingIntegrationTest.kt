@@ -8,6 +8,7 @@ import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.context.jdbc.Sql
@@ -97,11 +98,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingPrisonNoCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.NewCourtBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentCreatedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEvent
@@ -117,6 +122,7 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
+@TestPropertySource(properties = ["feature.send.rescheduled.emails=true"])
 class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @MockitoSpyBean
@@ -968,7 +974,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should amend a Derby court booking and emails sent to Pentonville prison`() {
+  fun `should reschedule a Derby court booking and emails sent to Pentonville prison`() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
@@ -1025,9 +1031,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     // There should be 3 notifications, 1 user email and 2 prison emails
     val notifications = notificationRepository.findAll().also { it hasSize 3 }
 
-    notifications.isPresent("p@p.com", AmendedCourtBookingPrisonCourtEmail::class, persistedBooking)
-    notifications.isPresent("g@g.com", AmendedCourtBookingPrisonCourtEmail::class, persistedBooking)
-    notifications.isPresent(COURT_USER.email!!, AmendedCourtBookingUserEmail::class, persistedBooking)
+    notifications.isPresent("p@p.com", RescheduledCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent("g@g.com", RescheduledCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, RescheduledCourtBookingUserEmail::class, persistedBooking)
   }
 
   @Test
@@ -1053,8 +1059,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
       location = birminghamLocation,
-      startTime = LocalTime.of(13, 0),
-      endTime = LocalTime.of(14, 30),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
       notesForStaff = "amended integration test court booking staff note",
     )
 
@@ -1082,8 +1088,8 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
       appointmentDate isEqualTo tomorrow()
       prisonLocationId isEqualTo birminghamLocation.id
-      startTime isEqualTo LocalTime.of(13, 0)
-      endTime isEqualTo LocalTime.of(14, 30)
+      startTime isEqualTo LocalTime.of(12, 0)
+      endTime isEqualTo LocalTime.of(12, 30)
       notesForStaff isEqualTo "amended integration test court booking staff note"
     }
 
@@ -1375,7 +1381,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should amend a probation booking when prisoner has been transferred to a different prison`() {
+  fun `should amend a probation booking when prisoner has when meeting type is changed`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
@@ -1393,7 +1399,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val videoBookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
-    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
 
     val amendBookingRequest = amendProbationBookingRequest(
       probationMeetingType = ProbationMeetingType.OTHER,
@@ -1414,6 +1420,48 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     val notifications = notificationRepository.findAll().also { it hasSize 2 }
     notifications.isPresent("a@a.com", AmendedProbationBookingPrisonProbationEmail::class, persistedBooking)
     notifications.isPresent(PROBATION_USER.email!!, AmendedProbationBookingUserEmail::class, persistedBooking)
+  }
+
+  @Test
+  fun `should reschedule a probation booking when prisoner has when time changed`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = birminghamLocation,
+    )
+
+    val videoBookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+
+    val amendBookingRequest = amendProbationBookingRequest(
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 30),
+      endTime = LocalTime.of(10, 0),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = birminghamLocation,
+    )
+
+    notificationRepository.deleteAll()
+    webTestClient.amendBooking(videoBookingId, amendBookingRequest, PROBATION_USER)
+
+    val persistedBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
+
+    // There should be a user email
+    val notifications = notificationRepository.findAll().also { it hasSize 2 }
+    notifications.isPresent("a@a.com", RescheduledProbationBookingPrisonProbationEmail::class, persistedBooking)
+    notifications.isPresent(PROBATION_USER.email!!, RescheduledProbationBookingUserEmail::class, persistedBooking)
   }
 
   @Test

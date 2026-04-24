@@ -31,6 +31,7 @@ class FeatureSwitches(private val environment: Environment) {
 
 enum class BooleanFeature(val label: String) {
   FEATURE_PLACEHOLDER("feature.placeholder.example"),
+  FEATURE_SEND_RESCHEDULED_EMAILS("feature.send.rescheduled.emails"),
 }
 
 enum class StringFeature(val label: String) {

@@ -23,6 +23,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.ReleasedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.ReleasedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.ReleasedCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingPrisonNoCourtEmail
@@ -45,6 +49,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
@@ -97,6 +105,14 @@ class EmailTemplatesTest {
     CourtHearingLinkReminderEmail::class.java to "courtHearingLinkReminderEmail",
     ProbationOfficerDetailsReminderEmail::class.java to "probationOfficerDetailsReminderEmail",
     AdministrationNewVideoRoomEmail::class.java to "administrationNewVideoRoom",
+    RescheduledCourtBookingUserEmail::class.java to "rescheduledCourtBookingUser",
+    RescheduledCourtBookingCourtEmail::class.java to "rescheduledCourtBookingCourtEmail",
+    RescheduledCourtBookingPrisonCourtEmail::class.java to "rescheduledCourtBookingPrisonCourtEmail",
+    RescheduledCourtBookingPrisonNoCourtEmail::class.java to "rescheduledCourtBookingPrisonNoCourtEmail",
+    RescheduledProbationBookingUserEmail::class.java to "rescheduledProbationBookingUser",
+    RescheduledProbationBookingPrisonProbationEmail::class.java to "rescheduledProbationBookingPrisonProbationEmail",
+    RescheduledProbationBookingPrisonNoProbationEmail::class.java to "rescheduledProbationBookingPrisonNoProbationEmail",
+    RescheduledProbationBookingProbationEmail::class.java to "rescheduledProbationBookingProbationEmail",
   )
 
   private val templates = EmailTemplates(
@@ -145,6 +161,14 @@ class EmailTemplatesTest {
     courtHearingLinkReminderEmail = "courtHearingLinkReminderEmail",
     probationOfficerDetailsReminderEmail = "probationOfficerDetailsReminderEmail",
     administrationNewVideoRoom = "administrationNewVideoRoom",
+    rescheduledCourtBookingUser = "rescheduledCourtBookingUser",
+    rescheduledCourtBookingCourtEmail = "rescheduledCourtBookingCourtEmail",
+    rescheduledCourtBookingPrisonCourtEmail = "rescheduledCourtBookingPrisonCourtEmail",
+    rescheduledCourtBookingPrisonNoCourtEmail = "rescheduledCourtBookingPrisonNoCourtEmail",
+    rescheduledProbationBookingUser = "rescheduledProbationBookingUser",
+    rescheduledProbationBookingPrisonProbationEmail = "rescheduledProbationBookingPrisonProbationEmail",
+    rescheduledProbationBookingPrisonNoProbationEmail = "rescheduledProbationBookingPrisonNoProbationEmail",
+    rescheduledProbationBookingProbationEmail = "rescheduledProbationBookingProbationEmail",
   )
 
   @Test
@@ -201,9 +225,17 @@ class EmailTemplatesTest {
       "13",
       "14",
       "15",
-      courtHearingLinkReminderEmail = "16",
-      probationOfficerDetailsReminderEmail = "17",
-      administrationNewVideoRoom = "18",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20",
+      "21",
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
     )
 
     val error = assertThrows<IllegalArgumentException> {
@@ -250,9 +282,17 @@ class EmailTemplatesTest {
         "13",
         "duplicate",
         "duplicate",
-        courtHearingLinkReminderEmail = "14",
-        probationOfficerDetailsReminderEmail = "15",
-        administrationNewVideoRoom = "16",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
       )
     }
 

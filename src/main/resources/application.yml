@@ -152,6 +152,11 @@ notify:
         prison-no-court-email: "da59e795-aef6-4cb9-be68-54435df8c8b1"
       hearing-link-reminder:
         court: "2a067470-bc6b-4169-8c94-4733ed28a203"
+      rescheduled-booking:
+        user: "84454dd9-6816-4d65-9f0a-ba2d711688ac"
+        court: "387f2593-3041-4cfd-b378-7f6fcee63ccb"
+        prison-court-email: "ac5a9fbe-6fdd-470e-b74b-b92f7ae9f5e3"
+        prison-no-court-email: "7a1b743b-29ea-422c-8896-b8ef14b43935"
     probation:
       booking-request:
         user: "4fcd9f4a-00d3-43e7-ac84-7eb3a19b2773"
@@ -182,6 +187,11 @@ notify:
         prison-no-probation-email: "816437b5-4d4b-4245-87db-91f3297c78a9"
       probation-officer-details-reminder:
         probation: "459a1bff-466f-42ed-bf6d-ad7206342fbb"
+      rescheduled-booking:
+        user: "cd7a1305-6eda-40e0-a816-32e733fd163c"
+        probation: "0d7ba32b-1a4e-4a07-a146-cf4cc85de153"
+        prison-probation-email: "462767ff-de71-474d-8559-27f2d579663b"
+        prison-no-probation-email: "126949ed-cc62-4ca8-8bc3-95ef13c015ba"
 
 springdoc:
   swagger-ui:
