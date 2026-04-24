@@ -732,3 +732,155 @@ class ProbationOfficerDetailsReminderEmail(
     addPersonalisation("bookingId", bookingId)
   }
 }
+
+class RescheduledProbationBookingUserEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  userName: String,
+  appointmentDate: LocalDate,
+  probationTeam: String,
+  prison: String,
+  appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+  comments: String?,
+  oldAppointmentDate: LocalDate,
+  oldAppointmentInfo: String,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+  comments = comments,
+  userName = userName,
+) {
+  init {
+    addPersonalisation("oldAppointmentDate", oldAppointmentDate.toMediumFormatStyle())
+    addPersonalisation("oldAppointmentInfo", oldAppointmentInfo)
+  }
+}
+
+class RescheduledProbationBookingProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+  comments: String?,
+  oldAppointmentDate: LocalDate,
+  oldAppointmentInfo: String,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+  comments = comments,
+) {
+  init {
+    addPersonalisation("oldAppointmentDate", oldAppointmentDate.toMediumFormatStyle())
+    addPersonalisation("oldAppointmentInfo", oldAppointmentInfo)
+  }
+}
+
+class RescheduledProbationBookingPrisonProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  probationEmailAddress: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+  comments: String?,
+  oldAppointmentDate: LocalDate,
+  oldAppointmentInfo: String,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  comments = comments,
+  probationEmailAddress = probationEmailAddress,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+) {
+  init {
+    addPersonalisation("oldAppointmentDate", oldAppointmentDate.toMediumFormatStyle())
+    addPersonalisation("oldAppointmentInfo", oldAppointmentInfo)
+  }
+}
+
+class RescheduledProbationBookingPrisonNoProbationEmail(
+  address: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  prison: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  prisonVideoUrl: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+  comments: String?,
+  oldAppointmentDate: LocalDate,
+  oldAppointmentInfo: String,
+) : ProbationEmail(
+  address = address,
+  prisonerNumber = prisonerNumber,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  appointmentInfo = appointmentInfo,
+  appointmentDate = appointmentDate,
+  probationTeam = probationTeam,
+  prison = prison,
+  prisonVideoUrl = prisonVideoUrl ?: "Not yet known",
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+  comments = comments,
+) {
+  init {
+    addPersonalisation("oldAppointmentDate", oldAppointmentDate.toMediumFormatStyle())
+    addPersonalisation("oldAppointmentInfo", oldAppointmentInfo)
+  }
+}

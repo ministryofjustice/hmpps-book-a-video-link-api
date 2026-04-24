@@ -26,6 +26,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.ReleasedCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.ReleasedCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.ReleasedCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingPrisonCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingPrisonNoCourtEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingPrisonCourtEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.TransferredCourtBookingPrisonNoCourtEmail
@@ -48,6 +52,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingPrisonNoProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
@@ -85,6 +93,10 @@ class EmailConfiguration(
   @Value("\${notify.templates.court.release-booking.court:}") private val releaseCourtBookingCourt: String,
   @Value("\${notify.templates.court.release-booking.prison-court-email:}") private val releaseCourtBookingPrisonCourtEmail: String,
   @Value("\${notify.templates.court.release-booking.prison-no-court-email:}") private val releaseCourtBookingPrisonNoCourtEmail: String,
+  @Value("\${notify.templates.court.rescheduled-booking.user:}") private val rescheduledCourtBookingUser: String,
+  @Value("\${notify.templates.court.rescheduled-booking.court:}") private val rescheduledCourtBookingCourtEmail: String,
+  @Value("\${notify.templates.court.rescheduled-booking.prison-court-email:}") private val rescheduledCourtBookingPrisonCourtEmail: String,
+  @Value("\${notify.templates.court.rescheduled-booking.prison-no-court-email:}") private val rescheduledCourtBookingPrisonNoCourtEmail: String,
   @Value("\${notify.templates.probation.booking-request.user:}") private val probationBookingRequestUser: String,
   @Value("\${notify.templates.probation.booking-request.prison-probation-team-email:}") private val probationBookingRequestPrisonProbationTeamEmail: String,
   @Value("\${notify.templates.probation.booking-request.prison-no-probation-team-email:}") private val probationBookingRequestPrisonNoProbationTeamEmail: String,
@@ -108,6 +120,10 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation.transfer-booking.prison-no-probation-email:}") private val transferProbationBookingPrisonNoProbationEmail: String,
   @Value("\${notify.templates.court.hearing-link-reminder.court:}") private val courtHearingLinkReminderEmail: String,
   @Value("\${notify.templates.probation.probation-officer-details-reminder.probation:}") private val probationOfficerDetailsReminderEmail: String,
+  @Value("\${notify.templates.probation.rescheduled-booking.user:}") private val rescheduledProbationBookingUser: String,
+  @Value("\${notify.templates.probation.rescheduled-booking.prison-probation-email:}") private val rescheduledProbationBookingPrisonProbationEmail: String,
+  @Value("\${notify.templates.probation.rescheduled-booking.prison-no-probation-email:}") private val rescheduledProbationBookingPrisonNoProbationEmail: String,
+  @Value("\${notify.templates.probation.rescheduled-booking.probation:}") private val rescheduledProbationBookingProbationEmail: String,
   @Value("\${notify.templates.administration.new-video-room:}") private val administrationNewVideoRoom: String,
 ) {
 
@@ -146,6 +162,10 @@ class EmailConfiguration(
     releaseCourtBookingCourt = releaseCourtBookingCourt,
     releaseCourtBookingPrisonCourtEmail = releaseCourtBookingPrisonCourtEmail,
     releaseCourtBookingPrisonNoCourtEmail = releaseCourtBookingPrisonNoCourtEmail,
+    rescheduledCourtBookingUser = rescheduledCourtBookingUser,
+    rescheduledCourtBookingCourtEmail = rescheduledCourtBookingCourtEmail,
+    rescheduledCourtBookingPrisonCourtEmail = rescheduledCourtBookingPrisonCourtEmail,
+    rescheduledCourtBookingPrisonNoCourtEmail = rescheduledCourtBookingPrisonNoCourtEmail,
     newProbationBookingUser = newProbationBookingUser,
     newProbationBookingProbation = newProbationBookingProbation,
     newProbationBookingPrisonProbationEmail = newProbationBookingPrisonProbationEmail,
@@ -168,6 +188,10 @@ class EmailConfiguration(
     courtHearingLinkReminderEmail = courtHearingLinkReminderEmail,
     probationOfficerDetailsReminderEmail = probationOfficerDetailsReminderEmail,
     administrationNewVideoRoom = administrationNewVideoRoom,
+    rescheduledProbationBookingUser = rescheduledProbationBookingUser,
+    rescheduledProbationBookingPrisonProbationEmail = rescheduledProbationBookingPrisonProbationEmail,
+    rescheduledProbationBookingPrisonNoProbationEmail = rescheduledProbationBookingPrisonNoProbationEmail,
+    rescheduledProbationBookingProbationEmail = rescheduledProbationBookingProbationEmail,
   )
 }
 
@@ -231,6 +255,10 @@ data class EmailTemplates(
   val releaseCourtBookingCourt: String,
   val releaseCourtBookingPrisonCourtEmail: String,
   val releaseCourtBookingPrisonNoCourtEmail: String,
+  val rescheduledCourtBookingUser: String,
+  val rescheduledCourtBookingCourtEmail: String,
+  val rescheduledCourtBookingPrisonCourtEmail: String,
+  val rescheduledCourtBookingPrisonNoCourtEmail: String,
   val newProbationBookingUser: String,
   val newProbationBookingProbation: String,
   val newProbationBookingPrisonProbationEmail: String,
@@ -252,6 +280,10 @@ data class EmailTemplates(
   val courtHearingLinkReminderEmail: String,
   val probationOfficerDetailsReminderEmail: String,
   val administrationNewVideoRoom: String,
+  val rescheduledProbationBookingUser: String,
+  val rescheduledProbationBookingPrisonProbationEmail: String,
+  val rescheduledProbationBookingPrisonNoProbationEmail: String,
+  val rescheduledProbationBookingProbationEmail: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
@@ -300,6 +332,14 @@ data class EmailTemplates(
     CourtHearingLinkReminderEmail::class.java to courtHearingLinkReminderEmail,
     ProbationOfficerDetailsReminderEmail::class.java to probationOfficerDetailsReminderEmail,
     AdministrationNewVideoRoomEmail::class.java to administrationNewVideoRoom,
+    RescheduledCourtBookingUserEmail::class.java to rescheduledCourtBookingUser,
+    RescheduledCourtBookingCourtEmail::class.java to rescheduledCourtBookingCourtEmail,
+    RescheduledCourtBookingPrisonCourtEmail::class.java to rescheduledCourtBookingPrisonCourtEmail,
+    RescheduledCourtBookingPrisonNoCourtEmail::class.java to rescheduledCourtBookingPrisonNoCourtEmail,
+    RescheduledProbationBookingUserEmail::class.java to rescheduledProbationBookingUser,
+    RescheduledProbationBookingPrisonProbationEmail::class.java to rescheduledProbationBookingPrisonProbationEmail,
+    RescheduledProbationBookingPrisonNoProbationEmail::class.java to rescheduledProbationBookingPrisonNoProbationEmail,
+    RescheduledProbationBookingProbationEmail::class.java to rescheduledProbationBookingProbationEmail,
   )
 
   init {

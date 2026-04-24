@@ -24,6 +24,7 @@ class VideoBookingServiceDelegateTest {
   private val amendProbationBookingService: AmendProbationBookingService = mock()
   private val cancelVideoBookingService: CancelVideoBookingService = mock()
   private val requestBookingService: RequestBookingService = mock()
+  private val videoLinkBookingsService: VideoLinkBookingsService = mock()
   private val maxDaysIntoFuture = 100L
 
   private val delegate =
@@ -34,6 +35,7 @@ class VideoBookingServiceDelegateTest {
       amendProbationBookingService,
       cancelVideoBookingService,
       requestBookingService,
+      videoLinkBookingsService,
       maxDaysIntoFuture,
     )
 
@@ -51,7 +53,8 @@ class VideoBookingServiceDelegateTest {
     delegate.create(probationBookingRequest, PROBATION_USER)
     verify(createProbationBookingService).create(probationBookingRequest, PROBATION_USER)
 
-    verifyNoMoreInteractions(createCourtBookingService)
+    verifyNoMoreInteractions(createCourtBookingService, createProbationBookingService)
+    verifyNoInteractions(amendProbationBookingService, cancelVideoBookingService, requestBookingService, videoLinkBookingsService)
   }
 
   @Test
@@ -62,7 +65,7 @@ class VideoBookingServiceDelegateTest {
     delegate.amend(2, amendProbationBookingRequest, PROBATION_USER)
     verify(amendProbationBookingService).amend(2, amendProbationBookingRequest, PROBATION_USER)
 
-    verifyNoInteractions(createCourtBookingService, createProbationBookingService)
+    verifyNoInteractions(createCourtBookingService, createProbationBookingService, cancelVideoBookingService, requestBookingService, videoLinkBookingsService)
   }
 
   @Test
@@ -70,7 +73,7 @@ class VideoBookingServiceDelegateTest {
     delegate.cancel(1, COURT_USER)
     verify(cancelVideoBookingService).cancel(1, COURT_USER)
 
-    verifyNoInteractions(createCourtBookingService, createProbationBookingService, amendCourtBookingService)
+    verifyNoInteractions(createCourtBookingService, createProbationBookingService, amendCourtBookingService, requestBookingService, videoLinkBookingsService)
   }
 
   @Test
@@ -79,7 +82,16 @@ class VideoBookingServiceDelegateTest {
 
     verify(requestBookingService).request(requestVideoBookingRequest, COURT_USER)
 
-    verifyNoInteractions(createCourtBookingService, createProbationBookingService, amendCourtBookingService, cancelVideoBookingService)
+    verifyNoInteractions(createCourtBookingService, createProbationBookingService, amendCourtBookingService, cancelVideoBookingService, videoLinkBookingsService)
+  }
+
+  @Test
+  fun `should delegate to video link booking service service`() {
+    delegate.getVideoBookingById(1, COURT_USER)
+
+    verify(videoLinkBookingsService).getVideoLinkBookingById(1, COURT_USER)
+
+    verifyNoInteractions(createCourtBookingService, createProbationBookingService, amendCourtBookingService, cancelVideoBookingService, requestBookingService)
   }
 
   @Test

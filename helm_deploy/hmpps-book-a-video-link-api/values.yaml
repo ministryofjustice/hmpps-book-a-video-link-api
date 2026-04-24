@@ -42,6 +42,7 @@ generic-service:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     DB_SSL_MODE: "verify-full"
     HMPPS_SQS_USE_WEB_TOKEN: true
+    FEATURE_SEND_RESCHEDULED_EMAILS: false
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:
