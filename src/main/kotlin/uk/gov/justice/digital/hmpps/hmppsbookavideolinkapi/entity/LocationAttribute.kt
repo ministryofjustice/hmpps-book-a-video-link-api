@@ -191,7 +191,7 @@ class LocationAttribute private constructor(
     }
   }
 
-  private fun checkCourt(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus {
+  private fun checkCourt(court: Court, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     return when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.COURT -> when {
@@ -201,7 +201,7 @@ class LocationAttribute private constructor(
       }
 
       LocationUsage.SCHEDULE -> getScheduleAvailability(court, onDate, startTime, endTime)
-      else -> return AvailabilityStatus.NONE
+      else -> AvailabilityStatus.NONE
     }
   }
 
@@ -213,6 +213,8 @@ class LocationAttribute private constructor(
     val freeForCourtRoom = CourtRoomSpecification(court, onDate.dayOfWeek, startTime, endTime)
     val freeForAnyCourtRoom = CourtAnySpecification(onDate.dayOfWeek, startTime, endTime)
     val overlapsWithProbationSlot = OverlappingSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)
+    val overlapsWithProbationSentenceSlot = OverlappingSpecification(LocationScheduleUsage.PROBATION_SENTENCE, onDate.dayOfWeek, startTime, endTime)
+    val overlapsWithProbationCourtSlot = OverlappingSpecification(LocationScheduleUsage.PROBATION_COURT, onDate.dayOfWeek, startTime, endTime)
     val overlapsWithOtherCourtRoomSlot = OverlappingRoomSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)
 
     // The order in which the checks are carried out is important and must be maintained.
@@ -223,6 +225,12 @@ class LocationAttribute private constructor(
 
       // If none of the above match, we need to make sure the requested court slot date and times to not overlap any probation schedules
       fallsWithin(overlapsWithProbationSlot) -> AvailabilityStatus.NONE
+
+      // If none of the above match, we need to make sure the requested court slot date and times to not overlap any probation sentence schedules
+      fallsWithin(overlapsWithProbationSentenceSlot) -> AvailabilityStatus.NONE
+
+      // If none of the above match, we need to make sure the requested court slot date and times to not overlap any probation court schedules
+      fallsWithin(overlapsWithProbationCourtSlot) -> AvailabilityStatus.NONE
 
       // If none of the above match, we need to make sure the requested court slot date and times to not overlap any other court room schedules
       fallsWithin(overlapsWithOtherCourtRoomSlot) -> AvailabilityStatus.NONE

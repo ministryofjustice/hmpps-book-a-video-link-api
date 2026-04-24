@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -41,7 +41,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationP
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.EmailFacade
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeTrackingService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoBookingServiceDelegate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
@@ -57,7 +59,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime.now
 import java.time.LocalTime
 
-class ReplacementBookingFacadeTest {
+class BookingFacadeTest {
   private val videoBookingServiceDelegate: VideoBookingServiceDelegate = mock()
   private val outboundEventsService: OutboundEventsService = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
@@ -66,7 +68,7 @@ class ReplacementBookingFacadeTest {
   private val availabilityService: AvailabilityService = mock()
   private val changeTrackingService: ChangeTrackingService = mock()
   private val emailFacade: EmailFacade = mock()
-  private val facade = ReplacementBookingFacade(
+  private val facade = BookingFacade(
     videoBookingServiceDelegate,
     outboundEventsService,
     prisonerSearchClient,

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -11,7 +11,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.EmailFacade
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeTrackingService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoBookingServiceDelegate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
@@ -21,14 +27,12 @@ import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType as RequestBookingType
 
 /**
- * This facade replaces the original booking facade.
-
  * This facade exists to ensure all booking-related transactions are fully committed before sending any events, emails, and telemetry.
  *
  * Calls to the facade should not be wrapped in transactions, the facade should be the starting point of any transaction.
  */
 @Component
-class ReplacementBookingFacade(
+class BookingFacade(
   private val videoBookingServiceDelegate: VideoBookingServiceDelegate,
   private val outboundEventsService: OutboundEventsService,
   private val prisonerSearchClient: PrisonerSearchClient,
@@ -36,12 +40,12 @@ class ReplacementBookingFacade(
   private val availabilityService: AvailabilityService,
   private val changeTrackingService: ChangeTrackingService,
   private val emailFacade: EmailFacade,
-) : BookingFacade {
+) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  override fun create(bookingRequest: CreateVideoBookingRequest, createdBy: User): Long {
+  fun create(bookingRequest: CreateVideoBookingRequest, createdBy: User): Long {
     require(createdBy is PrisonUser || availabilityService.isAvailable(bookingRequest)) {
       if (bookingRequest.bookingType == RequestBookingType.COURT) {
         "Unable to create court booking, booking overlaps with an existing appointment."
@@ -57,7 +61,7 @@ class ReplacementBookingFacade(
     return booking.videoBookingId
   }
 
-  override fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, amendedBy: User): Long {
+  fun amend(videoBookingId: Long, bookingRequest: AmendVideoBookingRequest, amendedBy: User): Long {
     require(amendedBy is PrisonUser || availabilityService.isAvailable(videoBookingId, bookingRequest)) {
       if (bookingRequest.bookingType == RequestBookingType.COURT) {
         "Unable to amend court booking, booking overlaps with an existing appointment."
@@ -85,15 +89,15 @@ class ReplacementBookingFacade(
     return videoBookingId
   }
 
-  override fun cancel(videoBookingId: Long, cancelledBy: PrisonUser) {
+  fun cancel(videoBookingId: Long, cancelledBy: PrisonUser) {
     cancelBooking(videoBookingId, cancelledBy)
   }
 
-  override fun cancel(videoBookingId: Long, cancelledBy: ExternalUser) {
+  fun cancel(videoBookingId: Long, cancelledBy: ExternalUser) {
     cancelBooking(videoBookingId, cancelledBy)
   }
 
-  override fun request(booking: RequestVideoBookingRequest, user: ExternalUser) {
+  fun request(booking: RequestVideoBookingRequest, user: ExternalUser) {
     videoBookingServiceDelegate.request(booking, user)
   }
 
@@ -105,7 +109,7 @@ class ReplacementBookingFacade(
     trackTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
-  override fun cancel(videoBookingId: Long, cancelledBy: ServiceUser) {
+  fun cancel(videoBookingId: Long, cancelledBy: ServiceUser) {
     // No events should be raised on the back of calling this function, this is by design.
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, cancelledBy)
     log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
@@ -113,7 +117,7 @@ class ReplacementBookingFacade(
     trackTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
-  override fun courtHearingLinkReminder(videoBooking: VideoBooking, user: ServiceUser) {
+  fun courtHearingLinkReminder(videoBooking: VideoBooking, user: ServiceUser) {
     require(videoBooking.isBookingType(COURT) && videoBooking.isStatus(StatusCode.ACTIVE)) { "Video booking with id ${videoBooking.videoBookingId} must be an active court booking" }
     require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
@@ -121,14 +125,14 @@ class ReplacementBookingFacade(
     emailFacade.sendEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
-  override fun sendProbationOfficerDetailsReminder(videoBooking: VideoBooking, user: ServiceUser) {
+  fun sendProbationOfficerDetailsReminder(videoBooking: VideoBooking, user: ServiceUser) {
     require(videoBooking.isBookingType(PROBATION) && videoBooking.isStatus(StatusCode.ACTIVE)) { "Video booking with id ${videoBooking.videoBookingId} must be an active probation booking" }
     require(videoBooking.probationTeam!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled probation team" }
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
     emailFacade.sendEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
-  override fun prisonerTransferred(videoBookingId: Long, user: ServiceUser) {
+  fun prisonerTransferred(videoBookingId: Long, user: ServiceUser) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
@@ -136,7 +140,7 @@ class ReplacementBookingFacade(
     trackTelemetry(BookingAction.TRANSFERRED, booking, user)
   }
 
-  override fun prisonerReleased(videoBookingId: Long, user: ServiceUser) {
+  fun prisonerReleased(videoBookingId: Long, user: ServiceUser) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
@@ -151,4 +155,14 @@ class ReplacementBookingFacade(
   private fun getPrisoner(prisonerNumber: String) = prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.prisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
 
   private fun getReleasedOrTransferredPrisoner(prisonerNumber: String) = prisonerSearchClient.getPrisoner(prisonerNumber)!!.let { Prisoner(it.prisonerNumber, it.lastPrisonId!!, it.firstName, it.lastName, it.dateOfBirth) }
+}
+
+enum class BookingAction {
+  CREATE,
+  AMEND,
+  CANCEL,
+  COURT_HEARING_LINK_REMINDER,
+  PROBATION_OFFICER_DETAILS_REMINDER,
+  RELEASED,
+  TRANSFERRED,
 }
