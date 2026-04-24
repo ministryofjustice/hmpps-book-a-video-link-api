@@ -125,7 +125,11 @@ class TimeSlotAvailabilityService(
       }
     }
 
-    return AvailabilityStatus.SHARED
+    // Change request: BAVL-1269
+    // Formerly, any room with no decorations was offered to all bookers by being set to AvailabilityStatus.SHARED.
+    // Now, any rooms without decoration will not be offered to users to book into.
+
+    return AvailabilityStatus.NONE
   }
 }
 
