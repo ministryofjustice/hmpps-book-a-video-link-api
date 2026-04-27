@@ -106,8 +106,7 @@ class RoomAdministrationController(
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun createDecoratedRoom(
-    @Parameter(description = "The identifier of the DPS location for the scheduled row to be created.")
-    @PathVariable(name = "dpsLocationId", required = true)
+    @PathVariable(required = true) @Parameter(description = "The identifier of the DPS location for the scheduled row to be created.")
     dpsLocationId: UUID,
     @Valid
     @RequestBody
@@ -148,8 +147,7 @@ class RoomAdministrationController(
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun amendDecoratedRoom(
-    @Parameter(description = "The identifier of the DPS location for the scheduled row to be amended.")
-    @PathVariable(name = "dpsLocationId", required = true)
+    @PathVariable(required = true) @Parameter(description = "The identifier of the DPS location for the scheduled row to be amended.")
     dpsLocationId: UUID,
     @Valid
     @RequestBody
@@ -180,7 +178,7 @@ class RoomAdministrationController(
     ],
   )
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
-  fun deleteDecoratedLocation(@PathVariable("dpsLocationId") dpsLocationId: UUID) {
+  fun deleteDecoratedLocation(@PathVariable dpsLocationId: UUID) {
     decoratedLocationsService.deleteDecoratedLocation(dpsLocationId)
   }
 
@@ -210,8 +208,7 @@ class RoomAdministrationController(
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun createSchedule(
-    @Parameter(description = "The identifier of the DPS location for the scheduled row to be created.")
-    @PathVariable(name = "dpsLocationId", required = true)
+    @PathVariable(required = true) @Parameter(description = "The identifier of the DPS location for the scheduled row to be created.")
     dpsLocationId: UUID,
     @Valid
     @RequestBody
@@ -245,8 +242,8 @@ class RoomAdministrationController(
   )
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun deleteSchedule(
-    @PathVariable("dpsLocationId") dpsLocationId: UUID,
-    @PathVariable("scheduleId") scheduleId: Long,
+    @PathVariable dpsLocationId: UUID,
+    @PathVariable scheduleId: Long,
     httpRequest: HttpServletRequest,
   ) {
     decoratedLocationsService.deleteSchedule(dpsLocationId, scheduleId, httpRequest.getBvlsRequestContext().user as ExternalUser)
@@ -284,11 +281,9 @@ class RoomAdministrationController(
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun amendDecoratedRoom(
-    @Parameter(description = "The identifier of the DPS location for the room schedule to be amended.")
-    @PathVariable(name = "dpsLocationId", required = true)
+    @PathVariable(required = true) @Parameter(description = "The identifier of the DPS location for the room schedule to be amended.")
     dpsLocationId: UUID,
-    @Parameter(description = "The identifier of the room schedule to be amended.")
-    @PathVariable(name = "scheduleId", required = true)
+    @PathVariable(required = true) @Parameter(description = "The identifier of the room schedule to be amended.")
     scheduleId: Long,
     @Valid
     @RequestBody
