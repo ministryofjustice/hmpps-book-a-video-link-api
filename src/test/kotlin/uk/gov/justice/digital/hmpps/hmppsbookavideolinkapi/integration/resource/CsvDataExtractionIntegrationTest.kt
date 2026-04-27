@@ -26,6 +26,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
         LocationKeyValue("ROOM-1", UUID.fromString("e58ed763-928c-4155-bee9-aaaaaaaaaaaa")),
         LocationKeyValue("ROOM-2", UUID.fromString("e58ed763-928c-4155-bee9-bbbbbbbbbbbb")),
         LocationKeyValue("ROOM-3", UUID.fromString("e58ed763-928c-4155-bee9-cccccccccccc")),
+        LocationKeyValue("ROOM-4", UUID.fromString("e58ed763-928c-4155-bee9-dddddddddddd")),
       ),
       true,
       "BMI",
@@ -89,6 +90,7 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
     roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,Schedule,,\"Monday-Thursday 09:00-17:00 Court \"\n"
     roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,Schedule,,\"Friday-Friday 09:00-17:00 Probation \"\n"
     roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,Schedule,,\"Saturday-Sunday 09:00-17:00 Blocked \"\n"
+    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-4,\"BMI ROOM-4\",,Default,\"Out of use\",Shared,,No"
   }
 
   private fun WebTestClient.badRequestWhenRequestTooManyDaysOfData() = this
