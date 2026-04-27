@@ -125,7 +125,8 @@ class TimeSlotAvailabilityService(
       }
     }
 
-    return AvailabilityStatus.SHARED
+    // Any rooms without decoration will not be offered as available for users to book into
+    return AvailabilityStatus.NONE
   }
 }
 

@@ -235,6 +235,16 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
     activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
     locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
 
+    // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.ACTIVE,
+      ),
+      risleyLocation.toModel(),
+      PROBATION_USER,
+    )
+
     val response = webTestClient.findByTimeSlot(
       TimeSlotAvailabilityRequest(
         prisonCode = RISLEY,
@@ -289,6 +299,28 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
   fun `should find two available room by date and time when nothing booked tomorrow`() {
     activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
     locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
+
+    // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.ACTIVE,
+      ),
+      risleyLocation.toModel(),
+      COURT_USER,
+    )
+
+    // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.ACTIVE,
+      ),
+      risleyLocation2.toModel(),
+      COURT_USER,
+    )
 
     val response = webTestClient.findByDateAndTime(
       DateTimeAvailabilityRequest(
@@ -312,16 +344,29 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
   fun `should find one available room by date and time when one room is blocked and nothing booked tomorrow`() {
     activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
     locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
 
+    // Blocked room
     webTestClient.createDecoratedRoom(
       CreateDecoratedRoomRequest(
-        locationUsage = ModelLocationUsage.PROBATION,
+        locationUsage = ModelLocationUsage.SHARED,
         locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
         blockedFrom = today(),
         blockedTo = tomorrow(),
       ),
       risleyLocation.toModel(),
-      PROBATION_USER,
+      COURT_USER,
+    )
+
+    // Free room. A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.ACTIVE,
+      ),
+      risleyLocation2.toModel(),
+      COURT_USER,
     )
 
     val response = webTestClient.findByDateAndTime(

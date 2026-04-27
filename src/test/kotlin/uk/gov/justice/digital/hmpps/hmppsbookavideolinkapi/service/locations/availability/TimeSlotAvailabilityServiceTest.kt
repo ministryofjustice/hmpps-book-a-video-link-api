@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
@@ -16,7 +17,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
@@ -40,10 +40,9 @@ class TimeSlotAvailabilityServiceTest {
   private val prisonRegime: PrisonRegime = mock()
   private val locationAttributesService: LocationAttributesAvailableService = mock()
 
-  @DisplayName("Testing for available undecorated locations today")
+  @DisplayName("Testing undecorated locations")
   @Nested
-  inner class RequestsForUndecoratedToday {
-
+  inner class RequestsForUndecoratedRooms {
     private val location1 = risleyLocation.toModel()
 
     @BeforeEach
@@ -53,108 +52,77 @@ class TimeSlotAvailabilityServiceTest {
     }
 
     @Test
-    fun `should return 7 available morning times for location 1 with time of request 10am`() {
+    fun `should return 0 available times for an undecorated room`() {
       whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
+      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, tomorrow(), listOf(location1)))) doReturn BookedLocations(emptyList())
 
-      val response = service { LocalDateTime.of(today(), LocalTime.of(10, 0)) }.findAvailable(
+      val response = service { LocalDateTime.of(tomorrow(), LocalTime.of(10, 0)) }.findAvailable(
         TimeSlotAvailabilityRequest(
           prisonCode = RISLEY,
           bookingType = BookingType.PROBATION,
           probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = today(),
+          date = tomorrow(),
           bookingDuration = 60,
           timeSlots = listOf(TimeSlot.AM),
         ),
       )
 
-      response.locations hasSize 7
+      response.locations hasSize 0
+    }
+  }
+
+  @DisplayName("Testing shared locations tomorrow")
+  @Nested
+  inner class RequestsForSharedRoomsTomorrow {
+
+    private val location1 = wandsworthLocation.toModel().copy(
+      description = "Decorated shared room",
+      extraAttributes = RoomAttributes(
+        attributeId = 1,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.SHARED,
+        allowedParties = emptyList(),
+        prisonVideoUrl = null,
+        notes = null,
+      ),
+    )
+
+    @BeforeEach
+    fun before() {
+      whenever(prisonRegime.startOfDay(WANDSWORTH)) doReturn LocalTime.of(9, 0)
+      whenever(prisonRegime.endOfDay(WANDSWORTH)) doReturn LocalTime.of(17, 0)
+    }
+
+    @Test
+    fun `should return 5 available morning times for location 1 with one blocked out booking`() {
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(location1)
+      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(emptyList())
+      whenever(locationAttributesService.isLocationAvailableFor(any())) doReturn AvailabilityStatus.SHARED
+
+      val response = service().findAvailable(
+        TimeSlotAvailabilityRequest(
+          prisonCode = WANDSWORTH,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = tomorrow(),
+          bookingDuration = 60,
+          timeSlots = listOf(TimeSlot.AM),
+        ),
+      )
+
+      response.locations hasSize 12
 
       response.locations containsExactly listOf(
+        availableLocation(location1, time(9, 0), time(10, 0), LocationUsage.SHARED),
+        availableLocation(location1, time(9, 15), time(10, 15), LocationUsage.SHARED),
+        availableLocation(location1, time(9, 30), time(10, 30), LocationUsage.SHARED),
+        availableLocation(location1, time(9, 45), time(10, 45), LocationUsage.SHARED),
+
+        availableLocation(location1, time(10, 0), time(11, 0), LocationUsage.SHARED),
         availableLocation(location1, time(10, 15), time(11, 15), LocationUsage.SHARED),
         availableLocation(location1, time(10, 30), time(11, 30), LocationUsage.SHARED),
         availableLocation(location1, time(10, 45), time(11, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.SHARED),
-      )
-    }
 
-    @Test
-    fun `should return 6 available morning times for location 1 with time of request 1015am`() {
-      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
-
-      val response = service { LocalDateTime.of(today(), LocalTime.of(10, 15)) }.findAvailable(
-        TimeSlotAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.PROBATION,
-          probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = today(),
-          bookingDuration = 60,
-          timeSlots = listOf(TimeSlot.AM),
-        ),
-      )
-
-      response.locations hasSize 6
-
-      response.locations containsExactly listOf(
-        availableLocation(location1, time(10, 30), time(11, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(10, 45), time(11, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.SHARED),
-      )
-    }
-
-    @Test
-    fun `should return 5 available morning times for location 1 with time of request 1030am`() {
-      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
-
-      val response = service { LocalDateTime.of(today(), LocalTime.of(10, 30)) }.findAvailable(
-        TimeSlotAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.PROBATION,
-          probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = today(),
-          bookingDuration = 60,
-          timeSlots = listOf(TimeSlot.AM),
-        ),
-      )
-
-      response.locations hasSize 5
-
-      response.locations containsExactly listOf(
-        availableLocation(location1, time(10, 45), time(11, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.SHARED),
-      )
-    }
-
-    @Test
-    fun `should return 4 available morning times for location 1 with time of request 1045am`() {
-      whenever(locationsService.getVideoLinkLocationsAtPrison(RISLEY, true)) doReturn listOf(location1)
-      whenever(bookedLocationsService.findBooked(BookedLookup(RISLEY, today(), listOf(location1)))) doReturn BookedLocations(emptyList())
-
-      val response = service { LocalDateTime.of(today(), LocalTime.of(10, 45)) }.findAvailable(
-        TimeSlotAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.PROBATION,
-          probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = today(),
-          bookingDuration = 60,
-          timeSlots = listOf(TimeSlot.AM),
-        ),
-      )
-
-      response.locations hasSize 4
-
-      response.locations containsExactly listOf(
         availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.SHARED),
         availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.SHARED),
         availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.SHARED),
@@ -163,12 +131,32 @@ class TimeSlotAvailabilityServiceTest {
     }
   }
 
-  @DisplayName("Testing for available undecorated locations tomorrow")
+  @DisplayName("Testing decorated probation locations tomorrow")
   @Nested
-  inner class RequestsForUndecoratedRoomsTomorrow {
+  inner class RequestsForDecoratedRoomsTomorrow {
 
-    private val location1 = wandsworthLocation.toModel()
-    private val location2 = wandsworthLocation2.toModel()
+    private val location1 = wandsworthLocation.toModel().copy(
+      description = "Decorated probation any room",
+      extraAttributes = RoomAttributes(
+        attributeId = 1,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        allowedParties = emptyList(),
+        prisonVideoUrl = null,
+        notes = null,
+      ),
+    )
+    private val location2 = wandsworthLocation2.toModel().copy(
+      description = "Decorated probation team room",
+      extraAttributes = RoomAttributes(
+        attributeId = 2,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        allowedParties = listOf("BLACKPOOL_MC_PPOC"),
+        prisonVideoUrl = null,
+        notes = null,
+      ),
+    )
 
     @BeforeEach
     fun before() {
@@ -182,6 +170,7 @@ class TimeSlotAvailabilityServiceTest {
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
+      whenever(locationAttributesService.isLocationAvailableFor(any())) doReturn AvailabilityStatus.PROBATION_ANY
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -197,11 +186,11 @@ class TimeSlotAvailabilityServiceTest {
       response.locations hasSize 5
 
       response.locations containsExactly listOf(
-        availableLocation(location1, time(9, 0), time(10, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.SHARED),
+        availableLocation(location1, time(9, 0), time(10, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.PROBATION),
       )
     }
 
@@ -222,6 +211,7 @@ class TimeSlotAvailabilityServiceTest {
           BookedLocation(location2, LocalTime.of(9, 0), LocalTime.of(10, 0)),
         ),
       )
+      whenever(locationAttributesService.isLocationAvailableFor(any())) doReturn AvailabilityStatus.PROBATION_ANY
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -237,15 +227,15 @@ class TimeSlotAvailabilityServiceTest {
       response.locations hasSize 9
 
       response.locations containsExactly listOf(
-        availableLocation(location1, time(9, 0), time(10, 0), LocationUsage.SHARED),
-        availableLocation(location2, time(10, 0), time(11, 0), LocationUsage.SHARED),
-        availableLocation(location2, time(10, 15), time(11, 15), LocationUsage.SHARED),
-        availableLocation(location2, time(10, 30), time(11, 30), LocationUsage.SHARED),
-        availableLocation(location2, time(10, 45), time(11, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.SHARED),
+        availableLocation(location1, time(9, 0), time(10, 0), LocationUsage.PROBATION),
+        availableLocation(location2, time(10, 0), time(11, 0), LocationUsage.PROBATION),
+        availableLocation(location2, time(10, 15), time(11, 15), LocationUsage.PROBATION),
+        availableLocation(location2, time(10, 30), time(11, 30), LocationUsage.PROBATION),
+        availableLocation(location2, time(10, 45), time(11, 45), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.PROBATION),
       )
     }
 
@@ -255,6 +245,7 @@ class TimeSlotAvailabilityServiceTest {
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(location1)))) doReturn BookedLocations(
         listOf(BookedLocation(location1, LocalTime.of(10, 0), LocalTime.of(11, 0))),
       )
+      whenever(locationAttributesService.isLocationAvailableFor(any())) doReturn AvailabilityStatus.PROBATION_ANY
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -270,23 +261,23 @@ class TimeSlotAvailabilityServiceTest {
       response.locations hasSize 17
 
       response.locations containsExactly listOf(
-        availableLocation(location1, time(12, 0), time(13, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(12, 15), time(13, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(12, 30), time(13, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(12, 45), time(13, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(13, 0), time(14, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(13, 15), time(14, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(13, 30), time(14, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(13, 45), time(14, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(14, 0), time(15, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(14, 15), time(15, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(14, 30), time(15, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(14, 45), time(15, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(15, 0), time(16, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(15, 15), time(16, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(15, 30), time(16, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(15, 45), time(16, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(16, 0), time(17, 0), LocationUsage.SHARED),
+        availableLocation(location1, time(12, 0), time(13, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(12, 15), time(13, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(12, 30), time(13, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(12, 45), time(13, 45), LocationUsage.PROBATION),
+        availableLocation(location1, time(13, 0), time(14, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(13, 15), time(14, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(13, 30), time(14, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(13, 45), time(14, 45), LocationUsage.PROBATION),
+        availableLocation(location1, time(14, 0), time(15, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(14, 15), time(15, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(14, 30), time(15, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(14, 45), time(15, 45), LocationUsage.PROBATION),
+        availableLocation(location1, time(15, 0), time(16, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(15, 15), time(16, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(15, 30), time(16, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(15, 45), time(16, 45), LocationUsage.PROBATION),
+        availableLocation(location1, time(16, 0), time(17, 0), LocationUsage.PROBATION),
       )
     }
 
@@ -299,6 +290,7 @@ class TimeSlotAvailabilityServiceTest {
           BookedLocation(location1, LocalTime.of(13, 0), LocalTime.of(14, 0)),
         ),
       )
+      whenever(locationAttributesService.isLocationAvailableFor(any())) doReturn AvailabilityStatus.PROBATION_ANY
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -314,21 +306,21 @@ class TimeSlotAvailabilityServiceTest {
       response.locations hasSize 15
 
       response.locations containsExactly listOf(
-        availableLocation(location1, time(9, 0), time(10, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(12, 0), time(13, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(14, 0), time(15, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(14, 15), time(15, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(14, 30), time(15, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(14, 45), time(15, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(15, 0), time(16, 0), LocationUsage.SHARED),
-        availableLocation(location1, time(15, 15), time(16, 15), LocationUsage.SHARED),
-        availableLocation(location1, time(15, 30), time(16, 30), LocationUsage.SHARED),
-        availableLocation(location1, time(15, 45), time(16, 45), LocationUsage.SHARED),
-        availableLocation(location1, time(16, 0), time(17, 0), LocationUsage.SHARED),
+        availableLocation(location1, time(9, 0), time(10, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 0), time(12, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 15), time(12, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 30), time(12, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(11, 45), time(12, 45), LocationUsage.PROBATION),
+        availableLocation(location1, time(12, 0), time(13, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(14, 0), time(15, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(14, 15), time(15, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(14, 30), time(15, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(14, 45), time(15, 45), LocationUsage.PROBATION),
+        availableLocation(location1, time(15, 0), time(16, 0), LocationUsage.PROBATION),
+        availableLocation(location1, time(15, 15), time(16, 15), LocationUsage.PROBATION),
+        availableLocation(location1, time(15, 30), time(16, 30), LocationUsage.PROBATION),
+        availableLocation(location1, time(15, 45), time(16, 45), LocationUsage.PROBATION),
+        availableLocation(location1, time(16, 0), time(17, 0), LocationUsage.PROBATION),
       )
     }
   }
@@ -340,23 +332,25 @@ class TimeSlotAvailabilityServiceTest {
       extraAttributes = RoomAttributes(
         attributeId = 1,
         locationStatus = LocationStatus.ACTIVE,
-        LocationUsage.PROBATION,
+        locationUsage = LocationUsage.PROBATION,
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
       ),
     )
+
     private val decoratedProbationTeamLocation = wandsworthLocation.toModel().copy(
       description = "c - decorated probation team room",
       extraAttributes = RoomAttributes(
         attributeId = 2,
         locationStatus = LocationStatus.ACTIVE,
-        LocationUsage.PROBATION,
+        locationUsage = LocationUsage.PROBATION,
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,
         notes = null,
       ),
     )
+
     private val undecoratedLocation = wandsworthLocation2.toModel().copy(description = "a - undecorated room")
 
     @BeforeEach
@@ -366,7 +360,7 @@ class TimeSlotAvailabilityServiceTest {
     }
 
     @Test
-    fun `should favour decorated probation room over undecorated`() {
+    fun `should only offer the decorated probation rooms`() {
       whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, undecoratedLocation)
       whenever(
         bookedLocationsService.findBooked(
@@ -401,7 +395,7 @@ class TimeSlotAvailabilityServiceTest {
     }
 
     @Test
-    fun `should favour decorated probation team room over decorated probation room`() {
+    fun `should favour decorated team room over a decorated probation any room`() {
       whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedProbationLocation, decoratedProbationTeamLocation)
       whenever(
         bookedLocationsService.findBooked(
@@ -413,10 +407,10 @@ class TimeSlotAvailabilityServiceTest {
         ),
       ) doReturn BookedLocations(emptyList())
 
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ROOM
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ROOM
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -450,8 +444,8 @@ class TimeSlotAvailabilityServiceTest {
         ),
       ) doReturn BookedLocations(emptyList())
 
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.SHARED
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
       whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.NONE
       whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.NONE
 
@@ -487,10 +481,10 @@ class TimeSlotAvailabilityServiceTest {
         ),
       ) doReturn BookedLocations(emptyList())
 
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.SHARED
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
-      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ROOM
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, BLACKPOOL_MC_PPOC, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.PROBATION_ROOM
 
       val response = service().findAvailable(
         TimeSlotAvailabilityRequest(
@@ -538,11 +532,11 @@ class TimeSlotAvailabilityServiceTest {
         ),
       )
 
-      response.locations hasSize 2
+      response.locations hasSize 1
 
+      // Never provide an undecorated room
+      // Decorated location is busy at 9.00 but free at 9:15
       response.locations containsExactly listOf(
-        // decorated room is not available at 9:00am but undecorated is
-        availableLocation(undecoratedLocation, time(9, 0), time(9, 30), LocationUsage.SHARED),
         availableLocation(decoratedProbationLocation, time(9, 15), time(9, 45), LocationUsage.PROBATION),
       )
     }
