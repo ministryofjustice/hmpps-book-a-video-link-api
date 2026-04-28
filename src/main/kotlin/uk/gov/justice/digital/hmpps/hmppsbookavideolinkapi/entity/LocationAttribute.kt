@@ -172,6 +172,8 @@ class LocationAttribute private constructor(
     val freeForAnyProbationTeam = ProbationAnySpecification(onDate.dayOfWeek, startTime, endTime)
     val overlapsWithCourtSlot = OverlappingSpecification(LocationScheduleUsage.COURT, onDate.dayOfWeek, startTime, endTime)
     val overlapsWithOtherProbationTeamSlot = OverlappingRoomSpecification(LocationScheduleUsage.PROBATION, onDate.dayOfWeek, startTime, endTime)
+    val overlapsWithProbationSentenceSlot = OverlappingSpecification(LocationScheduleUsage.PROBATION_SENTENCE, onDate.dayOfWeek, startTime, endTime)
+    val overlapsWithProbationCourtSlot = OverlappingSpecification(LocationScheduleUsage.PROBATION_COURT, onDate.dayOfWeek, startTime, endTime)
 
     // The order in which the checks are carried out is important and must be maintained.
     return when {
@@ -186,6 +188,12 @@ class LocationAttribute private constructor(
 
       // If none of the above match, we need to make sure the requested probation slot date and times to not overlap any other probation team room schedules
       fallsWithin(overlapsWithOtherProbationTeamSlot) -> AvailabilityStatus.NONE
+
+      // If none of the above match, we need to make sure the requested court slot date and times to not overlap any probation sentence schedules
+      fallsWithin(overlapsWithProbationSentenceSlot) -> AvailabilityStatus.NONE
+
+      // If none of the above match, we need to make sure the requested court slot date and times to not overlap any probation court schedules
+      fallsWithin(overlapsWithProbationCourtSlot) -> AvailabilityStatus.NONE
 
       else -> AvailabilityStatus.SHARED
     }
