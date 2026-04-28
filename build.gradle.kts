@@ -3,7 +3,7 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.1.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.2.1"
   id("org.openapi.generator") version "7.21.0"
   kotlin("plugin.spring") version "2.3.20"
   kotlin("plugin.jpa") version "2.3.20"
@@ -15,6 +15,10 @@ redacted {
 }
 
 dependencies {
+  constraints {
+    implementation("org.webjars:swagger-ui:5.32.2")
+  }
+
   // HMPPS dependencies
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.1.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.3.0")
@@ -42,9 +46,9 @@ dependencies {
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
 
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.26.1")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.27.0")
 
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.28")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.29")
 
   // Test dependencies
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.2")
