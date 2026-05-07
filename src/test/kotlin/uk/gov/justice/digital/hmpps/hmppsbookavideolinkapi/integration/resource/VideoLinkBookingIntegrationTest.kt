@@ -24,10 +24,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.AmendCourtBookingRequestBuilder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CreateCourtBookingRequestBuilder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
@@ -63,6 +65,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isNotEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
@@ -974,7 +977,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should reschedule a Derby court booking and emails sent to Pentonville prison`() {
+  fun `should reschedule a Derby court booking and emails sent to Pentonville prison when main start time changed`() {
     videoBookingRepository.findAll() hasSize 0
     notificationRepository.findAll() hasSize 0
 
@@ -1026,6 +1029,147 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       startTime isEqualTo LocalTime.of(13, 0)
       endTime isEqualTo LocalTime.of(14, 30)
       notesForStaff isEqualTo "amended court booking comments"
+    }
+
+    // There should be 3 notifications, 1 user email and 2 prison emails
+    val notifications = notificationRepository.findAll().also { it hasSize 3 }
+
+    notifications.isPresent("p@p.com", RescheduledCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent("g@g.com", RescheduledCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, RescheduledCourtBookingUserEmail::class, persistedBooking)
+  }
+
+  @Test
+  fun `should reschedule a Derby court booking and emails sent to Pentonville prison when pre is removed`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+
+    val courtBookingRequest = CreateCourtBookingRequestBuilder.builder {
+      court(DERBY_JUSTICE_CENTRE)
+      prisoner(pentonvillePrisoner)
+      pre(pentonvilleLocation)
+      main(pentonvilleLocation, tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30))
+    }.build()
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+    val amendBookingRequest = AmendCourtBookingRequestBuilder.builder {
+      prisoner(pentonvillePrisoner)
+      main(pentonvilleLocation, tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30))
+    }.build()
+
+    notificationRepository.deleteAll()
+    webTestClient.amendBooking(bookingId, amendBookingRequest, COURT_USER)
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+      prisonCode() isEqualTo PENTONVILLE
+      prisonerNumber isEqualTo pentonvillePrisoner.number
+      appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
+      appointmentDate isEqualTo tomorrow()
+      prisonLocationId isEqualTo pentonvilleLocation.id
+      startTime isEqualTo LocalTime.of(12, 0)
+      endTime isEqualTo LocalTime.of(12, 30)
+    }
+
+    // There should be 3 notifications, 1 user email and 2 prison emails
+    val notifications = notificationRepository.findAll().also { it hasSize 3 }
+
+    notifications.isPresent("p@p.com", RescheduledCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent("g@g.com", RescheduledCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, RescheduledCourtBookingUserEmail::class, persistedBooking)
+  }
+
+  @Test
+  fun `should reschedule a Derby court booking and emails sent to Pentonville prison when post is removed`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+
+    val courtBookingRequest = CreateCourtBookingRequestBuilder.builder {
+      court(DERBY_JUSTICE_CENTRE)
+      prisoner(pentonvillePrisoner)
+      post(pentonvilleLocation)
+      main(pentonvilleLocation, tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30))
+    }.build()
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+    val amendBookingRequest = AmendCourtBookingRequestBuilder.builder {
+      prisoner(pentonvillePrisoner)
+      main(pentonvilleLocation, tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30))
+    }.build()
+
+    notificationRepository.deleteAll()
+    webTestClient.amendBooking(bookingId, amendBookingRequest, COURT_USER)
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+      prisonCode() isEqualTo PENTONVILLE
+      prisonerNumber isEqualTo pentonvillePrisoner.number
+      appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
+      appointmentDate isEqualTo tomorrow()
+      prisonLocationId isEqualTo pentonvilleLocation.id
+      startTime isEqualTo LocalTime.of(12, 0)
+      endTime isEqualTo LocalTime.of(12, 30)
+    }
+
+    // There should be 3 notifications, 1 user email and 2 prison emails
+    val notifications = notificationRepository.findAll().also { it hasSize 3 }
+
+    notifications.isPresent("p@p.com", RescheduledCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent("g@g.com", RescheduledCourtBookingPrisonCourtEmail::class, persistedBooking)
+    notifications.isPresent(COURT_USER.email!!, RescheduledCourtBookingUserEmail::class, persistedBooking)
+  }
+
+  @Test
+  fun `should reschedule a Derby court booking and emails sent to Pentonville prison when pre is added`() {
+    videoBookingRepository.findAll() hasSize 0
+    notificationRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", PENTONVILLE)
+
+    val courtBookingRequest = CreateCourtBookingRequestBuilder.builder {
+      court(DERBY_JUSTICE_CENTRE)
+      prisoner(pentonvillePrisoner)
+      main(pentonvilleLocation, tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30))
+    }.build()
+
+    val bookingId = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+    val amendBookingRequest = AmendCourtBookingRequestBuilder.builder {
+      prisoner(pentonvillePrisoner)
+      pre(pentonvilleLocation)
+      main(pentonvilleLocation, tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30))
+    }.build()
+
+    notificationRepository.deleteAll()
+    webTestClient.amendBooking(bookingId, amendBookingRequest, COURT_USER)
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+    val persistedAppointments = prisonAppointmentRepository.findByVideoBooking(persistedBooking).also { it hasSize 2 }
+
+    with(persistedAppointments.single { it.appointmentType == AppointmentType.VLB_COURT_PRE.name }) {
+      prisonCode() isEqualTo PENTONVILLE
+      prisonerNumber isEqualTo pentonvillePrisoner.number
+      appointmentDate isEqualTo tomorrow()
+      prisonLocationId isEqualTo pentonvilleLocation.id
+      startTime isEqualTo LocalTime.of(11, 45)
+      endTime isEqualTo LocalTime.of(12, 0)
+    }
+
+    with(persistedAppointments.single { it.appointmentType == AppointmentType.VLB_COURT_MAIN.name }) {
+      prisonCode() isEqualTo PENTONVILLE
+      prisonerNumber isEqualTo pentonvillePrisoner.number
+      appointmentDate isEqualTo tomorrow()
+      prisonLocationId isEqualTo pentonvilleLocation.id
+      startTime isEqualTo LocalTime.of(12, 0)
+      endTime isEqualTo LocalTime.of(12, 30)
     }
 
     // There should be 3 notifications, 1 user email and 2 prison emails

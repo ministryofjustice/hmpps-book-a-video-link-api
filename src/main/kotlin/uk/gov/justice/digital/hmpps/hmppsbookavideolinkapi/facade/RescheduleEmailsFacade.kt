@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationEmailFactory
 
 @Component
-@Transactional
 class RescheduleEmailsFacade(
   private val prisonRepository: PrisonRepository,
   private val contactsService: ContactsService,
@@ -38,6 +37,18 @@ class RescheduleEmailsFacade(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  /**
+   * Will throw a runtime exception if the booking IDs do not match.
+   */
+  fun isConsideredRescheduled(originalBooking: VideoLinkBooking, amendedBooking: VideoBooking) = run {
+    require(originalBooking.videoLinkBookingId == amendedBooking.videoBookingId) {
+      "Original and amended bookings must have the same video booking ID"
+    }
+
+    originalBooking.startDateTime() != amendedBooking.startDateTime() || originalBooking.endDateTime() != amendedBooking.endDateTime()
+  }
+
+  @Transactional
   fun sendEmails(
     oldBooking: VideoLinkBooking,
     amendedBooking: VideoBooking,
@@ -45,6 +56,8 @@ class RescheduleEmailsFacade(
     prisoner: Prisoner,
     user: User,
   ) {
+    require(isConsideredRescheduled(oldBooking, amendedBooking)) { "Booking with ID ${oldBooking.videoLinkBookingId} is not rescheduled" }
+
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
     val contacts = contactsService.getBookingContacts(oldBooking.videoLinkBookingId, user).withAnEmailAddress()
 

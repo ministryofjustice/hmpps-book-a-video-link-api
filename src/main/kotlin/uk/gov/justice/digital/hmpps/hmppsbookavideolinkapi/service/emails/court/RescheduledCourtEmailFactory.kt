@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toTitleCase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
@@ -22,7 +23,7 @@ class RescheduledCourtEmailFactory(private val locationService: LocationsService
     prison: Prison,
     prisoner: Prisoner,
     userContact: BookingContact,
-  ): VideoBookingEmail? {
+  ): VideoBookingEmail {
     require(userContact.contactType == ContactType.USER) {
       "Incorrect contact type ${userContact.contactType} for court user email"
     }
@@ -57,7 +58,7 @@ class RescheduledCourtEmailFactory(private val locationService: LocationsService
     prison: Prison,
     prisoner: Prisoner,
     courtContact: BookingContact,
-  ): VideoBookingEmail? {
+  ): VideoBookingEmail {
     require(courtContact.contactType == ContactType.COURT) {
       "Incorrect contact type ${courtContact.contactType} for court court email"
     }
@@ -92,7 +93,7 @@ class RescheduledCourtEmailFactory(private val locationService: LocationsService
     prisoner: Prisoner,
     prisonContact: BookingContact,
     contacts: Collection<BookingContact>,
-  ): VideoBookingEmail? {
+  ): VideoBookingEmail {
     require(prisonContact.contactType == ContactType.PRISON) {
       "Incorrect contact type ${prisonContact.contactType} for court prison email"
     }
@@ -158,5 +159,6 @@ class RescheduledCourtEmailFactory(private val locationService: LocationsService
 
   private fun VideoLinkBooking.postHearing() = prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_POST" }
 
-  private fun ModelPrisonAppointment.appointmentDetails(location: Location) = AppointmentDetails(location.description ?: "", startTime, endTime, null)
+  // Not ideal, but toTitleCase is used here because the locations API is returning all CAPS for the description when looking up location by key
+  private fun ModelPrisonAppointment.appointmentDetails(location: Location) = AppointmentDetails(location.description?.toTitleCase() ?: "", startTime, endTime, null)
 }

@@ -20,3 +20,6 @@ fun String.isUkPhoneNumber(): Boolean = runCatching {
       phoneNumberUtil.isValidNumber(it)
   }
 }.getOrElse { false }
+
+// Crude, this will title case every word in the given string.
+fun String.toTitleCase() = lowercase().split(" ").joinToString(separator = " ") { word -> word.replaceFirstChar { it.titlecase(Locale.getDefault()) } }

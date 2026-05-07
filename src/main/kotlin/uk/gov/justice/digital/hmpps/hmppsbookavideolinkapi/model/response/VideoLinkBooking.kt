@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.zacsweers.redacted.annotations.Redacted
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -88,7 +89,27 @@ data class VideoLinkBooking(
   )
   @Redacted
   val notesForPrisoners: String?,
-)
+) {
+  @JsonIgnore
+  fun startDateTime(): LocalDateTime = run {
+    val courtAppointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_PRE" } ?: prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_MAIN" }
+    val probationAppointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_PROBATION" }
+
+    val appointment = courtAppointment ?: probationAppointment!!
+
+    appointment.appointmentDate.atTime(appointment.startTime)
+  }
+
+  @JsonIgnore
+  fun endDateTime(): LocalDateTime = run {
+    val courtAppointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_POST" } ?: prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_MAIN" }
+    val probationAppointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_PROBATION" }
+
+    val appointment = courtAppointment ?: probationAppointment!!
+
+    appointment.appointmentDate.atTime(appointment.endTime)
+  }
+}
 
 enum class BookingStatus {
   ACTIVE,
