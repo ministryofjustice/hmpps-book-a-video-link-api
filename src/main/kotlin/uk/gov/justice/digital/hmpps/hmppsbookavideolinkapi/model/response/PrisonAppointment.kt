@@ -20,7 +20,7 @@ data class PrisonAppointment(
   @Schema(description = "The prisoner number for the person attending this appointment", example = "AA1234A")
   val prisonerNumber: String,
 
-  @Schema(description = "The appointment type", example = "VLB")
+  @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
   val appointmentType: String,
 
   @Schema(description = "The location of the appointment at the prison", example = "VCC-ROOM-1")

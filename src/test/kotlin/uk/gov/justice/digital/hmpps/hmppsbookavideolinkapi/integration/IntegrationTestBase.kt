@@ -69,7 +69,7 @@ abstract class IntegrationTestBase {
   @BeforeEach
   fun clearAllCaches() {
     // Clear the caches so tests don't interfere with each other when stubbed API calls could overlap with another.
-    cacheManager.cacheNames.forEach { cacheManager.getCache(it)?.clear() }
+    cacheManager.resetCaches()
   }
 
   @BeforeEach

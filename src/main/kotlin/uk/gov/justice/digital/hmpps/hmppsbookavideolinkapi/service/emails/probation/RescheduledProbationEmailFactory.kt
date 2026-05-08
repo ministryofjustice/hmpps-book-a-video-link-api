@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.proba
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toTitleCase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
@@ -158,5 +159,6 @@ class RescheduledProbationEmailFactory(
 
   private fun Collection<BookingContact>.primaryProbationContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
 
-  private fun ModelPrisonAppointment.appointmentInformation(location: Location) = "${location.description} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
+  // Not ideal, but toTitleCase is used here because the locations API is returning all CAPS for the description when looking up location by key
+  private fun ModelPrisonAppointment.appointmentInformation(location: Location) = "${location.description?.toTitleCase()} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 }
