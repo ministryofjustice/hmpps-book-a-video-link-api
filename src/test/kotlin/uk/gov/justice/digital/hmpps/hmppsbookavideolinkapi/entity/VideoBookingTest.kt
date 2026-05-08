@@ -352,9 +352,9 @@ class VideoBookingTest {
     }
 
     @Test
-    fun `should be no start or end time when no appointments`() {
-      courtBooking.startDateTime() isEqualTo null
-      courtBooking.endDateTime() isEqualTo null
+    fun `should be no overall start or end time when no appointments`() {
+      courtBooking.overallStartDateTime() isEqualTo null
+      courtBooking.overallEndDateTime() isEqualTo null
     }
 
     @Test
@@ -369,12 +369,12 @@ class VideoBookingTest {
         locationId = UUID.randomUUID(),
       )
 
-      courtBooking.startDateTime() isEqualTo tomorrow().atTime(12, 0)
-      courtBooking.endDateTime() isEqualTo tomorrow().atTime(12, 45)
+      courtBooking.overallStartDateTime() isEqualTo tomorrow().atTime(12, 0)
+      courtBooking.overallEndDateTime() isEqualTo tomorrow().atTime(12, 45)
     }
 
     @Test
-    fun `should be start and end time when pre and main hearing`() {
+    fun `should be overall start and end time when pre and main hearing`() {
       courtBooking.addAppointment(
         prison = prison(prisonCode = BIRMINGHAM),
         prisonerNumber = "ABC123",
@@ -393,12 +393,12 @@ class VideoBookingTest {
         locationId = UUID.randomUUID(),
       )
 
-      courtBooking.startDateTime() isEqualTo tomorrow().atTime(11, 45)
-      courtBooking.endDateTime() isEqualTo tomorrow().atTime(12, 45)
+      courtBooking.overallStartDateTime() isEqualTo tomorrow().atTime(11, 45)
+      courtBooking.overallEndDateTime() isEqualTo tomorrow().atTime(12, 45)
     }
 
     @Test
-    fun `should be start and end time when main hearing and post meeting`() {
+    fun `should be overall start and end time when main hearing and post meeting`() {
       courtBooking.addAppointment(
         prison = prison(prisonCode = BIRMINGHAM),
         prisonerNumber = "ABC123",
@@ -417,12 +417,12 @@ class VideoBookingTest {
         locationId = UUID.randomUUID(),
       )
 
-      courtBooking.startDateTime() isEqualTo tomorrow().atTime(12, 0)
-      courtBooking.endDateTime() isEqualTo tomorrow().atTime(13, 0)
+      courtBooking.overallStartDateTime() isEqualTo tomorrow().atTime(12, 0)
+      courtBooking.overallEndDateTime() isEqualTo tomorrow().atTime(13, 0)
     }
 
     @Test
-    fun `should be start and end time when pre, main and post meeting`() {
+    fun `should be overall start and end time when pre, main and post meeting`() {
       courtBooking.addAppointment(
         prison = prison(prisonCode = BIRMINGHAM),
         prisonerNumber = "ABC123",
@@ -449,8 +449,8 @@ class VideoBookingTest {
         locationId = UUID.randomUUID(),
       )
 
-      courtBooking.startDateTime() isEqualTo tomorrow().atTime(11, 45)
-      courtBooking.endDateTime() isEqualTo tomorrow().atTime(13, 0)
+      courtBooking.overallStartDateTime() isEqualTo tomorrow().atTime(11, 45)
+      courtBooking.overallEndDateTime() isEqualTo tomorrow().atTime(13, 0)
     }
   }
 
@@ -616,7 +616,7 @@ class VideoBookingTest {
     }
 
     @Test
-    fun `should be no start or end time when no main meeting`() {
+    fun `should be no overall start or end time when no main meeting`() {
       val probationBooking = VideoBooking.newProbationBooking(
         probationTeam(code = "TEAM_CODE"),
         probationMeetingType = "PSR",
@@ -625,12 +625,12 @@ class VideoBookingTest {
         notesForPrisoners = "Should be ignored for external user",
       )
 
-      probationBooking.startDateTime() isEqualTo null
-      probationBooking.endDateTime() isEqualTo null
+      probationBooking.overallStartDateTime() isEqualTo null
+      probationBooking.overallEndDateTime() isEqualTo null
     }
 
     @Test
-    fun `should be start and end time when main meeting`() {
+    fun `should be overall start and end time when main meeting`() {
       val probationBooking = VideoBooking.newProbationBooking(
         probationTeam(code = "TEAM_CODE"),
         probationMeetingType = "PSR",
@@ -647,8 +647,8 @@ class VideoBookingTest {
         locationId = UUID.randomUUID(),
       )
 
-      probationBooking.startDateTime() isEqualTo tomorrow().atTime(13, 0)
-      probationBooking.endDateTime() isEqualTo tomorrow().atTime(15, 0)
+      probationBooking.overallStartDateTime() isEqualTo tomorrow().atTime(13, 0)
+      probationBooking.overallEndDateTime() isEqualTo tomorrow().atTime(15, 0)
     }
   }
 

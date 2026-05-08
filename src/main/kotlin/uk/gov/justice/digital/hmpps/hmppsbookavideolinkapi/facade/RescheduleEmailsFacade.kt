@@ -45,7 +45,7 @@ class RescheduleEmailsFacade(
       "Original and amended bookings must have the same video booking ID"
     }
 
-    originalBooking.startDateTime() != amendedBooking.startDateTime() || originalBooking.endDateTime() != amendedBooking.endDateTime()
+    originalBooking.overallStartDateTime() != amendedBooking.overallStartDateTime() || originalBooking.overallEndDateTime() != amendedBooking.overallEndDateTime()
   }
 
   @Transactional

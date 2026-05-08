@@ -91,7 +91,7 @@ data class VideoLinkBooking(
   val notesForPrisoners: String?,
 ) {
   @JsonIgnore
-  fun startDateTime(): LocalDateTime = run {
+  fun overallStartDateTime(): LocalDateTime = run {
     val courtAppointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_PRE" } ?: prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_MAIN" }
     val probationAppointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_PROBATION" }
 
@@ -101,7 +101,7 @@ data class VideoLinkBooking(
   }
 
   @JsonIgnore
-  fun endDateTime(): LocalDateTime = run {
+  fun overallEndDateTime(): LocalDateTime = run {
     val courtAppointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_POST" } ?: prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_MAIN" }
     val probationAppointment = prisonAppointments.singleOrNull { it.appointmentType == "VLB_PROBATION" }
 
