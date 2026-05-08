@@ -196,7 +196,7 @@ class VideoBooking private constructor(
   /**
    * Will be null if no appointments on the booking, also bear in mind appointments are lazily loaded.
    */
-  fun startDateTime(): LocalDateTime? = run {
+  fun overallStartDateTime(): LocalDateTime? = run {
     when {
       preHearing() != null -> preHearing()!!.appointmentDate.atTime(preHearing()!!.startTime)
       mainHearing() != null -> mainHearing()!!.appointmentDate.atTime(mainHearing()!!.startTime)
@@ -208,7 +208,7 @@ class VideoBooking private constructor(
   /**
    * Will be null if no appointments on the booking, also bear in mind appointments are lazily loaded.
    */
-  fun endDateTime(): LocalDateTime? = run {
+  fun overallEndDateTime(): LocalDateTime? = run {
     when {
       postHearing() != null -> postHearing()!!.appointmentDate.atTime(postHearing()!!.endTime)
       mainHearing() != null -> mainHearing()!!.appointmentDate.atTime(mainHearing()!!.endTime)
