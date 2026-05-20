@@ -3,7 +3,7 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.3.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.3.1"
   id("org.openapi.generator") version "7.22.0"
   kotlin("plugin.spring") version "2.3.21"
   kotlin("plugin.jpa") version "2.3.21"
@@ -20,7 +20,7 @@ dependencies {
   }
 
   // HMPPS dependencies
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.2.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.3.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.3.2")
 
   // Spring boot dependencies
