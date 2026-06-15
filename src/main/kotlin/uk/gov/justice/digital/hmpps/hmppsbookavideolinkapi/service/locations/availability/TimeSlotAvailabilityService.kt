@@ -56,7 +56,7 @@ class TimeSlotAvailabilityService(
         var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
         while (meetingEndTime.isOnOrBefore(endOfDay)) {
-          if (mayBeExistingAppointment?.let { isTheSame(it, location, request, meetingStartTime, meetingEndTime) } == true) {
+          if (mayBeExistingAppointment?.let { isTheSame(it, location, request, meetingStartTime, meetingEndTime).also { log.info("same=$it") } } == true) {
             add(
               availabilityStatus = AvailabilityStatus.SHARED,
               availableLocation = AvailableLocation(
@@ -104,8 +104,7 @@ class TimeSlotAvailabilityService(
   private fun isTheSame(existingAppointment: PrisonAppointment, location: Location, request: TimeSlotAvailabilityRequest, start: LocalTime, end: LocalTime) = run {
     existingAppointment.prisonLocationId == location.dpsLocationId &&
       request.date == existingAppointment.appointmentDate &&
-      request.timeSlots == null ||
-      request.timeSlots!!.contains(slot(existingAppointment.startTime)) &&
+      request.timeSlots?.contains(slot(existingAppointment.startTime)) == true &&
       start == existingAppointment.startTime &&
       end == existingAppointment.endTime
   }

@@ -605,6 +605,42 @@ class TimeSlotAvailabilityServiceTest {
         availableLocation(decoratedLocation, time(9, 30), time(10, 0), LocationUsage.PROBATION),
       )
     }
+
+    @Test
+    fun `should exclude existing booking for amend booking request when time slot is the same`() {
+      val probationTeam = probationTeam()
+      val booking = probationBooking(probationTeam).withProbationPrisonAppointment(
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(9, 30),
+        prisonCode = WANDSWORTH,
+        location = wandsworthLocation,
+      )
+
+      whenever(prisonAppointmentRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking.appointments().single())
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedLocation)
+      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(decoratedLocation), booking.videoBookingId))) doReturn BookedLocations(emptyList())
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 30), LocalTime.of(10, 0)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 45), LocalTime.of(10, 15)))) doReturn AvailabilityStatus.NONE
+
+      val response = service { tomorrow().atStartOfDay() }.findAvailable(
+        TimeSlotAvailabilityRequest(
+          prisonCode = WANDSWORTH,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = tomorrow(),
+          bookingDuration = 30,
+          timeSlots = null,
+          vlbIdToExclude = booking.videoBookingId,
+        ),
+      )
+
+      response.locations containsExactly listOf(
+        availableLocation(decoratedLocation, time(9, 30), time(10, 0), LocationUsage.PROBATION),
+      )
+    }
   }
 
   private fun service(timeSource: TimeSource = TimeSource { LocalDateTime.now() }) = TimeSlotAvailabilityService(
