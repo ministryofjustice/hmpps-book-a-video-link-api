@@ -16,10 +16,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
@@ -29,13 +32,16 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlotAvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.Optional
 
 class TimeSlotAvailabilityServiceTest {
   private val locationsService: LocationsService = mock()
+  private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val bookedLocationsService: BookedLocationsService = mock()
   private val prisonRegime: PrisonRegime = mock()
   private val locationAttributesService: LocationAttributesAvailableService = mock()
@@ -542,8 +548,68 @@ class TimeSlotAvailabilityServiceTest {
     }
   }
 
+  @Nested
+  inner class AmendmentRequests {
+    private val decoratedLocation = wandsworthLocation.toModel().copy(
+      description = "b - decorated probation room",
+      extraAttributes = RoomAttributes(
+        attributeId = 1,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        allowedParties = emptyList(),
+        prisonVideoUrl = null,
+        notes = null,
+      ),
+    )
+
+    @BeforeEach
+    fun before() {
+      whenever(prisonRegime.startOfDay(WANDSWORTH)) doReturn LocalTime.of(9, 0)
+      whenever(prisonRegime.endOfDay(WANDSWORTH)) doReturn LocalTime.of(10, 0)
+    }
+
+    @Test
+    fun `should include existing booking for amend booking request when time slot is the same`() {
+      val probationTeam = probationTeam()
+      val booking = probationBooking(probationTeam).withProbationPrisonAppointment(
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(9, 30),
+        prisonCode = WANDSWORTH,
+        location = wandsworthLocation,
+      )
+
+      whenever(prisonAppointmentRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking.appointments().single())
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedLocation)
+      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(decoratedLocation), booking.videoBookingId))) doReturn BookedLocations(emptyList())
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 30), LocalTime.of(10, 0)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 45), LocalTime.of(10, 15)))) doReturn AvailabilityStatus.NONE
+
+      val response = service { tomorrow().atStartOfDay() }.findAvailable(
+        TimeSlotAvailabilityRequest(
+          prisonCode = WANDSWORTH,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = tomorrow(),
+          bookingDuration = 30,
+          timeSlots = listOf(TimeSlot.AM),
+          vlbIdToExclude = booking.videoBookingId,
+        ),
+      )
+
+      response.locations containsExactly listOf(
+        // Existing booking is still available
+        availableLocation(decoratedLocation, time(9, 0), time(9, 30), LocationUsage.PROBATION),
+        availableLocation(decoratedLocation, time(9, 30), time(10, 0), LocationUsage.PROBATION),
+      )
+    }
+  }
+
   private fun service(timeSource: TimeSource = TimeSource { LocalDateTime.now() }) = TimeSlotAvailabilityService(
     locationsService,
+    prisonAppointmentRepository,
     bookedLocationsService,
     prisonRegime,
     timeSource,
