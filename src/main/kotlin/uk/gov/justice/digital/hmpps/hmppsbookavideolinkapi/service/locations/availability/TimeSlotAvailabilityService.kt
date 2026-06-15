@@ -56,7 +56,7 @@ class TimeSlotAvailabilityService(
         var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
         while (meetingEndTime.isOnOrBefore(endOfDay)) {
-          if (mayBeExistingAppointment?.let { isTheSame(it, location, request, meetingStartTime, meetingEndTime).also { log.info("same=$it") } } == true) {
+          if (mayBeExistingAppointment?.let { isTheSame(it, location, request, meetingStartTime, meetingEndTime) } == true) {
             add(
               availabilityStatus = AvailabilityStatus.SHARED,
               availableLocation = AvailableLocation(
@@ -102,11 +102,20 @@ class TimeSlotAvailabilityService(
   }
 
   private fun isTheSame(existingAppointment: PrisonAppointment, location: Location, request: TimeSlotAvailabilityRequest, start: LocalTime, end: LocalTime) = run {
-    existingAppointment.prisonLocationId == location.dpsLocationId &&
-      request.date == existingAppointment.appointmentDate &&
-      request.timeSlots?.contains(slot(existingAppointment.startTime)) == true &&
-      start == existingAppointment.startTime &&
-      end == existingAppointment.endTime
+    log.info("isTheSame:start")
+    log.info("location =  ${existingAppointment.prisonLocationId} -> ${location.dpsLocationId}")
+    log.info("date =      ${request.date} -> ${existingAppointment.appointmentDate}")
+    log.info("timeSlot =  ${request.timeSlots} -> ${slot(existingAppointment.startTime)}")
+    log.info("startTime = $start -> ${existingAppointment.startTime}")
+    log.info("endTime =   $end -> ${existingAppointment.endTime}")
+
+    (
+      existingAppointment.prisonLocationId == location.dpsLocationId &&
+        request.date == existingAppointment.appointmentDate &&
+        request.timeSlots?.contains(slot(existingAppointment.startTime)) == true &&
+        start == existingAppointment.startTime &&
+        end == existingAppointment.endTime
+      ).also { log.info("isTheSame:$it:end") }
   }
 
   private fun getStartAndEndOfDay(request: TimeSlotAvailabilityRequest): Pair<LocalTime, LocalTime> {
