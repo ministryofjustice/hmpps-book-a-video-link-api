@@ -21,8 +21,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.TEAM_NOT_LISTED
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAmendedBy
@@ -47,6 +49,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasStartTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -540,6 +543,60 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .also { it.contactName isEqualTo "tnl probation contact" }
       .also { it.contactEmail isEqualTo "tnl_probation_contact@email.com" }
       .also { it.contactNumber isEqualTo null }
+  }
+
+  @Test
+  fun `should amend existing probation booking notes as probation user`() {
+    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = WANDSWORTH,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = wandsworthLocation,
+      notesForStaff = "integration test probation staff notes created",
+    )
+
+    val videoBookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+    val prisonProbationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = WANDSWORTH,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 15),
+      endTime = LocalTime.of(9, 45),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = wandsworthLocation,
+    )
+
+    webTestClient.createBooking(prisonProbationBookingRequest, PRISON_USER_WANDSWORTH)
+
+    webTestClient.amendBooking(
+      videoBookingId,
+      amendProbationBookingRequest(
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        probationMeetingType = ProbationMeetingType.PSR,
+        location = wandsworthLocation,
+        appointmentDate = tomorrow(),
+        startTime = probationBookingRequest.prisoners.single().appointments.single().startTime!!,
+        endTime = probationBookingRequest.prisoners.single().appointments.single().endTime!!,
+        notesForStaff = "integration test probation staff notes amended",
+        additionalBookingDetails = null,
+      ),
+      PROBATION_USER,
+    )
+
+    val amendedBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
+    amendedBooking.hasAmendedBy(PROBATION_USER)
+
+    val amendedAppointment = prisonAppointmentRepository.findByVideoBooking(amendedBooking).single()
+    amendedAppointment.hasNotesForStaff("integration test probation staff notes amended")
   }
 
   private fun appointmentSearchResult(date: LocalDate, startTime: LocalTime, endTime: LocalTime, prisonCode: String, prisonerNumber: String, locationId: Long, appointmentType: SupportedAppointmentTypes.Type) = run {

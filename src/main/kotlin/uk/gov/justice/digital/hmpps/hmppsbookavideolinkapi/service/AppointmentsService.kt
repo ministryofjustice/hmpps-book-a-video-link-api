@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsid
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
@@ -82,7 +83,19 @@ class AppointmentsService(
   private fun Appointment.isBefore(other: Appointment): Boolean = this.date!! <= other.date && this.endTime!! <= other.startTime
 
   fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
-    checkProbationAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
+    createProbationAppointment(videoBooking, prisoner, user)
+  }
+
+  fun amendAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
+    val originalAppointment = videoBooking.probationMeeting()
+
+    videoBooking.removeAllAppointments()
+
+    createProbationAppointment(videoBooking, prisoner, user, originalAppointment)
+  }
+
+  private fun createProbationAppointment(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User, originalAppointment: PrisonAppointment? = null) {
+    checkProbationAppointments(prisoner.appointments.single(), prisoner.prisonCode!!, user, originalAppointment)
 
     // We don't need to do a check for non-prison users as this is covered by the overlapping appointment check.
     if (user is PrisonUser) {
@@ -112,8 +125,8 @@ class AppointmentsService(
     if (user !is PrisonUser) require(enabled) { "Prison with code $code is not enabled for self service" }
   }
 
-  private fun checkProbationAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
-    with(appointments.single()) {
+  private fun checkProbationAppointments(appointment: Appointment, prisonCode: String, user: User, originalAppointment: PrisonAppointment? = null) {
+    with(appointment) {
       require(type!!.isProbation) {
         "Appointment type $type is not valid for probation appointments"
       }
@@ -122,9 +135,21 @@ class AppointmentsService(
 
       // Prison users can have overlapping appointments
       if (user !is PrisonUser) {
-        checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode, location)
+        // We only carry out this check if the original appointment is null, or it has changed
+        if (originalAppointment == null || appointmentHasChanged(originalAppointment, this)) {
+          checkExistingProbationAppointmentDateAndTimesDoNotOverlap(prisonCode, location)
+        }
       }
     }
+  }
+
+  private fun appointmentHasChanged(originalAppointment: PrisonAppointment, updatedAppointment: Appointment) = run {
+    (
+      originalAppointment.appointmentDate == updatedAppointment.date &&
+        originalAppointment.startTime == updatedAppointment.startTime &&
+        originalAppointment.endTime == updatedAppointment.endTime &&
+        originalAppointment.prisonLocationId == locationsInsidePrisonClient.getLocationByKey(updatedAppointment.locationKey!!)?.id
+      ).not()
   }
 
   private fun PrisonerDetails.checkForDuplicateAppointment(appointmentType: AppointmentType) {

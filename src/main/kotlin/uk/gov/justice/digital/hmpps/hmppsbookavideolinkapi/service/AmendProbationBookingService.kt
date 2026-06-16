@@ -57,8 +57,7 @@ class AmendProbationBookingService(
       notesForPrisoners = request.notesForPrisoners,
       amendedBy = amendedBy,
     )
-      .also { thisBooking -> thisBooking.removeAllAppointments() }
-      .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), amendedBy) }
+      .also { thisBooking -> appointmentsService.amendAppointmentForProbation(thisBooking, request.prisoner(), amendedBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
       .also { thisBooking -> request.saveAdditionalDetailsFor(thisBooking) }
       .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking) }
