@@ -32,7 +32,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Booking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlotAvailabilityRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDateTime
@@ -40,8 +40,8 @@ import java.time.LocalTime
 import java.util.Optional
 
 class TimeSlotAvailabilityServiceTest {
+  private val videoBookingRepository: VideoBookingRepository = mock()
   private val locationsService: LocationsService = mock()
-  private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val bookedLocationsService: BookedLocationsService = mock()
   private val prisonRegime: PrisonRegime = mock()
   private val locationAttributesService: LocationAttributesAvailableService = mock()
@@ -579,7 +579,7 @@ class TimeSlotAvailabilityServiceTest {
         location = wandsworthLocation,
       )
 
-      whenever(prisonAppointmentRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking.appointments().single())
+      whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
       whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedLocation)
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(decoratedLocation), booking.videoBookingId))) doReturn BookedLocations(emptyList())
       whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.NONE
@@ -617,7 +617,7 @@ class TimeSlotAvailabilityServiceTest {
         location = wandsworthLocation,
       )
 
-      whenever(prisonAppointmentRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking.appointments().single())
+      whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
       whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedLocation)
       whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(decoratedLocation), booking.videoBookingId))) doReturn BookedLocations(emptyList())
       whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.NONE
@@ -645,7 +645,7 @@ class TimeSlotAvailabilityServiceTest {
 
   private fun service(timeSource: TimeSource = TimeSource { LocalDateTime.now() }) = TimeSlotAvailabilityService(
     locationsService,
-    prisonAppointmentRepository,
+    videoBookingRepository,
     bookedLocationsService,
     prisonRegime,
     timeSource,
