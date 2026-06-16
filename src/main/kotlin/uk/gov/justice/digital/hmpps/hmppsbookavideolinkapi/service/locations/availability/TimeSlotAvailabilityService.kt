@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrBefore
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilityStatus
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.TimeSlo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AvailableLocationsResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.time.LocalTime
 
@@ -32,7 +32,7 @@ import java.time.LocalTime
 @Transactional(readOnly = true)
 class TimeSlotAvailabilityService(
   locationsService: LocationsService,
-  private val prisonAppointmentRepository: PrisonAppointmentRepository,
+  private val videoBookingRepository: VideoBookingRepository,
   private val bookedLocationsService: BookedLocationsService,
   private val prisonRegime: PrisonRegime,
   private val timeSource: TimeSource,
@@ -45,7 +45,7 @@ class TimeSlotAvailabilityService(
   override fun findAvailable(request: TimeSlotAvailabilityRequest): AvailableLocationsResponse {
     val (startOfDay, endOfDay) = getStartAndEndOfDay(request)
     val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode!!)
-    val mayBeExistingAppointment = request.vlbIdToExclude?.let { prisonAppointmentRepository.findById(it).orElseThrow { EntityNotFoundException("Prison appointment with ID $it not found.") } }
+    val mayBeExistingBooking = request.vlbIdToExclude?.let { videoBookingRepository.findById(it).orElseThrow { EntityNotFoundException("Video booking with ID $it not found.") } }
     val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date!!, prisonVideoLinkLocations, request.vlbIdToExclude))
     val meetingDuration = request.bookingDuration!!.toLong()
 
@@ -56,7 +56,7 @@ class TimeSlotAvailabilityService(
         var meetingEndTime = meetingStartTime.plusMinutes(meetingDuration)
 
         while (meetingEndTime.isOnOrBefore(endOfDay)) {
-          if (mayBeExistingAppointment?.let { isTheSame(it, location, request, meetingStartTime, meetingEndTime) } == true) {
+          if (mayBeExistingBooking?.let { isTheSame(it, location, request, meetingStartTime, meetingEndTime) } == true) {
             add(
               availabilityStatus = AvailabilityStatus.SHARED,
               availableLocation = AvailableLocation(
@@ -101,20 +101,28 @@ class TimeSlotAvailabilityService(
     )
   }
 
-  private fun isTheSame(existingAppointment: PrisonAppointment, location: Location, request: TimeSlotAvailabilityRequest, start: LocalTime, end: LocalTime) = run {
+  private fun isTheSame(existingBooking: VideoBooking, location: Location, request: TimeSlotAvailabilityRequest, start: LocalTime, end: LocalTime) = run {
+    val existingAppointment = existingBooking.mainHearing() ?: existingBooking.probationMeeting() ?: return@run false
+
+    // Time slot availability works on the premise of a single room model; hence the location ID is safe to use like this.
+    val existingLocationId = existingAppointment.prisonLocationId
+    val existingAppointmentDate = existingAppointment.appointmentDate
+    val existingStartTime = existingAppointment.startTime
+    val existingEndTime = existingAppointment.endTime
+
     log.info("isTheSame:start")
-    log.info("location =  ${existingAppointment.prisonLocationId} -> ${location.dpsLocationId}")
-    log.info("date =      ${request.date} -> ${existingAppointment.appointmentDate}")
-    log.info("timeSlot =  ${request.timeSlots} -> ${slot(existingAppointment.startTime)}")
-    log.info("startTime = $start -> ${existingAppointment.startTime}")
-    log.info("endTime =   $end -> ${existingAppointment.endTime}")
+    log.info("location =  $existingLocationId -> ${location.dpsLocationId}")
+    log.info("date =      ${request.date} -> $existingAppointmentDate")
+    log.info("timeSlot =  ${request.timeSlots} -> ${slot(existingStartTime)}")
+    log.info("startTime = $start -> $existingStartTime")
+    log.info("endTime =   $end -> $existingEndTime")
 
     (
-      existingAppointment.prisonLocationId == location.dpsLocationId &&
-        request.date == existingAppointment.appointmentDate &&
-        request.timeSlots?.contains(slot(existingAppointment.startTime)) == true &&
-        start == existingAppointment.startTime &&
-        end == existingAppointment.endTime
+      existingLocationId == location.dpsLocationId &&
+        request.date == existingAppointmentDate &&
+        request.timeSlots?.contains(slot(existingStartTime)) == true &&
+        start == existingStartTime &&
+        end == existingEndTime
       ).also { log.info("isTheSame:$it:end") }
   }
 
