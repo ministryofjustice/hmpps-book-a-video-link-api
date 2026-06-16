@@ -110,20 +110,13 @@ class TimeSlotAvailabilityService(
     val existingStartTime = existingAppointment.startTime
     val existingEndTime = existingAppointment.endTime
 
-    log.info("isTheSame:start")
-    log.info("location =  $existingLocationId -> ${location.dpsLocationId}")
-    log.info("date =      ${request.date} -> $existingAppointmentDate")
-    log.info("timeSlot =  ${request.timeSlots} -> ${slot(existingStartTime)}")
-    log.info("startTime = $start -> $existingStartTime")
-    log.info("endTime =   $end -> $existingEndTime")
-
     (
       existingLocationId == location.dpsLocationId &&
         request.date == existingAppointmentDate &&
         request.timeSlots?.contains(slot(existingStartTime)) == true &&
         start == existingStartTime &&
         end == existingEndTime
-      ).also { log.info("isTheSame:$it:end") }
+      )
   }
 
   private fun getStartAndEndOfDay(request: TimeSlotAvailabilityRequest): Pair<LocalTime, LocalTime> {

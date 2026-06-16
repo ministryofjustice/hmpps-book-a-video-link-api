@@ -143,8 +143,8 @@ class AmendProbationBookingServiceTest {
     inOrder(
       videoBookingRepository,
       prisonerSearchClient,
-      locationValidator,
       appointmentsService,
+      locationValidator,
       videoBookingRepository,
       additionalBookingDetailRepository,
       additionalBookingDetailRepository,
@@ -152,6 +152,7 @@ class AmendProbationBookingServiceTest {
     ) {
       verify(videoBookingRepository).findById(2)
       verify(prisonerSearchClient).getPrisoner(prisonerNumber)
+      verify(appointmentsService).amendAppointmentForProbation(probationBooking, probationBookingRequest.prisoners.single(), PROBATION_USER)
       verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
       verify(videoBookingRepository).saveAndFlush(probationBooking)
       verify(additionalBookingDetailRepository).findByVideoBooking(probationBooking)
