@@ -3,11 +3,11 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.3.1"
-  id("org.openapi.generator") version "7.22.0"
-  kotlin("plugin.spring") version "2.3.21"
-  kotlin("plugin.jpa") version "2.3.21"
-  id("dev.zacsweers.redacted") version "1.16.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.0"
+  id("org.openapi.generator") version "7.23.0"
+  kotlin("plugin.spring") version "2.4.0"
+  kotlin("plugin.jpa") version "2.4.0"
+  id("dev.zacsweers.redacted") version "1.17.0"
 }
 
 redacted {
@@ -21,7 +21,7 @@ dependencies {
 
   // HMPPS dependencies
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.5.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.3.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.4.0")
 
   // Spring boot dependencies
   implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -32,7 +32,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.21.3")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.22.0")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
@@ -49,7 +49,7 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.28.1")
 
   // Phone number validation
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.30")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.32")
 
   // Test dependencies
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
