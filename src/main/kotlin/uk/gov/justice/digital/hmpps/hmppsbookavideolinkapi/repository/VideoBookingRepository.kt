@@ -25,7 +25,9 @@ interface VideoBookingRepository : JpaRepository<VideoBooking, Long> {
       SELECT v
       FROM VideoBooking v
       JOIN VideoAppointment va on va.videoBookingId = v.videoBookingId
-      WHERE va.appointmentDate >= :date AND v.probationMeetingType IN :probationMeetingTypes
+      WHERE va.appointmentDate >= :date
+        AND v.probationMeetingType IN :probationMeetingTypes
+        AND v.bookingType = 'PROBATION'
     """,
   )
   fun findByProbationMeetingTypesOnOrAfterDate(probationMeetingTypes: List<String>, date: LocalDate): List<VideoBooking>
