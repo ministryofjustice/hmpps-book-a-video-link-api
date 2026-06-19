@@ -13,6 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -34,6 +35,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -340,6 +342,51 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
       locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000001"))!!.locationStatus isEqualTo LocationStatus.TEMPORARILY_BLOCKED
       locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000002"))!!.locationStatus isEqualTo LocationStatus.ACTIVE
     }
+  }
+
+  @Nested
+  @DisplayName("Merge probation recall meeting type")
+  inner class MergeProbationRecallMeetingType {
+
+    @Autowired
+    private lateinit var videoBookingRepository: VideoBookingRepository
+
+    @Autowired
+    private lateinit var bookingHistoryRepository: BookingHistoryRepository
+
+    @Sql("classpath:integration-test-data/seed-historic-and-future-probation-recall-meetings.sql")
+    @Test
+    fun `should merge future RR and FTR56 probation meetings to RECALL but not touch historic meetings`() {
+      // Historic bookings before merge
+      probationMeeting(-3000).probationMeetingType isEqualTo "RR"
+      bookingHistory(-3000).single { it.historyType == HistoryType.CREATE }.probationMeetingType isEqualTo "RR"
+      probationMeeting(-3100).probationMeetingType isEqualTo "FTR56"
+      bookingHistory(-3100).single { it.historyType == HistoryType.CREATE }.probationMeetingType isEqualTo "FTR56"
+
+      // Future bookings before merge
+      probationMeeting(-4000).probationMeetingType isEqualTo "RR"
+      bookingHistory(-4000).single { it.historyType == HistoryType.CREATE }.probationMeetingType isEqualTo "RR"
+      probationMeeting(-4100).probationMeetingType isEqualTo "FTR56"
+      bookingHistory(-4100).single { it.historyType == HistoryType.CREATE }.probationMeetingType isEqualTo "FTR56"
+
+      webTestClient.triggerJob(JobType.MERGE_PROBATION_RECALL_MEETING_TYPES)
+
+      // Historic bookings after merge (should be untouched)
+      probationMeeting(-3000).probationMeetingType isEqualTo "RR"
+      bookingHistory(-3000).single().probationMeetingType isEqualTo "RR"
+      probationMeeting(-3100).probationMeetingType isEqualTo "FTR56"
+      bookingHistory(-3100).single().probationMeetingType isEqualTo "FTR56"
+
+      // Future bookings after merge (should be merge)
+      probationMeeting(-4000).probationMeetingType isEqualTo "RECALL"
+      bookingHistory(-4000).single { it.historyType == HistoryType.AMEND }.probationMeetingType isEqualTo "RECALL"
+      probationMeeting(-4100).probationMeetingType isEqualTo "RECALL"
+      bookingHistory(-4100).single { it.historyType == HistoryType.AMEND }.probationMeetingType isEqualTo "RECALL"
+    }
+
+    private fun probationMeeting(id: Long) = videoBookingRepository.findById(id).orElseThrow()
+
+    private fun bookingHistory(id: Long) = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(id)
   }
 
   private fun <T : Email> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {

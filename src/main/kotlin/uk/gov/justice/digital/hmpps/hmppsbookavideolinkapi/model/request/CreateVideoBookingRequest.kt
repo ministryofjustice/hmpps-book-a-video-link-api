@@ -161,6 +161,7 @@ enum class ProbationMeetingType(val description: String) {
   ROTL("ROTL (release on temporary licence)"),
   RR("Recall report (PRARR - parts B or C)"),
   RTSCR("Response to supervision (court report)"),
+  RECALL("Recall (PRARR part B or C and FTR56)"),
   UNKNOWN("Unknown"),
 }
 
