@@ -5,6 +5,7 @@ enum class JobType(val resultMessage: String) {
   PROBATION_OFFICER_DETAILS_REMINDER("Probation officer details reminder job triggered"),
   NEW_PRISON_VIDEO_ROOM("New prison video room job triggered"),
   REACTIVATE_BLOCKED_LOCATIONS("Reactivate blocked rooms job triggered"),
+  MERGE_PROBATION_RECALL_MEETING_TYPES("Merge probation recall meeting types job triggered"),
 }
 
 abstract class JobDefinition(val jobType: JobType, private val block: () -> Unit) {

@@ -15,7 +15,15 @@ class JobTriggerServiceTest {
   private val probationOfficerDetailsReminderJob: ProbationOfficerDetailsReminderJob = mock()
   private val newPrisonVideoRoomsJob: NewPrisonVideoRoomsJob = mock()
   private val reactivateBlockedLocationsJob: ReactivateBlockedLocationsJob = mock()
-  private val jobTriggerService: JobTriggerService = JobTriggerService(jobRunner, courtHearingLinkReminderJob, probationOfficerDetailsReminderJob, newPrisonVideoRoomsJob, reactivateBlockedLocationsJob)
+  private val mergeProbationRecallMeetingTypesJob: MergeProbationRecallMeetingTypesJob = mock()
+  private val jobTriggerService: JobTriggerService = JobTriggerService(
+    jobRunner,
+    courtHearingLinkReminderJob,
+    probationOfficerDetailsReminderJob,
+    newPrisonVideoRoomsJob,
+    reactivateBlockedLocationsJob,
+    mergeProbationRecallMeetingTypesJob,
+  )
 
   @Test
   fun `should run court hearing link reminder job when job type is COURT_HEARING_LINK_REMINDER`() {

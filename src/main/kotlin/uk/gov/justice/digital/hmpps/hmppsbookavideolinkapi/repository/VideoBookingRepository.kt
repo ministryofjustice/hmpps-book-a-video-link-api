@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import java.time.LocalDate
 
 @Repository
 interface VideoBookingRepository : JpaRepository<VideoBooking, Long> {
@@ -18,4 +19,16 @@ interface VideoBookingRepository : JpaRepository<VideoBooking, Long> {
     """,
   )
   fun countDistinctByPrisonerNumber(prisonerNumber: String): Long
+
+  @Query(
+    value = """
+      SELECT v
+      FROM VideoBooking v
+      JOIN VideoAppointment va on va.videoBookingId = v.videoBookingId
+      WHERE va.appointmentDate >= :date
+        AND v.probationMeetingType IN :probationMeetingTypes
+        AND v.bookingType = 'PROBATION'
+    """,
+  )
+  fun findByProbationMeetingTypesOnOrAfterDate(probationMeetingTypes: List<String>, date: LocalDate): List<VideoBooking>
 }

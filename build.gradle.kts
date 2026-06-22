@@ -99,7 +99,6 @@ val configValues = mapOf(
   "dateLibrary" to "java8-localdatetime",
   "serializationLibrary" to "jackson",
   "enumPropertyNaming" to "original",
-  "useSpringBoot3" to "true",
 )
 
 val buildDirectory: Directory = layout.buildDirectory.get()
