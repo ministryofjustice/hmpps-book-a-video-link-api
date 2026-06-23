@@ -9,7 +9,6 @@ import jakarta.validation.ConstraintValidatorContext
 import jakarta.validation.Payload
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
@@ -17,13 +16,12 @@ import kotlin.reflect.KClass
 
 @Schema(description = "The request object sent to the availability check endpoint")
 data class AvailabilityRequest(
-  @field:NotNull(message = "The date is mandatory")
   @Schema(
     description = "The booking type",
     example = "COURT",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val bookingType: BookingType?,
+  val bookingType: BookingType,
 
   @field:NotBlank(message = "Court or probation team code is mandatory")
   @Schema(
@@ -31,7 +29,7 @@ data class AvailabilityRequest(
     example = "DRBYMC",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val courtOrProbationCode: String?,
+  val courtOrProbationCode: String,
 
   @field:NotBlank(message = "The prison code must be present")
   @Schema(
@@ -39,15 +37,14 @@ data class AvailabilityRequest(
     example = "MDI",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val prisonCode: String?,
+  val prisonCode: String,
 
-  @field:NotNull(message = "The date is mandatory")
   @Schema(
     description = "The date for the appointments on this booking (must all be on the same day)",
     example = "2024-04-05",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val date: LocalDate?,
+  val date: LocalDate,
 
   @field:Valid
   @Schema(
@@ -57,12 +54,11 @@ data class AvailabilityRequest(
   val preAppointment: LocationAndInterval? = null,
 
   @field:Valid
-  @field:NotNull(message = "The main appointment is mandatory")
   @Schema(
     description = "The main appointment which is always present",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val mainAppointment: LocationAndInterval?,
+  val mainAppointment: LocationAndInterval,
 
   @field:Valid
   @Schema(
@@ -87,7 +83,7 @@ data class LocationAndInterval(
     example = "VCC-ROOM-1",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val prisonLocKey: String?,
+  val prisonLocKey: String,
 
   @Schema(
     description = "The start and end time of a prison appointment to define the interval",
@@ -96,28 +92,26 @@ data class LocationAndInterval(
   @field:ValidInterval
   val interval: Interval,
 ) {
-  fun shift(duration: Duration): LocationAndInterval = copy(interval = Interval(interval.start?.plus(duration), interval.end?.plus(duration)))
+  fun shift(duration: Duration): LocationAndInterval = copy(interval = Interval(interval.start.plus(duration), interval.end.plus(duration)))
 }
 
 @Schema(description = "A time interval between a start and end time")
 data class Interval(
-  @field:NotNull(message = "The start time is mandatory")
   @Schema(
     description = "The interval start time, inclusive. ISO-8601 format (hh:mm)",
     example = "09:00",
     requiredMode = RequiredMode.REQUIRED,
   )
   @JsonFormat(pattern = "HH:mm")
-  val start: LocalTime?,
+  val start: LocalTime,
 
-  @field:NotNull(message = "The end time is mandatory")
   @Schema(
     description = "The interval end time (inclusive). ISO-8601 format (hh:mm)",
     example = "09:30",
     requiredMode = RequiredMode.REQUIRED,
   )
   @JsonFormat(pattern = "HH:mm")
-  val end: LocalTime?,
+  val end: LocalTime,
 )
 
 @Target(AnnotationTarget.TYPE, AnnotationTarget.FIELD)
@@ -132,6 +126,6 @@ annotation class ValidInterval(
 class IntervalValidator : ConstraintValidator<ValidInterval, Interval> {
   override fun isValid(interval: Interval?, context: ConstraintValidatorContext?) = when (interval) {
     null -> true
-    else -> interval.start?.isBefore(interval.end) ?: false
+    else -> interval.start.isBefore(interval.end)
   }
 }

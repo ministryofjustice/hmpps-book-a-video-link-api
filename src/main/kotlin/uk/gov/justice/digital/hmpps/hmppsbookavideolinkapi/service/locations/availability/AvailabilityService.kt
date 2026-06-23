@@ -42,18 +42,18 @@ class AvailabilityService(
   fun isAvailable(request: CreateVideoBookingRequest) = checkAvailability(
     AvailabilityRequest(
       bookingType = request.bookingType,
-      courtOrProbationCode = request.courtCode ?: request.probationTeamCode,
+      courtOrProbationCode = request.courtCode ?: request.probationTeamCode!!,
       prisonCode = request.prisoners.first().prisonCode,
       date = request.prisoners.first().appointments.first().date,
       preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
       mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
-        ?: request.appointment(AppointmentType.VLB_PROBATION),
+        ?: request.appointment(AppointmentType.VLB_PROBATION)!!,
       postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
     ),
   ).availabilityOk
 
   private fun CreateVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }
-    ?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
+    ?.let { LocationAndInterval(it.locationKey!!, Interval(it.startTime, it.endTime)) }
 
   fun isAvailable(videoBookingId: Long, request: AmendVideoBookingRequest): Boolean {
     val existingBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
@@ -61,19 +61,19 @@ class AvailabilityService(
     return checkAvailability(
       AvailabilityRequest(
         bookingType = request.bookingType,
-        courtOrProbationCode = existingBooking?.court?.code ?: existingBooking?.probationTeam?.code,
+        courtOrProbationCode = existingBooking?.court?.code ?: existingBooking?.probationTeam?.code!!,
         prisonCode = request.prisoners.first().prisonCode,
         date = request.prisoners.first().appointments.first().date,
         preAppointment = request.appointment(AppointmentType.VLB_COURT_PRE),
         mainAppointment = request.appointment(AppointmentType.VLB_COURT_MAIN)
-          ?: request.appointment(AppointmentType.VLB_PROBATION),
+          ?: request.appointment(AppointmentType.VLB_PROBATION)!!,
         postAppointment = request.appointment(AppointmentType.VLB_COURT_POST),
         vlbIdToExclude = videoBookingId,
       ),
     ).availabilityOk
   }
 
-  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey, Interval(it.startTime, it.endTime)) }
+  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey!!, Interval(it.startTime, it.endTime)) }
 
   /**
    * Assumptions:
@@ -93,7 +93,7 @@ class AvailabilityService(
     val locationKeys = setOfNotNull(
       request.preAppointment?.prisonLocKey,
       request.postAppointment?.prisonLocKey,
-      request.mainAppointment!!.prisonLocKey,
+      request.mainAppointment.prisonLocKey,
     )
 
     log.info("AVAILABILITY CHECK: for the following location keys $locationKeys")
@@ -106,8 +106,8 @@ class AvailabilityService(
 
     // Build a list of AppointmentSlots for existing VLBs from BVLS at these locations on this date
     val (bvlsAppointmentSlotsToInclude: List<AppointmentSlot>, appointmentsToExclude: List<AppointmentSlot>) = videoAppointmentRepository.findVideoAppointmentsAtPrison(
-      forDate = request.date!!,
-      forPrison = request.prisonCode!!,
+      forDate = request.date,
+      forPrison = request.prisonCode,
       forLocationIds = requestedLocations.values.map { it.id },
     ).partition { vlb -> vlb.videoBookingId != request.vlbIdToExclude }
 
@@ -141,13 +141,13 @@ class AvailabilityService(
     if (mayBeExistingBooking != null) {
       if (mayBeExistingBooking.isBookingType(PROBATION)) {
         return mayBeExistingBooking.probationMeeting()!!.dateTimeAndLocationIsTheSame(
-          date!!,
-          mainAppointment!!.interval,
+          date,
+          mainAppointment.interval,
           requestedLocations[mainAppointment.prisonLocKey]!!,
         )
       } else {
         val preLocation = preAppointment?.prisonLocKey?.let { requestedLocations[it] }
-        val mainLocation = requestedLocations[mainAppointment!!.prisonLocKey]!!
+        val mainLocation = requestedLocations[mainAppointment.prisonLocKey]!!
         val postLocation = postAppointment?.prisonLocKey?.let { requestedLocations[it] }
 
         val preHearingIsTheSame = (mayBeExistingBooking.preHearing() == null && preLocation == null) ||
@@ -155,7 +155,7 @@ class AvailabilityService(
           mayBeExistingBooking.preHearing()!!.dateTimeAndLocationIsTheSame(date, preAppointment?.interval, preLocation)
 
         val mainHearingIsTheSame =
-          mayBeExistingBooking.mainHearing()!!.dateTimeAndLocationIsTheSame(date!!, mainAppointment.interval, mainLocation)
+          mayBeExistingBooking.mainHearing()!!.dateTimeAndLocationIsTheSame(date, mainAppointment.interval, mainLocation)
 
         val postHearingIsTheSame = (mayBeExistingBooking.postHearing() == null && postLocation == null) ||
           mayBeExistingBooking.postHearing() != null &&

@@ -15,12 +15,12 @@ import jakarta.validation.constraints.Size
 data class AdditionalBookingDetails(
   @field:NotBlank(message = "Contact name is mandatory")
   @field:Size(max = 100, message = "Contact name should not exceed {max} characters")
-  val contactName: String?,
+  val contactName: String,
 
   @field:NotBlank(message = "Contact email is mandatory")
   @field:Size(max = 100, message = "Contact email should not exceed {max} characters")
   @Schema(description = "The email address for the contact, must be a valid email address")
-  val contactEmail: String?,
+  val contactEmail: String,
 
   @field:Size(max = 30, message = "Contact phone number should not exceed {max} characters")
   @Schema(description = "The contact phone number for the contact, must be a valid phone number")

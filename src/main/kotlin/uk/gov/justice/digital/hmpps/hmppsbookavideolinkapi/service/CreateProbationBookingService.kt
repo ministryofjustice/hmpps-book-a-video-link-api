@@ -66,8 +66,8 @@ class CreateProbationBookingService(
       additionalBookingDetailRepository.saveAndFlush(
         AdditionalBookingDetail.newDetails(
           videoBooking = booking,
-          contactName = details.contactName!!,
-          contactEmail = details.contactEmail!!,
+          contactName = details.contactName,
+          contactEmail = details.contactEmail,
           contactPhoneNumber = details.contactNumber,
         ),
       )
@@ -80,7 +80,7 @@ class CreateProbationBookingService(
   private fun PrisonerDetails.validate(): Prisoner {
     // We are not checking if the prison is enabled here as we need to support prison users also.
     // Our UI should not be sending disabled prisons though.
-    prisonRepository.findByCode(prisonCode!!) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
-    return prisonerValidator.validatePrisonerAtPrison(prisonerNumber!!, prisonCode).toPrisonerDetails()
+    prisonRepository.findByCode(prisonCode) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
+    return prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode).toPrisonerDetails()
   }
 }

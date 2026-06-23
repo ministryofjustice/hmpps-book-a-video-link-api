@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.GroupSequence
 import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.FutureOrPresent
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
@@ -13,13 +12,11 @@ import java.time.LocalDate
 
 @GroupSequence(AmendDecoratedRoomRequest::class, BlockedDateValidationExtension::class)
 data class AmendDecoratedRoomRequest(
-  @field:NotNull(message = "The location usage is mandatory")
   @Schema(description = "The location usage for the location", example = "PROBATION", required = true)
-  val locationUsage: LocationUsage?,
+  val locationUsage: LocationUsage,
 
-  @field:NotNull(message = "The location status is mandatory")
   @Schema(description = "The location usage for the location", example = "INACTIVE", required = true)
-  val locationStatus: LocationStatus?,
+  val locationStatus: LocationStatus,
 
   @Schema(description = "Court or probation team codes allowed to use the room, can be null", example = "[\"DRBYMC\"]", required = false)
   val allowedParties: Set<String>? = null,

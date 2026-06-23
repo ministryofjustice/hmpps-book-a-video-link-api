@@ -253,9 +253,9 @@ class VideoLinkBookingsServiceTest {
       val booking = courtBooking()
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
-          prisonerNumber = searchRequest.prisonerNumber!!,
+          prisonerNumber = searchRequest.prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_PRE.name,
-          date = searchRequest.date!!,
+          date = searchRequest.date,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(12, 0),
           locationId = wandsworthLocation.id,
@@ -265,8 +265,8 @@ class VideoLinkBookingsServiceTest {
           prisonerNumber = searchRequest.prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
           date = searchRequest.date,
-          startTime = searchRequest.startTime!!,
-          endTime = searchRequest.endTime!!,
+          startTime = searchRequest.startTime,
+          endTime = searchRequest.endTime,
           locationId = wandsworthLocation.id,
         )
 
@@ -302,11 +302,11 @@ class VideoLinkBookingsServiceTest {
       val booking = courtBooking()
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
-          prisonerNumber = searchRequest.prisonerNumber!!,
+          prisonerNumber = searchRequest.prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-          date = searchRequest.date!!,
-          startTime = searchRequest.startTime!!,
-          endTime = searchRequest.endTime!!,
+          date = searchRequest.date,
+          startTime = searchRequest.startTime,
+          endTime = searchRequest.endTime,
           locationId = wandsworthLocation.id,
         )
         .apply { cancel(COURT_USER) }
@@ -342,9 +342,9 @@ class VideoLinkBookingsServiceTest {
       val booking = courtBooking()
         .addAppointment(
           prison = prison(prisonCode = WANDSWORTH),
-          prisonerNumber = searchRequest.prisonerNumber!!,
+          prisonerNumber = searchRequest.prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_PRE.name,
-          date = searchRequest.date!!,
+          date = searchRequest.date,
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(12, 0),
           locationId = wandsworthLocation.id,
@@ -354,8 +354,8 @@ class VideoLinkBookingsServiceTest {
           prisonerNumber = searchRequest.prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
           date = searchRequest.date,
-          startTime = searchRequest.startTime!!,
-          endTime = searchRequest.endTime!!,
+          startTime = searchRequest.startTime,
+          endTime = searchRequest.endTime,
           locationId = wandsworthLocation.id,
         )
 

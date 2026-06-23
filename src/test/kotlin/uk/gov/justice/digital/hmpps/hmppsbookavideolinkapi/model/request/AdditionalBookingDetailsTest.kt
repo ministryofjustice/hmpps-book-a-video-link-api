@@ -18,6 +18,6 @@ class AdditionalBookingDetailsTest : ValidatorBase<AdditionalBookingDetails>() {
 
   @Test
   fun `should fail when no email address`() {
-    details.copy(contactEmail = null) failsWithSingle ModelError("contactEmail", "Contact email is mandatory")
+    details.copy(contactEmail = " ") failsWithSingle ModelError("contactEmail", "Contact email is mandatory")
   }
 }
