@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.security.access.AccessDeniedException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.ManageUsersClient
@@ -49,10 +51,12 @@ class UserServiceTest {
     whenever(manageUsersClient.getUsersDetails("testUser")) doReturn userDetails("testUser", "Test User", authSource = AuthSource.nomis, activeCaseLoadId = BIRMINGHAM)
 
     userService.getUser("testUser") as PrisonUser isEqualTo PrisonUser(username = "testUser", name = "Test User", activeCaseLoadId = BIRMINGHAM)
+
+    verify(manageUsersClient).getUsersDetails("testUser")
   }
 
   @Test
-  fun `getUser should return probation user when authSource is auth and group code is probation user`() {
+  fun `getUser should return external probation user when authSource is auth and group code is probation user`() {
     val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.auth)
     val probationTeam = probationTeam()
 
@@ -61,13 +65,42 @@ class UserServiceTest {
     whenever(probationTeamRepository.findProbationTeamsByUsername(userDetails.username)) doReturn listOf(probationTeam)
 
     val probationUser = userService.getUser("testUser") as ExternalUser
+
     probationUser isEqualTo ExternalUser(username = userDetails.username, name = "Test User", isProbationUser = true, probationTeams = setOf(probationTeam.code))
     probationUser.hasAccessTo(probationTeam) isBool true
     probationUser.hasAccessTo(probationTeam(code = "NO_ACCESS")) isBool false
   }
 
   @Test
-  fun `getUser should return court user when authSource is auth and group code is court user`() {
+  fun `getUser should return Delius probation user when authSource is delius`() {
+    val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.delius)
+    val probationTeam = probationTeam()
+
+    whenever(manageUsersClient.getUsersDetails(userDetails.username)) doReturn userDetails
+    whenever(manageUsersClient.getUsersEmail(userDetails.username)) doReturn userEmailAddress(userDetails.username, "test@example.com")
+    whenever(probationTeamRepository.findProbationTeamsByUsername(userDetails.username)) doReturn listOf(probationTeam)
+
+    val deliusProbationUser = userService.getUser("testUser") as DeliusUser
+
+    deliusProbationUser isEqualTo DeliusUser(
+      username = userDetails.username,
+      email = "test@example.com",
+      name = "Test User",
+      isProbationUser = true,
+      probationTeams = setOf(probationTeam.code),
+    )
+
+    deliusProbationUser.hasAccessTo(probationTeam) isBool true
+    deliusProbationUser.hasAccessTo(probationTeam(code = "NO_ACCESS")) isBool false
+
+    verify(manageUsersClient).getUsersDetails(userDetails.username)
+    verify(manageUsersClient).getUsersEmail(userDetails.username)
+    verify(probationTeamRepository).findProbationTeamsByUsername(userDetails.username)
+    verifyNoMoreInteractions(manageUsersClient)
+  }
+
+  @Test
+  fun `getUser should return external court user when authSource is auth and group code is court user`() {
     val userDetails = userDetails("testUser", "Test User", authSource = AuthSource.auth)
     val court = court()
 
@@ -76,18 +109,23 @@ class UserServiceTest {
     whenever(courtRepository.findCourtsByUsername(userDetails.username)) doReturn listOf(court)
 
     val courtUser = userService.getUser("testUser") as ExternalUser
+
     courtUser isEqualTo ExternalUser(username = userDetails.username, name = "Test User", isCourtUser = true, courts = setOf(court.code))
     courtUser.hasAccessTo(court) isBool true
     courtUser.hasAccessTo(court(code = "NO_ACCESS")) isBool false
+
+    verify(manageUsersClient).getUsersDetails(userDetails.username)
+    verify(manageUsersClient).getUsersGroups(userDetails.userId)
+    verify(courtRepository).findCourtsByUsername(userDetails.username)
   }
 
   @Test
   fun `getUser should throw AccessDeniedException for unsupported authSource`() {
-    whenever(manageUsersClient.getUsersDetails("testUser")) doReturn userDetails("testUser", "Test User", authSource = AuthSource.delius)
+    whenever(manageUsersClient.getUsersDetails("testUser")) doReturn userDetails("testUser", "Test User", authSource = AuthSource.none)
 
     val exception = assertThrows<AccessDeniedException> { userService.getUser("testUser") }
 
-    exception.message isEqualTo "Users with auth source delius are not supported by this service"
+    exception.message isEqualTo "Users with auth source none are not supported by this service"
   }
 
   @Test
@@ -141,9 +179,22 @@ class UserServiceTest {
   }
 
   @Test
+  fun `should create delius users`() {
+    DeliusUser(username = "username", name = "name", isProbationUser = true)
+    DeliusUser(username = "username", name = "name", isProbationUser = true, isCourtUser = false, probationTeams = setOf("BLKPPP"))
+  }
+
+  @Test
   fun `should fail to create court or probation user`() {
     assertThrows<IllegalArgumentException> {
       ExternalUser(username = "username", name = "name", isCourtUser = false, isProbationUser = false)
     }.message isEqualTo "External user must be a court or probation user"
+  }
+
+  @Test
+  fun `should fail to create delius user`() {
+    assertThrows<IllegalArgumentException> {
+      DeliusUser(username = "username", name = "name", isProbationUser = false, isCourtUser = true)
+    }.message isEqualTo "Delius user must be a probation user"
   }
 }

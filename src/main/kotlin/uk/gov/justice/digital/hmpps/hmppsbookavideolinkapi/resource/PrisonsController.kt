@@ -70,8 +70,7 @@ class PrisonsController(
   @GetMapping(value = ["/{prisonCode}/locations"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getAppointmentLocationsAtPrison(
-    @Parameter(description = "The prison code for which locations will be retrieved.")
-    @PathVariable(name = "prisonCode", required = true)
+    @PathVariable(required = true) @Parameter(description = "The prison code for which locations will be retrieved.")
     prisonCode: String,
     @Parameter(description = "Enabled (active) locations only, true or false. Defaults to true if not supplied.")
     @RequestParam(name = "enabledOnly", required = true)
@@ -103,7 +102,6 @@ class PrisonsController(
   @GetMapping(value = ["/{prisonCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getPrisonByCode(
-    @Parameter(description = "The code of the prison to be returned.")
-    @PathVariable("prisonCode", required = true) prisonCode: String,
+    @PathVariable(required = true) @Parameter(description = "The code of the prison to be returned.") prisonCode: String,
   ) = prisonsService.getPrison(prisonCode)
 }
