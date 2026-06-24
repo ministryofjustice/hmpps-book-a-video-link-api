@@ -69,7 +69,7 @@ class CreateCourtBookingRequestBuilder {
                 type = AppointmentType.VLB_COURT_PRE,
                 locationKey = it.key,
                 date = main.date,
-                startTime = main.startTime!!.minusMinutes(15),
+                startTime = main.startTime.minusMinutes(15),
                 endTime = main.startTime,
               )
             },
@@ -79,8 +79,8 @@ class CreateCourtBookingRequestBuilder {
                 type = AppointmentType.VLB_COURT_POST,
                 locationKey = it.key,
                 date = main.date,
-                startTime = main.endTime!!,
-                endTime = main.endTime!!.plusMinutes(15),
+                startTime = main.endTime,
+                endTime = main.endTime.plusMinutes(15),
               )
             },
           ),
@@ -149,7 +149,7 @@ class AmendCourtBookingRequestBuilder {
                 type = AppointmentType.VLB_COURT_PRE,
                 locationKey = it.key,
                 date = main.date,
-                startTime = main.startTime!!.minusMinutes(15),
+                startTime = main.startTime.minusMinutes(15),
                 endTime = main.startTime,
               )
             },
@@ -159,8 +159,8 @@ class AmendCourtBookingRequestBuilder {
                 type = AppointmentType.VLB_COURT_POST,
                 locationKey = it.key,
                 date = main.date,
-                startTime = main.endTime!!,
-                endTime = main.endTime!!.plusMinutes(15),
+                startTime = main.endTime,
+                endTime = main.endTime.plusMinutes(15),
               )
             },
           ),

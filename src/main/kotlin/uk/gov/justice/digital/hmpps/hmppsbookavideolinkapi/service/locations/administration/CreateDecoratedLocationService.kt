@@ -36,8 +36,8 @@ class CreateDecoratedLocationService(
       LocationAttribute.decoratedRoom(
         dpsLocationId = dpsLocationId,
         prison = prisonRepository.findByCode(location.prisonCode) ?: throw EntityNotFoundException("Matching prison code ${location.prisonCode} not found for DPS location ID $dpsLocationId."),
-        locationStatus = LocationStatus.valueOf(request.locationStatus!!.name),
-        locationUsage = LocationUsage.valueOf(request.locationUsage!!.name),
+        locationStatus = LocationStatus.valueOf(request.locationStatus.name),
+        locationUsage = LocationUsage.valueOf(request.locationUsage.name),
         allowedParties = request.allowedParties ?: emptySet(),
         prisonVideoUrl = request.prisonVideoUrl,
         notes = request.comments,

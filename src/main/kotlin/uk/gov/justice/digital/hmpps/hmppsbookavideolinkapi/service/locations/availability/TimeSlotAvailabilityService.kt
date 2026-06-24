@@ -44,10 +44,10 @@ class TimeSlotAvailabilityService(
 
   override fun findAvailable(request: TimeSlotAvailabilityRequest): AvailableLocationsResponse {
     val (startOfDay, endOfDay) = getStartAndEndOfDay(request)
-    val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode!!)
+    val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode)
     val mayBeExistingBooking = request.vlbIdToExclude?.let { videoBookingRepository.findById(it).orElseThrow { EntityNotFoundException("Video booking with ID $it not found.") } }
-    val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date!!, prisonVideoLinkLocations, request.vlbIdToExclude))
-    val meetingDuration = request.bookingDuration!!.toLong()
+    val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date, prisonVideoLinkLocations, request.vlbIdToExclude))
+    val meetingDuration = request.bookingDuration.toLong()
 
     val availableLocationsBuilder = TimeSlotLocationsBuilder.builder {
       prisonVideoLinkLocations.forEach { location ->
@@ -120,7 +120,7 @@ class TimeSlotAvailabilityService(
   }
 
   private fun getStartAndEndOfDay(request: TimeSlotAvailabilityRequest): Pair<LocalTime, LocalTime> {
-    val regimeStartOfDay = prisonRegime.startOfDay(request.prisonCode!!)
+    val regimeStartOfDay = prisonRegime.startOfDay(request.prisonCode)
     val regimeEndOfDay = prisonRegime.endOfDay(request.prisonCode)
     val now = timeSource.now()
 
@@ -139,27 +139,27 @@ class TimeSlotAvailabilityService(
 
   private fun TimeSlotAvailabilityRequest.fallsWithinSlotTime(time: LocalTime) = timeSlots == null || timeSlots.any { slot -> slot.isTimeInSlot(time) }
 
-  private fun TimeSlotAvailabilityRequest.isForToday() = this.date!! == timeSource.today()
+  private fun TimeSlotAvailabilityRequest.isForToday() = this.date == timeSource.today()
 
   private fun Location.allowsByAnyRuleOrSchedule(request: TimeSlotAvailabilityRequest, time: LocalTime): AvailabilityStatus {
     if (extraAttributes != null) {
-      return when (request.bookingType!!) {
+      return when (request.bookingType) {
         BookingType.COURT -> locationAttributesService.isLocationAvailableFor(
           LocationAvailableRequest.court(
             extraAttributes.attributeId,
             request.courtCode!!,
-            request.date!!,
+            request.date,
             time,
-            time.plusMinutes(request.bookingDuration!!.toLong()),
+            time.plusMinutes(request.bookingDuration.toLong()),
           ),
         )
         BookingType.PROBATION -> locationAttributesService.isLocationAvailableFor(
           LocationAvailableRequest.probation(
             extraAttributes.attributeId,
             request.probationTeamCode!!,
-            request.date!!,
+            request.date,
             time,
-            time.plusMinutes(request.bookingDuration!!.toLong()),
+            time.plusMinutes(request.bookingDuration.toLong()),
           ),
         )
       }

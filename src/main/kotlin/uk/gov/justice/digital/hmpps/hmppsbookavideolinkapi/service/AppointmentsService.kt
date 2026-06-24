@@ -24,7 +24,7 @@ class AppointmentsService(
 ) {
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
   fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
-    checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
+    checkCourtAppointments(prisoner.appointments, prisoner.prisonCode, user)
 
     // We don't need to do a check for non-prison users as this is covered by the overlapping appointment check.
     if (user is PrisonUser) {
@@ -41,11 +41,11 @@ class AppointmentsService(
     prisoner.appointments.forEach {
       videoBooking.addAppointment(
         prison = prison,
-        prisonerNumber = prisoner.prisonerNumber!!,
-        appointmentType = it.type!!.name,
-        date = it.date!!,
-        startTime = it.startTime!!,
-        endTime = it.endTime!!,
+        prisonerNumber = prisoner.prisonerNumber,
+        appointmentType = it.type.name,
+        date = it.date,
+        startTime = it.startTime,
+        endTime = it.endTime,
         locationId = locations.single { location -> location.key == it.locationKey }.id,
       )
     }
@@ -64,7 +64,7 @@ class AppointmentsService(
         count { it.type == AppointmentType.VLB_COURT_PRE } <= 1 &&
         count { it.type == AppointmentType.VLB_COURT_POST } <= 1 &&
         count { it.type == AppointmentType.VLB_COURT_MAIN } == 1 &&
-        all { it.type!!.isCourt },
+        all { it.type.isCourt },
     ) {
       "Court bookings can only have one pre hearing, one hearing and one post hearing."
     }
@@ -80,7 +80,7 @@ class AppointmentsService(
     }
   }
 
-  private fun Appointment.isBefore(other: Appointment): Boolean = this.date!! <= other.date && this.endTime!! <= other.startTime
+  private fun Appointment.isBefore(other: Appointment): Boolean = this.date <= other.date && this.endTime <= other.startTime
 
   fun createAppointmentForProbation(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
     createProbationAppointment(videoBooking, prisoner, user)
@@ -95,7 +95,7 @@ class AppointmentsService(
   }
 
   private fun createProbationAppointment(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User, originalAppointment: PrisonAppointment? = null) {
-    checkProbationAppointments(prisoner.appointments.single(), prisoner.prisonCode!!, user, originalAppointment)
+    checkProbationAppointments(prisoner.appointments.single(), prisoner.prisonCode, user, originalAppointment)
 
     // We don't need to do a check for non-prison users as this is covered by the overlapping appointment check.
     if (user is PrisonUser) {
@@ -111,11 +111,11 @@ class AppointmentsService(
 
       videoBooking.addAppointment(
         prison = prison,
-        prisonerNumber = prisoner.prisonerNumber!!,
-        appointmentType = this.type!!.name,
-        date = this.date!!,
-        startTime = this.startTime!!,
-        endTime = this.endTime!!,
+        prisonerNumber = prisoner.prisonerNumber,
+        appointmentType = this.type.name,
+        date = this.date,
+        startTime = this.startTime,
+        endTime = this.endTime,
         locationId = location!!.id,
       )
     }
@@ -127,7 +127,7 @@ class AppointmentsService(
 
   private fun checkProbationAppointments(appointment: Appointment, prisonCode: String, user: User, originalAppointment: PrisonAppointment? = null) {
     with(appointment) {
-      require(type!!.isProbation) {
+      require(type.isProbation) {
         "Appointment type $type is not valid for probation appointments"
       }
 
@@ -157,11 +157,11 @@ class AppointmentsService(
     val location = locationsInsidePrisonClient.getLocationByKey(appointment.locationKey!!)
 
     if (prisonAppointmentRepository.existsActivePrisonAppointmentsByPrisonerNumberLocationDateAndTime(
-        prisonCode = prisonCode!!,
-        prisonerNumber = prisonerNumber!!,
-        date = appointment.date!!,
-        startTime = appointment.startTime!!,
-        endTime = appointment.endTime!!,
+        prisonCode = prisonCode,
+        prisonerNumber = prisonerNumber,
+        date = appointment.date,
+        startTime = appointment.startTime,
+        endTime = appointment.endTime,
         prisonLocationId = location!!.id,
       )
     ) {
@@ -173,12 +173,12 @@ class AppointmentsService(
     prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(
       prisonCode,
       location.id,
-      date!!,
+      date,
     ).forEach { existingAppointment ->
       require(
         !isTimesOverlap(
-          startTime!!,
-          endTime!!,
+          startTime,
+          endTime,
           existingAppointment.startTime,
           existingAppointment.endTime,
         ),

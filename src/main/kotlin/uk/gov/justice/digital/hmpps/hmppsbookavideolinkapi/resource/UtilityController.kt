@@ -38,7 +38,7 @@ class UtilityController(private val outboundEventsService: OutboundEventsService
   ) = run {
     log.info("UTILITY: publishing domain event ${publishEventUtilityModel.event}")
 
-    publishEventUtilityModel.identifiers!!.forEach { outboundEventsService.send(publishEventUtilityModel.event!!.toDomainEvent(), it) }
+    publishEventUtilityModel.identifiers.forEach { outboundEventsService.send(publishEventUtilityModel.event.toDomainEvent(), it) }
 
     "UTILITY: published domain event ${publishEventUtilityModel.event}"
   }

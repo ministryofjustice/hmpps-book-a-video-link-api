@@ -82,7 +82,7 @@ class AmendCourtBookingService(
   private fun PrisonerDetails.validate(): Prisoner {
     // We are not checking if the prison is enabled here as we need to support prison users also.
     // Our UI should not be sending disabled prisons though.
-    prisonRepository.findByCode(prisonCode!!) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
-    return prisonerSearchClient.getPrisoner(prisonerNumber!!)?.toPrisonerDetails() ?: throw ValidationException("Prisoner $prisonerNumber not found.")
+    prisonRepository.findByCode(prisonCode) ?: throw EntityNotFoundException("Prison with code $prisonCode not found")
+    return prisonerSearchClient.getPrisoner(prisonerNumber)?.toPrisonerDetails() ?: throw ValidationException("Prisoner $prisonerNumber not found.")
   }
 }

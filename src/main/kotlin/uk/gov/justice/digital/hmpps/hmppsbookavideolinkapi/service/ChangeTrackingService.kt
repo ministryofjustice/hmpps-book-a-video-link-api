@@ -63,7 +63,7 @@ class ChangeTrackingService(
       .findById(videoBookingId)
       .orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found.") }
       .also {
-        require(requestedBookingChanges.bookingType!!.name == it.bookingType.name) {
+        require(requestedBookingChanges.bookingType.name == it.bookingType.name) {
           "Request type and existing booking type must be the same. Request type is ${requestedBookingChanges.bookingType} and booking type is ${it.bookingType}."
         }
       }
@@ -89,7 +89,7 @@ private fun AmendVideoBookingRequest.toComparableBooking(
     return ProbationBooking(
       meetingType = this.probationMeetingType.name,
       location = locationsService.getLocationByKey(appointment.locationKey!!)?.dpsLocationId!!,
-      date = appointment.date!!,
+      date = appointment.date,
       startTime = appointment.startTime,
       endTime = appointment.endTime,
       notesForStaff = notesForStaff,
@@ -106,12 +106,12 @@ private fun AmendVideoBookingRequest.toComparableBooking(
 
   return CourtBooking(
     hearingType = this.courtHearingType!!.name,
-    date = main.date!!,
+    date = main.date,
     preStartTime = pre?.startTime,
     preEndTime = pre?.endTime,
     preLocation = pre?.locationKey?.let { locationsService.getLocationByKey(it)?.dpsLocationId },
-    mainStartTime = main.startTime!!,
-    mainEndTime = main.endTime!!,
+    mainStartTime = main.startTime,
+    mainEndTime = main.endTime,
     mainLocation = main.locationKey?.let { locationsService.getLocationByKey(it)?.dpsLocationId },
     postStartTime = post?.startTime,
     postEndTime = post?.endTime,

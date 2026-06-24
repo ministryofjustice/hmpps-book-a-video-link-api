@@ -293,7 +293,7 @@ fun requestProbationVideoLinkRequest(
       listOf(
         RequestedAppointment(
           type = AppointmentType.VLB_PROBATION,
-          date = date,
+          date = date!!,
           startTime = startTime,
           endTime = endTime,
         ),
