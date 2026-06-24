@@ -65,7 +65,7 @@ class VideoBookingServiceDelegate(
     cancelVideoBookingService.cancel(videoBookingId, cancelledBy)
   }
 
-  fun request(booking: RequestVideoBookingRequest, user: ExternalUser) {
+  fun request(booking: RequestVideoBookingRequest, user: User) {
     checkStartDateNotTooFarInFuture(booking.prisoners.first().appointments.first().date!!)
 
     requestBookingService.request(booking, user)

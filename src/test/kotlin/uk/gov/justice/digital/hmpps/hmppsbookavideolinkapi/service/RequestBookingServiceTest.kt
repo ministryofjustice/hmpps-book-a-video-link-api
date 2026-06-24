@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUserDelius
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
@@ -327,7 +328,7 @@ class RequestBookingServiceTest {
   }
 
   @Test
-  fun `should send emails with comments to the requester and to the prison on a probation booking request`() {
+  fun `should send emails to the requester and the prison on a probation booking request by an nDelius user`() {
     val bookingRequest = requestProbationVideoLinkRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
       prisonCode = WANDSWORTH,
@@ -341,7 +342,7 @@ class RequestBookingServiceTest {
     whenever(emailService.send(any<ProbationBookingRequestUserEmail>())) doReturn Result.success(notificationId to "probation template id")
     whenever(emailService.send(any<ProbationBookingRequestPrisonNoProbationTeamEmail>())) doReturn Result.success(notificationId to "prison template id")
 
-    service.request(bookingRequest, probationUser("probation user"))
+    service.request(bookingRequest, probationUserDelius("probation user"))
 
     inOrder(emailService, notificationRepository) {
       verify(emailService).send(emailCaptor.capture())

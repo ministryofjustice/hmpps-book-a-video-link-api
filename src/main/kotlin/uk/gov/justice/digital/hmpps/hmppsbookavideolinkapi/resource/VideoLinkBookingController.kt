@@ -100,8 +100,7 @@ class VideoLinkBookingController(
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun amend(
-    @PathVariable("videoBookingId")
-    videoBookingId: Long,
+    @PathVariable videoBookingId: Long,
     @Valid
     @RequestBody
     @Parameter(description = "The request with the amended video link booking details", required = true)
@@ -137,7 +136,7 @@ class VideoLinkBookingController(
   @GetMapping(value = ["/id/{videoBookingId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getVideoLinkBookingById(
-    @PathVariable("videoBookingId") videoBookingId: Long,
+    @PathVariable videoBookingId: Long,
     httpRequest: HttpServletRequest,
   ) = videoLinkBookingsService.getVideoLinkBookingById(videoBookingId, httpRequest.getBvlsRequestContext().user)
 
@@ -174,7 +173,7 @@ class VideoLinkBookingController(
   )
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun cancelVideoBooking(
-    @PathVariable("videoBookingId") videoBookingId: Long,
+    @PathVariable videoBookingId: Long,
     httpRequest: HttpServletRequest,
   ) {
     when (val user = httpRequest.getBvlsRequestContext().user) {
@@ -202,7 +201,7 @@ class VideoLinkBookingController(
     @Parameter(description = "The request with the requested video link booking details", required = true)
     request: RequestVideoBookingRequest,
     httpRequest: HttpServletRequest,
-  ) = bookingFacade.request(request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+  ) = bookingFacade.request(request, httpRequest.getBvlsRequestContext().user)
 
   @Operation(summary = "Endpoint to search for a unique matching video link booking.")
   @ApiResponses(

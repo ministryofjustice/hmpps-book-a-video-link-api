@@ -107,7 +107,7 @@ class BookingFacade(
     cancelBooking(videoBookingId, cancelledBy)
   }
 
-  fun request(booking: RequestVideoBookingRequest, user: ExternalUser) {
+  fun request(booking: RequestVideoBookingRequest, user: User) {
     videoBookingServiceDelegate.request(booking, user)
   }
 

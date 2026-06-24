@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Request
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestedAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.UnknownPrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.DeliusUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
@@ -130,6 +131,15 @@ fun courtUser(username: String = "user", name: String = "Test User", email: Stri
 )
 
 fun probationUser(username: String = "user", name: String = "Test User", email: String? = null) = ExternalUser(
+  username = username,
+  name = name,
+  email = email,
+  isProbationUser = true,
+  isCourtUser = false,
+  probationTeams = probationTeams,
+)
+
+fun probationUserDelius(username: String = "user", name: String = "Test User", email: String? = null) = DeliusUser(
   username = username,
   name = name,
   email = email,
