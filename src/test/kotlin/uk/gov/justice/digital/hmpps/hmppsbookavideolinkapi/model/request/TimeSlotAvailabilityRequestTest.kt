@@ -28,12 +28,7 @@ class TimeSlotAvailabilityRequestTest : ValidatorBase<TimeSlotAvailabilityReques
 
   @Test
   fun `should fail when prison code is missing`() {
-    request.copy(prisonCode = null) failsWithSingle ModelError("prisonCode", "The prison code is mandatory")
-  }
-
-  @Test
-  fun `should fail when booking type is missing`() {
-    request.copy(bookingType = null) failsWithSingle ModelError("bookingType", "The booking type is mandatory")
+    request.copy(prisonCode = " ") failsWithSingle ModelError("prisonCode", "The prison code is mandatory")
   }
 
   @Test
@@ -47,11 +42,6 @@ class TimeSlotAvailabilityRequestTest : ValidatorBase<TimeSlotAvailabilityReques
   }
 
   @Test
-  fun `should fail when no date provided`() {
-    request.copy(date = null) failsWithSingle ModelError("date", "The date is mandatory")
-  }
-
-  @Test
   fun `should fail when date is in the past`() {
     request.copy(date = yesterday()) failsWithSingle ModelError("date", "The date must be future or present")
   }
@@ -61,7 +51,5 @@ class TimeSlotAvailabilityRequestTest : ValidatorBase<TimeSlotAvailabilityReques
     IntRange(1, 1000).filterNot { it.mod(15) == 0 }.forEach {
       request.copy(bookingDuration = it) failsWithSingle ModelError("allowedDuration", "The booking duration must be a multiple of 15 minutes")
     }
-
-    request.copy(bookingDuration = null) failsWithSingle ModelError("bookingDuration", "The booking duration is mandatory")
   }
 }

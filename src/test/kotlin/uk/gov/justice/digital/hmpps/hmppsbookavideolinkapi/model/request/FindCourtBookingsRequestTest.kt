@@ -14,7 +14,7 @@ class FindCourtBookingsRequestTest : ValidatorBase<FindCourtBookingsRequest>() {
 
   @Test
   fun `should be errors for invalid requests`() {
-    FindCourtBookingsRequest(fromDate = today(), toDate = null, courtCodes = null) failsWithSingle ModelError("courtCodes", "At least one court code is required")
+    FindCourtBookingsRequest(fromDate = today(), toDate = null, courtCodes = emptyList()) failsWithSingle ModelError("courtCodes", "At least one court code is required")
     FindCourtBookingsRequest(fromDate = today(), toDate = yesterday(), courtCodes = listOf("CODE")) failsWithSingle ModelError("invalidDates", "The to date must be on or after the from date")
     FindCourtBookingsRequest(fromDate = today(), toDate = today().plusDays(31), courtCodes = listOf("CODE")) failsWithSingle ModelError("invalidDateRange", "The to date must be a maximum of thirty days after the from date")
   }

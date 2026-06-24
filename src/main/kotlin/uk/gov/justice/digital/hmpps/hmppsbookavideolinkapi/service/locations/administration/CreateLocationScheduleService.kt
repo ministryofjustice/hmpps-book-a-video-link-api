@@ -20,11 +20,11 @@ class CreateLocationScheduleService(
       ?: throw EntityNotFoundException("Location attribute with DPS location ID $dpsLocationId not found")
 
     locationAttribute.addSchedule(
-      usage = LocationScheduleUsage.valueOf(request.locationUsage!!.name),
-      startDayOfWeek = request.startDayOfWeek!!,
-      endDayOfWeek = request.endDayOfWeek!!,
-      startTime = request.startTime!!,
-      endTime = request.endTime!!,
+      usage = LocationScheduleUsage.valueOf(request.locationUsage.name),
+      startDayOfWeek = request.startDayOfWeek,
+      endDayOfWeek = request.endDayOfWeek,
+      startTime = request.startTime,
+      endTime = request.endTime,
       allowedParties = request.allowedParties.takeUnless { it.isNullOrEmpty() } ?: emptySet(),
       notes = request.notes,
       createdBy = createdBy,

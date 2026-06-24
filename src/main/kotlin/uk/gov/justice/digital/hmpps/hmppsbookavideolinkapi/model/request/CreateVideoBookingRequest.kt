@@ -10,7 +10,6 @@ import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -24,9 +23,8 @@ import java.time.LocalTime
 )
 data class CreateVideoBookingRequest(
 
-  @field:NotNull(message = "The video link booking type is mandatory")
   @Schema(description = "The booking type", example = "COURT")
-  val bookingType: BookingType?,
+  val bookingType: BookingType,
 
   @field:Valid
   @field:NotEmpty(message = "At least one prisoner must be supplied for a video link booking")
@@ -170,12 +168,12 @@ data class PrisonerDetails(
   @field:NotBlank(message = "Prison code is mandatory")
   @field:Size(max = 3, message = "Prison code should not exceed {max} characters")
   @Schema(description = "The prison code for the prisoner", example = "PVI")
-  val prisonCode: String?,
+  val prisonCode: String,
 
   @field:NotBlank(message = "Prisoner number is mandatory")
   @field:Size(max = 7, message = "Prisoner number must not exceed {max} characters")
   @Schema(description = "The prisoner number (NOMIS ID)", example = "A1234AA")
-  val prisonerNumber: String?,
+  val prisonerNumber: String,
 
   @field:Valid
   @field:NotEmpty(message = "At least one appointment must be supplied for the prisoner")
@@ -196,44 +194,40 @@ data class PrisonerDetails(
 
 @GroupSequence(Appointment::class, DateValidationExtension::class)
 data class Appointment(
-  @field:NotNull(message = "The appointment type for the appointment is mandatory")
   @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
-  val type: AppointmentType?,
+  val type: AppointmentType,
 
   @field:NotBlank(message = "The location key for the appointment is mandatory")
   @field:Size(max = 160, message = "The location key should not exceed {max} characters")
   @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
   val locationKey: String?,
 
-  @field:NotNull(message = "The date for the appointment is mandatory")
   @field:FutureOrPresent(message = "The combination of date and start time for the appointment must be in the future")
   @Schema(description = "The future date for which the appointment will start", example = "2022-12-23")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "uuuu-MM-dd")
-  val date: LocalDate?,
+  val date: LocalDate,
 
-  @field:NotNull(message = "The start time for the appointment is mandatory")
   @Schema(description = "Start time for the appointment on the day", example = "10:45")
   @JsonFormat(pattern = "HH:mm")
-  val startTime: LocalTime?,
+  val startTime: LocalTime,
 
-  @field:NotNull(message = "The end time for the appointment is mandatory")
   @Schema(description = "End time for the appointment on the day", example = "11:45")
   @JsonFormat(pattern = "HH:mm")
-  val endTime: LocalTime?,
+  val endTime: LocalTime,
 ) {
   @JsonIgnore
   @AssertTrue(
     message = "The end time must be after the start time for the appointment",
     groups = [DateValidationExtension::class],
   )
-  private fun isInvalidTime() = (startTime == null || endTime == null) || startTime.isBefore(endTime)
+  private fun isInvalidTime() = startTime.isBefore(endTime)
 
   @JsonIgnore
   @AssertTrue(
     message = "The combination of date and start time for the appointment must be in the future",
     groups = [DateValidationExtension::class],
   )
-  private fun isInvalidStart() = (date == null || startTime == null) || date.atTime(startTime).isAfter(LocalDateTime.now())
+  private fun isInvalidStart() = date.atTime(startTime).isAfter(LocalDateTime.now())
 }
 
 interface DateValidationExtension

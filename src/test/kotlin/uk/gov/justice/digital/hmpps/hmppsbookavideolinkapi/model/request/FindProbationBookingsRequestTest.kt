@@ -14,7 +14,7 @@ class FindProbationBookingsRequestTest : ValidatorBase<FindProbationBookingsRequ
 
   @Test
   fun `should be errors for invalid requests`() {
-    FindProbationBookingsRequest(fromDate = today(), toDate = null, probationTeamCodes = null) failsWithSingle ModelError("probationTeamCodes", "At least one probation team code is required")
+    FindProbationBookingsRequest(fromDate = today(), toDate = null, probationTeamCodes = emptyList()) failsWithSingle ModelError("probationTeamCodes", "At least one probation team code is required")
     FindProbationBookingsRequest(fromDate = today(), toDate = yesterday(), probationTeamCodes = listOf("CODE")) failsWithSingle ModelError("invalidDates", "The to date must be on or after the from date")
     FindProbationBookingsRequest(fromDate = today(), toDate = today().plusDays(31), probationTeamCodes = listOf("CODE")) failsWithSingle ModelError("invalidDateRange", "The to date must be a maximum of thirty days after the from date")
   }
