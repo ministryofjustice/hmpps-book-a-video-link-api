@@ -15,6 +15,7 @@ fun PrisonAppointmentEntity.toModel(locations: Set<Location>) = PrisonAppointmen
   endTime = endTime,
   notesForPrisoners = notesForPrisoners,
   notesForStaff = notesForStaff,
+  dpsLocationId = this.prisonLocationId,
 )
 
 fun List<PrisonAppointmentEntity>.toModel(locations: Set<Location>) = map { it.toModel(locations) }

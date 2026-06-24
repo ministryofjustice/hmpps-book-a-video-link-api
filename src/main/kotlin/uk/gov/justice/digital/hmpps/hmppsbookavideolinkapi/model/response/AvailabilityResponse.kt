@@ -48,13 +48,13 @@ data class BookingOption(
     // Converts the availability check request into a booking option
     fun from(request: AvailabilityRequest) = BookingOption(
       pre = request.preAppointment?.let {
-        LocationAndInterval(prisonLocKey = it.prisonLocKey, interval = it.interval)
+        LocationAndInterval(dpsLocationId = it.dpsLocationId, prisonLocKey = it.prisonLocKey, interval = it.interval)
       },
       main = request.mainAppointment.let {
-        LocationAndInterval(prisonLocKey = it.prisonLocKey, interval = it.interval)
+        LocationAndInterval(dpsLocationId = it.dpsLocationId, prisonLocKey = it.prisonLocKey, interval = it.interval)
       },
       post = request.postAppointment?.let {
-        LocationAndInterval(prisonLocKey = it.prisonLocKey, interval = it.interval)
+        LocationAndInterval(dpsLocationId = it.dpsLocationId, prisonLocKey = it.prisonLocKey, interval = it.interval)
       },
     )
   }

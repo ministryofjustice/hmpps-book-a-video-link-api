@@ -48,6 +48,7 @@ class CreateCourtBookingRequestBuilder {
       date = date,
       startTime = startTime,
       endTime = endTime,
+      dpsLocationId = location.id,
     )
   }
 
@@ -71,6 +72,7 @@ class CreateCourtBookingRequestBuilder {
                 date = main.date,
                 startTime = main.startTime.minusMinutes(15),
                 endTime = main.startTime,
+                dpsLocationId = it.id,
               )
             },
             main,
@@ -81,6 +83,7 @@ class CreateCourtBookingRequestBuilder {
                 date = main.date,
                 startTime = main.endTime,
                 endTime = main.endTime.plusMinutes(15),
+                dpsLocationId = it.id,
               )
             },
           ),
@@ -129,6 +132,7 @@ class AmendCourtBookingRequestBuilder {
       date = date,
       startTime = startTime,
       endTime = endTime,
+      dpsLocationId = location.id,
     )
   }
 
@@ -151,6 +155,7 @@ class AmendCourtBookingRequestBuilder {
                 date = main.date,
                 startTime = main.startTime.minusMinutes(15),
                 endTime = main.startTime,
+                dpsLocationId = it.id,
               )
             },
             main,
@@ -161,6 +166,7 @@ class AmendCourtBookingRequestBuilder {
                 date = main.date,
                 startTime = main.endTime,
                 endTime = main.endTime.plusMinutes(15),
+                dpsLocationId = it.id,
               )
             },
           ),
@@ -203,6 +209,7 @@ class CreateProbationBookingRequestBuilder {
       date = date,
       startTime = startTime,
       endTime = endTime,
+      dpsLocationId = location.id,
     )
   }
 
@@ -251,6 +258,7 @@ class AmendProbationBookingRequestBuilder {
       date = date,
       startTime = startTime,
       endTime = endTime,
+      dpsLocationId = location.id,
     )
   }
 

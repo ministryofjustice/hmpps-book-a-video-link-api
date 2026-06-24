@@ -93,6 +93,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
@@ -100,6 +101,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
@@ -107,6 +109,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
       ),
     )
@@ -193,6 +196,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
@@ -200,6 +204,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
@@ -207,6 +212,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
@@ -214,6 +220,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
       ),
     )
@@ -240,6 +247,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
+          dpsLocationId = pentonvilleLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
@@ -247,6 +255,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
+          dpsLocationId = pentonvilleLocation.id,
         ),
       ),
     )
@@ -273,6 +282,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
@@ -280,6 +290,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
       ),
     )
@@ -306,6 +317,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
@@ -313,6 +325,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
       ),
     )
@@ -339,6 +352,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
@@ -346,6 +360,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
@@ -353,6 +368,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
       ),
     )
@@ -379,6 +395,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
@@ -386,6 +403,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
@@ -393,6 +411,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
       ),
     )
@@ -419,6 +438,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
@@ -426,6 +446,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
+          dpsLocationId = birminghamLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_PROBATION,
@@ -433,6 +454,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
       ),
     )
@@ -469,6 +491,7 @@ class AmendCourtBookingServiceTest {
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
+          dpsLocationId = birminghamLocation.id,
         ),
       ),
     )
