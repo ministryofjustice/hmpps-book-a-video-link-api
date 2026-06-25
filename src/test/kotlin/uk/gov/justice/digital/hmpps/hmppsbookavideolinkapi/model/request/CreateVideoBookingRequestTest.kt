@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalTime
+import java.util.UUID
 
 class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>() {
 
@@ -14,6 +15,7 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     date = tomorrow(),
     startTime = LocalTime.now(),
     endTime = LocalTime.now().plusHours(1),
+    dpsLocationId = UUID.randomUUID(),
   )
 
   private val prisoner = PrisonerDetails(
@@ -53,11 +55,6 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   }
 
   @Test
-  fun `should fail when missing booking type`() {
-    courtBooking.copy(bookingType = null) failsWithSingle ModelError("bookingType", "The video link booking type is mandatory")
-  }
-
-  @Test
   fun `should fail when court booking missing court code`() {
     courtBooking.copy(courtCode = null) failsWithSingle ModelError("invalidCourtBooking", "The court code and court hearing type are mandatory for court bookings")
   }
@@ -84,12 +81,12 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
 
   @Test
   fun `should fail when prisoner missing prison code`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(prisonCode = null))) failsWithSingle ModelError("prisoners[0].prisonCode", "Prison code is mandatory")
+    courtBooking.copy(prisoners = listOf(prisoner.copy(prisonCode = " "))) failsWithSingle ModelError("prisoners[0].prisonCode", "Prison code is mandatory")
   }
 
   @Test
   fun `should fail when prisoner missing prisoner number`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(prisonerNumber = null))) failsWithSingle ModelError("prisoners[0].prisonerNumber", "Prisoner number is mandatory")
+    courtBooking.copy(prisoners = listOf(prisoner.copy(prisonerNumber = " "))) failsWithSingle ModelError("prisoners[0].prisonerNumber", "Prisoner number is mandatory")
   }
 
   @Test
@@ -98,23 +95,8 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   }
 
   @Test
-  fun `should fail when appointment location key is missing`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = null))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key for the appointment is mandatory")
-  }
-
-  @Test
-  fun `should fail when appointment type is missing`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(type = null))))) failsWithSingle ModelError("prisoners[0].appointments[0].type", "The appointment type for the appointment is mandatory")
-  }
-
-  @Test
   fun `should fail when location key too long`() {
     courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = "a".repeat(161)))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key should not exceed 160 characters")
-  }
-
-  @Test
-  fun `should fail when appointment date is missing`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(date = null))))) failsWithSingle ModelError("prisoners[0].appointments[0].date", "The date for the appointment is mandatory")
   }
 
   @Test
@@ -127,16 +109,6 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     courtBooking.copy(
       prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(date = today(), startTime = LocalTime.now().minusSeconds(1))))),
     ) failsWithSingle ModelError("prisoners[0].appointments[0].invalidStart", "The combination of date and start time for the appointment must be in the future")
-  }
-
-  @Test
-  fun `should fail when appointment start time is missing`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(startTime = null))))) failsWithSingle ModelError("prisoners[0].appointments[0].startTime", "The start time for the appointment is mandatory")
-  }
-
-  @Test
-  fun `should fail when appointment end time is missing`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(endTime = null))))) failsWithSingle ModelError("prisoners[0].appointments[0].endTime", "The end time for the appointment is mandatory")
   }
 
   @Test

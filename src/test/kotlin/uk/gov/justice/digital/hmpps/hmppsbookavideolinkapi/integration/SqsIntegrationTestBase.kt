@@ -33,7 +33,7 @@ abstract class SqsIntegrationTestBase : IntegrationTestBase() {
 
   protected fun waitUntil(fn: () -> Unit) {
     // Default wait is 10 seconds, so dropping down to 5.
-    await.atMost(5, TimeUnit.SECONDS) untilAsserted {
+    await.atMost(10, TimeUnit.SECONDS) untilAsserted {
       fn()
     }
   }

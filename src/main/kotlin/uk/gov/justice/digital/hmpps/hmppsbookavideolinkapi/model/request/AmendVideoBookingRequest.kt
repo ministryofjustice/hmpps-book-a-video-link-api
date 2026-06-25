@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.NotEmpty
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 
 @Schema(
@@ -17,9 +16,8 @@ import jakarta.validation.constraints.Size
 )
 data class AmendVideoBookingRequest(
 
-  @field:NotNull(message = "The video link booking type is mandatory")
   @Schema(description = "The booking type", example = "COURT")
-  val bookingType: BookingType?,
+  val bookingType: BookingType,
 
   @field:Valid
   @field:NotEmpty(message = "At least one prisoner must be supplied for a video link booking")

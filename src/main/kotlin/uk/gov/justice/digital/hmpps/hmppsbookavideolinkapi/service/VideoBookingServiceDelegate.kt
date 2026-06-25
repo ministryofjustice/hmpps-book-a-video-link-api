@@ -38,9 +38,9 @@ class VideoBookingServiceDelegate(
   fun create(booking: CreateVideoBookingRequest, createdBy: User) = run {
     log.info("BOOKING DELEGATE: creating video booking: $booking")
 
-    checkStartDateNotTooFarInFuture(booking.prisoners.first().appointments.first().date!!)
+    checkStartDateNotTooFarInFuture(booking.prisoners.first().appointments.first().date)
 
-    when (booking.bookingType!!) {
+    when (booking.bookingType) {
       BookingType.COURT -> createCourtBookingService.create(booking, createdBy)
       BookingType.PROBATION -> createProbationBookingService.create(booking, createdBy)
     }
@@ -50,9 +50,9 @@ class VideoBookingServiceDelegate(
   fun amend(videoBookingId: Long, booking: AmendVideoBookingRequest, amendedBy: User) = run {
     log.info("BOOKING DELEGATE: amending video booking: $booking")
 
-    checkStartDateNotTooFarInFuture(booking.prisoners.first().appointments.first().date!!)
+    checkStartDateNotTooFarInFuture(booking.prisoners.first().appointments.first().date)
 
-    when (booking.bookingType!!) {
+    when (booking.bookingType) {
       BookingType.COURT -> amendCourtBookingService.amend(videoBookingId, booking, amendedBy)
       BookingType.PROBATION -> amendProbationBookingService.amend(videoBookingId, booking, amendedBy)
     }
@@ -66,8 +66,7 @@ class VideoBookingServiceDelegate(
   }
 
   fun request(booking: RequestVideoBookingRequest, user: User) {
-    checkStartDateNotTooFarInFuture(booking.prisoners.first().appointments.first().date!!)
-
+    checkStartDateNotTooFarInFuture(booking.prisoners.first().appointments.first().date)
     requestBookingService.request(booking, user)
   }
 

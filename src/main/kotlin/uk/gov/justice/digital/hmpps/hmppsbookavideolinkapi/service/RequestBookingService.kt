@@ -45,7 +45,7 @@ class RequestBookingService(
   }
 
   fun request(request: RequestVideoBookingRequest, user: User) {
-    when (request.bookingType!!) {
+    when (request.bookingType) {
       BookingType.COURT -> {
         // All court users are external
         require(user is ExternalUser)
@@ -62,7 +62,7 @@ class RequestBookingService(
   private fun processCourtBookingRequest(request: RequestVideoBookingRequest, user: User) {
     val prisoner = request.prisoner()
 
-    checkCourtAppointments(prisoner.appointments, prisoner.prisonCode!!, user)
+    checkCourtAppointments(prisoner.appointments)
 
     val (pre, main, post) = getCourtAppointments(prisoner)
 
@@ -86,7 +86,7 @@ class RequestBookingService(
     checkProbationAppointments(prisoner.appointments)
 
     val appointment = prisoner.appointments.single()
-    val prison = fetchPrison(prisoner.prisonCode!!)
+    val prison = fetchPrison(prisoner.prisonCode)
     val probationTeam = fetchProbationTeam(request.probationTeamCode!!)
     val meetingType = fetchReferenceCode("PROBATION_MEETING_TYPE", request.probationMeetingType!!.toString())
 
@@ -101,7 +101,7 @@ class RequestBookingService(
     }
   }
 
-  private fun checkCourtAppointments(appointments: List<RequestedAppointment>, prisonCode: String, user: User) {
+  private fun checkCourtAppointments(appointments: List<RequestedAppointment>) {
     appointments.checkCourtAppointmentTypesOnly()
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
   }
@@ -112,7 +112,7 @@ class RequestBookingService(
         count { it.type == AppointmentType.VLB_COURT_PRE } <= 1 &&
         count { it.type == AppointmentType.VLB_COURT_POST } <= 1 &&
         count { it.type == AppointmentType.VLB_COURT_MAIN } == 1 &&
-        all { it.type!!.isCourt },
+        all { it.type.isCourt },
     ) {
       "Court bookings can only have one pre hearing, one hearing and one post hearing."
     }
@@ -130,7 +130,7 @@ class RequestBookingService(
 
   private fun checkProbationAppointments(appointments: List<RequestedAppointment>) {
     with(appointments.single()) {
-      require(type!!.isProbation) {
+      require(type.isProbation) {
         "Appointment type $type is not valid for probation appointments"
       }
     }
@@ -182,12 +182,12 @@ class RequestBookingService(
   ) = CourtBookingRequestUserEmail(
     address = contact.email!!,
     userName = contact.name ?: "Book Video",
-    prisonerFirstName = request.prisoner().firstName!!,
-    prisonerLastName = request.prisoner().lastName!!,
-    dateOfBirth = request.prisoner().dateOfBirth!!,
+    prisonerFirstName = request.prisoner().firstName,
+    prisonerLastName = request.prisoner().lastName,
+    dateOfBirth = request.prisoner().dateOfBirth,
     court = court.description,
     prison = prison.name,
-    date = main.date!!,
+    date = main.date,
     hearingType = hearingType.description,
     preAppointmentInfo = pre?.appointmentInformation(),
     mainAppointmentInfo = main.appointmentInformation(),
@@ -211,13 +211,13 @@ class RequestBookingService(
     return if (primaryCourtContact != null) {
       CourtBookingRequestPrisonCourtEmail(
         address = contact.email!!,
-        prisonerFirstName = request.prisoner().firstName!!,
-        prisonerLastName = request.prisoner().lastName!!,
-        dateOfBirth = request.prisoner().dateOfBirth!!,
+        prisonerFirstName = request.prisoner().firstName,
+        prisonerLastName = request.prisoner().lastName,
+        dateOfBirth = request.prisoner().dateOfBirth,
         court = court.description,
         courtEmailAddress = primaryCourtContact.email!!,
         prison = prison.name,
-        date = main.date!!,
+        date = main.date,
         hearingType = hearingType.description,
         preAppointmentInfo = pre?.appointmentInformation(),
         mainAppointmentInfo = main.appointmentInformation(),
@@ -228,12 +228,12 @@ class RequestBookingService(
     } else {
       CourtBookingRequestPrisonNoCourtEmail(
         address = contact.email!!,
-        prisonerFirstName = request.prisoner().firstName!!,
-        prisonerLastName = request.prisoner().lastName!!,
-        dateOfBirth = request.prisoner().dateOfBirth!!,
+        prisonerFirstName = request.prisoner().firstName,
+        prisonerLastName = request.prisoner().lastName,
+        dateOfBirth = request.prisoner().dateOfBirth,
         court = court.description,
         prison = prison.name,
-        date = main.date!!,
+        date = main.date,
         hearingType = hearingType.description,
         preAppointmentInfo = pre?.appointmentInformation(),
         mainAppointmentInfo = main.appointmentInformation(),
@@ -254,12 +254,12 @@ class RequestBookingService(
   ) = ProbationBookingRequestUserEmail(
     address = contact.email!!,
     userName = contact.name ?: "Book Video",
-    prisonerFirstName = request.prisoner().firstName!!,
-    prisonerLastName = request.prisoner().lastName!!,
-    dateOfBirth = request.prisoner().dateOfBirth!!,
+    prisonerFirstName = request.prisoner().firstName,
+    prisonerLastName = request.prisoner().lastName,
+    dateOfBirth = request.prisoner().dateOfBirth,
     probationTeam = probationTeam.description,
     prison = prison.name,
-    date = appointment.date!!,
+    date = appointment.date,
     meetingType = meetingType.description,
     appointmentInfo = appointment.appointmentInformation(),
     comments = request.notesForStaff,
@@ -281,13 +281,13 @@ class RequestBookingService(
     return if (primaryProbationTeamContact != null) {
       ProbationBookingRequestPrisonProbationTeamEmail(
         address = contact.email!!,
-        prisonerFirstName = request.prisoner().firstName!!,
-        prisonerLastName = request.prisoner().lastName!!,
-        dateOfBirth = request.prisoner().dateOfBirth!!,
+        prisonerFirstName = request.prisoner().firstName,
+        prisonerLastName = request.prisoner().lastName,
+        dateOfBirth = request.prisoner().dateOfBirth,
         probationTeam = probationTeam.description,
         probationTeamEmailAddress = primaryProbationTeamContact.email!!,
         prison = prison.name,
-        date = appointment.date!!,
+        date = appointment.date,
         meetingType = meetingType.description,
         appointmentInfo = appointment.appointmentInformation(),
         comments = request.notesForStaff,
@@ -298,12 +298,12 @@ class RequestBookingService(
     } else {
       ProbationBookingRequestPrisonNoProbationTeamEmail(
         address = contact.email!!,
-        prisonerFirstName = request.prisoner().firstName!!,
-        prisonerLastName = request.prisoner().lastName!!,
-        dateOfBirth = request.prisoner().dateOfBirth!!,
+        prisonerFirstName = request.prisoner().firstName,
+        prisonerLastName = request.prisoner().lastName,
+        dateOfBirth = request.prisoner().dateOfBirth,
         probationTeam = probationTeam.description,
         prison = prison.name,
-        date = appointment.date!!,
+        date = appointment.date,
         meetingType = meetingType.description,
         appointmentInfo = appointment.appointmentInformation(),
         comments = request.notesForStaff,
@@ -326,9 +326,9 @@ class RequestBookingService(
 
   private fun Collection<RequestedAppointment>.post() = singleOrNull { it.type == AppointmentType.VLB_COURT_POST }
 
-  private fun RequestedAppointment.appointmentInformation() = "${startTime!!.toHourMinuteStyle()} to ${endTime!!.toHourMinuteStyle()}"
+  private fun RequestedAppointment.appointmentInformation() = "${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
-  private fun RequestedAppointment.isBefore(other: RequestedAppointment): Boolean = this.date!! <= other.date && this.endTime!! <= other.startTime
+  private fun RequestedAppointment.isBefore(other: RequestedAppointment): Boolean = this.date <= other.date && this.endTime <= other.startTime
 
   // We will only be requesting appointments for one single prisoner as part of the initial rollout.
   private fun RequestVideoBookingRequest.prisoner() = prisoners.first()

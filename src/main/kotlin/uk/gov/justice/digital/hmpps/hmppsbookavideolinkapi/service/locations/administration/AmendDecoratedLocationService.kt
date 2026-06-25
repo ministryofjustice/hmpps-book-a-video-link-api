@@ -34,8 +34,8 @@ class AmendDecoratedLocationService(
     locationAttributeRepository.saveAndFlush(
       LocationAttribute.amend(
         decoratedRoom,
-        locationUsage = LocationUsage.valueOf(request.locationUsage!!.name),
-        locationStatus = LocationStatus.valueOf(request.locationStatus!!.name),
+        locationUsage = LocationUsage.valueOf(request.locationUsage.name),
+        locationStatus = LocationStatus.valueOf(request.locationStatus.name),
         prisonVideoUrl = request.prisonVideoUrl,
         allowedParties = request.allowedParties ?: emptySet(),
         comments = request.comments,
@@ -54,11 +54,11 @@ class AmendDecoratedLocationService(
 
     locationScheduleRepository.saveAndFlush(
       schedule.amend(
-        locationUsage = LocationScheduleUsage.valueOf(request.locationUsage!!.name),
-        startDayOfWeek = request.startDayOfWeek!!,
-        endDayOfWeek = request.endDayOfWeek!!,
-        startTime = request.startTime!!,
-        endTime = request.endTime!!,
+        locationUsage = LocationScheduleUsage.valueOf(request.locationUsage.name),
+        startDayOfWeek = request.startDayOfWeek,
+        endDayOfWeek = request.endDayOfWeek,
+        startTime = request.startTime,
+        endTime = request.endTime,
         allowedParties = request.allowedParties,
         notes = request.notes,
         amendedBy = amendedBy,

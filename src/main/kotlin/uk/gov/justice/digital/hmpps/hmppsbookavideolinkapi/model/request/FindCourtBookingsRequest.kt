@@ -19,7 +19,7 @@ data class FindCourtBookingsRequest(
 
   @field:NotEmpty(message = "At least one court code is required")
   @Schema(description = "A list of court codes to find bookings for", example = "[CODE1, CODE2, CODE3, CODE4]")
-  val courtCodes: List<String>?,
+  val courtCodes: List<String>,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The to date must be on or after the from date")

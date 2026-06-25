@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.TimeSlot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.slot
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
 @Schema(description = "A representation of a prison appointment")
 data class PrisonAppointment(
@@ -23,8 +24,15 @@ data class PrisonAppointment(
   @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
   val appointmentType: String,
 
+  @Deprecated(message = "Use dpsLocationId instead")
   @Schema(description = "The location of the appointment at the prison", example = "VCC-ROOM-1")
   val prisonLocKey: String,
+
+  @Schema(
+    description = "The unique UUID for the location where the appointment takes place. The id field from the locations-inside-prison service.",
+    example = "a4fe3fef-34fd-4354fde-a12efe",
+  )
+  val dpsLocationId: UUID,
 
   @Schema(description = "The date of the appointment", example = "2024-04-05")
   val appointmentDate: LocalDate,

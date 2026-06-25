@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Availa
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingOption
 import java.time.LocalTime
 import java.util.TreeMap
+import java.util.UUID
 
 @Service
 class AvailabilityFinderService(
@@ -21,22 +22,39 @@ class AvailabilityFinderService(
 
   fun getOptions(request: AvailabilityRequest, appointments: List<AppointmentSlot>, locations: List<Location>): AvailabilityResponse {
     // Create a Map of <PrisonLocKey, Timeline> from the existing appointments - so we can check and find gaps
-    val timelinesByLocation = timelinesByLocationKey(appointments, locations)
+    val timelinesByLocationKey = timelinesByLocationKey(appointments, locations)
+    val timelinesByLocationId = timelinesByLocationId(appointments, locations)
 
     // Convert the requested times into a booking option object
     val preferredOption = BookingOption.from(request)
 
-    // If the preferred option (requested times) is available, return ok with no alternatives
-    if (optionIsBookable(preferredOption, timelinesByLocation)) {
-      return AvailabilityResponse(availabilityOk = true, alternatives = emptyList())
-    }
+    var alternatives: Sequence<BookingOption>
 
-    // Find upto the maximum number of alternative booking times for these rooms
-    val alternatives = availabilityOptionsGenerator
-      .getOptionsInPreferredOrder(preferredOption)
-      .filter { optionIsBookable(it, timelinesByLocation) }
-      .take(maxAlternatives)
-      .sortedBy { it.main.interval.start }
+    if (request.mainAppointment.dpsLocationId != null) {
+      // If the preferred option (requested times) is available, return ok with no alternatives
+      if (optionIsBookableById(preferredOption, timelinesByLocationId)) {
+        return AvailabilityResponse(availabilityOk = true, alternatives = emptyList())
+      }
+
+      // Find upto the maximum number of alternative booking times for these rooms
+      alternatives = availabilityOptionsGenerator
+        .getOptionsInPreferredOrder(preferredOption)
+        .filter { optionIsBookableById(it, timelinesByLocationId) }
+        .take(maxAlternatives)
+        .sortedBy { it.main.interval.start }
+    } else {
+      // If the preferred option (requested times) is available, return ok with no alternatives
+      if (optionIsBookableByKey(preferredOption, timelinesByLocationKey)) {
+        return AvailabilityResponse(availabilityOk = true, alternatives = emptyList())
+      }
+
+      // Find upto the maximum number of alternative booking times for these rooms
+      alternatives = availabilityOptionsGenerator
+        .getOptionsInPreferredOrder(preferredOption)
+        .filter { optionIsBookableByKey(it, timelinesByLocationKey) }
+        .take(maxAlternatives)
+        .sortedBy { it.main.interval.start }
+    }
 
     // Return the alternatives
     return AvailabilityResponse(availabilityOk = false, alternatives = alternatives.toList())
@@ -44,12 +62,23 @@ class AvailabilityFinderService(
 
   companion object {
 
-    fun optionIsBookable(option: BookingOption, timelinesByLocationId: Map<String, Timeline>) = option
+    @Deprecated(message = "Use timelinesByLocationId instead", replaceWith = ReplaceWith("timelinesByLocationId(slots, locations)"))
+    fun optionIsBookableByKey(option: BookingOption, timelinesByLocationId: Map<String, Timeline>) = option
       .toLocationsAndIntervals()
       .all { timelinesByLocationId[it.prisonLocKey]?.isFreeForInterval(it.interval) ?: true }
 
+    fun optionIsBookableById(option: BookingOption, timelinesByLocationId: Map<UUID, Timeline>) = option
+      .toLocationsAndIntervals()
+      .all { timelinesByLocationId[it.dpsLocationId]?.isFreeForInterval(it.interval) ?: true }
+
+    @Deprecated(message = "Use timelinesByLocationId instead", replaceWith = ReplaceWith("timelinesByLocationId(slots, locations)"))
     fun timelinesByLocationKey(slots: List<AppointmentSlot>, locations: List<Location>): Map<String, Timeline> = slots
       .groupBy { a -> locations.single { it.id == a.prisonLocationId }.key }
+      .mapValues { (_, appointments) -> appointments.flatMap(Companion::toEvents) }
+      .mapValues { Timeline(it.value) }
+
+    fun timelinesByLocationId(slots: List<AppointmentSlot>, locations: List<Location>): Map<UUID, Timeline> = slots
+      .groupBy { a -> locations.single { it.id == a.prisonLocationId }.id }
       .mapValues { (_, appointments) -> appointments.flatMap(Companion::toEvents) }
       .mapValues { Timeline(it.value) }
 
@@ -136,7 +165,7 @@ class Timeline(events: List<Event>) {
    * Answer the question 'is this Timeline free of appointments during the specified interval'.
    */
   fun isFreeForInterval(interval: Interval): Boolean {
-    if (interval.end!!.isBefore(interval.start)) {
+    if (interval.end.isBefore(interval.start)) {
       throw IllegalArgumentException("start must precede end")
     }
     val freePeriod = emptyPeriods.floorEntry(interval.start)

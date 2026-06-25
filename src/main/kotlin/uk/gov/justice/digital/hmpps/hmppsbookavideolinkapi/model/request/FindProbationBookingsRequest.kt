@@ -19,7 +19,7 @@ data class FindProbationBookingsRequest(
 
   @field:NotEmpty(message = "At least one probation team code is required")
   @Schema(description = "A list of probation team codes to find bookings for", example = "[CODE1, CODE2, CODE3, CODE4]")
-  val probationTeamCodes: List<String>?,
+  val probationTeamCodes: List<String>,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The to date must be on or after the from date")

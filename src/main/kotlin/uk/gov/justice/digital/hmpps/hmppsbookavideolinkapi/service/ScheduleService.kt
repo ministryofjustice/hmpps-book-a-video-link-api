@@ -49,7 +49,7 @@ class ScheduleService(
 
   fun getScheduleForProbationTeamsPaginated(request: FindProbationBookingsRequest, pageable: Pageable): PagedModel<ScheduleItem> {
     val pageOfResults = scheduleRepository.getScheduleForProbationTeamsPaginated(
-      probationTeamCodes = request.probationTeamCodes!!.distinct(),
+      probationTeamCodes = request.probationTeamCodes.distinct(),
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeCourtOnlyPrisons(),
@@ -61,7 +61,7 @@ class ScheduleService(
 
   fun getScheduleForCourtsPaginated(request: FindCourtBookingsRequest, pageable: Pageable): PagedModel<ScheduleItem> {
     val pageOfResults = scheduleRepository.getScheduleForCourtsPaginated(
-      courtCodes = request.courtCodes!!.distinct(),
+      courtCodes = request.courtCodes.distinct(),
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeProbationOnlyPrisons(),
@@ -73,7 +73,7 @@ class ScheduleService(
 
   fun getScheduleForProbationTeamsUnpaginated(request: FindProbationBookingsRequest, sort: Sort): List<ScheduleItem> = run {
     scheduleRepository.getScheduleForProbationTeamsUnpaginated(
-      probationTeamCodes = request.probationTeamCodes!!.distinct(),
+      probationTeamCodes = request.probationTeamCodes.distinct(),
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeCourtOnlyPrisons(),
@@ -83,7 +83,7 @@ class ScheduleService(
 
   fun getScheduleForCourtsUnpaginated(request: FindCourtBookingsRequest, sort: Sort): List<ScheduleItem> = run {
     scheduleRepository.getScheduleForCourtsUnpaginated(
-      courtCodes = request.courtCodes!!.distinct(),
+      courtCodes = request.courtCodes.distinct(),
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeProbationOnlyPrisons(),

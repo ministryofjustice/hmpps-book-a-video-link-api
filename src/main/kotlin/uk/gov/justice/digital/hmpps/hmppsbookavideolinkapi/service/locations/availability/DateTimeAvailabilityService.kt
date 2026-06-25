@@ -37,18 +37,18 @@ class DateTimeAvailabilityService(
   }
 
   override fun findAvailable(request: DateTimeAvailabilityRequest): AvailableLocationsResponse {
-    require(request.date!!.atTime(request.startTime!!).isAfter(timeSource.now())) {
+    require(request.date.atTime(request.startTime).isAfter(timeSource.now())) {
       "Requested date and start time must be in the future."
     }
 
-    val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode!!)
+    val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode)
     val mayBeExistingAppointment = request.appointmentToExclude?.let { prisonAppointmentRepository.findById(it).orElseThrow { EntityNotFoundException("Prison appointment with ID $it not found.") } }
     val bookedLocations = bookedLocationsService.findBooked(BookedLookup(request.prisonCode, request.date, prisonVideoLinkLocations, mayBeExistingAppointment?.videoBooking?.videoBookingId))
 
     val availableLocationsBuilder = DateTimeLocationsBuilder.builder {
       prisonVideoLinkLocations.forEach { location ->
         val meetingStartTime = request.startTime
-        val meetingEndTime = request.endTime!!
+        val meetingEndTime = request.endTime
 
         if (mayBeExistingAppointment != null && isTheSame(request, location, mayBeExistingAppointment)) {
           add(
@@ -97,23 +97,23 @@ class DateTimeAvailabilityService(
 
   private fun Location.allowsByAnyRuleOrSchedule(request: DateTimeAvailabilityRequest): AvailabilityStatus {
     if (extraAttributes != null) {
-      return when (request.bookingType!!) {
+      return when (request.bookingType) {
         BookingType.COURT -> locationAttributesService.isLocationAvailableFor(
           LocationAvailableRequest.court(
             extraAttributes.attributeId,
             request.courtCode!!,
-            request.date!!,
-            request.startTime!!,
-            request.endTime!!,
+            request.date,
+            request.startTime,
+            request.endTime,
           ),
         )
         BookingType.PROBATION -> locationAttributesService.isLocationAvailableFor(
           LocationAvailableRequest.probation(
             extraAttributes.attributeId,
             request.probationTeamCode!!,
-            request.date!!,
-            request.startTime!!,
-            request.endTime!!,
+            request.date,
+            request.startTime,
+            request.endTime,
           ),
         )
       }

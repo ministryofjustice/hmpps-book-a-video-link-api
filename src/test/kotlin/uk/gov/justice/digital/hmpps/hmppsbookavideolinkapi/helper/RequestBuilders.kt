@@ -48,6 +48,7 @@ class CreateCourtBookingRequestBuilder {
       date = date,
       startTime = startTime,
       endTime = endTime,
+      dpsLocationId = location.id,
     )
   }
 
@@ -69,8 +70,9 @@ class CreateCourtBookingRequestBuilder {
                 type = AppointmentType.VLB_COURT_PRE,
                 locationKey = it.key,
                 date = main.date,
-                startTime = main.startTime!!.minusMinutes(15),
+                startTime = main.startTime.minusMinutes(15),
                 endTime = main.startTime,
+                dpsLocationId = it.id,
               )
             },
             main,
@@ -79,8 +81,9 @@ class CreateCourtBookingRequestBuilder {
                 type = AppointmentType.VLB_COURT_POST,
                 locationKey = it.key,
                 date = main.date,
-                startTime = main.endTime!!,
-                endTime = main.endTime!!.plusMinutes(15),
+                startTime = main.endTime,
+                endTime = main.endTime.plusMinutes(15),
+                dpsLocationId = it.id,
               )
             },
           ),
@@ -129,6 +132,7 @@ class AmendCourtBookingRequestBuilder {
       date = date,
       startTime = startTime,
       endTime = endTime,
+      dpsLocationId = location.id,
     )
   }
 
@@ -149,8 +153,9 @@ class AmendCourtBookingRequestBuilder {
                 type = AppointmentType.VLB_COURT_PRE,
                 locationKey = it.key,
                 date = main.date,
-                startTime = main.startTime!!.minusMinutes(15),
+                startTime = main.startTime.minusMinutes(15),
                 endTime = main.startTime,
+                dpsLocationId = it.id,
               )
             },
             main,
@@ -159,8 +164,9 @@ class AmendCourtBookingRequestBuilder {
                 type = AppointmentType.VLB_COURT_POST,
                 locationKey = it.key,
                 date = main.date,
-                startTime = main.endTime!!,
-                endTime = main.endTime!!.plusMinutes(15),
+                startTime = main.endTime,
+                endTime = main.endTime.plusMinutes(15),
+                dpsLocationId = it.id,
               )
             },
           ),
@@ -203,6 +209,7 @@ class CreateProbationBookingRequestBuilder {
       date = date,
       startTime = startTime,
       endTime = endTime,
+      dpsLocationId = location.id,
     )
   }
 
@@ -251,6 +258,7 @@ class AmendProbationBookingRequestBuilder {
       date = date,
       startTime = startTime,
       endTime = endTime,
+      dpsLocationId = location.id,
     )
   }
 

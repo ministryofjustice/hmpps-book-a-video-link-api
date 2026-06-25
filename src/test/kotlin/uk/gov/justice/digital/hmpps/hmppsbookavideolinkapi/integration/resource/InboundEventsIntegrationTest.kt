@@ -472,6 +472,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
           date = tomorrow(),
           startTime = LocalTime.of(10, 45),
           endTime = LocalTime.of(11, 0),
+          dpsLocationId = pentonvilleLocation.id,
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
@@ -479,6 +480,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
           date = tomorrow(),
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(11, 30),
+          dpsLocationId = pentonvilleLocation.id,
         ),
       ),
     )
