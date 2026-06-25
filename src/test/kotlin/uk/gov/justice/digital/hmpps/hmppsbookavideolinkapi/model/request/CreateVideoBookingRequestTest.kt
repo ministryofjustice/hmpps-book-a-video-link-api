@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import java.time.LocalTime
+import java.util.UUID
 
 class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>() {
 
@@ -14,6 +15,7 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
     date = tomorrow(),
     startTime = LocalTime.now(),
     endTime = LocalTime.now().plusHours(1),
+    dpsLocationId = UUID.randomUUID(),
   )
 
   private val prisoner = PrisonerDetails(

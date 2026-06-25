@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appoint
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Interval
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.LocationAndInterval
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.PrisonerDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
@@ -62,6 +64,12 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   leafLevel = true,
   status = if (active) Location.Status.ACTIVE else Location.Status.INACTIVE,
   locked = false,
+)
+
+fun locationAndInterval(location: Location, start: LocalTime, end: LocalTime) = LocationAndInterval(
+  dpsLocationId = location.id,
+  prisonLocKey = location.key,
+  interval = Interval(start = start, end = end),
 )
 
 fun locationAttributes() = RoomAttributes(
@@ -176,6 +184,7 @@ fun courtBookingRequest(
           date = date,
           startTime = startTime,
           endTime = endTime,
+          dpsLocationId = location?.id,
         ),
       )
     },
@@ -251,6 +260,7 @@ fun probationBookingRequest(
     date = appointmentDate,
     startTime = startTime,
     endTime = endTime,
+    dpsLocationId = location?.id,
   )
 
   val prisoner = PrisonerDetails(
@@ -341,6 +351,7 @@ fun amendCourtBookingRequest(
           date = appointmentDate,
           startTime = startTime,
           endTime = endTime,
+          dpsLocationId = location?.id,
         ),
       )
     },
@@ -377,6 +388,7 @@ fun amendProbationBookingRequest(
     date = appointmentDate,
     startTime = startTime,
     endTime = endTime,
+    dpsLocationId = location?.id,
   )
 
   val prisoner = PrisonerDetails(
