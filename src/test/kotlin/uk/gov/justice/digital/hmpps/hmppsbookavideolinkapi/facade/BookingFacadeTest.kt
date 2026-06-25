@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
@@ -290,9 +291,9 @@ class BookingFacadeTest {
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
         verify(videoBookingServiceDelegate).cancel(1, COURT_USER)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailFacade).sendEmails(BookingAction.CANCEL, courtBooking, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), COURT_USER)
         verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
       }
 
       with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
@@ -311,9 +312,9 @@ class BookingFacadeTest {
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
         verify(videoBookingServiceDelegate).cancel(1, PRISON_USER_BIRMINGHAM)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailFacade).sendEmails(BookingAction.CANCEL, courtBooking, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), PRISON_USER_BIRMINGHAM)
         verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
       }
 
       with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
@@ -354,9 +355,30 @@ class BookingFacadeTest {
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
         verify(videoBookingServiceDelegate).cancel(1, PROBATION_USER)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailFacade).sendEmails(BookingAction.CANCEL, probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), PROBATION_USER)
         verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
+      }
+
+      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+        properties()["cancelled_by"] isEqualTo "probation"
+      }
+    }
+
+    @Test
+    fun `should send events and emails on cancellation of probation booking by Delius probation user`() {
+      val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
+
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+      whenever(videoBookingServiceDelegate.cancel(1, DELIUS_PROBATION_USER)) doReturn probationBookingAtBirminghamPrison.cancel(DELIUS_PROBATION_USER)
+
+      facade.cancel(1, DELIUS_PROBATION_USER)
+
+      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
+        verify(videoBookingServiceDelegate).cancel(1, DELIUS_PROBATION_USER)
+        verify(emailFacade).sendEmails(BookingAction.CANCEL, probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), DELIUS_PROBATION_USER)
+        verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
       }
 
       with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
@@ -375,9 +397,9 @@ class BookingFacadeTest {
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
         verify(videoBookingServiceDelegate).cancel(1, PRISON_USER_BIRMINGHAM)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
         verify(emailFacade).sendEmails(BookingAction.CANCEL, probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), PRISON_USER_BIRMINGHAM)
         verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
       }
 
       with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {

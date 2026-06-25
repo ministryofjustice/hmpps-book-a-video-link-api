@@ -8,6 +8,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendCourtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
@@ -53,6 +54,9 @@ class VideoBookingServiceDelegateTest {
     delegate.create(probationBookingRequest, PROBATION_USER)
     verify(createProbationBookingService).create(probationBookingRequest, PROBATION_USER)
 
+    delegate.create(probationBookingRequest, DELIUS_PROBATION_USER)
+    verify(createProbationBookingService).create(probationBookingRequest, DELIUS_PROBATION_USER)
+
     verifyNoMoreInteractions(createCourtBookingService, createProbationBookingService)
     verifyNoInteractions(amendProbationBookingService, cancelVideoBookingService, requestBookingService, videoLinkBookingsService)
   }
@@ -77,7 +81,15 @@ class VideoBookingServiceDelegateTest {
   }
 
   @Test
-  fun `should delegate to request booking service service`() {
+  fun `should delegate to cancel booking service for probation`() {
+    delegate.cancel(1, DELIUS_PROBATION_USER)
+    verify(cancelVideoBookingService).cancel(1, DELIUS_PROBATION_USER)
+
+    verifyNoInteractions(createCourtBookingService, createProbationBookingService, amendCourtBookingService, requestBookingService, videoLinkBookingsService)
+  }
+
+  @Test
+  fun `should delegate to request booking service`() {
     delegate.request(requestVideoBookingRequest, COURT_USER)
 
     verify(requestBookingService).request(requestVideoBookingRequest, COURT_USER)

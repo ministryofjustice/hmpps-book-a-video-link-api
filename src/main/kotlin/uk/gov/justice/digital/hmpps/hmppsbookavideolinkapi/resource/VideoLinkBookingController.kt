@@ -29,8 +29,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBookingsService
 
 @Tag(name = "Video Link Booking Controller")
@@ -175,13 +173,7 @@ class VideoLinkBookingController(
   fun cancelVideoBooking(
     @PathVariable videoBookingId: Long,
     httpRequest: HttpServletRequest,
-  ) {
-    when (val user = httpRequest.getBvlsRequestContext().user) {
-      is PrisonUser -> bookingFacade.cancel(videoBookingId, user)
-      is ExternalUser -> bookingFacade.cancel(videoBookingId, user)
-      else -> throw IllegalArgumentException("Unsupported user for cancel operation.")
-    }
-  }
+  ) = bookingFacade.cancel(videoBookingId, httpRequest.getBvlsRequestContext().user)
 
   @Operation(summary = "Endpoint to allow external users request a prison to create a video link booking for a prisoner due to arrive")
   @ApiResponses(
