@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotBlank
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 import kotlin.reflect.KClass
 
 @Schema(description = "The request object sent to the availability check endpoint")
@@ -76,14 +77,19 @@ data class AvailabilityRequest(
 
 @Schema(description = "The prison location key and start/end interval for an appointment slot")
 data class LocationAndInterval(
+  @Schema(
+    description = "The unique UUID for the location where the appointment takes place. The id field from the locations-inside-prison service.",
+    example = "a4fe3fef-34fd-4354fde-a12efe",
+  )
+  val dpsLocationId: UUID?,
 
-  @field:NotBlank(message = "The prison location key must be present")
+  @Deprecated(message = "Do not use, use dpsLocationId instead")
   @Schema(
     description = "The location of the appointment at the prison",
     example = "VCC-ROOM-1",
     requiredMode = RequiredMode.REQUIRED,
   )
-  val prisonLocKey: String,
+  val prisonLocKey: String?,
 
   @Schema(
     description = "The start and end time of a prison appointment to define the interval",

@@ -53,7 +53,7 @@ class AvailabilityService(
   ).availabilityOk
 
   private fun CreateVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }
-    ?.let { LocationAndInterval(it.locationKey!!, Interval(it.startTime, it.endTime)) }
+    ?.let { LocationAndInterval(it.dpsLocationId, it.locationKey, Interval(it.startTime, it.endTime)) }
 
   fun isAvailable(videoBookingId: Long, request: AmendVideoBookingRequest): Boolean {
     val existingBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
@@ -73,7 +73,7 @@ class AvailabilityService(
     ).availabilityOk
   }
 
-  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.locationKey!!, Interval(it.startTime, it.endTime)) }
+  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.dpsLocationId, it.locationKey, Interval(it.startTime, it.endTime)) }
 
   /**
    * Assumptions:
@@ -89,16 +89,27 @@ class AvailabilityService(
   fun checkAvailability(request: AvailabilityRequest): AvailabilityResponse {
     log.info("AVAILABILITY CHECK: looking at BVLS and other non-VLB appointment types")
 
-    // Gather the distinct list of locations from the request
-    val locationKeys = setOfNotNull(
-      request.preAppointment?.prisonLocKey,
-      request.postAppointment?.prisonLocKey,
-      request.mainAppointment.prisonLocKey,
-    )
+    val requestedLocations = run {
+      // We should be using location IDs where possible going forwards. Usage of location keys is being phased out as they cannot be relied on.
+      if (request.mainAppointment.dpsLocationId != null) {
+        log.info("AVAILABILITY CHECK: by location ID")
+        setOfNotNull(
+          request.preAppointment?.dpsLocationId,
+          request.postAppointment?.dpsLocationId,
+          request.mainAppointment.dpsLocationId,
+        ).let { getLocationsByIds(it) }
+      } else {
+        // We still need this until all UI's have been updated to use location IDs
+        log.info("AVAILABILITY CHECK: by location key")
+        setOfNotNull(
+          request.preAppointment?.prisonLocKey,
+          request.postAppointment?.prisonLocKey,
+          request.mainAppointment.prisonLocKey,
+        ).let { locationsInsidePrisonClient.getLocationsByKeys(it) }
+      }
+    }
 
-    log.info("AVAILABILITY CHECK: for the following location keys $locationKeys")
-
-    val requestedLocations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys).associateBy { it.key }
+    log.info("AVAILABILITY CHECK: for the following locations ${requestedLocations.map { it.key }}")
 
     if (request.isForAnExistingBooking() && request.dateTimeAndLocationIsTheSame(requestedLocations)) {
       return AvailabilityResponse(true)
@@ -108,12 +119,12 @@ class AvailabilityService(
     val (bvlsAppointmentSlotsToInclude: List<AppointmentSlot>, appointmentsToExclude: List<AppointmentSlot>) = videoAppointmentRepository.findVideoAppointmentsAtPrison(
       forDate = request.date,
       forPrison = request.prisonCode,
-      forLocationIds = requestedLocations.values.map { it.id },
+      forLocationIds = requestedLocations.map { it.id },
     ).partition { vlb -> vlb.videoBookingId != request.vlbIdToExclude }
 
     // Build list of AppointmentSlot for all external non-VLB appointments from NOMIS in these locations on this date
     val externalAppointmentSlotsToInclude: List<AppointmentSlot> =
-      requestedLocations.values
+      requestedLocations
         .flatMap { externalAppointmentsService.getAppointmentSlots(request.prisonCode, request.date, it.id) }
         .filterNot { external ->
           // We can only match on these values, there is no direct match between a BVLS appointment and what is in NOMIS
@@ -130,12 +141,14 @@ class AvailabilityService(
     }
 
     // Check if the requested times are free, and offer alternatives if not
-    return availabilityFinderService.getOptions(request, slotsToCheck, requestedLocations.values.toList())
+    return availabilityFinderService.getOptions(request, slotsToCheck, requestedLocations)
   }
+
+  private fun getLocationsByIds(ids: Set<UUID>): List<Location> = ids.mapNotNull { locationsInsidePrisonClient.getLocationById(it) }
 
   private fun AvailabilityRequest.isForAnExistingBooking() = vlbIdToExclude != null
 
-  private fun AvailabilityRequest.dateTimeAndLocationIsTheSame(requestedLocations: Map<String, Location>): Boolean {
+  private fun AvailabilityRequest.dateTimeAndLocationIsTheSame(requestedLocations: List<Location>): Boolean {
     val mayBeExistingBooking = videoBookingRepository.findById(vlbIdToExclude!!).getOrNull()
 
     if (mayBeExistingBooking != null) {
@@ -143,12 +156,12 @@ class AvailabilityService(
         return mayBeExistingBooking.probationMeeting()!!.dateTimeAndLocationIsTheSame(
           date,
           mainAppointment.interval,
-          requestedLocations[mainAppointment.prisonLocKey]!!,
+          requestedLocations.single { it.id == mainAppointment.dpsLocationId || it.key == mainAppointment.prisonLocKey },
         )
       } else {
-        val preLocation = preAppointment?.prisonLocKey?.let { requestedLocations[it] }
-        val mainLocation = requestedLocations[mainAppointment.prisonLocKey]!!
-        val postLocation = postAppointment?.prisonLocKey?.let { requestedLocations[it] }
+        val preLocation = preAppointment?.let { requestedLocations.singleOrNull { it.id == preAppointment.dpsLocationId || it.key == preAppointment.prisonLocKey } }
+        val mainLocation = requestedLocations.single { it.id == mainAppointment.dpsLocationId || it.key == mainAppointment.prisonLocKey }
+        val postLocation = postAppointment?.let { requestedLocations.singleOrNull { it.id == postAppointment.dpsLocationId || it.key == postAppointment.prisonLocKey } }
 
         val preHearingIsTheSame = (mayBeExistingBooking.preHearing() == null && preLocation == null) ||
           mayBeExistingBooking.preHearing() != null &&

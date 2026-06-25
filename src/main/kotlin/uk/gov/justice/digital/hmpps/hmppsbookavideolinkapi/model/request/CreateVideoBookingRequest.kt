@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.UUID
 
 @Schema(
   description =
@@ -197,7 +198,14 @@ data class Appointment(
   @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
   val type: AppointmentType,
 
-  @field:NotBlank(message = "The location key for the appointment is mandatory")
+  // TODO this is going to replace the location key
+  @Schema(
+    description = "The unique UUID for the location where the appointment takes place. The id field from the locations-inside-prison service.",
+    example = "a4fe3fef-34fd-4354fde-a12efe",
+  )
+  val dpsLocationId: UUID?,
+
+  @Deprecated(message = "Use dpsLocationId instead")
   @field:Size(max = 160, message = "The location key should not exceed {max} characters")
   @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
   val locationKey: String?,
