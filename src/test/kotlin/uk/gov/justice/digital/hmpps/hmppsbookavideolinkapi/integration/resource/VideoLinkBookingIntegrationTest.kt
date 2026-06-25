@@ -1781,7 +1781,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
-  fun `should find matching court video link bookings`() {
+  fun `should find matching court video link bookings using location key`() {
     val location1 = pentonvilleLocation.copy(id = UUID.fromString("b13f9018-f22d-456f-a690-d80e3d0feb5f"))
     locationsInsidePrisonApi().stubGetLocationByKey(location1)
     locationsInsidePrisonApi().stubGetLocationById(location1)
@@ -1793,6 +1793,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         date = today(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
+        dpsLocationId = null,
       ),
       COURT_USER,
     ).videoLinkBookingId isEqualTo 1000
@@ -1808,6 +1809,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         date = tomorrow(),
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(10, 0),
+        dpsLocationId = null,
       ),
       COURT_USER,
     ).videoLinkBookingId isEqualTo 3000
@@ -1815,7 +1817,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Test
   @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
-  fun `should find matching CANCELLED court video link bookings`() {
+  fun `should find matching CANCELLED court video link bookings using location key`() {
     val location = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
     locationsInsidePrisonApi().stubGetLocationByKey(location)
     locationsInsidePrisonApi().stubGetLocationById(location)
@@ -1828,9 +1830,67 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(10, 0),
         statusCode = BookingStatus.CANCELLED,
+        dpsLocationId = null,
       ),
       COURT_USER,
     ).videoLinkBookingId isEqualTo 4000
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-search-for-booking-by-location_id.sql")
+  fun `should find matching court video link bookings using location id`() {
+    val location1 = pentonvilleLocation.copy(id = UUID.fromString("b13f9018-f22d-456f-a690-d80e3d0feb5f"))
+    locationsInsidePrisonApi().stubGetLocationByKey(location1)
+    locationsInsidePrisonApi().stubGetLocationById(location1)
+
+    webTestClient.searchForBooking(
+      VideoBookingSearchRequest(
+        prisonerNumber = "123456",
+        locationKey = location1.key,
+        date = today(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+        dpsLocationId = null,
+      ),
+      COURT_USER,
+    ).videoLinkBookingId isEqualTo -1000
+
+    val location2 = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
+    locationsInsidePrisonApi().stubGetLocationByKey(location2)
+    locationsInsidePrisonApi().stubGetLocationById(location2)
+
+    webTestClient.searchForBooking(
+      VideoBookingSearchRequest(
+        prisonerNumber = "78910",
+        locationKey = null,
+        date = tomorrow().plusDays(1),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(10, 0),
+        dpsLocationId = location2.id,
+      ),
+      COURT_USER,
+    ).videoLinkBookingId isEqualTo -3000
+  }
+
+  @Test
+  @Sql("classpath:integration-test-data/seed-search-for-booking-by-location_id.sql")
+  fun `should find matching CANCELLED court video link bookings using location id`() {
+    val location = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
+    locationsInsidePrisonApi().stubGetLocationByKey(location)
+    locationsInsidePrisonApi().stubGetLocationById(location)
+
+    webTestClient.searchForBooking(
+      VideoBookingSearchRequest(
+        prisonerNumber = "78910",
+        locationKey = null,
+        date = tomorrow().plusDays(1),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(10, 0),
+        statusCode = BookingStatus.CANCELLED,
+        dpsLocationId = location.id,
+      ),
+      COURT_USER,
+    ).videoLinkBookingId isEqualTo -4000
   }
 
   private fun WebTestClient.createBookingFails(request: CreateVideoBookingRequest, user: User) = this
