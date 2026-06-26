@@ -11,6 +11,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.AmendCourtBookingRequestBuilder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
@@ -303,10 +304,17 @@ class ChangeTrackingServiceTest {
     }
 
     @Test
-    fun `should be global change for meeting type as probation user`() {
+    fun `should be global change for meeting type as an external probation user`() {
       val differentMeetingType = amendProbationBookingRequest.copy(probationMeetingType = ProbationMeetingType.OTHER)
 
       service.determineChangeType(1, differentMeetingType, PROBATION_USER) isEqualTo ChangeType.GLOBAL
+    }
+
+    @Test
+    fun `should be global change for meeting type as a Delius probation user`() {
+      val differentMeetingType = amendProbationBookingRequest.copy(probationMeetingType = ProbationMeetingType.OTHER)
+
+      service.determineChangeType(1, differentMeetingType, DELIUS_PROBATION_USER) isEqualTo ChangeType.GLOBAL
     }
 
     @Test

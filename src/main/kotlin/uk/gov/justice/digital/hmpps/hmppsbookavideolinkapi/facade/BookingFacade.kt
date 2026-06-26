@@ -84,6 +84,7 @@ class BookingFacade(
 
     // Amend regardless of changes (this is in-case new fields ever are introduced but not covered by the change check).
     val (amendedBooking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
+
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
 
     // Only send emails on back of change check above.

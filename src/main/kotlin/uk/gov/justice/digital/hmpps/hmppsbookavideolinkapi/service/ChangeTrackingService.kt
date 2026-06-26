@@ -29,7 +29,7 @@ class ChangeTrackingService(
    * Will return the change type NONE if there are no actual changes.
    */
   fun determineChangeType(videoBookingId: Long, requestedBookingChanges: AmendVideoBookingRequest, amendedBy: User): ChangeType {
-    require(amendedBy is PrisonUser || amendedBy is ExternalUser) {
+    require(amendedBy is PrisonUser || amendedBy is ExternalUser || amendedBy is DeliusUser) {
       "Only prison users and external users are supported. ${amendedBy::class.simpleName} is not supported."
     }
 

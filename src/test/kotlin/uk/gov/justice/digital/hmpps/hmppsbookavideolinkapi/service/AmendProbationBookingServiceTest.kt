@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
@@ -89,7 +90,7 @@ class AmendProbationBookingServiceTest {
   private var additionalBookingDetailCaptor = argumentCaptor<AdditionalBookingDetail>()
 
   @Test
-  fun `should amend a PSR probation video booking for probation user`() {
+  fun `should amend a PSR probation video booking for an external probation user`() {
     val probationBooking = probationBooking(meetingType = ProbationMeetingType.PSR, notesForStaff = "notes for staff").withProbationPrisonAppointment()
     val prisonerNumber = "123456"
     val probationBookingRequest = amendProbationBookingRequest(
@@ -153,6 +154,85 @@ class AmendProbationBookingServiceTest {
       verify(videoBookingRepository).findById(2)
       verify(prisonerSearchClient).getPrisoner(prisonerNumber)
       verify(appointmentsService).amendAppointmentForProbation(probationBooking, probationBookingRequest.prisoners.single(), PROBATION_USER)
+      verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
+      verify(videoBookingRepository).saveAndFlush(probationBooking)
+      verify(additionalBookingDetailRepository).findByVideoBooking(probationBooking)
+      verify(additionalBookingDetailRepository).saveAndFlush(additionalBookingDetailCaptor.capture())
+      verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking)
+    }
+
+    additionalBookingDetailCaptor
+      .firstValue
+      .hasContactName("contact name")
+      .hasEmailAddress("contact@email.com")
+      .hasPhoneNumber("07928 660553")
+  }
+
+  @Test
+  fun `should amend a probation video booking for a Delius probation user`() {
+    val probationBooking = probationBooking(meetingType = ProbationMeetingType.PSR, notesForStaff = "notes for staff").withProbationPrisonAppointment()
+    val prisonerNumber = "123456"
+    val probationBookingRequest = amendProbationBookingRequest(
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = prisonerNumber,
+      location = birminghamLocation,
+      appointmentDate = tomorrow(),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(13, 0),
+      additionalBookingDetails = AdditionalBookingDetails(
+        contactName = "contact name",
+        contactEmail = "contact@email.com",
+        contactNumber = "07928 660553",
+      ),
+      notesForStaff = "amended notes for staff",
+    )
+
+    withBookingFixture(2, probationBooking)
+    withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
+
+    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(additionalBookingDetailRepository.saveAndFlush(any<AdditionalBookingDetail>())) doReturn AdditionalBookingDetail.newDetails(probationBooking, "contact name", "contact@email.com", "07928 660553")
+
+    val (booking, prisoner) = service.amend(2, probationBookingRequest, DELIUS_PROBATION_USER)
+
+    booking isEqualTo probationBooking
+    prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
+
+    verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking)
+    verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
+
+    amendedBookingCaptor
+      .firstValue
+      .hasBookingType(BookingType.PROBATION)
+      .hasProbationTeam(probationBooking.probationTeam!!)
+      .hasMeetingType(ProbationMeetingType.PSR)
+      .hasNotesForStaff("amended notes for staff")
+      .hasAmendedBy(DELIUS_PROBATION_USER)
+      .hasAmendedTimeCloseTo(LocalDateTime.now())
+      .appointments()
+      .single()
+      .hasPrisonCode(BIRMINGHAM)
+      .hasPrisonerNumber("123456")
+      .hasAppointmentTypeProbation()
+      .hasAppointmentDate(tomorrow())
+      .hasStartTime(LocalTime.of(12, 0))
+      .hasEndTime(LocalTime.of(13, 0))
+      .hasLocation(birminghamLocation)
+
+    inOrder(
+      videoBookingRepository,
+      prisonerSearchClient,
+      appointmentsService,
+      locationValidator,
+      videoBookingRepository,
+      additionalBookingDetailRepository,
+      additionalBookingDetailRepository,
+      bookingHistoryService,
+    ) {
+      verify(videoBookingRepository).findById(2)
+      verify(prisonerSearchClient).getPrisoner(prisonerNumber)
+      verify(appointmentsService).amendAppointmentForProbation(probationBooking, probationBookingRequest.prisoners.single(), DELIUS_PROBATION_USER)
       verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
       verify(videoBookingRepository).saveAndFlush(probationBooking)
       verify(additionalBookingDetailRepository).findByVideoBooking(probationBooking)
@@ -327,7 +407,7 @@ class AmendProbationBookingServiceTest {
   }
 
   @Test
-  fun `should fail to amend a cancelled video booking`() {
+  fun `should fail to amend a cancelled probation video booking`() {
     val prisonerNumber = "123456"
     val amendRequest = amendProbationBookingRequest()
 
