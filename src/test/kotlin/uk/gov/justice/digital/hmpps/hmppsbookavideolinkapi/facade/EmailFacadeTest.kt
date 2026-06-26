@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_WANDSWORTH
@@ -47,6 +48,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.Notificati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ContactsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.DeliusUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
@@ -294,7 +296,7 @@ class EmailFacadeTest {
     }
 
     @Test
-    fun `should send events and emails on creation of probation booking by probation user`() {
+    fun `should send events and emails on creation of probation booking by external probation user`() {
       setupProbationPrimaryContacts(PROBATION_USER)
 
       val prisoner = prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder")
@@ -354,6 +356,82 @@ class EmailFacadeTest {
       notificationCaptor.allValues hasSize 2
       with(notificationCaptor.firstValue) {
         email isEqualTo PROBATION_USER.email
+        templateName isEqualTo "user template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo probationBookingAtBirminghamPrison
+        reason isEqualTo "CREATE"
+      }
+
+      with(notificationCaptor.secondValue) {
+        email isEqualTo PRISON_USER_BIRMINGHAM.email
+        templateName isEqualTo "probation template id"
+        govNotifyNotificationId isEqualTo emailNotificationId
+        videoBooking isEqualTo probationBookingAtBirminghamPrison
+        reason isEqualTo "CREATE"
+      }
+    }
+
+    @Test
+    fun `should send events and emails on creation of probation booking by Delius probation user`() {
+      setupProbationPrimaryContacts(DELIUS_PROBATION_USER)
+
+      val prisoner = prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder")
+
+      whenever(emailService.send(any<NewProbationBookingUserEmail>())) doReturn Result.success(emailNotificationId to "user template id")
+      whenever(emailService.send(any<NewProbationBookingPrisonNoProbationEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
+      whenever(additionalBookingDetailRepository.findByVideoBooking(probationBookingAtBirminghamPrison)) doReturn additionalDetails(probationBookingAtBirminghamPrison, "probation officer name", "probation.officer@email.com", "0114 2345678")
+
+      facade.sendEmails(BookingAction.CREATE, probationBookingAtBirminghamPrison, prisoner, DELIUS_PROBATION_USER)
+
+      inOrder(emailService, notificationRepository) {
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+        verify(emailService).send(emailCaptor.capture())
+        verify(notificationRepository).saveAndFlush(notificationCaptor.capture())
+      }
+
+      emailCaptor.allValues hasSize 2
+
+      with(emailCaptor.firstValue) {
+        this isInstanceOf NewProbationBookingUserEmail::class.java
+        address isEqualTo DELIUS_PROBATION_USER.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "userName" to DELIUS_PROBATION_USER.name,
+          "probationTeam" to "probation team description",
+          "prison" to "Birmingham",
+          "offenderNo" to "654321",
+          "prisonerName" to "Bob Builder",
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "probation notes for staff",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "probation officer name",
+          "probationOfficerEmailAddress" to "probation.officer@email.com",
+          "probationOfficerContactNumber" to "0114 2345678",
+        )
+      }
+
+      with(emailCaptor.secondValue) {
+        this isInstanceOf NewProbationBookingPrisonNoProbationEmail::class.java
+        address isEqualTo PRISON_USER_BIRMINGHAM.email
+        personalisation() containsEntriesExactlyInAnyOrder mapOf(
+          "probationTeam" to "probation team description",
+          "prison" to "Birmingham",
+          "offenderNo" to "654321",
+          "prisonerName" to "Bob Builder",
+          "date" to tomorrow().toMediumFormatStyle(),
+          "appointmentInfo" to "${birminghamLocation.localName} - 00:00 to 01:00",
+          "comments" to "probation notes for staff",
+          "prisonVideoUrl" to "birmingham-video-url",
+          "probationOfficerName" to "probation officer name",
+          "probationOfficerEmailAddress" to "probation.officer@email.com",
+          "probationOfficerContactNumber" to "0114 2345678",
+        )
+      }
+
+      notificationCaptor.allValues hasSize 2
+      with(notificationCaptor.firstValue) {
+        email isEqualTo DELIUS_PROBATION_USER.email
         templateName isEqualTo "user template id"
         govNotifyNotificationId isEqualTo emailNotificationId
         videoBooking isEqualTo probationBookingAtBirminghamPrison
@@ -1657,6 +1735,7 @@ class EmailFacadeTest {
     val mayBeEmail = when (user) {
       is ExternalUser -> user.email
       is PrisonUser -> user.email
+      is DeliusUser -> user.email
       else -> null
     }
 

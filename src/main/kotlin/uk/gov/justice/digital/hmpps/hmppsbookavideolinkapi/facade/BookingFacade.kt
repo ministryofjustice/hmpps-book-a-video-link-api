@@ -60,9 +60,11 @@ class BookingFacade(
     }
 
     val (booking, prisoner) = videoBookingServiceDelegate.create(bookingRequest, createdBy)
+
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
     emailFacade.sendEmails(BookingAction.CREATE, booking, prisoner, createdBy)
     trackTelemetry(BookingAction.CREATE, booking, createdBy)
+
     return booking.videoBookingId
   }
 

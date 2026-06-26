@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointm
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
@@ -91,7 +92,7 @@ class CreateProbationBookingServiceTest {
   private val additionalBookingDetailCaptor = argumentCaptor<AdditionalBookingDetail>()
 
   @Test
-  fun `should create a probation video booking for probation user`() {
+  fun `should create a probation video booking for an External probation user`() {
     val prisonCode = BIRMINGHAM
     val prisonerNumber = "123456"
     val probationBookingRequest = probationBookingRequest(
@@ -114,6 +115,7 @@ class CreateProbationBookingServiceTest {
     whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
     whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
     whenever(additionalBookingDetailRepository.saveAndFlush(any<AdditionalBookingDetail>())) doReturn persistedAdditionalBookingDetail
+
     val (booking, prisoner) = service.create(probationBookingRequest, PROBATION_USER)
 
     booking isEqualTo persistedVideoBooking
@@ -129,6 +131,68 @@ class CreateProbationBookingServiceTest {
       .hasMeetingType(ProbationMeetingType.PSR)
       .hasNotesForStaff("probation notes for staff")
       .hasCreatedBy(PROBATION_USER)
+      .hasCreatedTimeCloseTo(LocalDateTime.now())
+      .appointments()
+      .single()
+      .hasPrisonCode(BIRMINGHAM)
+      .hasPrisonerNumber("123456")
+      .hasAppointmentTypeProbation()
+      .hasAppointmentDate(tomorrow())
+      .hasStartTime(LocalTime.of(9, 0))
+      .hasEndTime(LocalTime.of(10, 0))
+      .hasLocation(birminghamLocation)
+
+    additionalBookingDetailCaptor
+      .firstValue
+      .hasContactName("Fred")
+      .hasEmailAddress("fred@email.com")
+      .hasPhoneNumber("0173 361 6789")
+
+    verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
+    verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
+    verify(bookingHistoryService).createBookingHistory(any(), any())
+  }
+
+  @Test
+  fun `should create a probation video booking for a Delius probation user`() {
+    val prisonCode = BIRMINGHAM
+    val prisonerNumber = "123456"
+    val probationBookingRequest = probationBookingRequest(
+      prisonCode = prisonCode,
+      prisonerNumber = prisonerNumber,
+      location = birminghamLocation,
+      appointmentDate = tomorrow(),
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(10, 0),
+      additionalBookingDetails = AdditionalBookingDetails("Fred", "fred@email.com", "0173 361 6789"),
+      notesForStaff = "probation notes for staff",
+    )
+
+    val requestedProbationTeam = probationTeam(probationBookingRequest.probationTeamCode!!)
+
+    whenever(probationTeamRepository.findByCode(probationBookingRequest.probationTeamCode)) doReturn requestedProbationTeam
+    whenever(videoBookingRepository.saveAndFlush(any<VideoBooking>())) doReturn persistedVideoBooking
+    whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
+    whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
+    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(additionalBookingDetailRepository.saveAndFlush(any<AdditionalBookingDetail>())) doReturn persistedAdditionalBookingDetail
+
+    val (booking, prisoner) = service.create(probationBookingRequest, DELIUS_PROBATION_USER)
+
+    booking isEqualTo persistedVideoBooking
+    prisoner isEqualTo prisoner(prisonerNumber, prisonCode)
+
+    verify(videoBookingRepository).saveAndFlush(newBookingCaptor.capture())
+    verify(additionalBookingDetailRepository).saveAndFlush(additionalBookingDetailCaptor.capture())
+
+    newBookingCaptor
+      .firstValue
+      .hasBookingType(BookingType.PROBATION)
+      .hasProbationTeam(requestedProbationTeam)
+      .hasMeetingType(ProbationMeetingType.PSR)
+      .hasNotesForStaff("probation notes for staff")
+      .hasCreatedBy(DELIUS_PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .appointments()
       .single()
