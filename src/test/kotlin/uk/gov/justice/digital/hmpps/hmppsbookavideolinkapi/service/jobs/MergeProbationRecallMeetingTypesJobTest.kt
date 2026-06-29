@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs
 
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyList
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
@@ -15,7 +16,9 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
@@ -101,6 +104,40 @@ class MergeProbationRecallMeetingTypesJobTest {
     job.runJob()
 
     verify(videoBookingRepository, never()).saveAllAndFlush(any<List<VideoBooking>>())
+    verifyNoInteractions(bookingHistoryService)
+  }
+
+  @Test
+  fun `should not merge inactive booking with FTR56 meeting type to RECALL`() {
+    val booking = probationBooking(meetingType = ProbationMeetingType.FTR56).withProbationPrisonAppointment().cancel(PROBATION_USER)
+
+    whenever { videoBookingRepository.findByProbationMeetingTypesOnOrAfterDate(listOf("FTR56", "RR"), now.toLocalDate()) } doReturn listOf(booking)
+
+    job.runJob()
+
+    booking.probationMeetingType isEqualTo "FTR56"
+    booking.amendedBy isEqualTo PROBATION_USER.username
+    // Note this is the cancellation time
+    booking.amendedTime isCloseTo now
+
+    verify(videoBookingRepository, never()).saveAllAndFlush(anyList<VideoBooking>())
+    verifyNoInteractions(bookingHistoryService)
+  }
+
+  @Test
+  fun `should not merge inactive booking with RR meeting type to RECALL`() {
+    val booking = probationBooking(meetingType = ProbationMeetingType.RR).withProbationPrisonAppointment().cancel(PROBATION_USER)
+
+    whenever { videoBookingRepository.findByProbationMeetingTypesOnOrAfterDate(listOf("FTR56", "RR"), now.toLocalDate()) } doReturn listOf(booking)
+
+    job.runJob()
+
+    booking.probationMeetingType isEqualTo "RR"
+    booking.amendedBy isEqualTo PROBATION_USER.username
+    // Note this is the cancellation time
+    booking.amendedTime isCloseTo now
+
+    verify(videoBookingRepository, never()).saveAllAndFlush(anyList<VideoBooking>())
     verifyNoInteractions(bookingHistoryService)
   }
 }
