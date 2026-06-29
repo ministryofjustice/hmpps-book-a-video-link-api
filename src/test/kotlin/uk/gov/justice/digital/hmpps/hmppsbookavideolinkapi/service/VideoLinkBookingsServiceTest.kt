@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -10,6 +11,8 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
@@ -296,8 +299,8 @@ class VideoLinkBookingsServiceTest {
   }
 
   @Nested
-  @DisplayName("Tests for findMatchingVideoLinkBooking")
-  inner class FindMatchingBookings {
+  @DisplayName("Tests for findMatchingVideoLinkBooking by location key")
+  inner class FindMatchingBookingsByKey {
 
     @Test
     fun `should find a matching court video link booking for court user`() {
@@ -307,6 +310,7 @@ class VideoLinkBookingsServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
+        dpsLocationId = null,
       )
 
       val booking = courtBooking()
@@ -356,6 +360,7 @@ class VideoLinkBookingsServiceTest {
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
         statusCode = BookingStatus.CANCELLED,
+        dpsLocationId = null,
       )
 
       val booking = courtBooking()
@@ -396,6 +401,7 @@ class VideoLinkBookingsServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
+        dpsLocationId = null,
       )
 
       val booking = courtBooking()
@@ -441,6 +447,180 @@ class VideoLinkBookingsServiceTest {
         date = tomorrow(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
+        dpsLocationId = null,
+      )
+
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointment(
+          any(),
+          any(),
+          any(),
+          any(),
+          any(),
+        ),
+      ) doReturn null
+
+      val error = assertThrows<EntityNotFoundException> { service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) }
+
+      error.message isEqualTo "Video booking not found matching search criteria $searchRequest"
+    }
+  }
+
+  @Nested
+  @DisplayName("Tests for findMatchingVideoLinkBooking by location ID")
+  inner class FindMatchingBookingsById {
+
+    @AfterEach
+    fun verifyNoCallsToLocationsServiceByKey() {
+      verify(locationsService, never()).getLocationByKey(any())
+    }
+
+    @Test
+    fun `should find a matching court video link booking for court user`() {
+      val searchRequest = VideoBookingSearchRequest(
+        prisonerNumber = "123456",
+        locationKey = null,
+        date = tomorrow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+        dpsLocationId = wandsworthLocation.id,
+      )
+
+      val booking = courtBooking()
+        .addAppointment(
+          prison = prison(prisonCode = WANDSWORTH),
+          prisonerNumber = searchRequest.prisonerNumber,
+          appointmentType = AppointmentType.VLB_COURT_PRE.name,
+          date = searchRequest.date,
+          startTime = LocalTime.of(11, 0),
+          endTime = LocalTime.of(12, 0),
+          locationId = wandsworthLocation.id,
+        )
+        .addAppointment(
+          prison = prison(prisonCode = WANDSWORTH),
+          prisonerNumber = searchRequest.prisonerNumber,
+          appointmentType = AppointmentType.VLB_COURT_MAIN.name,
+          date = searchRequest.date,
+          startTime = searchRequest.startTime,
+          endTime = searchRequest.endTime,
+          locationId = wandsworthLocation.id,
+        )
+
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointment(
+          prisonerNumber = "123456",
+          appointmentDate = tomorrow(),
+          prisonLocationId = wandsworthLocation.id,
+          startTime = LocalTime.of(12, 0),
+          endTime = LocalTime.of(13, 0),
+        ),
+      ) doReturn videoAppointment(booking, booking.appointments().second())
+
+      whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
+
+      service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
+        locations = setOf(wandsworthLocation.toModel()),
+        courtHearingTypeDescription = "Tribunal",
+      )
+    }
+
+    @Test
+    fun `should match with the latest lastUpdated CANCELLED court video link booking`() {
+      val searchRequest = VideoBookingSearchRequest(
+        prisonerNumber = "123456",
+        locationKey = null,
+        date = tomorrow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+        statusCode = BookingStatus.CANCELLED,
+        dpsLocationId = wandsworthLocation.id,
+      )
+
+      val booking = courtBooking()
+        .addAppointment(
+          prison = prison(prisonCode = WANDSWORTH),
+          prisonerNumber = searchRequest.prisonerNumber,
+          appointmentType = AppointmentType.VLB_COURT_MAIN.name,
+          date = searchRequest.date,
+          startTime = searchRequest.startTime,
+          endTime = searchRequest.endTime,
+          locationId = wandsworthLocation.id,
+        )
+        .apply { cancel(COURT_USER) }
+
+      whenever(
+        videoAppointmentRepository.findLatestCancelledVideoAppointment(
+          prisonerNumber = "123456",
+          appointmentDate = tomorrow(),
+          prisonLocationId = wandsworthLocation.id,
+          startTime = LocalTime.of(12, 0),
+          endTime = LocalTime.of(13, 0),
+        ),
+      ) doReturn videoAppointment(booking, booking.appointments().first())
+
+      whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
+
+      service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
+        locations = setOf(wandsworthLocation.toModel()),
+        courtHearingTypeDescription = "Tribunal",
+      )
+    }
+
+    @Test
+    fun `should fail to find a matching Wandsworth video link booking for Risley prison user`() {
+      val searchRequest = VideoBookingSearchRequest(
+        prisonerNumber = "123456",
+        locationKey = null,
+        date = tomorrow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+        dpsLocationId = wandsworthLocation.id,
+      )
+
+      val booking = courtBooking()
+        .addAppointment(
+          prison = prison(prisonCode = WANDSWORTH),
+          prisonerNumber = searchRequest.prisonerNumber,
+          appointmentType = AppointmentType.VLB_COURT_PRE.name,
+          date = searchRequest.date,
+          startTime = LocalTime.of(11, 0),
+          endTime = LocalTime.of(12, 0),
+          locationId = wandsworthLocation.id,
+        )
+        .addAppointment(
+          prison = prison(prisonCode = WANDSWORTH),
+          prisonerNumber = searchRequest.prisonerNumber,
+          appointmentType = AppointmentType.VLB_COURT_MAIN.name,
+          date = searchRequest.date,
+          startTime = searchRequest.startTime,
+          endTime = searchRequest.endTime,
+          locationId = wandsworthLocation.id,
+        )
+
+      whenever(
+        videoAppointmentRepository.findActiveVideoAppointment(
+          prisonerNumber = "123456",
+          appointmentDate = tomorrow(),
+          prisonLocationId = wandsworthLocation.id,
+          startTime = LocalTime.of(12, 0),
+          endTime = LocalTime.of(13, 0),
+        ),
+      ) doReturn videoAppointment(booking, booking.appointments().second())
+
+      whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
+
+      assertThrows<CaseloadAccessException> { service.findMatchingVideoLinkBooking(searchRequest, PRISON_USER_RISLEY) }
+    }
+
+    @Test
+    fun `should throw entity not found when no matching video link booking`() {
+      val searchRequest = VideoBookingSearchRequest(
+        prisonerNumber = "123456",
+        locationKey = null,
+        date = tomorrow(),
+        startTime = LocalTime.of(12, 0),
+        endTime = LocalTime.of(13, 0),
+        dpsLocationId = wandsworthLocation.id,
       )
 
       whenever(

@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
@@ -30,7 +31,7 @@ class MergeProbationRecallMeetingTypesJob(
 
     val bookings = videoBookingRepository
       .findByProbationMeetingTypesOnOrAfterDate(legacyRecallMeetingTypes, now.toLocalDate())
-      .filter { probationMeeting -> probationMeeting.overallStartDateTime()?.isAfter(now) == true }
+      .filter { probationMeeting -> probationMeeting.isStatus(StatusCode.ACTIVE) && probationMeeting.overallStartDateTime()?.isAfter(now) == true }
       .onEach { probationMeeting ->
         probationMeeting.apply {
           probationMeetingType = ProbationMeetingType.RECALL.name
