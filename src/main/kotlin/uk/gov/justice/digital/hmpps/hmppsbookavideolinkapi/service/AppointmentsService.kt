@@ -35,7 +35,8 @@ class AppointmentsService(
       ?.also { it.rejectIfCannotSelfServeAtPrisonFor(user) }
       ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
 
-    val locations = locationsInsidePrisonClient.getLocationsByKeys(prisoner.appointments.mapNotNull { it.locationKey }.toSet())
+    // Can be removed once we are using IDs for locations instead of keys in UI requests
+    val locations = prisoner.appointments.mapNotNull { it.locationKey }.toSet().takeUnless { it.isEmpty() }?.let { locationsInsidePrisonClient.getLocationsByKeys(it) }
 
     // Add all appointments to the booking - they will be saved when the booking is saved
     prisoner.appointments.forEach {
@@ -46,13 +47,16 @@ class AppointmentsService(
         date = it.date,
         startTime = it.startTime,
         endTime = it.endTime,
-        locationId = locations.single { location -> location.key == it.locationKey }.id,
+        locationId = it.dpsLocationId ?: locations?.single { location -> location.key == it.locationKey }?.id!!,
       )
     }
   }
 
   private fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
-    locationValidator.validatePrisonLocations(prisonCode, appointments.mapNotNull { it.locationKey }.toSet())
+    appointments.mapNotNull { it.dpsLocationId }.takeUnless { it.isEmpty() }?.let { ids -> locationValidator.validatePrisonLocationIds(prisonCode, ids.toSet()) }
+
+    // Can be removed once we are using IDs for locations instead of keys in UI requests
+    appointments.mapNotNull { it.locationKey }.takeUnless { it.isEmpty() }?.let { keys -> locationValidator.validatePrisonLocations(prisonCode, keys.toSet()) }
 
     appointments.checkCourtAppointmentTypesOnly()
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
@@ -107,8 +111,6 @@ class AppointmentsService(
       ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
 
     with(prisoner.appointments.single()) {
-      val location = locationsInsidePrisonClient.getLocationByKey(this.locationKey!!)
-
       videoBooking.addAppointment(
         prison = prison,
         prisonerNumber = prisoner.prisonerNumber,
@@ -116,7 +118,8 @@ class AppointmentsService(
         date = this.date,
         startTime = this.startTime,
         endTime = this.endTime,
-        locationId = location!!.id,
+        // Call to location service can be removed once we are using IDs for locations instead of keys in UI requests
+        locationId = dpsLocationId ?: locationsInsidePrisonClient.getLocationByKey(this.locationKey!!)!!.id,
       )
     }
   }
@@ -131,7 +134,7 @@ class AppointmentsService(
         "Appointment type $type is not valid for probation appointments"
       }
 
-      val location = locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
+      val location = this.dpsLocationId?.let { locationValidator.validatePrisonLocationId(prisonCode, it) } ?: locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
 
       // Prison users can have overlapping appointments
       if (user !is PrisonUser) {
@@ -148,13 +151,15 @@ class AppointmentsService(
       originalAppointment.appointmentDate == updatedAppointment.date &&
         originalAppointment.startTime == updatedAppointment.startTime &&
         originalAppointment.endTime == updatedAppointment.endTime &&
-        originalAppointment.prisonLocationId == locationsInsidePrisonClient.getLocationByKey(updatedAppointment.locationKey!!)?.id
+        (
+          (originalAppointment.prisonLocationId == updatedAppointment.dpsLocationId) ||
+            (originalAppointment.prisonLocationId == locationsInsidePrisonClient.getLocationByKey(updatedAppointment.locationKey!!)?.id)
+          )
       ).not()
   }
 
   private fun PrisonerDetails.checkForDuplicateAppointment(appointmentType: AppointmentType) {
     val appointment = appointments.single { it.type == appointmentType }
-    val location = locationsInsidePrisonClient.getLocationByKey(appointment.locationKey!!)
 
     if (prisonAppointmentRepository.existsActivePrisonAppointmentsByPrisonerNumberLocationDateAndTime(
         prisonCode = prisonCode,
@@ -162,7 +167,7 @@ class AppointmentsService(
         date = appointment.date,
         startTime = appointment.startTime,
         endTime = appointment.endTime,
-        prisonLocationId = location!!.id,
+        prisonLocationId = appointment.dpsLocationId ?: locationsInsidePrisonClient.getLocationByKey(appointment.locationKey!!)!!.id,
       )
     ) {
       throw IllegalArgumentException("Duplicate appointment requested for prisoner $prisonerNumber")

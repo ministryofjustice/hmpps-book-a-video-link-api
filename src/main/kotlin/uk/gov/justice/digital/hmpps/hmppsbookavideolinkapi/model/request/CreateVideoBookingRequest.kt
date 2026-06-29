@@ -236,6 +236,10 @@ data class Appointment(
     groups = [DateValidationExtension::class],
   )
   private fun isInvalidStart() = date.atTime(startTime).isAfter(LocalDateTime.now())
+
+  @JsonIgnore
+  @AssertTrue(message = "You must provide either a location id or a location key for search")
+  private fun isInvalidLocation() = locationKey != null || dpsLocationId != null
 }
 
 interface DateValidationExtension

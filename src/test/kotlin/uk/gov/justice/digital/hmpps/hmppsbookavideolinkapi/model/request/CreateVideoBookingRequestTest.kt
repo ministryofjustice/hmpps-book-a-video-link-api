@@ -135,4 +135,9 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   fun `should fail when appointment end time is not after start time`() {
     courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(startTime = LocalTime.of(12, 12), endTime = LocalTime.of(12, 12)))))) failsWithSingle ModelError("prisoners[0].appointments[0].invalidTime", "The end time must be after the start time for the appointment")
   }
+
+  @Test
+  fun `should fail when location not present`() {
+    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = null, dpsLocationId = null))))) failsWithSingle ModelError("prisoners[0].appointments[0].invalidLocation", "You must provide either a location id or a location key for search")
+  }
 }
