@@ -24,7 +24,10 @@ class ProbationBookingCancelledTelemetryEvent private constructor(
     }
   }
 
-  override fun properties(): Map<String, String> = booking.commonProperties().plus("cancelled_by" to cancelledBy)
+  override fun properties(): Map<String, String> = booking
+    .commonProperties()
+    .plus("cancelled_by" to cancelledBy.substringBefore(":"))
+    .plus("delius_user" to if (cancelledBy.contains(":delius")) "true" else "false")
 
   override fun metrics() = mapOf(booking.hoursBeforeStartTimeMetric())
 
@@ -39,10 +42,9 @@ class ProbationBookingCancelledTelemetryEvent private constructor(
       }
 
       val cancelledBy = when (user) {
-        is ExternalUser, is DeliusUser -> "probation"
-        is PrisonUser -> "prison"
-        is ServiceUser -> "prison"
-        else -> throw IllegalArgumentException("Unsupported user type.")
+        is ExternalUser -> "probation"
+        is DeliusUser -> "probation:delius"
+        else -> "prison"
       }
 
       return ProbationBookingCancelledTelemetryEvent(booking, cancelledBy)
