@@ -58,22 +58,27 @@ class VideoLinkBookingsService(
   }
 
   fun findMatchingVideoLinkBooking(searchRequest: VideoBookingSearchRequest, user: User): VideoLinkBooking {
-    val location = locationsService.getLocationByKey(searchRequest.locationKey)
-      ?: throw EntityNotFoundException("Location with key ${searchRequest.locationKey} not found")
+    // TODO when UI's moved over to location ID can remove the location key.
+    val locationId = when {
+      searchRequest.dpsLocationId != null -> locationsService.getLocationById(searchRequest.dpsLocationId)?.dpsLocationId
+        ?: throw EntityNotFoundException("Location with ID ${searchRequest.dpsLocationId} not found")
+      else -> locationsService.getLocationByKey(searchRequest.locationKey!!)?.dpsLocationId
+        ?: throw EntityNotFoundException("Location with key ${searchRequest.locationKey} not found")
+    }
 
     val matchingAppointment = when (searchRequest.statusCode) {
       BookingStatus.ACTIVE ->
         videoAppointmentRepository.findActiveVideoAppointment(
           prisonerNumber = searchRequest.prisonerNumber,
           appointmentDate = searchRequest.date,
-          prisonLocationId = location.dpsLocationId,
+          prisonLocationId = locationId,
           startTime = searchRequest.startTime,
           endTime = searchRequest.endTime,
         )
       BookingStatus.CANCELLED -> videoAppointmentRepository.findLatestCancelledVideoAppointment(
         prisonerNumber = searchRequest.prisonerNumber,
         appointmentDate = searchRequest.date,
-        prisonLocationId = location.dpsLocationId,
+        prisonLocationId = locationId,
         startTime = searchRequest.startTime,
         endTime = searchRequest.endTime,
       )
