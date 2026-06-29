@@ -94,7 +94,7 @@ class ChangeTrackingServiceTest {
     @Test
     fun `should fail for unsupported user type`() {
       val error = assertThrows<IllegalArgumentException> { service.determineChangeType(1, amendCourtBookingRequest, SERVICE_USER) }
-      error.message isEqualTo "Only prison users and external users are supported. ServiceUser is not supported."
+      error.message isEqualTo "Only prison users, nDelius probation and external users are supported. ServiceUser is not supported."
     }
 
     @Test
