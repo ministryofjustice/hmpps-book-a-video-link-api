@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
@@ -88,7 +89,7 @@ private fun AmendVideoBookingRequest.toComparableBooking(
 
     return ProbationBooking(
       meetingType = this.probationMeetingType.name,
-      location = locationsService.getLocationByKey(appointment.locationKey!!)?.dpsLocationId!!,
+      location = appointment.location(locationsService)!!,
       date = appointment.date,
       startTime = appointment.startTime,
       endTime = appointment.endTime,
@@ -109,13 +110,13 @@ private fun AmendVideoBookingRequest.toComparableBooking(
     date = main.date,
     preStartTime = pre?.startTime,
     preEndTime = pre?.endTime,
-    preLocation = pre?.locationKey?.let { locationsService.getLocationByKey(it)?.dpsLocationId },
+    preLocation = pre?.location(locationsService),
     mainStartTime = main.startTime,
     mainEndTime = main.endTime,
-    mainLocation = main.locationKey?.let { locationsService.getLocationByKey(it)?.dpsLocationId },
+    mainLocation = main.location(locationsService),
     postStartTime = post?.startTime,
     postEndTime = post?.endTime,
-    postLocation = post?.locationKey?.let { locationsService.getLocationByKey(it)?.dpsLocationId },
+    postLocation = post?.location(locationsService),
     cvpLink = videoLinkUrl,
     hmctsNumber = hmctsNumber,
     guestPin = guestPin,
@@ -123,6 +124,8 @@ private fun AmendVideoBookingRequest.toComparableBooking(
     notesForPrisoners = notesForPrisoners.takeIf { user is PrisonUser },
   )
 }
+
+private fun Appointment.location(locationsService: LocationsService) = dpsLocationId ?: locationsService.getLocationByKey(locationKey!!)?.dpsLocationId
 
 private fun VideoBooking.toComparableBooking(
   additionalBookingDetailRepository: AdditionalBookingDetailRepository,
