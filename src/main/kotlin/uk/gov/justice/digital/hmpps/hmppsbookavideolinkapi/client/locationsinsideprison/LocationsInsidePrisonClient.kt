@@ -79,12 +79,12 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
 @Component
 class LocationValidator(private val locationsInsidePrisonClient: LocationsInsidePrisonClient) {
 
-  fun validatePrisonLocation(prisonCode: String, locationKey: String): Location {
-    val location = locationsInsidePrisonClient.getLocationByKey(locationKey)
-    validate(prisonCode, setOf(locationKey), listOfNotNull(location))
-    return location!!
+  @Deprecated("Use validatePrisonLocationId instead")
+  fun validatePrisonLocation(prisonCode: String, locationKey: String): Location = run {
+    validatePrisonLocations(prisonCode, setOf(locationKey)).single()
   }
 
+  @Deprecated("Use validatePrisonLocationIds instead")
   fun validatePrisonLocations(prisonCode: String, locationKeys: Set<String>): List<Location> {
     val locations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys)
     validate(prisonCode, locationKeys, locations)
@@ -111,6 +111,41 @@ class LocationValidator(private val locationsInsidePrisonClient: LocationsInside
     }
 
     val maybeInactiveLocations = maybeFoundLocations.values.filterNot { it.isActive() }.map { it.key }
+
+    if (maybeInactiveLocations.isNotEmpty()) {
+      validationError("The following ${if (maybeInactiveLocations.size == 1) "location is" else "locations are"} not active at prison code $prisonCode $maybeInactiveLocations")
+    }
+  }
+  fun validatePrisonLocationId(prisonCode: String, locationId: UUID): Location = run {
+    validatePrisonLocationIds(prisonCode, setOf(locationId)).single()
+  }
+
+  fun validatePrisonLocationIds(prisonCode: String, locationIDs: Set<UUID>): List<Location> {
+    val locations = locationIDs.mapNotNull { locationsInsidePrisonClient.getLocationById(it) }
+    validateIds(prisonCode, locationIDs, locations)
+    return locations
+  }
+
+  private fun validateIds(prisonCode: String, locationIDs: Set<UUID>, maybeLocations: List<Location>) {
+    val maybeFoundLocations = maybeLocations.associateBy { it.id }
+
+    if (maybeFoundLocations.isEmpty()) {
+      validationError("The following ${if (locationIDs.size == 1) "location was" else "locations were"} not found $locationIDs")
+    }
+
+    val mayBeMissingLocations = maybeFoundLocations.keys.filterNot { locationIDs.contains(it) }
+
+    if (mayBeMissingLocations.isNotEmpty()) {
+      validationError("The following ${if (mayBeMissingLocations.size == 1) "location was" else "locations were"} not found $mayBeMissingLocations")
+    }
+
+    val maybeLocationsAtDifferentPrison = maybeFoundLocations.values.filterNot { it.isAtPrison(prisonCode) }.map { it.id }
+
+    if (maybeLocationsAtDifferentPrison.isNotEmpty()) {
+      validationError("The following ${if (maybeLocationsAtDifferentPrison.size == 1) "location is" else "locations are"} not at prison code $prisonCode $maybeLocationsAtDifferentPrison")
+    }
+
+    val maybeInactiveLocations = maybeFoundLocations.values.filterNot { it.isActive() }.map { it.id }
 
     if (maybeInactiveLocations.isNotEmpty()) {
       validationError("The following ${if (maybeInactiveLocations.size == 1) "location is" else "locations are"} not active at prison code $prisonCode $maybeInactiveLocations")
