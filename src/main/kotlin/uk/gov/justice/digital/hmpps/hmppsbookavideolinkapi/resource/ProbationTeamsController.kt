@@ -56,12 +56,12 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
     enabledOnly: Boolean = true,
   ): List<ProbationTeam> = probationTeamsService.getProbationTeams(enabledOnly)
 
-  @Operation(summary = "Endpoint to return the list of probation teams select by a user (identified from the token content)")
+  @Operation(summary = "Endpoint to return the list of probation teams selected by a user (identified from the token content)")
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Probation teams select by this user",
+        description = "Probation teams selected by this user",
         content = [
           Content(
             mediaType = "application/json",

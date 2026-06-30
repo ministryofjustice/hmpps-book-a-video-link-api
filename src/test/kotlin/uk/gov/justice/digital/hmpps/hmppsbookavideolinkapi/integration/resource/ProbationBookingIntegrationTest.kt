@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
@@ -220,7 +221,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should amend a recall report report probation booking using the VLPM appointment type`() {
+  fun `should amend a recall report probation booking using the VLPM appointment type`() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
     nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
@@ -546,7 +547,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should amend existing probation booking notes as probation user`() {
+  fun `should amend existing probation booking notes as an external probation user`() {
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
 
     val probationBookingRequest = probationBookingRequest(
@@ -597,6 +598,46 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val amendedAppointment = prisonAppointmentRepository.findByVideoBooking(amendedBooking).single()
     amendedAppointment.hasNotesForStaff("integration test probation staff notes amended")
+  }
+
+  @Test
+  fun `should amend existing probation booking notes as a Delius probation user`() {
+    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = WANDSWORTH,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(10, 0),
+      endTime = LocalTime.of(10, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = wandsworthLocation,
+      notesForStaff = "integration test probation staff notes created",
+    )
+
+    val videoBookingId = webTestClient.createBooking(probationBookingRequest, DELIUS_PROBATION_USER)
+
+    webTestClient.amendBooking(
+      videoBookingId,
+      amendProbationBookingRequest(
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        probationMeetingType = ProbationMeetingType.PSR,
+        location = wandsworthLocation,
+        appointmentDate = tomorrow(),
+        startTime = probationBookingRequest.prisoners.single().appointments.single().startTime,
+        endTime = probationBookingRequest.prisoners.single().appointments.single().endTime,
+        notesForStaff = "integration test probation staff notes amended",
+        additionalBookingDetails = null,
+      ),
+      DELIUS_PROBATION_USER,
+    )
+
+    val amendedBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
+
+    amendedBooking.hasAmendedBy(DELIUS_PROBATION_USER)
+    amendedBooking.hasNotesForStaff("integration test probation staff notes amended")
   }
 
   private fun appointmentSearchResult(date: LocalDate, startTime: LocalTime, endTime: LocalTime, prisonCode: String, prisonerNumber: String, locationId: Long, appointmentType: SupportedAppointmentTypes.Type) = run {

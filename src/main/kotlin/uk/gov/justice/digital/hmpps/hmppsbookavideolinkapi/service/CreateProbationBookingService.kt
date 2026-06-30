@@ -38,7 +38,7 @@ class CreateProbationBookingService(
       "CREATE PROBATION BOOKING: booking type is not probation"
     }
 
-    require((createdBy is ExternalUser && createdBy.isProbationUser) || createdBy is PrisonUser) {
+    require((createdBy is ExternalUser && createdBy.isProbationUser) || createdBy is DeliusUser || createdBy is PrisonUser) {
       "Only probation users and prison users can create probation bookings."
     }
 

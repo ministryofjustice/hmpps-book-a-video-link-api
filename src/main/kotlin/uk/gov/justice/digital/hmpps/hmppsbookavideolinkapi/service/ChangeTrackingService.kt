@@ -29,8 +29,8 @@ class ChangeTrackingService(
    * Will return the change type NONE if there are no actual changes.
    */
   fun determineChangeType(videoBookingId: Long, requestedBookingChanges: AmendVideoBookingRequest, amendedBy: User): ChangeType {
-    require(amendedBy is PrisonUser || amendedBy is ExternalUser) {
-      "Only prison users and external users are supported. ${amendedBy::class.simpleName} is not supported."
+    require(amendedBy is PrisonUser || amendedBy is ExternalUser || amendedBy is DeliusUser) {
+      "Only prison users, nDelius probation and external users are supported. ${amendedBy::class.simpleName} is not supported."
     }
 
     val (cb1, cb2) = getComparableBookings(videoBookingId, requestedBookingChanges, amendedBy)

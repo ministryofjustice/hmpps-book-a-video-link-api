@@ -33,7 +33,7 @@ object TelemetryEventFactory {
 
   private fun probationEvent(action: BookingAction, booking: VideoBooking, user: User) = run {
     when (action) {
-      CREATE -> ProbationBookingCreatedTelemetryEvent(booking)
+      CREATE -> ProbationBookingCreatedTelemetryEvent(booking, user)
       AMEND -> ProbationBookingAmendedTelemetryEvent(booking, user)
       CANCEL -> ProbationBookingCancelledTelemetryEvent.user(booking, user)
       TRANSFERRED -> ProbationBookingCancelledTelemetryEvent.transferred(booking)

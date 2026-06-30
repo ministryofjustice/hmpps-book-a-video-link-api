@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
@@ -56,6 +57,35 @@ class ProbationBookingCancelledTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "false",
+      )
+
+      metrics() containsEntriesExactlyInAnyOrder mapOf(
+        "hoursBeforeStartTime" to hoursBetween(
+          booking.amendedTime!!,
+          tomorrow().atTime(LocalTime.of(14, 0)),
+        ).toDouble(),
+      )
+    }
+  }
+
+  @Test
+  fun `should raise a probation booking cancelled telemetry event cancelled by a delius probation user`() {
+    booking.cancel(DELIUS_PROBATION_USER)
+
+    with(ProbationBookingCancelledTelemetryEvent.user(booking, DELIUS_PROBATION_USER)) {
+      eventType isEqualTo "BVLS-probation-booking-cancelled"
+
+      properties() containsEntriesExactlyInAnyOrder mapOf(
+        "video_booking_id" to "0",
+        "cancelled_by" to "probation",
+        "team_code" to BLACKPOOL_MC_PPOC,
+        "meeting_type" to "PSR",
+        "prison_code" to BIRMINGHAM,
+        "location_id" to birminghamLocation.id.toString(),
+        "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
+        "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -83,6 +113,7 @@ class ProbationBookingCancelledTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "false",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -110,6 +141,7 @@ class ProbationBookingCancelledTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "false",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -137,6 +169,7 @@ class ProbationBookingCancelledTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "false",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -164,6 +197,7 @@ class ProbationBookingCancelledTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "false",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(

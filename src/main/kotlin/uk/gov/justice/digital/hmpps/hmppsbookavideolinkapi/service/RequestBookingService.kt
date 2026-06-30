@@ -44,15 +44,24 @@ class RequestBookingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun request(request: RequestVideoBookingRequest, user: ExternalUser) {
+  fun request(request: RequestVideoBookingRequest, user: User) {
     when (request.bookingType) {
-      BookingType.COURT -> processCourtBookingRequest(request, user)
-      BookingType.PROBATION -> processProbationBookingRequest(request, user)
+      BookingType.COURT -> {
+        // All court users are external
+        require(user is ExternalUser)
+        processCourtBookingRequest(request, user)
+      }
+      BookingType.PROBATION -> {
+        // Probation users can be external or delius
+        require(user is ExternalUser || user is DeliusUser)
+        processProbationBookingRequest(request, user)
+      }
     }
   }
 
   private fun processCourtBookingRequest(request: RequestVideoBookingRequest, user: User) {
     val prisoner = request.prisoner()
+
     checkCourtAppointments(prisoner.appointments)
 
     val (pre, main, post) = getCourtAppointments(prisoner)
