@@ -16,6 +16,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
@@ -167,6 +168,13 @@ class VideoLinkBookingsServiceTest {
     }
 
     @Test
+    fun `should fail to get a court video link booking by ID for a Delius probation user`() {
+      whenever(videoBookingRepository.findById(any())) doReturn Optional.of(courtBooking())
+
+      assertThrows<VideoBookingAccessException> { service.getVideoLinkBookingById(1L, DELIUS_PROBATION_USER) }
+    }
+
+    @Test
     fun `should fail to get a probation video link booking by ID for a court user`() {
       whenever(videoBookingRepository.findById(any())) doReturn Optional.of(probationBooking())
 
@@ -227,6 +235,57 @@ class VideoLinkBookingsServiceTest {
         assertThat(courtDescription).isNull()
         assertThat(courtHearingType).isNull()
         assertThat(courtHearingTypeDescription).isNull()
+      }
+    }
+
+    @Test
+    fun `should get a probation video booking by ID for a Delius probation user`() {
+      val probationMeetingGroup = "PROBATION_MEETING_TYPE"
+      val probationMeetingCode = "PSR"
+      val createdBy = "TIM"
+      val createdTime = LocalDateTime.now()
+      val prisonerNumber = "A1234FF"
+
+      // Mock response for findById
+      val probationBooking = probationBooking()
+        .addAppointment(
+          prison = prison(prisonCode = WANDSWORTH),
+          prisonerNumber = prisonerNumber,
+          appointmentType = AppointmentType.VLB_PROBATION.name,
+          locationId = wandsworthLocation.id,
+          date = tomorrow(),
+          startTime = LocalTime.MIDNIGHT,
+          endTime = LocalTime.MIDNIGHT.plusHours(1),
+        )
+
+      // Mock response for reference code lookup
+      val probationMeetingType = ReferenceCode(
+        referenceCodeId = 1L,
+        groupCode = probationMeetingGroup,
+        code = probationMeetingCode,
+        description = "Pre-sentence report",
+        createdBy = createdBy,
+        createdTime = createdTime,
+        enabled = true,
+      )
+
+      whenever(videoBookingRepository.findById(1L)) doReturn Optional.of(probationBooking)
+      whenever(
+        referenceCodeRepository.findByGroupCodeAndCode(
+          probationMeetingGroup,
+          probationMeetingCode,
+        ),
+      ) doReturn probationMeetingType
+
+      with(service.getVideoLinkBookingById(1L, DELIUS_PROBATION_USER)) {
+        prisonAppointments.single().appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
+
+        // Should be present for a probation booking
+        probationTeamCode isEqualTo "BLKPPP"
+        probationTeamDescription isEqualTo "probation team description"
+        this.probationMeetingType isEqualTo ProbationMeetingType.PSR
+        probationMeetingTypeDescription isEqualTo "Pre-sentence report"
+        videoLinkUrl isEqualTo "decorated-video-link-url"
       }
     }
 

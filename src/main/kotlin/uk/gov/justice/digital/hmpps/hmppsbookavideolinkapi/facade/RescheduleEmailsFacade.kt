@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.Notificati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ContactsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.DeliusUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
@@ -99,7 +100,7 @@ class RescheduleEmailsFacade(
   ) {
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
-        ContactType.USER -> rescheduledProbationEmailFactory.user(oldBooking, amendedBooking, contact, prisoner, prison).takeIf { user is PrisonUser || user is ExternalUser }
+        ContactType.USER -> rescheduledProbationEmailFactory.user(oldBooking, amendedBooking, contact, prisoner, prison).takeIf { user is PrisonUser || user is ExternalUser || user is DeliusUser }
         ContactType.PROBATION -> rescheduledProbationEmailFactory.probation(oldBooking, amendedBooking, contact, prisoner, prison).takeIf { (user is PrisonUser || user is ServiceUser) && changeType in setOf(ChangeType.GLOBAL) }
         ContactType.PRISON -> rescheduledProbationEmailFactory.prison(oldBooking, amendedBooking, contact, prisoner, prison, contacts).takeIf { changeType in setOf(ChangeType.GLOBAL, ChangeType.PRISON) }
         else -> null

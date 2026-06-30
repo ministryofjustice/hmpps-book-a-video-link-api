@@ -30,6 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_P
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CHESTERFIELD_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CreateCourtBookingRequestBuilder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
@@ -564,7 +565,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `should create a probation booking as probation user`() {
+  fun `should create a probation booking as probation external user`() {
     videoBookingRepository.findAll() hasSize 0
 
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
@@ -592,6 +593,60 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
       notesForStaff isEqualTo "integration test probation booking comments"
       videoUrl isEqualTo null
       createdBy isEqualTo PROBATION_USER.username
+      createdByPrison isEqualTo false
+    }
+
+    with(prisonAppointmentRepository.findByVideoBooking(persistedBooking).single()) {
+      videoBooking isEqualTo persistedBooking
+      prisonCode() isEqualTo BIRMINGHAM
+      prisonerNumber isEqualTo "123456"
+      appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
+      appointmentDate isEqualTo tomorrow()
+      prisonLocationId isEqualTo birminghamLocation.id
+      startTime isEqualTo LocalTime.of(9, 0)
+      endTime isEqualTo LocalTime.of(9, 30)
+      notesForStaff isEqualTo "integration test probation booking comments"
+    }
+
+    val history = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
+    with(history.first()) {
+      historyType isEqualTo HistoryType.CREATE
+      videoBookingId isEqualTo persistedBooking.videoBookingId
+      probationMeetingType isEqualTo persistedBooking.probationMeetingType
+      probationTeamId isEqualTo persistedBooking.probationTeam?.probationTeamId
+      appointments() hasSize 1
+    }
+  }
+
+  @Test
+  fun `should create a probation booking as probation Delius user`() {
+    videoBookingRepository.findAll() hasSize 0
+
+    prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = birminghamLocation,
+      notesForStaff = "integration test probation booking comments",
+    )
+
+    val bookingId = webTestClient.createBooking(probationBookingRequest, DELIUS_PROBATION_USER)
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    with(persistedBooking) {
+      videoBookingId isEqualTo bookingId
+      bookingType isEqualTo BookingType.PROBATION
+      probationTeam?.probationTeamId isEqualTo 1
+      probationMeetingType isEqualTo ProbationMeetingType.PSR.name
+      notesForStaff isEqualTo "integration test probation booking comments"
+      videoUrl isEqualTo null
+      createdBy isEqualTo DELIUS_PROBATION_USER.username
       createdByPrison isEqualTo false
     }
 

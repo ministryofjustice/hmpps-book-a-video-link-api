@@ -25,8 +25,7 @@ class PrisonAdministrationController(private val prisonService: PrisonsService) 
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
   fun amendPrison(
-    @Parameter(description = "The code of the prison to be amended.")
-    @PathVariable(name = "prisonCode", required = true)
+    @PathVariable(required = true) @Parameter(description = "The code of the prison to be amended.")
     prisonCode: String,
     @Valid
     @RequestBody

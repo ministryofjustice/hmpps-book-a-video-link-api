@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
@@ -36,13 +37,28 @@ class CancelVideoBookingServiceTest {
   private val service = CancelVideoBookingService(videoBookingRepository, bookingHistoryService)
 
   @Test
-  fun `should cancel a probation video booking for probation user`() {
+  fun `should cancel a probation video booking for External probation user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(probationBooking)
     whenever(videoBookingRepository.saveAndFlush(probationBooking)) doReturn probationBooking
 
     probationBooking.statusCode isEqualTo StatusCode.ACTIVE
 
     val booking = service.cancel(1, PROBATION_USER)
+
+    booking.statusCode isEqualTo StatusCode.CANCELLED
+
+    verify(videoBookingRepository).saveAndFlush(booking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking)
+  }
+
+  @Test
+  fun `should cancel a probation video booking for Delius probation user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(probationBooking)
+    whenever(videoBookingRepository.saveAndFlush(probationBooking)) doReturn probationBooking
+
+    probationBooking.statusCode isEqualTo StatusCode.ACTIVE
+
+    val booking = service.cancel(1, DELIUS_PROBATION_USER)
 
     booking.statusCode isEqualTo StatusCode.CANCELLED
 
@@ -110,6 +126,13 @@ class CancelVideoBookingServiceTest {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking())
 
     assertThrows<VideoBookingAccessException> { service.cancel(1, PROBATION_USER) }
+  }
+
+  @Test
+  fun `should fail to cancel a court video booking when user is Delius probation user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking())
+
+    assertThrows<VideoBookingAccessException> { service.cancel(1, DELIUS_PROBATION_USER) }
   }
 
   @Test

@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BvlsRequestCon
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.HmppsBookAVideoLinkApiExceptionHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
@@ -277,6 +278,22 @@ class VideoLinkBookingControllerTest {
     val response = mockMvc.get("/video-link-booking/id/1") {
       contentType = MediaType.APPLICATION_JSON
       requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(PROBATION_USER, LocalDateTime.now()))
+    }
+      .andExpect { status { isNotFound() } }.andReturn()
+
+    with(response.resolvedException!!) {
+      this isInstanceOf VideoBookingAccessException::class.java
+      message isEqualTo "Video booking 0 is not accessible by user"
+    }
+  }
+
+  @Test
+  fun `should fail to get court video booking for a delius (probation only) user`() {
+    whenever(videoBookingRepository.findById(1)) doReturn Optional.of(courtBooking())
+
+    val response = mockMvc.get("/video-link-booking/id/1") {
+      contentType = MediaType.APPLICATION_JSON
+      requestAttr(BvlsRequestContext::class.simpleName.toString(), BvlsRequestContext(DELIUS_PROBATION_USER, LocalDateTime.now()))
     }
       .andExpect { status { isNotFound() } }.andReturn()
 

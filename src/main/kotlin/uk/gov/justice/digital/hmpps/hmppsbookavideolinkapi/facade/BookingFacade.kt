@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeTrackingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.DeliusUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
@@ -59,9 +60,11 @@ class BookingFacade(
     }
 
     val (booking, prisoner) = videoBookingServiceDelegate.create(bookingRequest, createdBy)
+
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
     emailFacade.sendEmails(BookingAction.CREATE, booking, prisoner, createdBy)
     trackTelemetry(BookingAction.CREATE, booking, createdBy)
+
     return booking.videoBookingId
   }
 
@@ -81,6 +84,7 @@ class BookingFacade(
 
     // Amend regardless of changes (this is in-case new fields ever are introduced but not covered by the change check).
     val (amendedBooking, prisoner) = videoBookingServiceDelegate.amend(videoBookingId, bookingRequest, amendedBy)
+
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_AMENDED, videoBookingId)
 
     // Only send emails on back of change check above.
@@ -99,34 +103,34 @@ class BookingFacade(
     return videoBookingId
   }
 
-  fun cancel(videoBookingId: Long, cancelledBy: PrisonUser) {
-    cancelBooking(videoBookingId, cancelledBy)
-  }
-
-  fun cancel(videoBookingId: Long, cancelledBy: ExternalUser) {
-    cancelBooking(videoBookingId, cancelledBy)
-  }
-
-  fun request(booking: RequestVideoBookingRequest, user: ExternalUser) {
+  fun request(booking: RequestVideoBookingRequest, user: User) {
     videoBookingServiceDelegate.request(booking, user)
+  }
+
+  fun cancel(videoBookingId: Long, cancelledBy: User) {
+    when (cancelledBy) {
+      is PrisonUser, is ExternalUser, is DeliusUser -> {
+        cancelBooking(videoBookingId, cancelledBy)
+        outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
+        log.info("Video booking $videoBookingId cancelled by user ${cancelledBy.username} and event raised")
+      }
+
+      is ServiceUser -> {
+        cancelBooking(videoBookingId, cancelledBy)
+        // Do not send an event - intentionally
+        log.info("Video booking $videoBookingId cancelled by user ${cancelledBy.username} - with no event raised")
+      }
+      else -> throw IllegalArgumentException("Unsupported user type for cancel operation ${cancelledBy::class.simpleName}")
+    }
   }
 
   private fun cancelBooking(videoBookingId: Long, cancelledBy: User) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, cancelledBy)
-    log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
-    outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
     emailFacade.sendEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
     trackTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
-  fun cancel(videoBookingId: Long, cancelledBy: ServiceUser) {
-    // No events should be raised on the back of calling this function, this is by design.
-    val booking = videoBookingServiceDelegate.cancel(videoBookingId, cancelledBy)
-    log.info("Video booking ${booking.videoBookingId} cancelled by user type ${cancelledBy::class.simpleName}")
-    emailFacade.sendEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
-    trackTelemetry(BookingAction.CANCEL, booking, cancelledBy)
-  }
-
+  // Administrative action by service user
   fun courtHearingLinkReminder(videoBooking: VideoBooking, user: ServiceUser) {
     require(videoBooking.isBookingType(COURT) && videoBooking.isStatus(StatusCode.ACTIVE)) { "Video booking with id ${videoBooking.videoBookingId} must be an active court booking" }
     require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
@@ -135,6 +139,7 @@ class BookingFacade(
     emailFacade.sendEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
+  // Administrative action by service user
   fun sendProbationOfficerDetailsReminder(videoBooking: VideoBooking, user: ServiceUser) {
     require(videoBooking.isBookingType(PROBATION) && videoBooking.isStatus(StatusCode.ACTIVE)) { "Video booking with id ${videoBooking.videoBookingId} must be an active probation booking" }
     require(videoBooking.probationTeam!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled probation team" }
@@ -142,6 +147,7 @@ class BookingFacade(
     emailFacade.sendEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
   }
 
+  // Administrative action by service user
   fun prisonerTransferred(videoBookingId: Long, user: ServiceUser) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
@@ -150,6 +156,7 @@ class BookingFacade(
     trackTelemetry(BookingAction.TRANSFERRED, booking, user)
   }
 
+  // Administrative action by service user
   fun prisonerReleased(videoBookingId: Long, user: ServiceUser) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")

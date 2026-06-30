@@ -6,6 +6,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
@@ -40,7 +42,7 @@ class ProbationBookingCreatedTelemetryEventTest {
       locationId = birminghamLocation.id,
     )
 
-    with(ProbationBookingCreatedTelemetryEvent(booking)) {
+    with(ProbationBookingCreatedTelemetryEvent(booking, PROBATION_USER)) {
       eventType isEqualTo "BVLS-probation-booking-created"
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
@@ -51,6 +53,48 @@ class ProbationBookingCreatedTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "false",
+      )
+
+      metrics() containsEntriesExactlyInAnyOrder mapOf(
+        "hoursBeforeStartTime" to hoursBetween(
+          booking.createdTime,
+          tomorrow().atTime(LocalTime.of(14, 0)),
+        ).toDouble(),
+      )
+    }
+  }
+
+  @Test
+  fun `should raise a probation booking created telemetry event by a delius probation user`() {
+    val booking = VideoBooking.newProbationBooking(
+      probationTeam = probationTeam(BLACKPOOL_MC_PPOC),
+      probationMeetingType = "PSR",
+      createdBy = DELIUS_PROBATION_USER,
+      notesForStaff = null,
+      notesForPrisoners = null,
+    ).addAppointment(
+      prison = prison(BIRMINGHAM),
+      prisonerNumber = "ABC123",
+      appointmentType = "VLB_PROBATION",
+      date = tomorrow(),
+      startTime = LocalTime.of(14, 0),
+      endTime = LocalTime.of(15, 0),
+      locationId = birminghamLocation.id,
+    )
+
+    with(ProbationBookingCreatedTelemetryEvent(booking, DELIUS_PROBATION_USER)) {
+      eventType isEqualTo "BVLS-probation-booking-created"
+      properties() containsEntriesExactlyInAnyOrder mapOf(
+        "video_booking_id" to "0",
+        "created_by" to "probation",
+        "team_code" to BLACKPOOL_MC_PPOC,
+        "meeting_type" to "PSR",
+        "prison_code" to BIRMINGHAM,
+        "location_id" to birminghamLocation.id.toString(),
+        "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
+        "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "true",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -80,7 +124,7 @@ class ProbationBookingCreatedTelemetryEventTest {
       locationId = birminghamLocation.id,
     )
 
-    with(ProbationBookingCreatedTelemetryEvent(booking)) {
+    with(ProbationBookingCreatedTelemetryEvent(booking, PRISON_USER_BIRMINGHAM)) {
       eventType isEqualTo "BVLS-probation-booking-created"
       properties() containsEntriesExactlyInAnyOrder mapOf(
         "video_booking_id" to "0",
@@ -91,6 +135,7 @@ class ProbationBookingCreatedTelemetryEventTest {
         "location_id" to birminghamLocation.id.toString(),
         "start" to tomorrow().atTime(LocalTime.of(14, 0)).toIsoDateTime(),
         "end" to tomorrow().atTime(LocalTime.of(15, 0)).toIsoDateTime(),
+        "delius_user" to "false",
       )
 
       metrics() containsEntriesExactlyInAnyOrder mapOf(
@@ -106,7 +151,7 @@ class ProbationBookingCreatedTelemetryEventTest {
 
   @Test
   fun `should fail to create event if court booking`() {
-    val error = assertThrows<IllegalArgumentException> { ProbationBookingCreatedTelemetryEvent(courtBooking()) }
+    val error = assertThrows<IllegalArgumentException> { ProbationBookingCreatedTelemetryEvent(courtBooking(), COURT_USER) }
 
     error.message isEqualTo "Cannot create probation created metric, video booking with ID '0' is not a probation booking."
   }
@@ -114,7 +159,7 @@ class ProbationBookingCreatedTelemetryEventTest {
   @Test
   fun `should fail to create event when booking has been amended`() {
     val amendedBooking = probationBooking().apply { amendedTime = LocalDateTime.now() }
-    val error = assertThrows<IllegalArgumentException> { ProbationBookingCreatedTelemetryEvent(amendedBooking) }
+    val error = assertThrows<IllegalArgumentException> { ProbationBookingCreatedTelemetryEvent(amendedBooking, PROBATION_USER) }
 
     error.message isEqualTo "Cannot create probation created metric, video booking with ID '0' has been amended."
   }

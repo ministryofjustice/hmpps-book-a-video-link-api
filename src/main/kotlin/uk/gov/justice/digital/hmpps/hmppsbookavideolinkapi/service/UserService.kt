@@ -40,6 +40,13 @@ class UserService(
   fun getUser(username: String): User? = manageUsersClient.getUsersDetails(username)?.let { userDetails ->
     when (userDetails.authSource) {
       AuthSource.nomis -> {
+        /**
+         * The user account is held in NOMIS which means they are a prison staff user.
+         * Their access is controlled by DPS roles derived from NOMIS.
+         * Prison users have an activeCaseLoadId - which other types of user don't have.
+         * They are never court or probation users.
+         */
+
         PrisonUser(
           username = username,
           name = userDetails.name,
@@ -49,6 +56,12 @@ class UserService(
       }
 
       AuthSource.auth -> {
+        /**
+         * The user account is external and held in HMPPS Auth with their access controlled by
+         * their roles and group memberships held there. These usernames are often email addresses.
+         * These can be court or probation users.
+         */
+
         val userGroups = manageUsersClient.getUsersGroups(userDetails.userId)
         val isCourtUser = userGroups.any { it.groupCode == COURT_USER_GROUP_CODE }
         val isProbationUser = userGroups.any { it.groupCode == PROBATION_USER_GROUP_CODE }
@@ -63,6 +76,25 @@ class UserService(
           isProbationUser = isProbationUser,
           courts = courts,
           probationTeams = probationTeams,
+        )
+      }
+
+      AuthSource.delius -> {
+        /**
+         * The user account is held in nDelius with their access controlled by roles allocated there.
+         * Roles in nDelius are mapped to DPS roles by HMPPS Auth / manage-users-api at login.
+         * Group memberships are not relevant to nDelius users.
+         * The usernames are not email addresses.
+         * Delius users are always probation users.
+         */
+
+        DeliusUser(
+          username = username,
+          name = userDetails.name,
+          email = manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
+          isCourtUser = false,
+          isProbationUser = true,
+          probationTeams = probationTeamRepository.findProbationTeamsByUsername(username).map { it.code }.toSet(),
         )
       }
 
@@ -159,6 +191,48 @@ class ExternalUser(
     result = 31 * result + isCourtUser.hashCode()
     result = 31 * result + isProbationUser.hashCode()
     result = 31 * result + courts.hashCode()
+    result = 31 * result + probationTeams.hashCode()
+    return result
+  }
+}
+
+class DeliusUser(
+  val email: String? = null,
+  val isProbationUser: Boolean = false,
+  val isCourtUser: Boolean = false,
+  private val probationTeams: Set<String> = emptySet(),
+  username: String,
+  name: String,
+) : User(username, name) {
+
+  init {
+    require(isProbationUser) {
+      "Delius user must be a probation user"
+    }
+  }
+
+  fun hasAccessTo(court: Court) = false
+
+  fun hasAccessTo(probationTeam: ProbationTeam) = probationTeams.any { it == probationTeam.code }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    if (!super.equals(other)) return false
+
+    other as DeliusUser
+
+    if (email != other.email) return false
+    if (isProbationUser != other.isProbationUser) return false
+    if (probationTeams != other.probationTeams) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = super.hashCode()
+    result = 31 * result + (email?.hashCode() ?: 0)
+    result = 31 * result + isProbationUser.hashCode()
     result = 31 * result + probationTeams.hashCode()
     return result
   }

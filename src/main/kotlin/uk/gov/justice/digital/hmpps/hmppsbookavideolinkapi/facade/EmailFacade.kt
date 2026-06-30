@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.Notificati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ContactsService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.DeliusUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
@@ -139,7 +140,7 @@ class EmailFacade(
           location,
           eventType,
           additionalBookingDetail,
-        ).takeIf { user is PrisonUser || user is ExternalUser }
+        ).takeIf { user is PrisonUser || user is ExternalUser || user is DeliusUser }
 
         ContactType.PROBATION -> ProbationEmailFactory.probation(
           contact,

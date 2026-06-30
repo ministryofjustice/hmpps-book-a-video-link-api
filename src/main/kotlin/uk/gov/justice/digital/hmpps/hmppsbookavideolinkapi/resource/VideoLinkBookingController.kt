@@ -29,8 +29,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateV
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoBookingSearchRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoLinkBookingsService
 
 @Tag(name = "Video Link Booking Controller")
@@ -100,8 +98,7 @@ class VideoLinkBookingController(
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun amend(
-    @PathVariable("videoBookingId")
-    videoBookingId: Long,
+    @PathVariable videoBookingId: Long,
     @Valid
     @RequestBody
     @Parameter(description = "The request with the amended video link booking details", required = true)
@@ -137,7 +134,7 @@ class VideoLinkBookingController(
   @GetMapping(value = ["/id/{videoBookingId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun getVideoLinkBookingById(
-    @PathVariable("videoBookingId") videoBookingId: Long,
+    @PathVariable videoBookingId: Long,
     httpRequest: HttpServletRequest,
   ) = videoLinkBookingsService.getVideoLinkBookingById(videoBookingId, httpRequest.getBvlsRequestContext().user)
 
@@ -174,15 +171,9 @@ class VideoLinkBookingController(
   )
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
   fun cancelVideoBooking(
-    @PathVariable("videoBookingId") videoBookingId: Long,
+    @PathVariable videoBookingId: Long,
     httpRequest: HttpServletRequest,
-  ) {
-    when (val user = httpRequest.getBvlsRequestContext().user) {
-      is PrisonUser -> bookingFacade.cancel(videoBookingId, user)
-      is ExternalUser -> bookingFacade.cancel(videoBookingId, user)
-      else -> throw IllegalArgumentException("Unsupported user for cancel operation.")
-    }
-  }
+  ) = bookingFacade.cancel(videoBookingId, httpRequest.getBvlsRequestContext().user)
 
   @Operation(summary = "Endpoint to allow external users request a prison to create a video link booking for a prisoner due to arrive")
   @ApiResponses(
@@ -202,7 +193,7 @@ class VideoLinkBookingController(
     @Parameter(description = "The request with the requested video link booking details", required = true)
     request: RequestVideoBookingRequest,
     httpRequest: HttpServletRequest,
-  ) = bookingFacade.request(request, httpRequest.getBvlsRequestContext().user as ExternalUser)
+  ) = bookingFacade.request(request, httpRequest.getBvlsRequestContext().user)
 
   @Operation(summary = "Endpoint to search for a unique matching video link booking.")
   @ApiResponses(
