@@ -345,10 +345,19 @@ class ChangeTrackingServiceTest {
     }
 
     @Test
-    fun `should be global change for location as probation user`() {
+    fun `should be global change for location as probation user by key`() {
       val details = amendProbationBookingRequest.prisoners.single()
       val appointment = details.appointments.single().copy(locationKey = wandsworthLocation2.key)
-      val differentLocation = amendProbationBookingRequest.copy(prisoners = listOf(details.copy(appointments = listOf(appointment))))
+      val differentLocation = amendProbationBookingRequest.copy(prisoners = listOf(details.copy(appointments = listOf(appointment.copy(dpsLocationId = null)))))
+
+      service.determineChangeType(1, differentLocation, PROBATION_USER) isEqualTo ChangeType.GLOBAL
+    }
+
+    @Test
+    fun `should be global change for location as probation user by ID`() {
+      val details = amendProbationBookingRequest.prisoners.single()
+      val appointment = details.appointments.single().copy(locationKey = null, dpsLocationId = wandsworthLocation2.id)
+      val differentLocation = amendProbationBookingRequest.copy(prisoners = listOf(details.copy(appointments = listOf(appointment.copy(locationKey = null)))))
 
       service.determineChangeType(1, differentLocation, PROBATION_USER) isEqualTo ChangeType.GLOBAL
     }
