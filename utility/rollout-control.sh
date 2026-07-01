@@ -45,10 +45,16 @@ show_current() {
 
   echo "Getting secrets from $ENV ..."
 
+  # Get administration secret
   ADMINISTRATION_EMAILS=$(kubectl -n "$NAMESPACE" get secret administration -o jsonpath='{.data.ADMINISTRATION_EMAILS}' | base64 -d)
-  FEATURE_GREY_RELEASE_PRISONS=$(kubectl -n "$NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_GREY_RELEASE_PRISONS}' | base64 -d)
-  FEATURE_PROBATION_ONLY_PRISONS=$(kubectl -n "$NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_PROBATION_ONLY_PRISONS}' | base64 -d)
-  FEATURE_COURT_ONLY_PRISONS=$(kubectl -n "$NAMESPACE" get secret feature-toggles -o jsonpath='{.data.FEATURE_COURT_ONLY_PRISONS}' | base64 -d)
+
+  # Get feature-toggles secret values
+  KUBE_SECRET=feature-toggles
+  read -r FEATURE_GREY_RELEASE_PRISONS FEATURE_PROBATION_ONLY_PRISONS FEATURE_COURT_ONLY_PRISONS < <(
+    kubectl -n "$NAMESPACE" get secret "$KUBE_SECRET" -o json \
+    | jq -r '.data | .FEATURE_GREY_RELEASE_PRISONS, .FEATURE_PROBATION_ONLY_PRISONS, .FEATURE_COURT_ONLY_PRISONS | @base64d' \
+    | tr '\n' ' '
+  )
 
   clear
   echo "-------------------------------------------------------------------------------------"
