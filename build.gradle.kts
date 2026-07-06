@@ -3,11 +3,11 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.4"
   id("org.openapi.generator") version "7.23.0"
   kotlin("plugin.spring") version "2.4.0"
   kotlin("plugin.jpa") version "2.4.0"
-  id("dev.zacsweers.redacted") version "1.17.0"
+  id("dev.zacsweers.redacted") version "1.18.0"
 }
 
 redacted {
@@ -36,7 +36,7 @@ dependencies {
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
-  runtimeOnly("org.postgresql:postgresql:42.7.11")
+  runtimeOnly("org.postgresql:postgresql:42.7.12")
 
   // OpenAPI
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3")
@@ -49,7 +49,7 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.29.0")
 
   // Phone number validation
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.33")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.34")
 
   // Test dependencies
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
