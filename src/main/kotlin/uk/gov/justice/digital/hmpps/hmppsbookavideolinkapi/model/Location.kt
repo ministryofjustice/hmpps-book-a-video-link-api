@@ -51,11 +51,19 @@ data class RoomAttributes(
 
   val schedule: List<RoomSchedule> = emptyList(),
 
-  @Schema(description = "The start date which a room is blocked from. Only applies to temporarily blocked rooms.")
+  @Schema(description = "The start date which a room is blocked from. Only applies to temporarily blocked rooms.", example = "2028-07-05")
   val blockedFrom: LocalDate? = null,
 
-  @Schema(description = "The end date which a room is blocked to. Only applies to temporarily blocked rooms.")
+  @Schema(description = "The end date which a room is blocked to. Only applies to temporarily blocked rooms.", example = "2028-07-06")
   val blockedTo: LocalDate? = null,
+
+  @Schema(description = "The start time which a location is blocked from. Only applies to temporarily blocked locations.", example = "10:00")
+  @JsonFormat(pattern = "HH:mm")
+  val blockedFromTime: LocalTime? = null,
+
+  @Schema(description = "The end time which a location is blocked to, must be on or after the blocked from date. Only applies to temporarily blocked locations.", example = "15:00")
+  @JsonFormat(pattern = "HH:mm")
+  val blockedToTime: LocalTime? = null,
 )
 
 @Schema(description = "The additional schedule of usage for a video room")
