@@ -150,7 +150,6 @@ class LocationAttribute private constructor(
     when (locationUsage) {
       LocationUsage.SHARED -> AvailabilityStatus.SHARED
       LocationUsage.PROBATION -> when {
-        // TODO need to add check here for the court or sentence attribute
         allowedParties.isNullOrBlank() -> AvailabilityStatus.PROBATION_ANY
         isPartyAllowed(probationTeam.code) -> AvailabilityStatus.PROBATION_ROOM
         else -> AvailabilityStatus.NONE

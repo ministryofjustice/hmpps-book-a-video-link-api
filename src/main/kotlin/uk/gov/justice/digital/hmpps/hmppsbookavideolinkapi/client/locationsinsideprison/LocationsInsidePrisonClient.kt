@@ -36,6 +36,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()
 
+  @Deprecated("Use getLocationsById instead")
   @Cacheable(CacheConfiguration.LOCATION_BY_KEY_CACHE_NAME)
   fun getLocationByKey(key: String): Location? = locationsInsidePrisonApiWebClient.get()
     .uri("/locations/key/{key}", key)
@@ -45,6 +46,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()
 
+  @Deprecated("Use getLocationsById instead")
   fun getLocationsByKeys(keys: Set<String>): List<Location> = locationsInsidePrisonApiWebClient.post()
     .uri("/locations/keys")
     .bodyValue(keys)

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.GroupSequence
@@ -9,6 +10,7 @@ import jakarta.validation.constraints.Size
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import java.time.LocalDate
+import java.time.LocalTime
 
 @GroupSequence(AmendDecoratedRoomRequest::class, BlockedDateValidationExtension::class)
 data class AmendDecoratedRoomRequest(
@@ -29,12 +31,20 @@ data class AmendDecoratedRoomRequest(
   @Schema(description = "Optional comments for the decorated location, can be null", example = "Temporarily unavailable due to ongoing work", required = false)
   val comments: String? = null,
 
-  @Schema(description = "The start date which a location is blocked from. Only applies to temporarily blocked locations.", required = false)
+  @Schema(description = "The start date which a location is blocked from. Only applies to temporarily blocked locations.", example = "2028-07-05", required = false)
   val blockedFrom: LocalDate? = null,
 
   @field:FutureOrPresent(message = "The blocked to date must be in the future or present")
-  @Schema(description = "The end date which a location is blocked to, must be on or after the blocked from date. Only applies to temporarily blocked locations.", required = false)
+  @Schema(description = "The end date which a location is blocked to, must be on or after the blocked from date. Only applies to temporarily blocked locations.", example = "2028-07-06", required = false)
   val blockedTo: LocalDate? = null,
+
+  @Schema(description = "The start time which a location is blocked from. Only applies to temporarily blocked locations.", example = "10:00", required = false)
+  @JsonFormat(pattern = "HH:mm")
+  val blockedFromTime: LocalTime? = null,
+
+  @Schema(description = "The end time which a location is blocked to, must be on or after the blocked from date. Only applies to temporarily blocked locations.", example = "15:00", required = false)
+  @JsonFormat(pattern = "HH:mm")
+  val blockedToTime: LocalTime? = null,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The blocked to must be on or after the blocked from date", groups = [BlockedDateValidationExtension::class])
