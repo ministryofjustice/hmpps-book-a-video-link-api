@@ -354,6 +354,8 @@ fun videoRoomAttributesWithoutSchedule(
   locationUsage: LocationUsage = LocationUsage.SHARED,
   blockedFrom: LocalDate? = null,
   blockedTo: LocalDate? = null,
+  blockedFromTime: LocalTime? = null,
+  blockedToTime: LocalTime? = null,
 ) = LocationAttribute.decoratedRoom(
   dpsLocationId = dpsLocationId,
   prison = Prison(
@@ -371,7 +373,9 @@ fun videoRoomAttributesWithoutSchedule(
   notes = null,
   createdBy = COURT_USER,
   blockedFrom = blockedFrom,
+  blockedFromTime = blockedFromTime,
   blockedTo = blockedTo,
+  blockedToTime = blockedToTime,
 )
 
 fun additionalDetails(

@@ -13,13 +13,15 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.hibernate.Hibernate
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.between
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrAfter
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrBefore
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @Entity
@@ -58,6 +60,10 @@ class LocationAttribute private constructor(
   var blockedFrom: LocalDate? = null
 
   var blockedTo: LocalDate? = null
+
+  var blockedFromTime: LocalTime? = null
+
+  var blockedToTime: LocalTime? = null
 
   @OneToMany(mappedBy = "locationAttribute", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val locationSchedule: MutableList<LocationSchedule> = mutableListOf()
@@ -138,13 +144,27 @@ class LocationAttribute private constructor(
   fun isAvailableFor(bookingType: LocationBookingType, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     if (locationStatus == LocationStatus.INACTIVE) return AvailabilityStatus.NONE
 
-    if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED && onDate.between(blockedFrom!!, blockedTo)) return AvailabilityStatus.NONE
+    if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED && requestedDateAndTimesBlocked(onDate, startTime, endTime)) {
+      return AvailabilityStatus.NONE
+    }
 
     when (bookingType) {
       is Court -> checkCourt(bookingType, onDate, startTime, endTime)
       is ProbationTeam -> checkProbation(bookingType, onDate, startTime, endTime)
     }
   }
+
+  private fun requestedDateAndTimesBlocked(onDate: LocalDate, startTime: LocalTime, endTime: LocalTime) = run {
+    // Ensure all times are rounded to whole minutes; we don't care about seconds.
+    val startDateTime = onDate.atTime(startTime).truncatedTo(ChronoUnit.MINUTES)
+    val endDateTime = onDate.atTime(endTime).truncatedTo(ChronoUnit.MINUTES)
+
+    !startDateTime.isOnOrAfter(blockedToDateTime()!!) && !endDateTime.isOnOrBefore(blockedFromDateTime()!!)
+  }
+
+  fun blockedFromDateTime() = blockedFrom?.atTime(blockedFromTime ?: LocalTime.MIN)?.truncatedTo(ChronoUnit.MINUTES)
+
+  fun blockedToDateTime() = blockedTo?.atTime(blockedToTime ?: LocalTime.MAX)?.truncatedTo(ChronoUnit.MINUTES)
 
   private fun checkProbation(probationTeam: ProbationTeam, onDate: LocalDate, startTime: LocalTime, endTime: LocalTime): AvailabilityStatus = run {
     when (locationUsage) {
@@ -261,6 +281,8 @@ class LocationAttribute private constructor(
       notes: String?,
       blockedFrom: LocalDate? = null,
       blockedTo: LocalDate? = null,
+      blockedFromTime: LocalTime? = null,
+      blockedToTime: LocalTime? = null,
       createdBy: ExternalUser,
     ) = LocationAttribute(
       dpsLocationId = dpsLocationId,
@@ -287,7 +309,9 @@ class LocationAttribute private constructor(
       this.notes = notes
       this.allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(",")
       this.blockedFrom = blockedFrom.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
+      this.blockedFromTime = blockedFromTime.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }?.truncatedTo(ChronoUnit.MINUTES)
       this.blockedTo = blockedTo.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
+      this.blockedToTime = blockedToTime.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }?.truncatedTo(ChronoUnit.MINUTES)
     }
 
     fun amend(
@@ -299,6 +323,8 @@ class LocationAttribute private constructor(
       comments: String?,
       blockedFrom: LocalDate? = null,
       blockedTo: LocalDate? = null,
+      blockedFromTime: LocalTime? = null,
+      blockedToTime: LocalTime? = null,
       amendedBy: ExternalUser,
     ) = run {
       if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED) {
@@ -324,7 +350,9 @@ class LocationAttribute private constructor(
         this.amendedTime = LocalDateTime.now()
         this.allowedParties = allowedParties.takeUnless { it.isEmpty() }?.joinToString(",")
         this.blockedFrom = blockedFrom.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
+        this.blockedFromTime = blockedFromTime.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }?.truncatedTo(ChronoUnit.MINUTES)
         this.blockedTo = blockedTo.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
+        this.blockedToTime = blockedToTime.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }?.truncatedTo(ChronoUnit.MINUTES)
       }
     }
 
@@ -338,7 +366,9 @@ class LocationAttribute private constructor(
         this.amendedBy = activatedBy.username
         this.amendedTime = LocalDateTime.now()
         this.blockedFrom = null
+        this.blockedFromTime = null
         this.blockedTo = null
+        this.blockedToTime = null
       }
     }
   }

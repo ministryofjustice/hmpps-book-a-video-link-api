@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateD
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.administration.CreateDecoratedLocationService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toRoomAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.LocationAttributeTelemetryEvent
@@ -31,7 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
 
-class CreateDecoratedLocationsServiceTest {
+class CreateDecoratedLocationServiceTest {
   private val locationsService: LocationsService = mock()
   private val prisonRepository: PrisonRepository = mock()
   private val locationAttributeRepository: LocationAttributeRepository = mock()

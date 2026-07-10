@@ -117,7 +117,9 @@ class LocationAttributeTelemetryEventTest {
       "location_status" to LocationStatus.TEMPORARILY_BLOCKED.name,
       "location_usage" to "SHARED",
       "blocked_from" to today().toIsoDate(),
+      "blocked_from_time" to "00:00",
       "blocked_to" to tomorrow().toIsoDate(),
+      "blocked_to_time" to "23:59",
       "amended_by" to "user",
     )
   }
@@ -147,7 +149,9 @@ class LocationAttributeTelemetryEventTest {
       "location_status" to LocationStatus.TEMPORARILY_BLOCKED.name,
       "location_usage" to "PROBATION",
       "blocked_from" to today().toIsoDate(),
+      "blocked_from_time" to "00:00",
       "blocked_to" to tomorrow().toIsoDate(),
+      "blocked_to_time" to "23:59",
       "created_by" to "user",
     )
   }
