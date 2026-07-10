@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus as ModelLocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage as ModelLocationUsage
 
-class AmendDecoratedLocationsServiceTest {
+class AmendDecoratedLocationServiceTest {
   private val locationsService: LocationsService = mock()
   private val locationAttributeRepository: LocationAttributeRepository = mock()
   private val locationScheduleRepository: LocationScheduleRepository = mock()

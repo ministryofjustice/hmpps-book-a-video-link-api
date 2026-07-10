@@ -33,8 +33,10 @@ fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   prisonVideoUrl = this.prisonVideoUrl,
   notes = this.notes,
   schedule = this.schedule().toRoomSchedule(),
-  blockedTo = this.blockedTo,
-  blockedFrom = this.blockedFrom,
+  blockedTo = this.blockedToDateTime()?.toLocalDate(),
+  blockedFrom = this.blockedFromDateTime()?.toLocalDate(),
+  blockedToTime = this.blockedToDateTime()?.toLocalTime(),
+  blockedFromTime = this.blockedFromDateTime()?.toLocalTime(),
 )
 
 fun List<LocationSchedule>.toRoomSchedule() = map { it.toModel() }

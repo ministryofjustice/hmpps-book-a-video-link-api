@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
-import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import java.util.UUID
 
 @Repository
@@ -14,5 +14,5 @@ interface LocationAttributeRepository : JpaRepository<LocationAttribute, Long> {
 
   fun deleteLocationAttributesByDpsLocationId(dpsLocationId: UUID)
 
-  fun findByBlockedToNotNullAndBlockedToIsBefore(date: LocalDate): List<LocationAttribute>
+  fun findByLocationStatus(locationStatus: LocationStatus): List<LocationAttribute>
 }

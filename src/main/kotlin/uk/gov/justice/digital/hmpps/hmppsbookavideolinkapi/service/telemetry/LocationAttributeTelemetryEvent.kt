@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
@@ -28,8 +29,10 @@ class LocationAttributeTelemetryEvent(private val attribute: LocationAttribute, 
       put("location_usage", attribute.locationUsage.name)
 
       if (attribute.locationStatus == LocationStatus.TEMPORARILY_BLOCKED) {
-        put("blocked_from", (attribute.blockedFrom?.toIsoDate() ?: ""))
-        put("blocked_to", (attribute.blockedTo?.toIsoDate() ?: ""))
+        put("blocked_from", (attribute.blockedFromDateTime()?.toLocalDate()?.toIsoDate() ?: ""))
+        put("blocked_to", (attribute.blockedToDateTime()?.toLocalDate()?.toIsoDate() ?: ""))
+        put("blocked_from_time", (attribute.blockedFromDateTime()?.toLocalTime()?.toHourMinuteStyle() ?: ""))
+        put("blocked_to_time", (attribute.blockedToDateTime()?.toLocalTime()?.toHourMinuteStyle() ?: ""))
       }
 
       if (attribute.amendedBy == null) {

@@ -108,7 +108,9 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.PROBATION,
         locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
         blockedFrom = today(),
+        blockedFromTime = LocalTime.of(9, 0),
         blockedTo = tomorrow(),
+        blockedToTime = LocalTime.of(12, 0),
       ),
       wandsworthLocation2.toModel(),
       PROBATION_USER,
@@ -118,7 +120,9 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationUsage.name isEqualTo ModelLocationUsage.PROBATION.name
       locationStatus.name isEqualTo ModelLocationStatus.TEMPORARILY_BLOCKED.name
       blockedFrom isEqualTo today()
+      blockedFromTime isEqualTo LocalTime.of(9, 0)
       blockedTo isEqualTo tomorrow()
+      blockedToTime isEqualTo LocalTime.of(12, 0)
     }
   }
 
@@ -131,7 +135,9 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.PROBATION,
         locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
         blockedFrom = today(),
+        blockedFromTime = LocalTime.of(9, 0),
         blockedTo = tomorrow(),
+        blockedToTime = LocalTime.of(12, 0),
       ),
       wandsworthLocation2.toModel(),
       PROBATION_USER,
@@ -142,7 +148,9 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.PROBATION,
         locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
         blockedFrom = today(),
+        blockedFromTime = LocalTime.of(10, 0),
         blockedTo = tomorrow().plusDays(1),
+        blockedToTime = LocalTime.of(13, 0),
       ),
       wandsworthLocation2.toModel(),
       PROBATION_USER,
@@ -152,7 +160,9 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationUsage.name isEqualTo ModelLocationUsage.PROBATION.name
       locationStatus.name isEqualTo ModelLocationStatus.TEMPORARILY_BLOCKED.name
       blockedFrom isEqualTo today()
+      blockedFromTime isEqualTo LocalTime.of(10, 0)
       blockedTo isEqualTo tomorrow().plusDays(1)
+      blockedToTime isEqualTo LocalTime.of(13, 0)
     }
   }
 

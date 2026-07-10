@@ -43,7 +43,9 @@ class CreateDecoratedLocationService(
         notes = request.comments,
         createdBy = createdBy,
         blockedFrom = request.blockedFrom,
+        blockedFromTime = request.blockedFromTime,
         blockedTo = request.blockedTo,
+        blockedToTime = request.blockedToTime,
       ).also { telemetryService.track(LocationAttributeTelemetryEvent(it, createdBy)) },
     ).let { location.copy(extraAttributes = it.toRoomAttributes()) }
   }

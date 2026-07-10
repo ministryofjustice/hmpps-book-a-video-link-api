@@ -23,7 +23,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
-class LocationAttributesTest {
+class LocationAttributeTest {
   @Test
   fun `should accept location attributes with a schedule if the location usage is not SCHEDULE`() {
     val roomAttributes = LocationAttribute.decoratedRoom(
@@ -109,7 +109,7 @@ class LocationAttributesTest {
 
   @Test
   fun `should reject a duplicate schedule row`() {
-    val roomAttributes = LocationAttribute.decoratedRoom(
+    LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
       prison = pentonvillePrison,
       locationStatus = LocationStatus.ACTIVE,
@@ -254,7 +254,7 @@ class LocationAttributesTest {
   }
 
   @Test
-  fun `should be reactivate a blocked booking`() {
+  fun `should reactivate a blocked booking`() {
     val blockedRoom = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
       prison = pentonvillePrison,
@@ -264,7 +264,9 @@ class LocationAttributesTest {
       prisonVideoUrl = null,
       notes = null,
       blockedFrom = today(),
+      blockedFromTime = LocalTime.of(12, 0),
       blockedTo = tomorrow(),
+      blockedToTime = LocalTime.of(13, 0),
       createdBy = PROBATION_USER,
     )
 
@@ -273,7 +275,9 @@ class LocationAttributesTest {
     with(activeRoom) {
       locationStatus isEqualTo LocationStatus.ACTIVE
       blockedFrom isEqualTo null
+      blockedFromTime isEqualTo null
       blockedTo isEqualTo null
+      blockedToTime isEqualTo null
       amendedBy isEqualTo SERVICE_USER.username
       amendedTime isCloseTo LocalDateTime.now()
     }
@@ -975,6 +979,91 @@ class LocationAttributesTest {
       )
 
       roomAttributes.isAvailableFor(court(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be NONE when temporarily blocked today at 10AM`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationUsage = LocationUsage.COURT,
+        locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        blockedFrom = today(),
+        blockedFromTime = LocalTime.of(10, 0),
+        blockedTo = today(),
+        createdBy = COURT_USER,
+      )
+
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(9, 0), LocalTime.of(11, 0)) isEqualTo AvailabilityStatus.NONE
+    }
+
+    @Test
+    fun `should be COURT_ANY when date and start and end times before blocked room date and times`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationUsage = LocationUsage.COURT,
+        locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        blockedFrom = today(),
+        blockedFromTime = LocalTime.of(10, 0),
+        blockedTo = today(),
+        blockedToTime = LocalTime.of(11, 0),
+        createdBy = COURT_USER,
+      )
+
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(8, 0), LocalTime.of(9, 0)) isEqualTo AvailabilityStatus.COURT_ANY
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(8, 30), LocalTime.of(9, 30)) isEqualTo AvailabilityStatus.COURT_ANY
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(9, 0), LocalTime.of(10, 0)) isEqualTo AvailabilityStatus.COURT_ANY
+    }
+
+    @Test
+    fun `should be COURT_ANY when date and start and end times after blocked room date and times`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationUsage = LocationUsage.COURT,
+        locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        blockedFrom = today(),
+        blockedFromTime = LocalTime.of(10, 0),
+        blockedTo = today(),
+        blockedToTime = LocalTime.of(11, 0),
+        createdBy = COURT_USER,
+      )
+
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(11, 0), LocalTime.of(12, 0)) isEqualTo AvailabilityStatus.COURT_ANY
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(11, 30), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.COURT_ANY
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(12, 0), LocalTime.of(13, 0)) isEqualTo AvailabilityStatus.COURT_ANY
+    }
+
+    @Test
+    fun `should be NONE when dates and start and end times overlap blocked room date and times`() {
+      val roomAttributes = LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationUsage = LocationUsage.COURT,
+        locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        blockedFrom = today(),
+        blockedFromTime = LocalTime.of(10, 0),
+        blockedTo = today(),
+        blockedToTime = LocalTime.of(11, 0),
+        createdBy = COURT_USER,
+      )
+
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(9, 0), LocalTime.of(10, 30)) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(10, 0), LocalTime.of(11, 0)) isEqualTo AvailabilityStatus.NONE
+      roomAttributes.isAvailableFor(court(), today(), LocalTime.of(10, 30), LocalTime.of(11, 30)) isEqualTo AvailabilityStatus.NONE
     }
 
     @Test

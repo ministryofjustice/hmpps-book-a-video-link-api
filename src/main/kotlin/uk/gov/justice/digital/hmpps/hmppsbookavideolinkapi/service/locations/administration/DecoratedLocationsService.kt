@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.ad
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isOnOrBefore
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendRoomScheduleRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
@@ -14,7 +16,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.LocationAttributeTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.TelemetryService
-import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @Service
@@ -57,9 +60,10 @@ class DecoratedLocationsService(
     locationAttribute.deleteSchedule(schedule, deletedBy)
   }
 
-  fun reactivateBlockedLocationsBefore(beforeDate: LocalDate) = run {
+  fun reactivateBlockedLocationsBefore(beforeDateTime: LocalDateTime) = run {
     locationAttributeRepository
-      .findByBlockedToNotNullAndBlockedToIsBefore(beforeDate)
+      .findByLocationStatus(LocationStatus.TEMPORARILY_BLOCKED)
+      .filter { it.blockedToDateTime()?.isOnOrBefore(beforeDateTime.truncatedTo(ChronoUnit.MINUTES)) == true }
       .onEach(::reactivate)
       .toMutableList()
       .let(locationAttributeRepository::saveAllAndFlush)
