@@ -254,6 +254,58 @@ class LocationAttributeTest {
   }
 
   @Test
+  fun `should be fail to amend when blocked to time is before blocked from time`() {
+    val blockedRoom = LocationAttribute.decoratedRoom(
+      dpsLocationId = UUID.randomUUID(),
+      prison = pentonvillePrison,
+      locationUsage = LocationUsage.PROBATION,
+      locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+      allowedParties = emptySet(),
+      prisonVideoUrl = null,
+      notes = null,
+      blockedFrom = today(),
+      blockedTo = tomorrow(),
+      createdBy = PROBATION_USER,
+    )
+
+    assertThrows<IllegalArgumentException> {
+      LocationAttribute.amend(
+        locationAttributeToAmend = blockedRoom,
+        locationUsage = LocationUsage.PROBATION,
+        locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        blockedFrom = today(),
+        blockedFromTime = LocalTime.of(11, 0),
+        blockedTo = today(),
+        blockedToTime = LocalTime.of(10, 0),
+        amendedBy = PROBATION_USER,
+        comments = null,
+      )
+    }.message isEqualTo "The blocked from time must be before the blocked to time."
+  }
+
+  @Test
+  fun `should be fail to decorate room when blocked to time is before blocked from time`() {
+    assertThrows<IllegalArgumentException> {
+      LocationAttribute.decoratedRoom(
+        dpsLocationId = UUID.randomUUID(),
+        prison = pentonvillePrison,
+        locationUsage = LocationUsage.PROBATION,
+        locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
+        allowedParties = emptySet(),
+        prisonVideoUrl = null,
+        notes = null,
+        blockedFrom = today(),
+        blockedFromTime = LocalTime.of(12, 0),
+        blockedTo = today(),
+        blockedToTime = LocalTime.of(11, 0),
+        createdBy = PROBATION_USER,
+      )
+    }.message isEqualTo "The blocked from time must be before the blocked to time."
+  }
+
+  @Test
   fun `should reactivate a blocked booking`() {
     val blockedRoom = LocationAttribute.decoratedRoom(
       dpsLocationId = UUID.randomUUID(),
@@ -266,7 +318,7 @@ class LocationAttributeTest {
       blockedFrom = today(),
       blockedFromTime = LocalTime.of(12, 0),
       blockedTo = tomorrow(),
-      blockedToTime = LocalTime.of(13, 0),
+      blockedToTime = LocalTime.of(10, 0),
       createdBy = PROBATION_USER,
     )
 

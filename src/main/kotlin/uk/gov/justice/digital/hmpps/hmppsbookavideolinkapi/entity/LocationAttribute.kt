@@ -301,6 +301,12 @@ class LocationAttribute private constructor(
         requireNot(blockedFrom.isAfter(blockedTo)) {
           "The blocked to date must be on after the blocked from date."
         }
+
+        if (blockedFromTime != null && blockedToTime != null) {
+          require(blockedFrom.atTime(blockedFromTime).isBefore(blockedTo.atTime(blockedToTime))) {
+            "The blocked from time must be before the blocked to time."
+          }
+        }
       }
 
       this.locationStatus = locationStatus
@@ -338,6 +344,12 @@ class LocationAttribute private constructor(
 
         requireNot(blockedTo.isBefore(LocalDate.now())) {
           "The blocked to date must be today or later."
+        }
+
+        if (blockedFromTime != null && blockedToTime != null) {
+          require(blockedFrom.atTime(blockedFromTime).isBefore(blockedTo.atTime(blockedToTime))) {
+            "The blocked from time must be before the blocked to time."
+          }
         }
       }
 
