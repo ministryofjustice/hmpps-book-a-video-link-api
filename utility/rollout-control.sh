@@ -29,11 +29,15 @@ menu_function() {
   echo " 11 - Add a court only prison"
   echo " 12 - Remove a court only prison"
   echo ""
+  echo " Room blocking with times - changes require UI restart only"
+  echo ""
+  echo " 13 - Toggle the room blocking with times feature switch"
+  echo ""
   echo " Restart services"
   echo ""
-  echo " 13 - Restart BVLS UI for changes to take effect"
-  echo " 14 - Restart BVLS API for changes to take effect"
-  echo " 15 - Restart services for changes to take effect"
+  echo " 14 - Restart BVLS UI for changes to take effect"
+  echo " 15 - Restart BVLS API for changes to take effect"
+  echo " 16 - Restart services for changes to take effect"
   echo ""
   echo " 0 - Exit"
   echo "----------------------------"
@@ -50,9 +54,9 @@ show_current() {
 
   # Get feature-toggles secret values
   KUBE_SECRET=feature-toggles
-  read -r FEATURE_GREY_RELEASE_PRISONS FEATURE_PROBATION_ONLY_PRISONS FEATURE_COURT_ONLY_PRISONS < <(
+  read -r FEATURE_GREY_RELEASE_PRISONS FEATURE_PROBATION_ONLY_PRISONS FEATURE_COURT_ONLY_PRISONS FEATURE_ROOM_BLOCKING_WITH_TIMES < <(
     kubectl -n "$NAMESPACE" get secret "$KUBE_SECRET" -o json \
-    | jq -r '.data | .FEATURE_GREY_RELEASE_PRISONS, .FEATURE_PROBATION_ONLY_PRISONS, .FEATURE_COURT_ONLY_PRISONS | @base64d' \
+    | jq -r '.data | .FEATURE_GREY_RELEASE_PRISONS, .FEATURE_PROBATION_ONLY_PRISONS, .FEATURE_COURT_ONLY_PRISONS, .FEATURE_ROOM_BLOCKING_WITH_TIMES | @base64d' \
     | tr '\n' ' '
   )
 
@@ -64,6 +68,7 @@ show_current() {
   echo "Grey release prisons        : $FEATURE_GREY_RELEASE_PRISONS"
   echo "Probation only prisons      : $FEATURE_PROBATION_ONLY_PRISONS"
   echo "Court only prisons          : $FEATURE_COURT_ONLY_PRISONS"
+  echo "Room blocking with times    : $FEATURE_ROOM_BLOCKING_WITH_TIMES"
   echo ""
 }
 
@@ -179,6 +184,23 @@ remove_court_only_prison() {
   kubectl -n "$2" patch secret feature-toggles -p $stringData
 }
 
+toggle_room_blocking_times() {
+  local env="$1"
+  local namespace="$2"
+  current_value=$(kubectl -n "$2" get secret feature-toggles -o jsonpath='{.data.FEATURE_ROOM_BLOCKING_WITH_TIMES}' | base64 -d)
+
+  if [[ "$current_value" == "true" ]]; then
+     new_value=false
+  else
+     new_value=true
+  fi
+
+  echo "Toggling room blocking times from $current_value to $new_value in $env namespace $namespace"
+
+  stringData="{\"stringData\":{\"FEATURE_ROOM_BLOCKING_WITH_TIMES\":\"$new_value\"}}"
+  kubectl -n "$namespace" patch secret feature-toggles -p $stringData
+}
+
 restart_bvls_ui() {
    echo "Restarting BVLS UI service in $1 namespace $2"
    kubectl -n "$2" rollout restart deployments/hmpps-book-a-video-link-ui
@@ -259,13 +281,16 @@ while true; do
           read -p "Enter a court only prison to remove : " court_only_prison
           remove_court_only_prison "$ENV" "$NAMESPACE" "$court_only_prison"
           ;;
-      13) echo "Restarting BVLS UI"
+      13)  echo "Toggle the room blocking with times value"
+           toggle_room_blocking_times "$ENV" "$NAMESPACE"
+          ;;
+      14) echo "Restarting BVLS UI"
           restart_bvls_ui "$ENV" "$NAMESPACE"
           ;;
-      14) echo "Restarting BVLS API"
+      15) echo "Restarting BVLS API"
           restart_bvls_api "$ENV" "$NAMESPACE"
           ;;
-      15) echo "Restarting all services"
+      16) echo "Restarting all services"
           restart_all_services "$ENV" "$NAMESPACE"
           ;;
       0)  echo "Exiting..."
