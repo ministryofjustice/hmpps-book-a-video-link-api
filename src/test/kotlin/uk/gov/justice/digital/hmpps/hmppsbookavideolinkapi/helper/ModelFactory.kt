@@ -65,6 +65,7 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
   leafLevel = true,
   status = if (active) Location.Status.ACTIVE else Location.Status.INACTIVE,
   locked = false,
+  inactiveStatus = null,
 )
 
 fun locationAndInterval(location: Location, start: LocalTime, end: LocalTime) = LocationAndInterval(
