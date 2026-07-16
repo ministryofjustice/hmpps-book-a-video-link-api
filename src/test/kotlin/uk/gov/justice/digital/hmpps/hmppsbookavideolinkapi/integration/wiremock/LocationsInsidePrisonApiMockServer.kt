@@ -84,6 +84,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     leafLevel = true,
                     status = Location.Status.ACTIVE,
                     locked = false,
+                    inactiveStatus = null,
                   )
                 },
               ),
@@ -138,6 +139,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     leafLevel = leafLevel,
                     status = if (enabled) Location.Status.ACTIVE else Location.Status.INACTIVE,
                     locked = false,
+                    inactiveStatus = null,
                   )
                 },
               ),
@@ -180,6 +182,7 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
                     leafLevel = leafLevel,
                     status = if (enabled) Location.Status.ACTIVE else Location.Status.INACTIVE,
                     locked = false,
+                    inactiveStatus = null,
                   )
                 },
               ),
