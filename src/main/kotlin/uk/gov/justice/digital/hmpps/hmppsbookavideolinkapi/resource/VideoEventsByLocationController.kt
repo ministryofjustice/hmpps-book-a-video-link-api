@@ -48,8 +48,7 @@ class VideoEventsByLocationController(val videoEventsByLocationService: VideoEve
   @PostMapping(value = ["/prison/{prisonCode}/list-by-location"], produces = [MediaType.APPLICATION_JSON_VALUE])
   @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW', 'BVLS_ACCESS__R')")
   fun getVideoEventsForAPrison(
-    @PathVariable @RequestParam(value = "prisonCode", required = true)
-    prisonCode: String,
+    @PathVariable(required = true) prisonCode: String,
     @Valid @RequestBody @Parameter(description = "A request to return video events at the prison", required = true)
     request: VideoEventRequest,
   ) = videoEventsByLocationService.videoEventsByLocation(prisonCode, request)
