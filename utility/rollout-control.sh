@@ -29,15 +29,22 @@ menu_function() {
   echo " 11 - Add a court only prison"
   echo " 12 - Remove a court only prison"
   echo ""
+  echo " Availability checker only prisons - changes require Daily Schedule restart only"
+  echo ""
+  echo " 13 - Replace with a new list"
+  echo " 14 - Add an availability checker prison"
+  echo " 15 - Remove an availability checker prison"
+  echo ""
   echo " Room blocking with times - changes require UI restart only"
   echo ""
-  echo " 13 - Toggle the room blocking with times feature switch"
+  echo " 16 - Toggle the room blocking with times feature switch"
   echo ""
   echo " Restart services"
   echo ""
-  echo " 14 - Restart BVLS UI for changes to take effect"
-  echo " 15 - Restart BVLS API for changes to take effect"
-  echo " 16 - Restart services for changes to take effect"
+  echo " 17 - Restart BVLS UI for changes to take effect"
+  echo " 18 - Restart BVLS API for changes to take effect"
+  echo " 19 - Restart Daily Schedule for changes to take effect"
+  echo " 20 - Restart services for changes to take effect"
   echo ""
   echo " 0 - Exit"
   echo "----------------------------"
@@ -54,21 +61,22 @@ show_current() {
 
   # Get feature-toggles secret values
   KUBE_SECRET=feature-toggles
-  read -r FEATURE_GREY_RELEASE_PRISONS FEATURE_PROBATION_ONLY_PRISONS FEATURE_COURT_ONLY_PRISONS FEATURE_ROOM_BLOCKING_WITH_TIMES < <(
+  read -r FEATURE_GREY_RELEASE_PRISONS FEATURE_PROBATION_ONLY_PRISONS FEATURE_COURT_ONLY_PRISONS FEATURE_ROOM_BLOCKING_WITH_TIMES FEATURE_AVAILABILITY_CHECKER_PRISONS < <(
     kubectl -n "$NAMESPACE" get secret "$KUBE_SECRET" -o json \
-    | jq -r '.data | .FEATURE_GREY_RELEASE_PRISONS, .FEATURE_PROBATION_ONLY_PRISONS, .FEATURE_COURT_ONLY_PRISONS, .FEATURE_ROOM_BLOCKING_WITH_TIMES | @base64d' \
+    | jq -r '.data | .FEATURE_GREY_RELEASE_PRISONS, .FEATURE_PROBATION_ONLY_PRISONS, .FEATURE_COURT_ONLY_PRISONS, .FEATURE_ROOM_BLOCKING_WITH_TIMES, .FEATURE_AVAILABILITY_CHECKER_PRISONS | @base64d' \
     | tr '\n' ' '
   )
 
   clear
   echo "-------------------------------------------------------------------------------------"
-  echo "Environment                 : $ENV"
+  echo "Environment                   : $ENV"
   echo ""
-  echo "BVLS admin emails           : $ADMINISTRATION_EMAILS"
-  echo "Grey release prisons        : $FEATURE_GREY_RELEASE_PRISONS"
-  echo "Probation only prisons      : $FEATURE_PROBATION_ONLY_PRISONS"
-  echo "Court only prisons          : $FEATURE_COURT_ONLY_PRISONS"
-  echo "Room blocking with times    : $FEATURE_ROOM_BLOCKING_WITH_TIMES"
+  echo "BVLS admin emails             : $ADMINISTRATION_EMAILS"
+  echo "Grey release prisons          : $FEATURE_GREY_RELEASE_PRISONS"
+  echo "Probation only prisons        : $FEATURE_PROBATION_ONLY_PRISONS"
+  echo "Court only prisons            : $FEATURE_COURT_ONLY_PRISONS"
+  echo "Room blocking with times      : $FEATURE_ROOM_BLOCKING_WITH_TIMES"
+  echo "Availability checker prisons  : $FEATURE_AVAILABILITY_CHECKER_PRISONS"
   echo ""
 }
 
@@ -184,6 +192,34 @@ remove_court_only_prison() {
   kubectl -n "$2" patch secret feature-toggles -p $stringData
 }
 
+add_list_availability_checker_prison() {
+  echo "Replace existing list with $3 for availability checker prisons in $1 namespace $2"
+  CURRENT=$(kubectl -n "$2" get secret feature-toggles -o jsonpath='{.data.FEATURE_AVAILABILITY_CHECKER_PRISONS}' | base64 -d)
+  NEW=$3
+  echo "Applying new value : $NEW"
+  stringData="{\"stringData\":{\"FEATURE_AVAILABILITY_CHECKER_PRISONS\":\"$NEW\"}}"
+  kubectl -n "$2" patch secret feature-toggles -p $stringData
+}
+
+add_availability_checker_prison() {
+  echo "Adding $3 to availability checker prisons in $1 namespace $2"
+  CURRENT=$(kubectl -n "$2" get secret feature-toggles -o jsonpath='{.data.FEATURE_AVAILABILITY_CHECKER_PRISONS}' | base64 -d)
+  NEW="$CURRENT,$3"
+  echo "Applying new value : $NEW"
+  stringData="{\"stringData\":{\"FEATURE_AVAILABILITY_CHECKER_PRISONS\":\"$NEW\"}}"
+  kubectl -n "$2" patch secret feature-toggles -p $stringData
+}
+
+remove_availability_checker_prison() {
+  echo "Removing prison $3 from availability checker prisons in $1 namespace $2"
+  prison=$3
+  CURRENT=$(kubectl -n "$2" get secret feature-toggles -o jsonpath='{.data.FEATURE_AVAILABILITY_CHECKER_PRISONS}' | base64 -d)
+  NEW=$(echo ",$CURRENT," | sed "s/,$prison,/,/g; s/^,//; s/,$//")
+  echo "Applying new value : $NEW"
+  stringData="{\"stringData\":{\"FEATURE_AVAILABILITY_CHECKER_PRISONS\":\"$NEW\"}}"
+  kubectl -n "$2" patch secret feature-toggles -p $stringData
+}
+
 toggle_room_blocking_times() {
   local env="$1"
   local namespace="$2"
@@ -211,8 +247,14 @@ restart_bvls_api() {
    kubectl -n "$2" rollout restart deployments/hmpps-book-a-video-link-api
 }
 
+restart_daily_schedule() {
+   echo "Restarting Daily Schedule service in $1 namespace $2"
+   kubectl -n "$2" rollout restart deployments/hmpps-video-conference-schedule-ui
+}
+
 restart_all_services() {
    restart_bvls_ui "$1" "$2"
+   restart_daily_schedule "$1" "$2"
    restart_bvls_api "$1" "$2"
 }
 
@@ -281,16 +323,31 @@ while true; do
           read -p "Enter a court only prison to remove : " court_only_prison
           remove_court_only_prison "$ENV" "$NAMESPACE" "$court_only_prison"
           ;;
-      13)  echo "Toggle the room blocking with times value"
+      13) echo "Replace availability checker prisons with a new list"
+          read -p "Enter a comma-separated list of availability checker prisons to replace the current list : " availability_checker_prison_list
+          add_list_availability_checker_prison "$ENV" "$NAMESPACE" "$availability_checker_prison_list"
+          ;;
+      14) echo "Add a prison to the availability checker prisons list"
+          read -p "Enter an availability checker prison to add : " availability_checker_prison
+          add_availability_checker_prison "$ENV" "$NAMESPACE" "$availability_checker_prison"
+          ;;
+      15) echo "Remove a prison from the availability checker prisons list"
+          read -p "Enter an availability checker prison to remove : " availability_checker_prison
+          remove_availability_checker_prison "$ENV" "$NAMESPACE" "$availability_checker_prison"
+          ;;
+      16)  echo "Toggle the room blocking with times value"
            toggle_room_blocking_times "$ENV" "$NAMESPACE"
           ;;
-      14) echo "Restarting BVLS UI"
+      17) echo "Restarting BVLS UI"
           restart_bvls_ui "$ENV" "$NAMESPACE"
           ;;
-      15) echo "Restarting BVLS API"
+      18) echo "Restarting BVLS API"
           restart_bvls_api "$ENV" "$NAMESPACE"
           ;;
-      16) echo "Restarting all services"
+      19) echo "Restarting Daily Schedule"
+          restart_daily_schedule "$ENV" "$NAMESPACE"
+          ;;
+      20) echo "Restarting all services"
           restart_all_services "$ENV" "$NAMESPACE"
           ;;
       0)  echo "Exiting..."
