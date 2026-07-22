@@ -165,12 +165,16 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     )
   }
 
-  fun stubGetUncancelledVideoAppointments(prisonCode: String, fromDate: LocalDate, toDate: LocalDate) {
-    val locationUuid = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
-
+  fun stubGetScheduledAppointmentsBetween(
+    prisonCode: String,
+    fromDate: LocalDate,
+    toDate: LocalDate,
+    dpsLocationId: UUID,
+  ) {
     val appointments = listOf(
       appointmentResult(
-        locationId = locationUuid,
+        prisonCode = prisonCode,
+        dpsLocationId = dpsLocationId,
         appointmentSeriesId = 1L,
         appointmentId = 1L,
         date = fromDate,
@@ -180,7 +184,8 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         categoryDescription = "Video link - official other",
       ),
       appointmentResult(
-        locationId = locationUuid,
+        prisonCode = prisonCode,
+        dpsLocationId = dpsLocationId,
         appointmentSeriesId = 2L,
         appointmentId = 2L,
         date = fromDate,
@@ -190,7 +195,8 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         categoryDescription = "Video link - legal appointment",
       ),
       appointmentResult(
-        locationId = locationUuid,
+        prisonCode = prisonCode,
+        dpsLocationId = dpsLocationId,
         appointmentSeriesId = 3L,
         appointmentId = 3L,
         date = fromDate,
@@ -201,7 +207,8 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         isCancelled = true,
       ),
       appointmentResult(
-        locationId = locationUuid,
+        prisonCode = prisonCode,
+        dpsLocationId = dpsLocationId,
         appointmentSeriesId = 4L,
         appointmentId = 4L,
         date = fromDate,
@@ -212,7 +219,8 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         isDeleted = true,
       ),
       appointmentResult(
-        locationId = locationUuid,
+        prisonCode = prisonCode,
+        dpsLocationId = dpsLocationId,
         appointmentSeriesId = 5L,
         appointmentId = 5L,
         date = fromDate,
@@ -222,7 +230,8 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         categoryDescription = "Video link - court hearing",
       ),
       appointmentResult(
-        locationId = locationUuid,
+        prisonCode = prisonCode,
+        dpsLocationId = dpsLocationId,
         appointmentSeriesId = 6L,
         appointmentId = 6L,
         date = fromDate,
@@ -232,7 +241,8 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         categoryDescription = "Video link - probation meeting",
       ),
       appointmentResult(
-        locationId = locationUuid,
+        prisonCode = prisonCode,
+        dpsLocationId = dpsLocationId,
         appointmentSeriesId = 7L,
         appointmentId = 7L,
         date = fromDate,
@@ -290,7 +300,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
 fun appointmentResult(
   prisonCode: String = PENTONVILLE,
   prisonerNumber: String = "G4195VF",
-  locationId: UUID,
+  dpsLocationId: UUID,
   appointmentType: AppointmentSearchResult.AppointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
   appointmentSeriesId: Long,
   appointmentId: Long,
@@ -319,7 +329,7 @@ fun appointmentResult(
   maxSequenceNumber = 1,
   prisonCode = prisonCode,
   sequenceNumber = 1,
-  internalLocation = AppointmentLocationSummary(1L, prisonCode, "VIDEO LINK", dpsLocationId = locationId),
+  internalLocation = AppointmentLocationSummary(1L, prisonCode, "VIDEO LINK", dpsLocationId = dpsLocationId),
   timeSlot = AppointmentSearchResult.TimeSlot.AM,
   createdTime = LocalDateTime.now(),
   isDeleted = isDeleted,

@@ -142,19 +142,22 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
    * supplied location IDs where there is a match.
    */
   fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<Long>) = if (locationIds.isNotEmpty()) {
-    log.info("A&A CLIENT: query params - prisonCode=$prisonCode, onDate=$onDate, locationIds=${locationIds.toList()}")
+    log.info("A&A CLIENT: scheduled appointments in locations - query params - prisonCode=$prisonCode, onDate=$onDate, locationIds=${locationIds.toList()}")
     getPrisonAppointments(prisonCode, onDate).filter { locationIds.toList().contains(it.internalLocation?.id) }
   } else {
     emptyList()
   }
 
   /**
-   * Returns all video appointments for a prison that are scheduled to occur between the from and to dates.
+   * Returns scheduled appointments for a prison that start between the from and to dates.
+   * Where the toDate is null it will return appointments that occur on the fromDate only.
    * It will ignore canceled and deleted appointments.
    */
-  fun getUncancelledVideoAppointments(prisonCode: String, fromDate: LocalDate, toDate: LocalDate? = null) = getPrisonAppointments(prisonCode, fromDate, toDate)
-    .filterNot { it.isCancelled || it.isDeleted }
-    .filter { listOf("VLB", "VLPM", "VLOO", "VLAP", "VLLA", "VLPA").contains(it.appointmentCode()) }
+  fun getScheduledAppointmentsBetween(prisonCode: String, fromDate: LocalDate, toDate: LocalDate? = null): List<AppointmentSearchResult> {
+    log.info("A&A CLIENT: Scheduled appointments for a prison - prisonCode=$prisonCode, fromDate=$fromDate, toDate=$toDate")
+    return getPrisonAppointments(prisonCode, fromDate, toDate)
+      .filterNot { it.isCancelled || it.isDeleted }
+  }
 
   private fun getPrisonAppointments(prisonCode: String, fromDate: LocalDate, toDate: LocalDate? = null) = activitiesAppointmentsApiWebClient.post()
     .uri("/appointments/{prisonCode}/search", prisonCode)

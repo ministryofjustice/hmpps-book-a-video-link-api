@@ -79,19 +79,22 @@ class ActivitiesAppointmentsClientTest {
   }
 
   @Test
-  fun `should get uncancelled video appointments for a prison between two dates`() {
+  fun `should get uncancelled and undeleted video appointments for a prison between two dates`() {
     val prisonCode = PENTONVILLE
+    val dpsLocationId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
     val fromDate = LocalDate.of(2026, 6, 1)
     val toDate = LocalDate.of(2026, 6, 7)
 
-    // Stubs 7 appointments - 6 x video and 1 x chaplaincy
-    server.stubGetUncancelledVideoAppointments(prisonCode, fromDate, toDate)
+    // Stubs 7 appointments - 6 x video, 1 x chaplaincy of which 1 is canceled and 1 is deleted
+    server.stubGetScheduledAppointmentsBetween(prisonCode, fromDate, toDate, dpsLocationId)
 
-    val response = client.getUncancelledVideoAppointments(prisonCode, fromDate, toDate)
+    val response = client.getScheduledAppointmentsBetween(prisonCode, fromDate, toDate)
 
-    // Should have removed the chaplaincy, and 2 x video appointments that were canceled and deleted, returning 4
-    assertThat(response).hasSize(4)
-    assertThat(response).extracting("appointmentId").containsExactly(1L, 2L, 5L, 6L)
+    // Should return 5 appointments
+    assertThat(response).hasSize(5)
+    assertThat(response).extracting("appointmentId").containsExactly(1L, 2L, 5L, 6L, 7L)
+    assertThat(response.filter { it.isCancelled }).isEmpty()
+    assertThat(response.filter { it.isDeleted }).isEmpty()
   }
 
   @AfterEach

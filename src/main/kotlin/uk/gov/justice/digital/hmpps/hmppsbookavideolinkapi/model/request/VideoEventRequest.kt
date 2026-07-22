@@ -14,6 +14,6 @@ data class VideoEventRequest(
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "uuuu-MM-dd")
   val endDate: LocalDate,
 
-  @Schema(description = "The status of the booking to match, defaults to ACTIVE", example = "ACTIVE")
+  @Schema(description = "The time slot (optional) one of AM, PM or ED", example = "AM")
   val timeSlot: String? = null,
 )

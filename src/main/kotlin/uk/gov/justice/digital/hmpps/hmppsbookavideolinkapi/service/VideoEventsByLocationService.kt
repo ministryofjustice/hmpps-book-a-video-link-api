@@ -24,6 +24,7 @@ class VideoEventsByLocationService(
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
 ) {
+  private val nonBvlsVideoAppointmentTypes = listOf("VLOO", "VLAP", "VLLA", "VLPA")
 
   fun videoEventsByLocation(prisonCode: String, request: VideoEventRequest): VideoEventResponse {
     // Get the video link locations at this prison
@@ -34,12 +35,12 @@ class VideoEventsByLocationService(
       return VideoEventResponse(prisonCode, request.startDate, request.endDate, request.timeSlot, emptyList())
     }
 
-    // Get active video appointments from A&A taking place between the start/end dates
-    // Filter court and probation video appointments as we get these from BVLS below
+    // Gets scheduled appointments at the prison from A&A that are planned between the start/end dates
+    // It will then filter to only four non-BVLS video appointment types
     val videoAppointments = if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
       activitiesAppointmentsClient
-        .getUncancelledVideoAppointments(prisonCode, request.startDate, request.endDate)
-        .filterNot { it.appointmentCode() == "VLB" || it.appointmentCode() == "VLPM" }
+        .getScheduledAppointmentsBetween(prisonCode, request.startDate, request.endDate)
+        .filter { nonBvlsVideoAppointmentTypes.contains(it.appointmentCode()) }
         .map { it.toBookedEvent() }
     } else {
       emptyList()
