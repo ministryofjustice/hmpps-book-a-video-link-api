@@ -46,7 +46,7 @@ class VideoEventsByLocationIntegrationTest : IntegrationTestBase() {
     locationsInsidePrisonApi().stubGetLocationById(videoLocation2)
 
     // Stub the two video locations to report as VIDEO_LINK locations
-    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(BIRMINGHAM,videoLocation1, videoLocation2)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(BIRMINGHAM, videoLocation1, videoLocation2)
 
     // Ensure A&A reports as active at Birmingham
     activitiesAppointmentsApi().stubGetRolledOutPrison(BIRMINGHAM, true)
