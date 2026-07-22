@@ -2,87 +2,116 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.appointmentCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoEventRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookedEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.LocationEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoEventResponse
-import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Service
 @Transactional(readOnly = true)
-class VideoEventsByLocationService {
+class VideoEventsByLocationService(
+  private val locationsService: LocationsService,
+  private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
+  private val prisonAppointmentRepository: PrisonAppointmentRepository,
+) {
 
   fun videoEventsByLocation(prisonCode: String, request: VideoEventRequest): VideoEventResponse {
-    // Get locations - service type VIDEO_LINK
-    // Get appointments for the prison
-    //   - filter to video types
-    //   - remove VLB and VLPM
-    // Get BVLS bookings for the prison
-    // Get video visits at the prison
-    //   - filter to video
-    // Convert to canonical BookedEvent model
-    // Sort into locations and startTime/endTime
-    // Join lists
-    return fixedResponse()
+    // Get the video link locations at this prison
+    val locations = locationsService.getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
+      .map { it.toBasicLocation() }
+
+    if (locations.isEmpty()) {
+      return VideoEventResponse(prisonCode, request.startDate, request.endDate, request.timeSlot, emptyList())
+    }
+
+    // Get active video appointments from A&A taking place between the start/end dates
+    // Filter court and probation video appointments as we get these from BVLS below
+    val videoAppointments = if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
+      activitiesAppointmentsClient
+        .getUncancelledVideoAppointments(prisonCode, request.startDate, request.endDate)
+        .filterNot { it.appointmentCode() == "VLB" || it.appointmentCode() == "VLPM" }
+        .map { it.toBookedEvent() }
+    } else {
+      emptyList()
+    }
+
+    // Get active court and probation BVLS appointments between these dates (including pre, main, post)
+    val bvlsAppointments = prisonAppointmentRepository
+      .findActivePrisonAppointmentsBetweenDates(prisonCode, request.startDate, request.endDate)
+      .map { it.toBookedEvent() }
+
+    val combinedEvents = bvlsAppointments + videoAppointments
+
+    // Assemble the booked events into sorted lists within each location
+    val videoEventsByLocation: Map<UUID, List<BookedEvent>> = combinedEvents
+      .groupBy { it.dpsLocationId }
+      .mapValues { (_, bookings) ->
+        bookings.sortedWith(compareBy<BookedEvent> { it.eventDate }.thenBy { it.startTime })
+      }
+
+    return VideoEventResponse(
+      prisonCode = prisonCode,
+      startDate = request.startDate,
+      endDate = request.endDate,
+      timeSlot = request.timeSlot,
+      locations = locations.map {
+        LocationEvent(
+          dpsLocationId = it.dpsLocationId,
+          localName = it.localName,
+          capacity = it.capacity,
+          events = videoEventsByLocation[it.dpsLocationId] ?: emptyList(),
+        )
+      },
+    )
   }
 
-  private fun fixedResponse(): VideoEventResponse = VideoEventResponse(
-    prisonCode = "MDI",
-    startDate = LocalDate.now(),
-    endDate = LocalDate.now(),
-    timeSlot = null,
-    locations = listOf(
-      LocationEvent(
-        dpsLocationId = UUID.randomUUID(),
-        localName = "Random location name",
-        capacity = 6,
-        events = fixedEvents(),
-      ),
-    ),
+  fun PrisonAppointment.toBookedEvent() = BookedEvent(
+    dpsLocationId = this.prisonLocationId,
+    eventType = if (this.appointmentType == "VLB_PROBATION") "PROBATION" else "COURT",
+    subType = if (this.appointmentType == "VLB_PROBATION") this.videoBooking.probationMeetingType else this.videoBooking.hearingType,
+    // TODO: Not getting hearing type or meeting type - use the reference code service to retrieve
+    subTypeDescription = if (this.appointmentType == "VLB_PROBATION") this.videoBooking.probationMeetingType else this.videoBooking.hearingType,
+    eventDate = this.appointmentDate,
+    startTime = this.startTime,
+    endTime = this.endTime,
+    prisonerNumber = this.prisonerNumber,
+    eventId = this.videoBooking.videoBookingId,
   )
 
-  private fun fixedEvents(): List<BookedEvent> = listOf(
-    BookedEvent(
-      eventType = "APPOINTMENT",
-      subType = "VLOO",
-      subTypeDescription = "Video link - official other",
-      eventDate = LocalDate.now(),
-      startTime = LocalTime.of(9, 30),
-      endTime = LocalTime.of(10, 30),
-      prisonerCode = "G4950GV",
-      eventId = 1234567,
-    ),
-    BookedEvent(
-      eventType = "COURT",
-      subType = "BAIL",
-      subTypeDescription = "Bail hearing",
-      eventDate = LocalDate.now(),
-      startTime = LocalTime.of(10, 30),
-      endTime = LocalTime.of(11, 30),
-      prisonerCode = "G4950GV",
-      eventId = 1234568,
-    ),
-    BookedEvent(
-      eventType = "PROBATION",
-      subType = "FTR56",
-      subTypeDescription = "Fixed term recall",
-      eventDate = LocalDate.now(),
-      startTime = LocalTime.of(11, 30),
-      endTime = LocalTime.of(12, 30),
-      prisonerCode = "G4950GV",
-      eventId = 1234569,
-    ),
-    BookedEvent(
-      eventType = "OFFICIAL_VISIT",
-      subType = "VIDEO",
-      subTypeDescription = "Video official visit",
-      eventDate = LocalDate.now(),
-      startTime = LocalTime.of(14, 30),
-      endTime = LocalTime.of(16, 0),
-      prisonerCode = "G4950GV",
-      eventId = 1234570,
-    ),
+  fun AppointmentSearchResult.toBookedEvent() = BookedEvent(
+    dpsLocationId = this.internalLocation!!.dpsLocationId!!,
+    eventType = "APPOINTMENT",
+    subType = this.appointmentCode(),
+    subTypeDescription = this.category.description,
+    eventDate = this.startDate,
+    startTime = LocalTime.parse(this.startTime, DateTimeFormatter.ofPattern("HH:mm")),
+    endTime = this.endTime?.let {
+      LocalTime.parse(this.endTime, DateTimeFormatter.ofPattern("HH:mm"))
+    } ?: LocalTime.parse(this.startTime, DateTimeFormatter.ofPattern("HH:mm")).plusHours(1),
+    prisonerNumber = if (this.attendees.size == 1) this.attendees.first().prisonerNumber else "MANY",
+    eventId = this.appointmentId,
+  )
+
+  fun Location.toBasicLocation() = BasicLocation(
+    dpsLocationId = this.dpsLocationId,
+    localName = this.description,
+    // TODO: Not getting capacity from the locations API - can use locations API client directly
+    capacity = 1,
   )
 }
+
+data class BasicLocation(
+  val dpsLocationId: UUID?,
+  val localName: String? = null,
+  val capacity: Int? = null,
+)

@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -164,6 +165,105 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     )
   }
 
+  fun stubGetUncancelledVideoAppointments(prisonCode: String, fromDate: LocalDate, toDate: LocalDate) {
+    val locationUuid = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
+
+    val appointments = listOf(
+      appointmentResult(
+        locationId = locationUuid,
+        appointmentSeriesId = 1L,
+        appointmentId = 1L,
+        date = fromDate,
+        startTime = "09:00",
+        endTime = "10:00",
+        categoryCode = "VLOO",
+        categoryDescription = "Video link - official other",
+      ),
+      appointmentResult(
+        locationId = locationUuid,
+        appointmentSeriesId = 2L,
+        appointmentId = 2L,
+        date = fromDate,
+        startTime = "10:00",
+        endTime = "11:00",
+        categoryCode = "VLLA",
+        categoryDescription = "Video link - legal appointment",
+      ),
+      appointmentResult(
+        locationId = locationUuid,
+        appointmentSeriesId = 3L,
+        appointmentId = 3L,
+        date = fromDate,
+        startTime = "11:15",
+        endTime = "12:00",
+        categoryCode = "VLAP",
+        categoryDescription = "Video link - another prison",
+        isCancelled = true,
+      ),
+      appointmentResult(
+        locationId = locationUuid,
+        appointmentSeriesId = 4L,
+        appointmentId = 4L,
+        date = fromDate,
+        startTime = "11:30",
+        endTime = "12:00",
+        categoryCode = "VLPA",
+        categoryDescription = "Video link - parole",
+        isDeleted = true,
+      ),
+      appointmentResult(
+        locationId = locationUuid,
+        appointmentSeriesId = 5L,
+        appointmentId = 5L,
+        date = fromDate,
+        startTime = "12:00",
+        endTime = "13:00",
+        categoryCode = "VLB",
+        categoryDescription = "Video link - court hearing",
+      ),
+      appointmentResult(
+        locationId = locationUuid,
+        appointmentSeriesId = 6L,
+        appointmentId = 6L,
+        date = fromDate,
+        startTime = "13:00",
+        endTime = "14:00",
+        categoryCode = "VLPM",
+        categoryDescription = "Video link - probation meeting",
+      ),
+      appointmentResult(
+        locationId = locationUuid,
+        appointmentSeriesId = 7L,
+        appointmentId = 7L,
+        date = fromDate,
+        startTime = "14:00",
+        endTime = "15:00",
+        categoryCode = "CHAP",
+        categoryDescription = "Chaplaincy",
+      ),
+    )
+
+    stubFor(
+      post("/appointments/$prisonCode/search")
+        .withRequestBody(
+          WireMock.equalToJson(
+            mapper.writeValueAsString(
+              AppointmentSearchRequest(
+                startDate = fromDate,
+                endDate = toDate,
+              ),
+            ),
+          ),
+        )
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(appointments))
+            .withStatus(201),
+        ),
+    )
+  }
+
   fun stubGetRolledOutPrison(prisonCode: String, isLive: Boolean) {
     stubFor(
       WireMock.get("/rollout/$prisonCode")
@@ -186,6 +286,48 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
     )
   }
 }
+
+fun appointmentResult(
+  prisonCode: String = PENTONVILLE,
+  prisonerNumber: String = "G4195VF",
+  locationId: UUID,
+  appointmentType: AppointmentSearchResult.AppointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+  appointmentSeriesId: Long,
+  appointmentId: Long,
+  categoryCode: String,
+  categoryDescription: String,
+  date: LocalDate = LocalDate.now(),
+  startTime: String,
+  endTime: String,
+  isCancelled: Boolean = false,
+  isDeleted: Boolean = false,
+) = AppointmentSearchResult(
+  appointmentType = appointmentType,
+  startDate = date,
+  startTime = startTime,
+  endTime = endTime,
+  isCancelled = isCancelled,
+  isExpired = false,
+  isEdited = false,
+  appointmentId = appointmentId,
+  appointmentSeriesId = appointmentSeriesId,
+  appointmentName = "",
+  attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
+  category = AppointmentCategorySummary(categoryCode, categoryDescription),
+  inCell = false,
+  isRepeat = false,
+  maxSequenceNumber = 1,
+  prisonCode = prisonCode,
+  sequenceNumber = 1,
+  internalLocation = AppointmentLocationSummary(1L, prisonCode, "VIDEO LINK", dpsLocationId = locationId),
+  timeSlot = AppointmentSearchResult.TimeSlot.AM,
+  createdTime = LocalDateTime.now(),
+  isDeleted = isDeleted,
+  customName = null,
+  updatedTime = null,
+  cancelledTime = null,
+  cancelledBy = null,
+)
 
 class ActivitiesAppointmentsApiExtension :
   BeforeAllCallback,

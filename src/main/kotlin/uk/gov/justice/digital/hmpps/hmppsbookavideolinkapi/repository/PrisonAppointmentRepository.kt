@@ -62,6 +62,21 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   @Query(
     value = """
     SELECT pa FROM PrisonAppointment pa 
+     WHERE pa.prison.code = :prisonCode
+       AND pa.videoBooking.statusCode = 'ACTIVE'
+       AND pa.appointmentDate >= :fromDate 
+       AND pa.appointmentDate <= :toDate
+  """,
+  )
+  fun findActivePrisonAppointmentsBetweenDates(
+    prisonCode: String,
+    fromDate: LocalDate,
+    toDate: LocalDate,
+  ): List<PrisonAppointment>
+
+  @Query(
+    value = """
+    SELECT pa FROM PrisonAppointment pa 
      WHERE pa.prisonerNumber = :prisonerNumber
        AND pa.videoBooking.statusCode = 'ACTIVE'
        AND ((pa.appointmentDate = :date AND pa.startTime > :time) OR (pa.appointmentDate > :date))

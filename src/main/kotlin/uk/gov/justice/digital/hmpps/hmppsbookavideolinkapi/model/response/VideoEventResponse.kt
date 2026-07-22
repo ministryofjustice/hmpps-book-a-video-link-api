@@ -45,6 +45,8 @@ data class LocationEvent(
 
 @Schema(description = "A booked event within a single location")
 data class BookedEvent(
+  @Schema(description = "The location where this event is scheduled to take place", example = "a4fe3fef-34fd-4354fde-a12efe")
+  val dpsLocationId: UUID,
 
   @Schema(description = "Event type booked (APPOINTMENT, OFFICIAL_VISIT, COURT, PROBATION)", example = "APPOINTMENT")
   val eventType: String,
@@ -68,7 +70,7 @@ data class BookedEvent(
   val endTime: LocalTime,
 
   @Schema(description = "The prisoner this event is booked for", example = "G1234GV")
-  val prisonerCode: String,
+  val prisonerNumber: String,
 
   @Schema(description = "The event primary key in the remote service (e.g. appointmentId, officialVisitId, videoBookingId)", example = "12345566")
   val eventId: Long? = null,
