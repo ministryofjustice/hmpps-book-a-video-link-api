@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.Spy
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiMockServer
+import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
 
@@ -74,6 +76,25 @@ class ActivitiesAppointmentsClientTest {
   @Test
   fun `should correct cancellation reason on cancel with delete`() {
     client.cancelAppointment(1, true)
+  }
+
+  @Test
+  fun `should get uncancelled and undeleted video appointments for a prison between two dates`() {
+    val prisonCode = PENTONVILLE
+    val dpsLocationId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
+    val fromDate = LocalDate.of(2026, 6, 1)
+    val toDate = LocalDate.of(2026, 6, 7)
+
+    // Stubs 7 appointments - 6 x video, 1 x chaplaincy of which 1 is canceled and 1 is deleted
+    server.stubGetScheduledAppointmentsBetween(prisonCode, fromDate, toDate, dpsLocationId)
+
+    val response = client.getScheduledAppointmentsBetween(prisonCode, fromDate, toDate)
+
+    // Should return 5 appointments
+    assertThat(response).hasSize(5)
+    assertThat(response).extracting("appointmentId").containsExactly(1L, 2L, 5L, 6L, 7L)
+    assertThat(response.filter { it.isCancelled }).isEmpty()
+    assertThat(response.filter { it.isDeleted }).isEmpty()
   }
 
   @AfterEach
