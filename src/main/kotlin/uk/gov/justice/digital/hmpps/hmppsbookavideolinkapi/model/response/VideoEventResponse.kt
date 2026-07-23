@@ -20,9 +20,6 @@ data class VideoEventResponse(
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "uuuu-MM-dd")
   val endDate: LocalDate,
 
-  @Schema(description = "The optional time slot of the events retrieved", example = "AM")
-  val timeSlot: String? = null,
-
   @Schema(description = "The list of locations and booked events occupying them")
   val locations: List<LocationEvent> = emptyList(),
 )
@@ -36,7 +33,7 @@ data class LocationEvent(
   @Schema(description = "The local name for this location", example = "VCC Room 1")
   val localName: String? = null,
 
-  @Schema(description = "The maximum capacity of this room (in persons)", example = "4")
+  @Schema(description = "The working capacity of this room (in persons)", example = "4")
   val capacity: Int? = null,
 
   @Schema(description = "The list of booked events in this date range and time period")

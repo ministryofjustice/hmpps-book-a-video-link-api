@@ -25,8 +25,11 @@ data class Location(
   @Schema(description = "The unique UUID for the prison location", example = "ef88-efefef-3efggg-3323ddd")
   val dpsLocationId: UUID,
 
-  @Schema(description = "Additional location attributes returned if any are requested and available for this location.")
+  @Schema(description = "Additional location attributes returned if any are requested and available for this location")
   val extraAttributes: RoomAttributes? = null,
+
+  @Schema(description = "Working capacity of the location.", example = "3")
+  val workingCapacity: Int? = null,
 )
 
 @Schema(description = "The additional attributes of a video location")
