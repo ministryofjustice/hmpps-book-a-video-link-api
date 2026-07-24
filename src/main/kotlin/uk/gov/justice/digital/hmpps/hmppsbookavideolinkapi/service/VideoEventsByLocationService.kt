@@ -47,7 +47,7 @@ class VideoEventsByLocationService(
     }
 
     // Gets scheduled appointments at the prison from A&A that are planned between the start/end dates
-    // It will then filter to tne four non-BVLS video appointment types
+    // It will then filter to the four non-BVLS video appointment types
     val videoAppointmentEvents = if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
       activitiesAppointmentsClient
         .getScheduledAppointmentsBetween(prisonCode, request.startDate, request.endDate)
