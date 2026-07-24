@@ -106,7 +106,7 @@ class VideoEventsByLocationService(
     eventDate = this.startDate,
     startTime = LocalTime.parse(this.startTime, DateTimeFormatter.ofPattern("HH:mm")),
     endTime = this.endTime?.let {
-      LocalTime.parse(this.endTime, DateTimeFormatter.ofPattern("HH:mm"))
+      LocalTime.parse(it, DateTimeFormatter.ofPattern("HH:mm"))
     } ?: LocalTime.parse(this.startTime, DateTimeFormatter.ofPattern("HH:mm")).plusHours(1),
     prisonerNumber = if (this.attendees.size == 1) this.attendees.first().prisonerNumber else "MANY",
     eventId = this.appointmentId,
@@ -135,11 +135,11 @@ class VideoEventsByLocationService(
 
     return if (videoBooking.isBookingType(BookingType.PROBATION)) {
       videoBooking.probationMeetingType?.let {
-        referenceCodeRepository.findByProbationMeetingType(videoBooking.probationMeetingType!!)?.description
+        referenceCodeRepository.findByProbationMeetingType(it)?.description
       } ?: "Unknown"
     } else if (videoBooking.isBookingType(BookingType.COURT)) {
       videoBooking.hearingType?.let {
-        referenceCodeRepository.findByCourtHearingType(videoBooking.hearingType!!)?.description
+        referenceCodeRepository.findByCourtHearingType(it)?.description
       } ?: "Unknown"
     } else {
       null
