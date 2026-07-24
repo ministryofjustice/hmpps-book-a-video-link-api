@@ -18,6 +18,7 @@ fun Location.toModel(attributes: RoomAttributes? = null) = ModelLocation(
   enabled = active,
   dpsLocationId = id,
   extraAttributes = attributes,
+  workingCapacity = capacity?.workingCapacity,
 )
 
 fun List<Location>.toModel(attributes: List<LocationAttribute>) = map {

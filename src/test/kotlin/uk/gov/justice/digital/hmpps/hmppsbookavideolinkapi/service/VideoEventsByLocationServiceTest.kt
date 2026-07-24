@@ -11,26 +11,39 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.appointmentResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.VideoEventRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceCodeRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByCourtHearingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.time.LocalDate.now
 import java.time.LocalTime
 import java.util.UUID
 
 class VideoEventsByLocationServiceTest {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
   private val locationsService: LocationsService = mock()
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
+  private val referenceCodeRepository: ReferenceCodeRepository = mock()
 
   private val prisonCode = PENTONVILLE
 
@@ -62,16 +75,20 @@ class VideoEventsByLocationServiceTest {
     locationsService,
     activitiesAppointmentsClient,
     prisonAppointmentRepository,
+    referenceCodeRepository,
   )
 
   @BeforeEach
   fun setUp() {
     openMocks(this)
+
+    whenever(referenceCodeRepository.findByCourtHearingType("TRIBUNAL")).thenReturn(courtHearingType("Tribunal"))
+    whenever(referenceCodeRepository.findByProbationMeetingType("PSR")).thenReturn(probationMeetingType("Pre-sentence report"))
   }
 
   @AfterEach
   fun tearDown() {
-    reset(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository)
+    reset(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository)
   }
 
   @Test
@@ -83,12 +100,11 @@ class VideoEventsByLocationServiceTest {
     assertThat(response.prisonCode).isEqualTo(prisonCode)
     assertThat(response.startDate).isEqualTo(now())
     assertThat(response.endDate).isEqualTo(now())
-    assertThat(response.timeSlot).isNull()
     assertThat(response.locations).isEmpty()
 
     verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, false)
 
-    verifyNoInteractions(activitiesAppointmentsClient, prisonAppointmentRepository)
+    verifyNoInteractions(activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository)
     verifyNoMoreInteractions(locationsService)
   }
 
@@ -120,7 +136,7 @@ class VideoEventsByLocationServiceTest {
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
 
-    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository)
+    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository)
   }
 
   @Test
@@ -166,8 +182,10 @@ class VideoEventsByLocationServiceTest {
     verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
     verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
+    verify(referenceCodeRepository).findByProbationMeetingType(ProbationMeetingType.PSR.name)
+    verify(referenceCodeRepository).findByCourtHearingType(CourtHearingType.TRIBUNAL.name)
 
-    verifyNoMoreInteractions(activitiesAppointmentsClient, prisonAppointmentRepository, locationsService)
+    verifyNoMoreInteractions(activitiesAppointmentsClient, prisonAppointmentRepository, locationsService, referenceCodeRepository)
   }
 
   @Test
@@ -219,7 +237,7 @@ class VideoEventsByLocationServiceTest {
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
 
-    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository)
+    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository)
   }
 
   @Test
@@ -294,8 +312,10 @@ class VideoEventsByLocationServiceTest {
     verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
+    verify(referenceCodeRepository).findByProbationMeetingType(ProbationMeetingType.PSR.name)
+    verify(referenceCodeRepository).findByCourtHearingType(CourtHearingType.TRIBUNAL.name)
 
-    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository)
+    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository)
   }
 
   @Test
@@ -369,6 +389,6 @@ class VideoEventsByLocationServiceTest {
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
 
-    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository)
+    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository)
   }
 }

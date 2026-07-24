@@ -86,17 +86,25 @@ class VideoEventsByLocationIntegrationTest : IntegrationTestBase() {
 
     // The BVLS probation booking should be in videoLocation1
     with(videoEvents.locations[0]) {
+      assertThat(localName).isEqualTo("Video room 1")
+      assertThat(capacity).isNull()
       assertThat(events).hasSize(1)
       assertThat(events[0].eventId).isEqualTo(videoBookingId)
       assertThat(events[0].eventType).isEqualTo("PROBATION")
       assertThat(events[0].dpsLocationId).isEqualTo(videoLocation1.id)
+      assertThat(events[0].subType).isEqualTo("PSR")
+      assertThat(events[0].subTypeDescription).isEqualTo("Pre-sentence report (PSR)")
     }
 
     // The A&A appointments should be filtered to video and in videoLocation2
     with(videoEvents.locations[1]) {
+      assertThat(localName).isEqualTo("Video room 2")
+      assertThat(capacity).isNull()
       assertThat(events).hasSize(2)
       assertThat(events).extracting("eventType").containsOnly("APPOINTMENT")
       assertThat(events).extracting("dpsLocationId").containsOnly(videoLocation2.id)
+      assertThat(events).extracting("subType").containsAnyOf("VLOO", "VLLA")
+      assertThat(events).extracting("subTypeDescription").containsAnyOf("Video link - official other", "Video link - legal appointment")
     }
   }
 
@@ -107,7 +115,7 @@ class VideoEventsByLocationIntegrationTest : IntegrationTestBase() {
     timeSlot: String? = null,
   ) = post()
     .uri("/video-events/prison/{prisonCode}/list-by-location", prisonCode)
-    .bodyValue(VideoEventRequest(fromDate, toDate, timeSlot))
+    .bodyValue(VideoEventRequest(fromDate, toDate))
     .accept(MediaType.APPLICATION_JSON)
     .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
