@@ -39,12 +39,17 @@ menu_function() {
   echo ""
   echo " 16 - Toggle the room blocking with times feature switch"
   echo ""
+  echo "Availability checker versions - changes require Daily Schedule restart only"
+  echo ""
+  echo " 17 - Toggle the availability checker weekly tabbed view"
+  echo " 18 - Toggle the availability checker timeline view"
+  echo ""
   echo " Restart services"
   echo ""
-  echo " 17 - Restart BVLS UI for changes to take effect"
-  echo " 18 - Restart BVLS API for changes to take effect"
-  echo " 19 - Restart Daily Schedule for changes to take effect"
-  echo " 20 - Restart services for changes to take effect"
+  echo " 19 - Restart BVLS UI for changes to take effect"
+  echo " 20 - Restart BVLS API for changes to take effect"
+  echo " 21 - Restart Daily Schedule for changes to take effect"
+  echo " 22 - Restart services for changes to take effect"
   echo ""
   echo " 0 - Exit"
   echo "----------------------------"
@@ -61,9 +66,9 @@ show_current() {
 
   # Get feature-toggles secret values
   KUBE_SECRET=feature-toggles
-  read -r FEATURE_GREY_RELEASE_PRISONS FEATURE_PROBATION_ONLY_PRISONS FEATURE_COURT_ONLY_PRISONS FEATURE_ROOM_BLOCKING_WITH_TIMES FEATURE_AVAILABILITY_CHECKER_PRISONS < <(
+  read -r FEATURE_GREY_RELEASE_PRISONS FEATURE_PROBATION_ONLY_PRISONS FEATURE_COURT_ONLY_PRISONS FEATURE_ROOM_BLOCKING_WITH_TIMES FEATURE_AVAILABILITY_CHECKER_PRISONS FEATURE_WORKING_WEEK_AVAILABILITY_CHECKER FEATURE_TIMELINE_AVAILABILITY_CHECKER < <(
     kubectl -n "$NAMESPACE" get secret "$KUBE_SECRET" -o json \
-    | jq -r '.data | .FEATURE_GREY_RELEASE_PRISONS, .FEATURE_PROBATION_ONLY_PRISONS, .FEATURE_COURT_ONLY_PRISONS, .FEATURE_ROOM_BLOCKING_WITH_TIMES, .FEATURE_AVAILABILITY_CHECKER_PRISONS | @base64d' \
+    | jq -r '.data | .FEATURE_GREY_RELEASE_PRISONS, .FEATURE_PROBATION_ONLY_PRISONS, .FEATURE_COURT_ONLY_PRISONS, .FEATURE_ROOM_BLOCKING_WITH_TIMES, .FEATURE_AVAILABILITY_CHECKER_PRISONS, .FEATURE_WORKING_WEEK_AVAILABILITY_CHECKER, .FEATURE_TIMELINE_AVAILABILITY_CHECKER | @base64d' \
     | tr '\n' ' '
   )
 
@@ -77,6 +82,8 @@ show_current() {
   echo "Court only prisons            : $FEATURE_COURT_ONLY_PRISONS"
   echo "Room blocking with times      : $FEATURE_ROOM_BLOCKING_WITH_TIMES"
   echo "Availability checker prisons  : $FEATURE_AVAILABILITY_CHECKER_PRISONS"
+  echo "Availability weekly view      : $FEATURE_WORKING_WEEK_AVAILABILITY_CHECKER"
+  echo "Availability timeline view    : $FEATURE_TIMELINE_AVAILABILITY_CHECKER"
   echo ""
 }
 
@@ -237,6 +244,40 @@ toggle_room_blocking_times() {
   kubectl -n "$namespace" patch secret feature-toggles -p $stringData
 }
 
+toggle_availability_weekly_view() {
+  local env="$1"
+  local namespace="$2"
+  current_value=$(kubectl -n "$2" get secret feature-toggles -o jsonpath='{.data.FEATURE_WORKING_WEEK_AVAILABILITY_CHECKER}' | base64 -d)
+
+  if [[ "$current_value" == "true" ]]; then
+     new_value=false
+  else
+     new_value=true
+  fi
+
+  echo "Toggling availability checker weekly view from $current_value to $new_value in $env namespace $namespace"
+
+  stringData="{\"stringData\":{\"FEATURE_WORKING_WEEK_AVAILABILITY_CHECKER\":\"$new_value\"}}"
+  kubectl -n "$namespace" patch secret feature-toggles -p $stringData
+}
+
+toggle_availability_timeline_view() {
+  local env="$1"
+  local namespace="$2"
+  current_value=$(kubectl -n "$2" get secret feature-toggles -o jsonpath='{.data.FEATURE_TIMELINE_AVAILABILITY_CHECKER}' | base64 -d)
+
+  if [[ "$current_value" == "true" ]]; then
+     new_value=false
+  else
+     new_value=true
+  fi
+
+  echo "Toggling availability checker timeline view from $current_value to $new_value in $env namespace $namespace"
+
+  stringData="{\"stringData\":{\"FEATURE_TIMELINE_AVAILABILITY_CHECKER\":\"$new_value\"}}"
+  kubectl -n "$namespace" patch secret feature-toggles -p $stringData
+}
+
 restart_bvls_ui() {
    echo "Restarting BVLS UI service in $1 namespace $2"
    kubectl -n "$2" rollout restart deployments/hmpps-book-a-video-link-ui
@@ -338,16 +379,22 @@ while true; do
       16)  echo "Toggle the room blocking with times value"
            toggle_room_blocking_times "$ENV" "$NAMESPACE"
           ;;
-      17) echo "Restarting BVLS UI"
+      17)  echo "Toggle the availability checker weekly tabbed view value"
+           toggle_availability_weekly_view "$ENV" "$NAMESPACE"
+           ;;
+      18)  echo "Toggle the availability checker timeline view value"
+           toggle_availability_timeline_view "$ENV" "$NAMESPACE"
+           ;;
+      19) echo "Restarting BVLS UI"
           restart_bvls_ui "$ENV" "$NAMESPACE"
           ;;
-      18) echo "Restarting BVLS API"
+      20) echo "Restarting BVLS API"
           restart_bvls_api "$ENV" "$NAMESPACE"
           ;;
-      19) echo "Restarting Daily Schedule"
+      21) echo "Restarting Daily Schedule"
           restart_daily_schedule "$ENV" "$NAMESPACE"
           ;;
-      20) echo "Restarting all services"
+      22) echo "Restarting all services"
           restart_all_services "$ENV" "$NAMESPACE"
           ;;
       0)  echo "Exiting..."
