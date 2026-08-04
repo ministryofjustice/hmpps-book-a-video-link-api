@@ -77,9 +77,10 @@ To generate the file, simply run the integration test with the below env variabl
 SAR_GENERATE_ACTUAL=true
 
 e.g.
-SAR_GENERATE_ACTUAL=true ./gradlew integrationTest --tests "uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.sar.SubjectAccessRequestTemplateIntegrationTest"
+SAR_GENERATE_ACTUAL=true ./gradlew integrationTest --tests "uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.sar.SubjectAccessRequestIntegrationTest"
 
 This will output a new file sar-generated-file.html.log into the src/test/resources folder.
+It will also create a SAR API response JSON file to test against.
 Rename this file to remove the .log extension and copy it into the src/test/resources/sar directory to act as the new template for comparison.
 
 [Further info here](https://github.com/ministryofjustice/hmpps-subject-access-request-lib/blob/main/README.md)
