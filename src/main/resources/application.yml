@@ -197,7 +197,8 @@ springdoc:
   swagger-ui:
     tags-sorter: alpha
     enabled: false
-    version: 5.32.2
+    version: 5.32.11
+    operations-sorter: alpha
   api-docs:
     enabled: false
 

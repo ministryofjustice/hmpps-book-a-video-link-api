@@ -3,7 +3,7 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.4"
   id("org.openapi.generator") version "7.24.0"
   kotlin("plugin.spring") version "2.4.10"
   kotlin("plugin.jpa") version "2.4.10"
@@ -15,9 +15,6 @@ redacted {
 }
 
 dependencies {
-  constraints {
-    implementation("org.webjars:swagger-ui:5.32.2")
-  }
 
   // HMPPS dependencies
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.0")
@@ -39,9 +36,10 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.7.13")
 
   // OpenAPI
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
-  implementation("org.springdoc:springdoc-openapi-starter-common:3.0.3")
+  val springDocVersion = "3.0.3"
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springDocVersion")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
+  implementation("org.springdoc:springdoc-openapi-starter-common:$springDocVersion")
 
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:6.0.1-RELEASE")
