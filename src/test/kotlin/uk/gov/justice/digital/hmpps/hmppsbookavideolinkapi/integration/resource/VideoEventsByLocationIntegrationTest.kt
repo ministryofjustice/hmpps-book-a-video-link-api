@@ -96,15 +96,15 @@ class VideoEventsByLocationIntegrationTest : IntegrationTestBase() {
       assertThat(events[0].subTypeDescription).isEqualTo("Pre-sentence report (PSR)")
     }
 
-    // The A&A appointments should be filtered to video and in videoLocation2
+    // The A&A appointments should be filtered to chaplaincy, video and in videoLocation2
     with(videoEvents.locations[1]) {
       assertThat(localName).isEqualTo("Video room 2")
       assertThat(capacity).isNull()
-      assertThat(events).hasSize(2)
+      assertThat(events).hasSize(3)
       assertThat(events).extracting("eventType").containsOnly("APPOINTMENT")
       assertThat(events).extracting("dpsLocationId").containsOnly(videoLocation2.id)
-      assertThat(events).extracting("subType").containsAnyOf("VLOO", "VLLA")
-      assertThat(events).extracting("subTypeDescription").containsAnyOf("Video link - official other", "Video link - legal appointment")
+      assertThat(events).extracting("subType").containsAnyOf("VLOO", "VLLA", "CHAP")
+      assertThat(events).extracting("subTypeDescription").containsAnyOf("Video link - official other", "Video link - legal appointment", "Chaplaincy")
     }
   }
 

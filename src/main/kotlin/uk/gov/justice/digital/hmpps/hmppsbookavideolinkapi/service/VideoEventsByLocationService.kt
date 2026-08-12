@@ -35,8 +35,6 @@ class VideoEventsByLocationService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  private val nonBvlsVideoAppointmentTypes = listOf("VLOO", "VLAP", "VLLA", "VLPA")
-
   fun videoEventsByLocation(prisonCode: String, request: VideoEventRequest): VideoEventResponse {
     // Get the video link locations at this prison
     val videoLinkLocations = locationsService.getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
@@ -51,7 +49,7 @@ class VideoEventsByLocationService(
     val videoAppointmentEvents = if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
       activitiesAppointmentsClient
         .getScheduledAppointmentsBetween(prisonCode, request.startDate, request.endDate)
-        .filter { nonBvlsVideoAppointmentTypes.contains(it.appointmentCode()) }
+        .filterOutBvlsAppointmentTypes()
         .map { it.toBookedEvent() }
     } else {
       emptyList()
@@ -85,6 +83,8 @@ class VideoEventsByLocationService(
       },
     )
   }
+
+  private fun List<AppointmentSearchResult>.filterOutBvlsAppointmentTypes() = filterNot { listOf("VLB", "VLPM").contains(it.appointmentCode()) }
 
   fun PrisonAppointment.toBookedEvent() = BookedEvent(
     dpsLocationId = this.prisonLocationId,

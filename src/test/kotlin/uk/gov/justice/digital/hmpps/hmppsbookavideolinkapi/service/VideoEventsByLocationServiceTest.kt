@@ -11,7 +11,6 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
@@ -36,10 +35,6 @@ import java.time.LocalTime
 import java.util.UUID
 
 class VideoEventsByLocationServiceTest {
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
   private val locationsService: LocationsService = mock()
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
@@ -319,7 +314,7 @@ class VideoEventsByLocationServiceTest {
   }
 
   @Test
-  fun `should filter appointments to uncancelled, undeleted, non-BVLS appointment types only`() {
+  fun `should filter appointments to uncancelled, undeleted, all appointment types except BVLS types`() {
     whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)).thenReturn(true)
     whenever(activitiesAppointmentsClient.getScheduledAppointmentsBetween(prisonCode, now(), now())).thenReturn(
       listOf(
@@ -382,7 +377,7 @@ class VideoEventsByLocationServiceTest {
 
     assertThat(response.locations[0].events).isEmpty()
     assertThat(response.locations[1].events).isEmpty()
-    assertThat(response.locations[2].events).hasSize(1)
+    assertThat(response.locations[2].events.map { it.subType }).containsExactlyInAnyOrder("CHAP", "VLPA")
 
     verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
     verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
