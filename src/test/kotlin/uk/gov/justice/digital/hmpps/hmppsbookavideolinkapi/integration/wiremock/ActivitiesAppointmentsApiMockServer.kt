@@ -261,6 +261,7 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
               AppointmentSearchRequest(
                 startDate = fromDate,
                 endDate = toDate,
+                inCell = false,
               ),
             ),
           ),
