@@ -87,7 +87,7 @@ kotlin {
 
 tasks {
   withType<KotlinCompile> {
-    dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel")
+    dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel", "buildOfficialVisitsApiModel")
     compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
     compilerOptions.freeCompilerArgs.add("-Xannotation-default-target=param-property")
   }
@@ -137,7 +137,16 @@ tasks.register("buildManageUsersApiModel", GenerateTask::class) {
   globalProperties.set(mapOf("models" to ""))
 }
 
-val generatedProjectDirs = listOf("locationsinsideprisonapi", "activitiesappointmentsapi", "prisonapi", "manageusersapi")
+tasks.register("buildOfficialVisitsApiModel", GenerateTask::class) {
+  generatorName.set("kotlin")
+  inputSpec.set("openapi-specs/official-visits-api.json")
+  outputDir.set("$buildDirectory/generated/officialvisitsapi")
+  modelPackage.set("uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model")
+  configOptions.set(configValues)
+  globalProperties.set(mapOf("models" to ""))
+}
+
+val generatedProjectDirs = listOf("locationsinsideprisonapi", "activitiesappointmentsapi", "prisonapi", "manageusersapi", "officialvisitsapi")
 
 tasks.register("integrationTest", Test::class) {
   description = "Runs integration tests"
@@ -170,7 +179,7 @@ kotlin {
 }
 
 tasks.named("runKtlintCheckOverMainSourceSet") {
-  dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel")
+  dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel", "buildOfficialVisitsApiModel")
 }
 
 configure<KtlintExtension> {
