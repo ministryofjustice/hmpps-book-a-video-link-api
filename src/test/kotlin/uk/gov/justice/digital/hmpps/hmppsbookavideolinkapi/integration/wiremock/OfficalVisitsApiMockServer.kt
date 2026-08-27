@@ -21,7 +21,7 @@ class OfficialVisitsApiMockServer : MockServer(8097) {
           equalToJson(mapper.writeValueAsString(OfficialVisitSummarySearchRequest(startDate = startDate, endDate = endDate))),
         )
         .withQueryParam("page", equalTo("0"))
-        .withQueryParam("size", equalTo("100"))
+        .withQueryParam("size", equalTo("400"))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")

@@ -18,7 +18,7 @@ class OfficialVisitsClient(private val officialVisitsApiWebClient: WebClient) {
         uriBuilder
           .path("/official-visit/prison/{prisonCode}/find-by-criteria")
           .queryParam("page", "0")
-          .queryParam("size", "100")
+          .queryParam("size", "400")
           .build(prisonCode)
       }
       .bodyValue(
