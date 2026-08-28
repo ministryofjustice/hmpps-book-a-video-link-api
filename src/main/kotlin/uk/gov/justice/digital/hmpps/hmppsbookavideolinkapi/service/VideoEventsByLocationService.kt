@@ -6,6 +6,9 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.appointmentCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.OfficialVisitsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.OfficialVisitSummarySearchResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.VisitStatusType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
@@ -30,6 +33,7 @@ class VideoEventsByLocationService(
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val referenceCodeRepository: ReferenceCodeRepository,
+  private val officialVisitsClient: OfficialVisitsClient,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -45,7 +49,7 @@ class VideoEventsByLocationService(
     }
 
     // Gets scheduled appointments at the prison from A&A that are planned between the start/end dates
-    // It will then filter to the four non-BVLS video appointment types
+    // It will then filter out the two BVLS video appointment types VLB/VLPM (gets these from BVLS below)
     val videoAppointmentEvents = if (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
       activitiesAppointmentsClient
         .getScheduledAppointmentsBetween(prisonCode, request.startDate, request.endDate)
@@ -60,7 +64,14 @@ class VideoEventsByLocationService(
       .findActivePrisonAppointmentsBetweenDates(prisonCode, request.startDate, request.endDate)
       .map { it.toBookedEvent() }
 
-    val combinedEvents = bvlsEvents + videoAppointmentEvents
+    // Get the official visits at this prison between the start and end dates, and filter canceled or completed
+    // (includes all official visits - video, in-person, telephone and unknown)
+    val officialVisitEvents = officialVisitsClient
+      .findOfficialVisits(prisonCode, request.startDate, request.endDate)
+      .filterOutCancelled()
+      .map { it.toBookedEvent() }
+
+    val combinedEvents = bvlsEvents + videoAppointmentEvents + officialVisitEvents
 
     // Assemble the booked events into sorted lists within each location
     val videoEventsByLocation: Map<UUID, List<BookedEvent>> = combinedEvents
@@ -86,6 +97,8 @@ class VideoEventsByLocationService(
 
   private fun List<AppointmentSearchResult>.filterOutBvlsAppointmentTypes() = filterNot { listOf("VLB", "VLPM").contains(it.appointmentCode()) }
 
+  private fun List<OfficialVisitSummarySearchResponse>.filterOutCancelled() = filterNot { it.visitStatus == VisitStatusType.CANCELLED }
+
   fun PrisonAppointment.toBookedEvent() = BookedEvent(
     dpsLocationId = this.prisonLocationId,
     eventType = if (this.videoBooking.isBookingType(BookingType.PROBATION)) "PROBATION" else "COURT",
@@ -110,6 +123,18 @@ class VideoEventsByLocationService(
     } ?: LocalTime.parse(this.startTime, DateTimeFormatter.ofPattern("HH:mm")).plusHours(1),
     prisonerNumber = if (this.attendees.size == 1) this.attendees.first().prisonerNumber else "MANY",
     eventId = this.appointmentId,
+  )
+
+  fun OfficialVisitSummarySearchResponse.toBookedEvent() = BookedEvent(
+    dpsLocationId = this.dpsLocationId,
+    eventType = "OFFICIAL_VISIT",
+    subType = this.visitTypeCode.name,
+    subTypeDescription = this.visitTypeDescription,
+    eventDate = this.visitDate,
+    startTime = LocalTime.parse(this.startTime, DateTimeFormatter.ofPattern("HH:mm")),
+    endTime = LocalTime.parse(this.endTime, DateTimeFormatter.ofPattern("HH:mm")),
+    prisonerNumber = this.prisoner.prisonerNumber,
+    eventId = this.officialVisitId,
   )
 
   fun Location.toBasicLocation() = BasicLocation(

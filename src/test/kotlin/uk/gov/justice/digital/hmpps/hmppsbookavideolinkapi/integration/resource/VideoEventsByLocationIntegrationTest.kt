@@ -6,12 +6,18 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.OfficialVisitSummarySearchResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.PrisonerVisitedDetails
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.VisitStatusType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.VisitType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -80,6 +86,14 @@ class VideoEventsByLocationIntegrationTest : IntegrationTestBase() {
       dpsLocationId = videoLocation2.id,
     )
 
+    // Stub official visit response for tomorrow
+    officialVisitsApi().stubPostFindOfficialVisitsBy(
+      BIRMINGHAM,
+      tomorrow(),
+      tomorrow(),
+      officialVisitSearchResponse(),
+    )
+
     val videoEvents = webTestClient.getVideoEventsAtPrison(BIRMINGHAM, tomorrow(), tomorrow())
 
     assertThat(videoEvents.locations).hasSize(2)
@@ -96,15 +110,20 @@ class VideoEventsByLocationIntegrationTest : IntegrationTestBase() {
       assertThat(events[0].subTypeDescription).isEqualTo("Pre-sentence report (PSR)")
     }
 
-    // The A&A appointments should be filtered to chaplaincy, video and in videoLocation2
+    // The A&A appointments and an official visit should be in videoLocation2
     with(videoEvents.locations[1]) {
       assertThat(localName).isEqualTo("Video room 2")
       assertThat(capacity).isNull()
-      assertThat(events).hasSize(3)
-      assertThat(events).extracting("eventType").containsOnly("APPOINTMENT")
+      assertThat(events).hasSize(4)
+      assertThat(events).extracting("eventType").containsOnly("APPOINTMENT", "OFFICIAL_VISIT")
       assertThat(events).extracting("dpsLocationId").containsOnly(videoLocation2.id)
-      assertThat(events).extracting("subType").containsAnyOf("VLOO", "VLLA", "CHAP")
-      assertThat(events).extracting("subTypeDescription").containsAnyOf("Video link - official other", "Video link - legal appointment", "Chaplaincy")
+      assertThat(events).extracting("subType").containsAnyOf("VLOO", "VLLA", "CHAP", VisitType.VIDEO.name)
+      assertThat(events).extracting("subTypeDescription").containsAnyOf(
+        "Video link - official other",
+        "Video link - legal appointment",
+        "Chaplaincy",
+        "visit type description",
+      )
     }
   }
 
@@ -123,4 +142,28 @@ class VideoEventsByLocationIntegrationTest : IntegrationTestBase() {
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
     .expectBody<VideoEventResponse>()
     .returnResult().responseBody!!
+
+  private fun officialVisitSearchResponse() = OfficialVisitSummarySearchResponse(
+    officialVisitId = 1,
+    prisonCode = BIRMINGHAM,
+    prisonDescription = "prison description",
+    visitStatus = VisitStatusType.SCHEDULED,
+    visitStatusDescription = "visit status description",
+    visitTypeCode = VisitType.VIDEO,
+    visitTypeDescription = "visit type description",
+    visitDate = tomorrow(),
+    startTime = LocalTime.of(10, 0).toHourMinuteStyle(),
+    endTime = LocalTime.of(11, 0).toHourMinuteStyle(),
+    dpsLocationId = videoLocation2.id,
+    locationDescription = videoLocation2.localName!!,
+    visitSlotId = 1,
+    numberOfVisitors = 1,
+    createdBy = "a user",
+    createdTime = yesterday().atStartOfDay(),
+    prisoner = PrisonerVisitedDetails(
+      prisonCode = BIRMINGHAM,
+      prisonerNumber = "A1234AA",
+    ),
+    visitorIssues = false,
+  )
 }

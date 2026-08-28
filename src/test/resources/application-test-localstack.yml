@@ -28,6 +28,7 @@ api:
       manage-users: http://localhost:8093
       prison-api:  http://localhost:8094
       nomis-mapping: http://localhost:8096
+      official-visits: http://localhost:8097
 
 hmpps.sqs:
   provider: localstack

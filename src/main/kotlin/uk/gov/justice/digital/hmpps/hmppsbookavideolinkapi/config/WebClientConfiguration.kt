@@ -18,6 +18,7 @@ class WebClientConfiguration(
   @Value("\${api.base.url.prison-api}") val prisonApiBaseUri: String,
   @Value("\${api.base.url.prisoner-search}") val prisonerSearchBaseUri: String,
   @Value("\${api.base.url.nomis-mapping}") val nomisMappingBaseUri: String,
+  @Value("\${api.base.url.official-visits}") val officialVisitsBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @Value("\${api.timeout:60s}") val timeout: Duration,
 ) {
@@ -59,4 +60,10 @@ class WebClientConfiguration(
 
   @Bean
   fun prisonerSearchApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder.authorisedWebClient(authorizedClientManager, "prisoner-search", prisonerSearchBaseUri, timeout)
+
+  @Bean
+  fun officialVisitsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder.authorisedWebClient(authorizedClientManager, "official-visits-api", officialVisitsBaseUri, timeout)
+
+  @Bean
+  fun officialVisitsApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(officialVisitsBaseUri, healthTimeout)
 }

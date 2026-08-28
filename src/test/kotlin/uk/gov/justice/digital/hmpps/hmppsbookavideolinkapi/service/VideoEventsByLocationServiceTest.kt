@@ -12,6 +12,11 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.OfficialVisitsClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.OfficialVisitSummarySearchResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.PrisonerVisitedDetails
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.VisitStatusType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.officialvisits.model.VisitType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtHearingType
@@ -30,7 +35,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ReferenceC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByCourtHearingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.findByProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
+import java.time.LocalDate
 import java.time.LocalDate.now
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
@@ -39,6 +46,7 @@ class VideoEventsByLocationServiceTest {
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
   private val referenceCodeRepository: ReferenceCodeRepository = mock()
+  private val officialVisitsClient: OfficialVisitsClient = mock()
 
   private val prisonCode = PENTONVILLE
 
@@ -71,6 +79,7 @@ class VideoEventsByLocationServiceTest {
     activitiesAppointmentsClient,
     prisonAppointmentRepository,
     referenceCodeRepository,
+    officialVisitsClient,
   )
 
   @BeforeEach
@@ -83,7 +92,7 @@ class VideoEventsByLocationServiceTest {
 
   @AfterEach
   fun tearDown() {
-    reset(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository)
+    reset(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository, officialVisitsClient)
   }
 
   @Test
@@ -386,4 +395,122 @@ class VideoEventsByLocationServiceTest {
 
     verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository)
   }
+
+  @Test
+  fun `should return locations with mixed BVLS bookings, appointments, and official visits interleaved and sorted by date and time`() {
+    val bvlsAppointment1 = probationBooking()
+      .withProbationPrisonAppointment(
+        date = now(),
+        prisonCode = prisonCode,
+        location = pentonvilleLocation.copy(id = videoLocation1.dpsLocationId),
+        startTime = LocalTime.of(10, 0),
+        endTime = LocalTime.of(11, 0),
+      )
+      .appointments()
+      .first()
+
+    val bvlsAppointment2 = courtBooking()
+      .withMainCourtPrisonAppointment(
+        date = now(),
+        prisonCode = prisonCode,
+        location = pentonvilleLocation.copy(id = videoLocation2.dpsLocationId),
+        startTime = LocalTime.of(11, 0),
+        endTime = LocalTime.of(12, 0),
+      )
+      .appointments()
+      .first()
+
+    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)).thenReturn(true)
+    whenever(activitiesAppointmentsClient.getScheduledAppointmentsBetween(prisonCode, now(), now())).thenReturn(
+      listOf(
+        appointmentResult(
+          prisonCode = prisonCode,
+          dpsLocationId = videoLocation1.dpsLocationId,
+          appointmentSeriesId = 1L,
+          appointmentId = 1L,
+          date = now(),
+          startTime = "09:00",
+          endTime = "10:00",
+          categoryCode = "VLLA",
+          categoryDescription = "Video link - legal appointment",
+        ),
+        appointmentResult(
+          prisonCode = prisonCode,
+          dpsLocationId = videoLocation2.dpsLocationId,
+          appointmentSeriesId = 2L,
+          appointmentId = 2L,
+          date = now(),
+          startTime = "10:00",
+          endTime = "11:00",
+          categoryCode = "VLLA",
+          categoryDescription = "Video link - legal appointment",
+        ),
+      ),
+    )
+    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())).thenReturn(
+      listOf(bvlsAppointment1, bvlsAppointment2),
+    )
+    whenever(locationsService.getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)).thenReturn(
+      listOf(videoLocation1, videoLocation2),
+    )
+    whenever(officialVisitsClient.findOfficialVisits(prisonCode, now(), now())).thenReturn(
+      listOf(
+        officialVisitSearchResponse(1L, "A1234AA", now(), videoLocation1.dpsLocationId, VisitType.IN_PERSON, VisitStatusType.SCHEDULED),
+        officialVisitSearchResponse(2L, "B1234BB", now(), videoLocation1.dpsLocationId, VisitType.IN_PERSON, VisitStatusType.CANCELLED),
+        officialVisitSearchResponse(3L, "C1234CC", now(), videoLocation2.dpsLocationId, VisitType.VIDEO, VisitStatusType.COMPLETED),
+        officialVisitSearchResponse(4L, "D1234DD", now(), videoLocation2.dpsLocationId, VisitType.UNKNOWN, VisitStatusType.SCHEDULED),
+      ),
+    )
+
+    val response = service.videoEventsByLocation(PENTONVILLE, VideoEventRequest(now(), now()))
+
+    assertThat(response.locations).hasSize(2)
+
+    assertThat(response.locations[0].events).hasSize(3)
+    assertThat(response.locations[1].events).hasSize(4)
+
+    assertThat(response.locations[0].events).extracting("eventType").containsExactly("APPOINTMENT", "PROBATION", "OFFICIAL_VISIT")
+    assertThat(response.locations[1].events).extracting("eventType").containsExactly("APPOINTMENT", "OFFICIAL_VISIT", "OFFICIAL_VISIT", "COURT")
+
+    verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
+    verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
+    verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
+    verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
+    verify(officialVisitsClient).findOfficialVisits(prisonCode, now(), now())
+    verify(referenceCodeRepository).findByProbationMeetingType(ProbationMeetingType.PSR.name)
+    verify(referenceCodeRepository).findByCourtHearingType(CourtHearingType.TRIBUNAL.name)
+
+    verifyNoMoreInteractions(locationsService, activitiesAppointmentsClient, prisonAppointmentRepository, referenceCodeRepository, officialVisitsClient)
+  }
+
+  private fun officialVisitSearchResponse(
+    officialVisitId: Long,
+    prisonerNumber: String,
+    visitDate: LocalDate,
+    dpsLocationId: UUID,
+    visitType: VisitType,
+    visitStatus: VisitStatusType,
+  ) = OfficialVisitSummarySearchResponse(
+    officialVisitId = officialVisitId,
+    prisonCode = prisonCode,
+    prisonDescription = "prison",
+    visitStatus = visitStatus,
+    visitStatusDescription = "status description",
+    visitTypeCode = visitType,
+    visitTypeDescription = "type description",
+    visitDate = visitDate,
+    startTime = "10:00",
+    endTime = "11:00",
+    dpsLocationId = dpsLocationId,
+    locationDescription = "location description",
+    visitSlotId = 1L,
+    numberOfVisitors = 1,
+    createdBy = "AUser",
+    createdTime = LocalDateTime.now().minusDays(1),
+    prisoner = PrisonerVisitedDetails(
+      prisonCode = prisonCode,
+      prisonerNumber = prisonerNumber,
+    ),
+    visitorIssues = false,
+  )
 }

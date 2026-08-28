@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.NomisMappingApiExtension
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.OfficialVisitsApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
@@ -48,6 +49,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
   PrisonApiExtension::class,
   PrisonerSearchApiExtension::class,
   NomisMappingApiExtension::class,
+  OfficialVisitsApiExtension::class,
 )
 @Sql(
   "classpath:test_data/clean-all-data.sql",
@@ -102,6 +104,7 @@ abstract class IntegrationTestBase {
     prisonApi().stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
     nomisMappingApi().stubHealthPing(status)
+    officialVisitsApi().stubHealthPing(status)
   }
 
   protected fun activitiesAppointmentsApi() = ActivitiesAppointmentsApiExtension.server
@@ -114,6 +117,8 @@ abstract class IntegrationTestBase {
   protected fun manageUsersApi() = ManageUsersApiExtension.server
 
   protected fun nomisMappingApi() = NomisMappingApiExtension.server
+
+  protected fun officialVisitsApi() = OfficialVisitsApiExtension.server
 
   protected fun stubUser(user: User) {
     val authSource = when (user) {
