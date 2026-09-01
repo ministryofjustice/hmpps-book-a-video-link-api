@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
@@ -32,11 +34,12 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
   @Autowired
   private lateinit var prisonRepository: PrisonRepository
 
-  @Test
-  fun `should return a list of enabled prisons`() {
+  @CsvSource("ROLE_BOOK_A_VIDEO_LINK_ADMIN", "ROLE_BVLS_ACCESS__RW", "ROLE_BVLS_ACCESS__RO")
+  @ParameterizedTest
+  fun `should return a list of enabled prisons`(role: String) {
     prisonRepository.findAllByEnabledIsTrue() hasSize 22
 
-    val listOfEnabledPrisons = webTestClient.getPrisons(true)
+    val listOfEnabledPrisons = webTestClient.getPrisons(true, role)
 
     assertThat(listOfEnabledPrisons).hasSize(22)
     assertThat(listOfEnabledPrisons).extracting("code").contains("WWI")
@@ -60,14 +63,14 @@ class PrisonsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfAllPrisons).extracting("code").containsAll(listOf("LEI", "BMI", "WWI"))
   }
 
-  private fun WebTestClient.getPrisons(enabledOnly: Boolean = false) = get()
+  private fun WebTestClient.getPrisons(enabledOnly: Boolean = false, role: String? = null) = get()
     .uri {
       it.path("/prisons/list")
         .queryParam("enabledOnly", enabledOnly)
         .build()
     }
     .accept(MediaType.APPLICATION_JSON)
-    .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .headers(setAuthorisation(roles = role?.let { listOf(it) } ?: listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
