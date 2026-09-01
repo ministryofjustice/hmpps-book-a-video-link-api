@@ -45,7 +45,7 @@ class PrisonsController(
     ],
   )
   @GetMapping(value = ["/list"], produces = [MediaType.APPLICATION_JSON_VALUE])
-  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW')")
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN', 'BVLS_ACCESS__RW', 'BVLS_ACCESS__RO')")
   fun prisonsList(
     @Parameter(description = "EnabledOnly true or false. Defaults to false if not supplied.")
     @RequestParam(name = "enabledOnly", required = false)
