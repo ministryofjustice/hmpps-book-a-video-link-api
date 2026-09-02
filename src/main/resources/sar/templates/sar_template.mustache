@@ -1,13 +1,6 @@
 <h1 class="title">Book a video link</h1>
 <br>
 {{#.}}
-  <table class="summary-list">
-    <tr><td>Prisoner number</td><td>{{ optionalString prisonerNumber }}</td></tr>
-    <tr><td>Date from</td><td>{{ optionalValue (formatDate fromDate) }}</td></tr>
-    <tr><td>Date to</td><td>{{ optionalValue (formatDate toDate) }}</td></tr>
-  </table>
-
-  <br>
   <h2>Video link bookings</h2>
   {{#videoLinkBookings}}
     <br>
