@@ -3,8 +3,8 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.6"
-  id("org.openapi.generator") version "7.24.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.7"
+  id("org.openapi.generator") version "7.25.0"
   kotlin("plugin.spring") version "2.4.10"
   kotlin("plugin.jpa") version "2.4.10"
   id("dev.zacsweers.redacted") version "1.18.0"
@@ -29,25 +29,25 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.22.1")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.22.2")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:postgresql:42.7.13")
 
   // OpenAPI
-  val springDocVersion = "3.0.3"
+  val springDocVersion = "3.1.0"
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springDocVersion")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
   implementation("org.springdoc:springdoc-openapi-starter-common:$springDocVersion")
 
   // Gov Notify client
-  implementation("uk.gov.service.notify:notifications-java-client:6.0.1-RELEASE")
+  implementation("uk.gov.service.notify:notifications-java-client:6.2.0-RELEASE")
 
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.30.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.31.1")
 
   // Phone number validation
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.35")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.38")
 
   // Test dependencies
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.0")
