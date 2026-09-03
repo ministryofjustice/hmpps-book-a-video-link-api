@@ -111,6 +111,7 @@ class ContactsService(
   private fun User.mayBeEmail() = when (this) {
     is ExternalUser -> email
     is PrisonUser -> email
+    is DeliusUser -> email
     else -> null
   }
 }
