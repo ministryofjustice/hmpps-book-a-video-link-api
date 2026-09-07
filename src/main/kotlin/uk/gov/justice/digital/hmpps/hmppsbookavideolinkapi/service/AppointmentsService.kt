@@ -152,8 +152,8 @@ class AppointmentsService(
         originalAppointment.startTime == updatedAppointment.startTime &&
         originalAppointment.endTime == updatedAppointment.endTime &&
         (
-          (originalAppointment.prisonLocationId == updatedAppointment.dpsLocationId) ||
-            (originalAppointment.prisonLocationId == locationsInsidePrisonClient.getLocationByKey(updatedAppointment.locationKey!!)?.id)
+          (updatedAppointment.dpsLocationId != null && originalAppointment.prisonLocationId == updatedAppointment.dpsLocationId) ||
+            (updatedAppointment.locationKey != null && originalAppointment.prisonLocationId == locationsInsidePrisonClient.getLocationByKey(updatedAppointment.locationKey)?.id)
           )
       ).not()
   }
