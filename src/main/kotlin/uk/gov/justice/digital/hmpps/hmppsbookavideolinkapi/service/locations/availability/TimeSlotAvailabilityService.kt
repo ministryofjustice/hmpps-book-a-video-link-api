@@ -43,9 +43,6 @@ class TimeSlotAvailabilityService(
   }
 
   override fun findAvailable(request: TimeSlotAvailabilityRequest): AvailableLocationsResponse {
-    // TH
-    log.info("TimeSlotAvailabilityRequest = $request")
-
     val (startOfDay, endOfDay) = getStartAndEndOfDay(request)
     val prisonVideoLinkLocations = getVideoLinkLocationsAt(request.prisonCode)
     val mayBeExistingBooking = request.vlbIdToExclude?.let { videoBookingRepository.findById(it).orElseThrow { EntityNotFoundException("Video booking with ID $it not found.") } }
@@ -60,9 +57,6 @@ class TimeSlotAvailabilityService(
 
         while (meetingEndTime.isOnOrBefore(endOfDay)) {
           if (mayBeExistingBooking?.let { isTheSame(it, location, request, meetingStartTime, meetingEndTime) } == true) {
-            // TH
-            log.info("(IS the same as existing booking) Adding available location: ${location.description} ${location.dpsLocationId} $meetingStartTime $meetingEndTime")
-
             add(
               availabilityStatus = AvailabilityStatus.SHARED,
               availableLocation = AvailableLocation(
@@ -78,9 +72,6 @@ class TimeSlotAvailabilityService(
             )
           } else {
             if (!bookedLocations.isBooked(location, meetingStartTime, meetingEndTime) && request.fallsWithinSlotTime(meetingStartTime)) {
-              // TH
-              log.info("(NOT the same) Adding available location: ${location.description} ${location.dpsLocationId} $meetingStartTime $meetingEndTime")
-
               add(
                 availabilityStatus = location.allowsByAnyRuleOrSchedule(request, meetingStartTime),
                 availableLocation = AvailableLocation(
@@ -97,19 +88,10 @@ class TimeSlotAvailabilityService(
             }
           }
 
-          // TH
-          log.info("Incrementing next available time by 15 mins")
-
           meetingStartTime = meetingStartTime.plusMinutes(15)
           meetingEndTime = meetingEndTime.plusMinutes(15)
         }
       }
-    }
-
-    // TH
-    log.info("Returning available locations:")
-    availableLocationsBuilder.build().forEach {
-      log.info("Name: ${it.name} Key: ${it.dpsLocationKey} UUID: ${it.dpsLocationId} Start: ${it.startTime} End: ${it.endTime}")
     }
 
     return AvailableLocationsResponse(
@@ -120,27 +102,13 @@ class TimeSlotAvailabilityService(
   }
 
   private fun isTheSame(existingBooking: VideoBooking, location: Location, request: TimeSlotAvailabilityRequest, start: LocalTime, end: LocalTime) = run {
-    // TH
-    log.info("MainHearing (should be null) - ${existingBooking.mainHearing()}")
-    log.info("Probation meeting should NOT be null - ${existingBooking.probationMeeting()}")
-
     val existingAppointment = existingBooking.mainHearing() ?: existingBooking.probationMeeting() ?: return@run false
-
-    // TH
-    log.info("Should get to here for PROBATION existing booking")
 
     // Time slot availability works on the premise of a single room model; hence the location ID is safe to use like this.
     val existingLocationId = existingAppointment.prisonLocationId
     val existingAppointmentDate = existingAppointment.appointmentDate
     val existingStartTime = existingAppointment.startTime
     val existingEndTime = existingAppointment.endTime
-
-    // TH
-    log.info("Is the same?")
-    log.info("Date the same: $existingAppointmentDate == ${request.date}")
-    log.info("Timeslot contains existing start time (should be true): ${request.timeSlots?.contains(slot(existingStartTime))}")
-    log.info("Start time the same: $start == $existingStartTime")
-    log.info("End time the same: $end == $existingEndTime")
 
     (
       existingLocationId == location.dpsLocationId &&
