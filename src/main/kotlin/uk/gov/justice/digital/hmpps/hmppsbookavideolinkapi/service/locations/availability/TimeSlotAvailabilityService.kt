@@ -58,7 +58,7 @@ class TimeSlotAvailabilityService(
         while (meetingEndTime.isOnOrBefore(endOfDay)) {
           if (mayBeExistingBooking?.let { isTheSame(it, location, request, meetingStartTime, meetingEndTime) } == true) {
             add(
-              availabilityStatus = AvailabilityStatus.SHARED,
+              availabilityStatus = AvailabilityStatus.SPECIFIED_ROOM,
               availableLocation = AvailableLocation(
                 name = location.description ?: location.key,
                 startTime = meetingStartTime,
@@ -180,6 +180,7 @@ class TimeSlotLocationsBuilder private constructor() : LocationAvailabilityServi
       { locations, location -> locations.none { it.startTime == location.startTime } }
 
     val probation = buildList {
+      addAll(specifiedLocations)
       addAll(dedicatedProbationTeamLocations)
       addAll(probationCourtTeamLocations.filter { that -> filter(this, that) })
       addAll(probationSentenceTeamLocations.filter { that -> filter(this, that) })

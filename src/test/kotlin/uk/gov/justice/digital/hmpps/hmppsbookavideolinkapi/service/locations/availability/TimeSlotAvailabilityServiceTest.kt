@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toMod
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
+import java.util.UUID
 
 class TimeSlotAvailabilityServiceTest {
   private val videoBookingRepository: VideoBookingRepository = mock()
@@ -562,10 +563,67 @@ class TimeSlotAvailabilityServiceTest {
       ),
     )
 
+    private val anotherLocation = wandsworthLocation.toModel().copy(
+      description = "another - decorated probation room",
+      dpsLocationId = UUID.fromString("e58ed763-928c-4155-bee9-aaaaaaaaaaaa"),
+      extraAttributes = RoomAttributes(
+        attributeId = 2,
+        locationStatus = LocationStatus.ACTIVE,
+        locationUsage = LocationUsage.PROBATION,
+        allowedParties = emptyList(),
+        prisonVideoUrl = null,
+        notes = null,
+      ),
+    )
+
     @BeforeEach
     fun before() {
       whenever(prisonRegime.startOfDay(WANDSWORTH)) doReturn LocalTime.of(9, 0)
       whenever(prisonRegime.endOfDay(WANDSWORTH)) doReturn LocalTime.of(10, 0)
+    }
+
+    @Test
+    fun `should retain the existing location on the booking and prioritise this in the available locations for the booked time`() {
+      val probationTeam = probationTeam()
+      val booking = probationBooking(probationTeam).withProbationPrisonAppointment(
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(9, 30),
+        prisonCode = WANDSWORTH,
+        location = wandsworthLocation,
+      )
+
+      whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
+      whenever(locationsService.getVideoLinkLocationsAtPrison(WANDSWORTH, true)) doReturn listOf(decoratedLocation, anotherLocation)
+      whenever(bookedLocationsService.findBooked(BookedLookup(WANDSWORTH, tomorrow(), listOf(decoratedLocation, anotherLocation), booking.videoBookingId))) doReturn BookedLocations(
+        listOf(BookedLocation(decoratedLocation, LocalTime.of(9, 0), LocalTime.of(9, 30))),
+      )
+
+      // There are two locations available at the booking time - it should always return the one currently on the booking where there is a choice
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, probationTeam.code, tomorrow(), LocalTime.of(9, 0), LocalTime.of(9, 30)))) doReturn AvailabilityStatus.PROBATION_ANY
+
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, probationTeam.code, tomorrow(), LocalTime.of(9, 15), LocalTime.of(9, 45)))) doReturn AvailabilityStatus.NONE
+
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(1, probationTeam.code, tomorrow(), LocalTime.of(9, 30), LocalTime.of(10, 0)))) doReturn AvailabilityStatus.NONE
+      whenever(locationAttributesService.isLocationAvailableFor(LocationAvailableRequest.probation(2, probationTeam.code, tomorrow(), LocalTime.of(9, 30), LocalTime.of(10, 0)))) doReturn AvailabilityStatus.NONE
+
+      val response = service { tomorrow().atStartOfDay() }.findAvailable(
+        TimeSlotAvailabilityRequest(
+          prisonCode = WANDSWORTH,
+          bookingType = BookingType.PROBATION,
+          probationTeamCode = BLACKPOOL_MC_PPOC,
+          date = tomorrow(),
+          bookingDuration = 30,
+          timeSlots = listOf(TimeSlot.AM),
+          vlbIdToExclude = booking.videoBookingId,
+        ),
+      )
+
+      response.locations containsExactly listOf(
+        availableLocation(decoratedLocation, time(9, 0), time(9, 30), LocationUsage.PROBATION),
+      )
     }
 
     @Test

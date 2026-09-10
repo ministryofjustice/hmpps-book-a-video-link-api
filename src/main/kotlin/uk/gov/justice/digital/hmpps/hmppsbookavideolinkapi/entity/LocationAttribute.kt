@@ -400,6 +400,7 @@ enum class LocationUsage {
 }
 
 enum class AvailabilityStatus {
+  SPECIFIED_ROOM,
   PROBATION_ROOM,
   PROBATION_COURT,
   PROBATION_SENTENCE,
