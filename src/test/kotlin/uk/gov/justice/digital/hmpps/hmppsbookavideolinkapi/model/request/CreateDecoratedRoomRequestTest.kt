@@ -14,7 +14,8 @@ class CreateDecoratedRoomRequestTest : ValidatorBase<CreateDecoratedRoomRequest>
     locationStatus = LocationStatus.ACTIVE,
     allowedParties = setOf("COURT"),
     prisonVideoUrl = "v".repeat(300),
-    comments = "amended comments",
+    comments = "comments",
+    roomArea = "COURT_PROBATION",
   )
 
   private val createBlockedRequest = CreateDecoratedRoomRequest(
@@ -22,6 +23,7 @@ class CreateDecoratedRoomRequestTest : ValidatorBase<CreateDecoratedRoomRequest>
     locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
     blockedFrom = yesterday(),
     blockedTo = today(),
+    roomArea = "COURT_PROBATION",
   )
 
   @Test

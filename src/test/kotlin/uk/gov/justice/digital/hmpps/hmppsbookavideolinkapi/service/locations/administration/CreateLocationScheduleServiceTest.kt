@@ -9,6 +9,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -37,6 +38,7 @@ class CreateLocationScheduleServiceTest {
       allowedParties = emptySet(),
       notes = null,
       prisonVideoUrl = null,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     roomAttributes.schedule().isEmpty() isBool true
@@ -84,6 +86,7 @@ class CreateLocationScheduleServiceTest {
       allowedParties = emptySet(),
       notes = null,
       prisonVideoUrl = null,
+      roomArea = RoomArea.COURT_PROBATION,
     ).apply {
       addSchedule(
         usage = EntityLocationScheduleUsage.PROBATION,

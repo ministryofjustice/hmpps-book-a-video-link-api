@@ -45,6 +45,9 @@ data class CreateDecoratedRoomRequest(
   @Schema(description = "The end time which a location is blocked to, must be on or after the blocked from date. Only applies to temporarily blocked locations.", example = "15:00", required = false)
   @JsonFormat(pattern = "HH:mm")
   val blockedToTime: LocalTime? = null,
+
+  @Schema(description = "This determines where email notifications for the rooms are sent.", example = "COURT_PROBATION", allowableValues = ["COURT_PROBATION", "LEGAL_VISITS"], required = true)
+  val roomArea: String = "COURT_PROBATION",
 ) {
   @JsonIgnore
   @AssertTrue(message = "The blocked to must be on or after the blocked from date", groups = [BlockedDateValidationExtension::class])

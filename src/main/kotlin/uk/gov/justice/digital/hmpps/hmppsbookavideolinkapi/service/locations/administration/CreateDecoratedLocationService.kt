@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
@@ -46,6 +47,7 @@ class CreateDecoratedLocationService(
         blockedFromTime = request.blockedFromTime,
         blockedTo = request.blockedTo,
         blockedToTime = request.blockedToTime,
+        roomArea = RoomArea.valueOf(request.roomArea),
       ).also { telemetryService.track(LocationAttributeTelemetryEvent(it, createdBy)) },
     ).let { location.copy(extraAttributes = it.toRoomAttributes()) }
   }

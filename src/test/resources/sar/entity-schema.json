@@ -80,7 +80,8 @@
     "locationUsage": "LocationUsage",
     "notes": "String",
     "prison": "Prison",
-    "prisonVideoUrl": "String"
+    "prisonVideoUrl": "String",
+    "roomArea": "RoomArea"
   },
   "LocationSchedule": {
     "allowedParties": "String",

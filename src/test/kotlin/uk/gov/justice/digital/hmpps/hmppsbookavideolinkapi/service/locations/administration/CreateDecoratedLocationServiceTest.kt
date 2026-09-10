@@ -9,6 +9,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
@@ -63,6 +64,7 @@ class CreateDecoratedLocationServiceTest {
         prisonVideoUrl = "shared-prison-video-url-1",
         allowedParties = setOf("DRBYMC", "DRBYCC"),
         comments = "some comments",
+        roomArea = RoomArea.COURT_PROBATION.name,
       ),
       PROBATION_USER,
     )
@@ -75,6 +77,7 @@ class CreateDecoratedLocationServiceTest {
       prisonVideoUrl isEqualTo "shared-prison-video-url-1"
       allowedParties isEqualTo "DRBYMC,DRBYCC"
       notes isEqualTo "some comments"
+      roomArea isEqualTo RoomArea.COURT_PROBATION
     }
 
     verify(telemetryService).track(telemetryEventCaptor.capture())
@@ -88,7 +91,7 @@ class CreateDecoratedLocationServiceTest {
     assertThrows<EntityNotFoundException> {
       service.create(
         wandsworthLocation.id,
-        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE),
+        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION.name),
         PROBATION_USER,
       )
     }.message isEqualTo "DPS location with ID ${wandsworthLocation.id} not found."
@@ -102,7 +105,7 @@ class CreateDecoratedLocationServiceTest {
     assertThrows<EntityNotFoundException> {
       service.create(
         wandsworthLocation.id,
-        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE),
+        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION.name),
         PROBATION_USER,
       )
     }.message isEqualTo "Matching prison code WWI not found for DPS location ID ${wandsworthLocation.id}."
@@ -118,7 +121,7 @@ class CreateDecoratedLocationServiceTest {
     assertThrows<IllegalArgumentException> {
       service.create(
         wandsworthLocation.id,
-        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE),
+        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION.name),
         PROBATION_USER,
       )
     }.message isEqualTo "DPS location with ID ${wandsworthLocation.id} is already decorated."

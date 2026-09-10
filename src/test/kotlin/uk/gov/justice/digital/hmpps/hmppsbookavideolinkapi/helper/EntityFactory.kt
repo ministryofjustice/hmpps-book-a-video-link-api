@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ReferenceCode
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -335,6 +336,7 @@ fun videoRoomAttributesWithSchedule(
   prisonVideoUrl = null,
   notes = null,
   createdBy = COURT_USER,
+  roomArea = RoomArea.COURT_PROBATION,
 ).apply {
   addSchedule(
     usage = LocationScheduleUsage.BLOCKED,
@@ -376,6 +378,7 @@ fun videoRoomAttributesWithoutSchedule(
   blockedFromTime = blockedFromTime,
   blockedTo = blockedTo,
   blockedToTime = blockedToTime,
+  roomArea = RoomArea.COURT_PROBATION,
 )
 
 fun additionalDetails(

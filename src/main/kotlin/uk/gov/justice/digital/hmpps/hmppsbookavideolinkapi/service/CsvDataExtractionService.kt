@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CsvMapperConfig.csvMapper
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
@@ -19,7 +20,7 @@ import java.io.OutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
-import java.util.*
+import java.util.UUID
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.system.measureTimeMillis
@@ -380,6 +381,7 @@ data class ProbationBookingEvent(
   "roomVideoLink",
   "roomSetup",
   "roomStatus",
+  "roomArea",
   "permission",
   "allowedParties",
   "schedule",
@@ -392,6 +394,7 @@ data class RoomItem(
   val roomVideoLink: String,
   val roomSetup: String,
   val roomStatus: String?,
+  val roomArea: String,
   val permission: String?,
   val allowedParties: String?,
   val schedule: String,
@@ -416,6 +419,13 @@ data class RoomItem(
         LocationStatus.TEMPORARILY_BLOCKED -> "Blocked"
       }
     } ?: "Out of use",
+    roomArea = location.extraAttributes?.roomArea.let {
+      when (it) {
+        RoomArea.COURT_PROBATION.name -> "Court and probation"
+        RoomArea.LEGAL_VISITS.name -> "Legal visits"
+        else -> "Unknown"
+      }
+    },
     permission = location.extraAttributes?.locationUsage?.let {
       when (it) {
         LocationUsage.COURT -> "Court"

@@ -40,6 +40,9 @@ class LocationAttribute private constructor(
   val createdBy: String,
 
   val createdTime: LocalDateTime = LocalDateTime.now(),
+
+  @Enumerated(EnumType.STRING)
+  var roomArea: RoomArea,
 ) {
   @Enumerated(EnumType.STRING)
   var locationStatus: LocationStatus = LocationStatus.ACTIVE
@@ -284,10 +287,12 @@ class LocationAttribute private constructor(
       blockedFromTime: LocalTime? = null,
       blockedToTime: LocalTime? = null,
       createdBy: ExternalUser,
+      roomArea: RoomArea,
     ) = LocationAttribute(
       dpsLocationId = dpsLocationId,
       prison = prison,
       createdBy = createdBy.username,
+      roomArea = roomArea,
     ).apply {
       if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED) {
         require(blockedFrom != null && blockedTo != null) {
@@ -332,6 +337,7 @@ class LocationAttribute private constructor(
       blockedFromTime: LocalTime? = null,
       blockedToTime: LocalTime? = null,
       amendedBy: ExternalUser,
+      roomArea: RoomArea,
     ) = run {
       if (locationStatus == LocationStatus.TEMPORARILY_BLOCKED) {
         require(blockedFrom != null && blockedTo != null) {
@@ -365,6 +371,7 @@ class LocationAttribute private constructor(
         this.blockedFromTime = blockedFromTime.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }?.truncatedTo(ChronoUnit.MINUTES)
         this.blockedTo = blockedTo.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }
         this.blockedToTime = blockedToTime.takeIf { locationStatus == LocationStatus.TEMPORARILY_BLOCKED }?.truncatedTo(ChronoUnit.MINUTES)
+        this.roomArea = roomArea
       }
     }
 
@@ -408,6 +415,11 @@ enum class AvailabilityStatus {
   COURT_ANY,
   SHARED,
   NONE,
+}
+
+enum class RoomArea {
+  COURT_PROBATION,
+  LEGAL_VISITS,
 }
 
 // A marker interface to help identify the types of supported location usages e.g., Court, ProbationTeam

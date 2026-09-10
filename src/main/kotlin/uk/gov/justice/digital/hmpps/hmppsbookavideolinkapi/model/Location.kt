@@ -67,6 +67,9 @@ data class RoomAttributes(
   @Schema(description = "The end time which a location is blocked to, must be on or after the blocked from date. Only applies to temporarily blocked locations.", example = "15:00")
   @JsonFormat(pattern = "HH:mm")
   val blockedToTime: LocalTime? = null,
+
+  @Schema(description = "This determines where email notifications for the rooms are sent.", example = "COURT_PROBATION", allowableValues = ["COURT_PROBATION", "LEGAL_VISITS"])
+  val roomArea: String,
 )
 
 @Schema(description = "The additional schedule of usage for a video room")

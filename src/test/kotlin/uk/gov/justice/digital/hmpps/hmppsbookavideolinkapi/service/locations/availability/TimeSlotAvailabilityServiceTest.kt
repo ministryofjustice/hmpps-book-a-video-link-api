@@ -11,6 +11,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.PrisonRegime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilityStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
@@ -90,6 +91,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION.name,
       ),
     )
 
@@ -150,6 +152,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION.name,
       ),
     )
     private val location2 = wandsworthLocation2.toModel().copy(
@@ -161,6 +164,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION.name,
       ),
     )
 
@@ -342,6 +346,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION.name,
       ),
     )
 
@@ -354,6 +359,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION.name,
       ),
     )
 
@@ -559,6 +565,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION.name,
       ),
     )
 
