@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
@@ -15,7 +16,7 @@ class CreateDecoratedRoomRequestTest : ValidatorBase<CreateDecoratedRoomRequest>
     allowedParties = setOf("COURT"),
     prisonVideoUrl = "v".repeat(300),
     comments = "comments",
-    roomArea = "COURT_PROBATION",
+    roomArea = RoomArea.COURT_PROBATION,
   )
 
   private val createBlockedRequest = CreateDecoratedRoomRequest(
@@ -23,7 +24,7 @@ class CreateDecoratedRoomRequestTest : ValidatorBase<CreateDecoratedRoomRequest>
     locationStatus = LocationStatus.TEMPORARILY_BLOCKED,
     blockedFrom = yesterday(),
     blockedTo = today(),
-    roomArea = "COURT_PROBATION",
+    roomArea = RoomArea.COURT_PROBATION,
   )
 
   @Test

@@ -110,7 +110,7 @@ class DateTimeAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
     private val decoratedProbationTeamLocation = wandsworthLocation2.toModel().copy(
@@ -122,7 +122,7 @@ class DateTimeAvailabilityServiceTest {
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,
         notes = null,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
     private val undecoratedLocation = wandsworthLocation3.toModel().copy(description = "a - undecorated room")
@@ -275,7 +275,7 @@ class DateTimeAvailabilityServiceTest {
         prisonVideoUrl = null,
         notes = null,
         schedule = emptyList(),
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
     private val location2 = risleyLocation2.toModel().copy(
@@ -288,7 +288,7 @@ class DateTimeAvailabilityServiceTest {
         prisonVideoUrl = null,
         notes = null,
         schedule = emptyList(),
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 

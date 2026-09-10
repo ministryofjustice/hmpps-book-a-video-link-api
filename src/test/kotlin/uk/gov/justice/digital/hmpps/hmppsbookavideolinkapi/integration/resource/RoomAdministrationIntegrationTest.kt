@@ -65,7 +65,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.SHARED,
         locationStatus = ModelLocationStatus.ACTIVE,
         prisonVideoUrl = "shared-prison-video-url-1",
-        roomArea = RoomArea.LEGAL_VISITS.name,
+        roomArea = RoomArea.LEGAL_VISITS,
       ),
       wandsworthLocation.toModel(),
       PROBATION_USER,
@@ -76,7 +76,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       locationStatus.name isEqualTo ModelLocationStatus.ACTIVE.name
       allowedParties.isEmpty() isBool true
       prisonVideoUrl isEqualTo "shared-prison-video-url-1"
-      roomArea isEqualTo RoomArea.LEGAL_VISITS.name
+      roomArea isEqualTo RoomArea.LEGAL_VISITS
     }
   }
 
@@ -89,7 +89,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.PROBATION,
         locationStatus = ModelLocationStatus.INACTIVE,
         prisonVideoUrl = "shared-prison-video-url-2",
-        roomArea = RoomArea.LEGAL_VISITS.name,
+        roomArea = RoomArea.LEGAL_VISITS,
       ),
       wandsworthLocation2.toModel(),
       PROBATION_USER,
@@ -115,7 +115,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         blockedFromTime = LocalTime.of(9, 0),
         blockedTo = tomorrow(),
         blockedToTime = LocalTime.of(12, 0),
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       wandsworthLocation2.toModel(),
       PROBATION_USER,
@@ -143,7 +143,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         blockedFromTime = LocalTime.of(9, 0),
         blockedTo = tomorrow(),
         blockedToTime = LocalTime.of(12, 0),
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       wandsworthLocation2.toModel(),
       PROBATION_USER,
@@ -157,7 +157,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         blockedFromTime = LocalTime.of(10, 0),
         blockedTo = tomorrow().plusDays(1),
         blockedToTime = LocalTime.of(13, 0),
-        roomArea = RoomArea.LEGAL_VISITS.name,
+        roomArea = RoomArea.LEGAL_VISITS,
       ),
       wandsworthLocation2.toModel(),
       PROBATION_USER,
@@ -170,7 +170,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       blockedFromTime isEqualTo LocalTime.of(10, 0)
       blockedTo isEqualTo tomorrow().plusDays(1)
       blockedToTime isEqualTo LocalTime.of(13, 0)
-      roomArea isEqualTo RoomArea.LEGAL_VISITS.name
+      roomArea isEqualTo RoomArea.LEGAL_VISITS
     }
   }
 
@@ -310,7 +310,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         locationUsage = ModelLocationUsage.PROBATION,
         locationStatus = ModelLocationStatus.ACTIVE,
         prisonVideoUrl = "shared-prison-video-url-3",
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       wandsworthLocation3.toModel(),
       PROBATION_USER,
@@ -337,7 +337,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         allowedParties = setOf("PROBATION"),
         prisonVideoUrl = "x".repeat(300),
         comments = "some comments",
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       wandsworthLocation3.toModel(),
       PROBATION_USER,
@@ -350,7 +350,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
         allowedParties = setOf("COURT"),
         prisonVideoUrl = "v".repeat(300),
         comments = "amended comments",
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       wandsworthLocation3.toModel(),
       COURT_USER,
@@ -383,7 +383,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       CreateDecoratedRoomRequest(
         locationUsage = ModelLocationUsage.SCHEDULE,
         locationStatus = ModelLocationStatus.INACTIVE,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       risleyLocation.toModel(),
       PROBATION_USER,
@@ -419,7 +419,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       CreateDecoratedRoomRequest(
         locationUsage = ModelLocationUsage.SCHEDULE,
         locationStatus = ModelLocationStatus.ACTIVE,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       risleyLocation2.toModel(),
       PROBATION_USER,
@@ -458,7 +458,7 @@ class RoomAdministrationIntegrationTest : IntegrationTestBase() {
       CreateDecoratedRoomRequest(
         locationUsage = ModelLocationUsage.SCHEDULE,
         locationStatus = ModelLocationStatus.INACTIVE,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       norwichLocation.toModel(),
       PROBATION_USER,

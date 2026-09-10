@@ -64,7 +64,7 @@ class CreateDecoratedLocationServiceTest {
         prisonVideoUrl = "shared-prison-video-url-1",
         allowedParties = setOf("DRBYMC", "DRBYCC"),
         comments = "some comments",
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
       PROBATION_USER,
     )
@@ -91,7 +91,7 @@ class CreateDecoratedLocationServiceTest {
     assertThrows<EntityNotFoundException> {
       service.create(
         wandsworthLocation.id,
-        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION.name),
+        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION),
         PROBATION_USER,
       )
     }.message isEqualTo "DPS location with ID ${wandsworthLocation.id} not found."
@@ -105,7 +105,7 @@ class CreateDecoratedLocationServiceTest {
     assertThrows<EntityNotFoundException> {
       service.create(
         wandsworthLocation.id,
-        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION.name),
+        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION),
         PROBATION_USER,
       )
     }.message isEqualTo "Matching prison code WWI not found for DPS location ID ${wandsworthLocation.id}."
@@ -121,7 +121,7 @@ class CreateDecoratedLocationServiceTest {
     assertThrows<IllegalArgumentException> {
       service.create(
         wandsworthLocation.id,
-        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION.name),
+        CreateDecoratedRoomRequest(ModelLocationUsage.SHARED, ModelLocationStatus.ACTIVE, roomArea = RoomArea.COURT_PROBATION),
         PROBATION_USER,
       )
     }.message isEqualTo "DPS location with ID ${wandsworthLocation.id} is already decorated."

@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttrib
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationScheduleUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendDecoratedRoomRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendRoomScheduleRequest
@@ -45,7 +44,7 @@ class AmendDecoratedLocationService(
         blockedFromTime = request.blockedFromTime,
         blockedTo = request.blockedTo,
         blockedToTime = request.blockedToTime,
-        roomArea = RoomArea.valueOf(request.roomArea),
+        roomArea = request.roomArea,
       ).also { telemetryService.track(LocationAttributeTelemetryEvent(it, amendedBy)) },
     )
 

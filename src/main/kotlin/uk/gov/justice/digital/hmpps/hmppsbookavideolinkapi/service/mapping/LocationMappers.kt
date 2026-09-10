@@ -38,7 +38,7 @@ fun LocationAttribute.toRoomAttributes() = RoomAttributes(
   blockedFrom = this.blockedFromDateTime()?.toLocalDate(),
   blockedToTime = this.blockedToDateTime()?.toLocalTime(),
   blockedFromTime = this.blockedFromDateTime()?.toLocalTime(),
-  roomArea = this.roomArea.name,
+  roomArea = this.roomArea,
 )
 
 fun List<LocationSchedule>.toRoomSchedule() = map { it.toModel() }

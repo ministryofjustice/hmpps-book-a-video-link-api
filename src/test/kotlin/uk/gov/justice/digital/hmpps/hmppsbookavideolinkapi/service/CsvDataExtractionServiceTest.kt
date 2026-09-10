@@ -333,12 +333,12 @@ class CsvDataExtractionServiceTest {
     allowedParties = emptyList(),
     notes = null,
     schedule = roomSchedules,
-    roomArea = RoomArea.COURT_PROBATION.name,
+    roomArea = RoomArea.COURT_PROBATION,
   )
 
   private val roomAttributes2 = roomAttributes1.copy(attributeId = 2L)
   private val roomAttributes3 = roomAttributes1.copy(attributeId = 3L, schedule = emptyList(), locationUsage = LocationUsage.COURT, allowedParties = listOf("A"))
-  private val roomAttributes4 = roomAttributes1.copy(attributeId = 4L, schedule = emptyList(), locationUsage = LocationUsage.SHARED, roomArea = RoomArea.LEGAL_VISITS.name)
+  private val roomAttributes4 = roomAttributes1.copy(attributeId = 4L, schedule = emptyList(), locationUsage = LocationUsage.SHARED, roomArea = RoomArea.LEGAL_VISITS)
   private val roomAttributes5 = roomAttributes1.copy(attributeId = 5L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION)
   private val roomAttributes6 = roomAttributes1.copy(attributeId = 6L, schedule = emptyList(), locationUsage = LocationUsage.COURT)
   private val roomAttributes7 = roomAttributes1.copy(attributeId = 7L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION, allowedParties = listOf("A", "B"))

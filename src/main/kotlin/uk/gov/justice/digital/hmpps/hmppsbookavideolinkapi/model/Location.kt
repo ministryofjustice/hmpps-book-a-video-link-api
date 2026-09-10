@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -69,7 +70,7 @@ data class RoomAttributes(
   val blockedToTime: LocalTime? = null,
 
   @Schema(description = "This determines where email notifications for the rooms are sent.", example = "COURT_PROBATION", allowableValues = ["COURT_PROBATION", "LEGAL_VISITS"])
-  val roomArea: String,
+  val roomArea: RoomArea,
 )
 
 @Schema(description = "The additional schedule of usage for a video room")

@@ -91,7 +91,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 
@@ -152,7 +152,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
     private val location2 = wandsworthLocation2.toModel().copy(
@@ -164,7 +164,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,
         notes = null,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 
@@ -346,7 +346,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 
@@ -359,7 +359,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,
         notes = null,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 
@@ -565,7 +565,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
-        roomArea = RoomArea.COURT_PROBATION.name,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 

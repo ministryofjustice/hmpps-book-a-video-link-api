@@ -421,8 +421,8 @@ data class RoomItem(
     } ?: "Out of use",
     roomArea = location.extraAttributes?.roomArea.let {
       when (it) {
-        RoomArea.COURT_PROBATION.name -> "Court and probation"
-        RoomArea.LEGAL_VISITS.name -> "Legal visits"
+        RoomArea.COURT_PROBATION -> "Court and probation"
+        RoomArea.LEGAL_VISITS -> "Legal visits"
         else -> "Unknown"
       }
     },

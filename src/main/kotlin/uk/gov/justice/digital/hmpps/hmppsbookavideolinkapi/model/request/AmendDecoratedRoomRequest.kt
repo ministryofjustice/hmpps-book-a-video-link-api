@@ -7,6 +7,7 @@ import jakarta.validation.GroupSequence
 import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.Size
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationUsage
 import java.time.LocalDate
@@ -47,7 +48,7 @@ data class AmendDecoratedRoomRequest(
   val blockedToTime: LocalTime? = null,
 
   @Schema(description = "This determines where email notifications for the rooms are sent.", example = "COURT_PROBATION", allowableValues = ["COURT_PROBATION", "LEGAL_VISITS"], required = true)
-  val roomArea: String = "COURT_PROBATION",
+  val roomArea: RoomArea = RoomArea.COURT_PROBATION,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The blocked to must be on or after the blocked from date", groups = [BlockedDateValidationExtension::class])

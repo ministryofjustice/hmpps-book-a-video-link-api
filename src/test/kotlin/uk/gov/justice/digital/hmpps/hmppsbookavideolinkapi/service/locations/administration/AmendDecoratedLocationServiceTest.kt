@@ -73,7 +73,7 @@ class AmendDecoratedLocationServiceTest {
         allowedParties = emptySet(),
         prisonVideoUrl = "different-prison-video-url",
         comments = "amended comments",
-        roomArea = RoomArea.LEGAL_VISITS.name,
+        roomArea = RoomArea.LEGAL_VISITS,
       ),
       COURT_USER,
     )

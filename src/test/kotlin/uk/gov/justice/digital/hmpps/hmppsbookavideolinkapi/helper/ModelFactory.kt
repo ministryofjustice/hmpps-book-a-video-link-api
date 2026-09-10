@@ -81,7 +81,7 @@ fun locationAttributes() = RoomAttributes(
   locationStatus = LocationStatus.ACTIVE,
   notes = null,
   prisonVideoUrl = "decorated-video-link-url",
-  roomArea = RoomArea.COURT_PROBATION.name,
+  roomArea = RoomArea.COURT_PROBATION,
 )
 
 fun prisonerSearchPrisoner(
