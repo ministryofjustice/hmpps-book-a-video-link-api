@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
@@ -213,6 +214,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
         CreateDecoratedRoomRequest(
           locationUsage = ModelLocationUsage.SHARED,
           locationStatus = ModelLocationStatus.ACTIVE,
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation.toModel(),
         PROBATION_USER,
@@ -247,6 +249,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
           locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
           blockedFrom = today(),
           blockedTo = tomorrow(),
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation.toModel(),
         PROBATION_USER,
@@ -280,6 +283,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
         CreateDecoratedRoomRequest(
           locationUsage = ModelLocationUsage.SHARED,
           locationStatus = ModelLocationStatus.ACTIVE,
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation.toModel(),
         COURT_USER,
@@ -290,6 +294,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
         CreateDecoratedRoomRequest(
           locationUsage = ModelLocationUsage.SHARED,
           locationStatus = ModelLocationStatus.ACTIVE,
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation2.toModel(),
         COURT_USER,
@@ -327,6 +332,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
           locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
           blockedFrom = today(),
           blockedTo = tomorrow(),
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation.toModel(),
         COURT_USER,
@@ -337,6 +343,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
         CreateDecoratedRoomRequest(
           locationUsage = ModelLocationUsage.SHARED,
           locationStatus = ModelLocationStatus.ACTIVE,
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation2.toModel(),
         COURT_USER,
@@ -528,6 +535,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
         CreateDecoratedRoomRequest(
           locationUsage = ModelLocationUsage.SHARED,
           locationStatus = ModelLocationStatus.ACTIVE,
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation.toModel(),
         PROBATION_USER,
@@ -562,6 +570,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
           locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
           blockedFrom = today(),
           blockedTo = tomorrow(),
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation.toModel(),
         PROBATION_USER,
@@ -595,6 +604,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
         CreateDecoratedRoomRequest(
           locationUsage = ModelLocationUsage.SHARED,
           locationStatus = ModelLocationStatus.ACTIVE,
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation.toModel(),
         COURT_USER,
@@ -605,6 +615,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
         CreateDecoratedRoomRequest(
           locationUsage = ModelLocationUsage.SHARED,
           locationStatus = ModelLocationStatus.ACTIVE,
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation2.toModel(),
         COURT_USER,
@@ -642,6 +653,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
           locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
           blockedFrom = today(),
           blockedTo = tomorrow(),
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation.toModel(),
         COURT_USER,
@@ -652,6 +664,7 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
         CreateDecoratedRoomRequest(
           locationUsage = ModelLocationUsage.SHARED,
           locationStatus = ModelLocationStatus.ACTIVE,
+          roomArea = RoomArea.COURT_PROBATION,
         ),
         risleyLocation2.toModel(),
         COURT_USER,

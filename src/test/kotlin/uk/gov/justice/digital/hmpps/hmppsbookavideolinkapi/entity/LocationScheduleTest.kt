@@ -306,6 +306,7 @@ class LocationScheduleTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = PROBATION_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     ),
     startDayOfWeek = start.value,
     endDayOfWeek = end.value,

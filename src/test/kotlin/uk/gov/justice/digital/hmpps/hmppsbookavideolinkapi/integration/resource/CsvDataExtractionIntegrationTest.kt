@@ -84,13 +84,13 @@ class CsvDataExtractionIntegrationTest : IntegrationTestBase() {
   fun `should download prison room configuration data CSV`() {
     val roomData = webTestClient.downloadRoomConfigurationData()
 
-    roomData contains "prisonCode,prisonDescription,roomKey,roomDescription,roomVideoLink,roomSetup,roomStatus,permission,allowedParties,schedule\n"
-    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-1,\"BMI ROOM-1\",/link/1,Customised,Active,Court,,No\n"
-    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-2,\"BMI ROOM-2\",/link/2,Customised,Active,Probation,,No\n"
-    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,Schedule,,\"Monday-Thursday 09:00-17:00 Court \"\n"
-    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,Schedule,,\"Friday-Friday 09:00-17:00 Probation \"\n"
-    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,Schedule,,\"Saturday-Sunday 09:00-17:00 Blocked \"\n"
-    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-4,\"BMI ROOM-4\",,Default,\"Out of use\",Shared,,No"
+    roomData contains "prisonCode,prisonDescription,roomKey,roomDescription,roomVideoLink,roomSetup,roomStatus,roomArea,permission,allowedParties,schedule\n"
+    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-1,\"BMI ROOM-1\",/link/1,Customised,Active,\"Court and probation\",Court,,No\n"
+    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-2,\"BMI ROOM-2\",/link/2,Customised,Active,\"Court and probation\",Probation,,No\n"
+    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,\"Legal visits\",Schedule,,\"Monday-Thursday 09:00-17:00 Court \"\n"
+    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,\"Legal visits\",Schedule,,\"Friday-Friday 09:00-17:00 Probation \"\n"
+    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-3,\"BMI ROOM-3\",/link/3,Customised,Active,\"Legal visits\",Schedule,,\"Saturday-Sunday 09:00-17:00 Blocked \"\n"
+    roomData contains "BMI,\"Birmingham (HMP)\",ROOM-4,\"BMI ROOM-4\",,Default,\"Out of use\",Unknown,Shared,,No"
   }
 
   private fun WebTestClient.badRequestWhenRequestTooManyDaysOfData() = this

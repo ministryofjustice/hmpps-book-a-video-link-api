@@ -44,6 +44,7 @@ class AmendDecoratedLocationService(
         blockedFromTime = request.blockedFromTime,
         blockedTo = request.blockedTo,
         blockedToTime = request.blockedToTime,
+        roomArea = request.roomArea,
       ).also { telemetryService.track(LocationAttributeTelemetryEvent(it, amendedBy)) },
     )
 

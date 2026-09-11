@@ -13,6 +13,7 @@ import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBookingEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
@@ -285,18 +286,18 @@ class CsvDataExtractionServiceTest {
     verify(locationsService).getVideoLinkLocationsAtPrison(eq("MDI"), eq(true))
 
     csvOutputStream.toString() isEqualTo
-      "prisonCode,prisonDescription,roomKey,roomDescription,roomVideoLink,roomSetup,roomStatus,permission,allowedParties,schedule\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Schedule,,\"Monday-Tuesday 10:00-11:00 Court CourtA\"\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,Schedule,,\"Wednesday-Thursday 10:00-11:00 Probation TeamA\"\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,Schedule,,\"Monday-Tuesday 10:00-11:00 Court CourtA\"\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,Schedule,,\"Wednesday-Thursday 10:00-11:00 Probation TeamA\"\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-3,\"Room 3\",/video-link-url,Customised,Active,Court,CourtA,No\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-4,\"Room 4\",/video-link-url,Customised,Active,Shared,,No\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-5,\"Room 5\",/video-link-url,Customised,Active,Probation,,No\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-6,\"Room 6\",/video-link-url,Customised,Active,Court,,No\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-7,\"Room 7\",/video-link-url,Customised,Active,Probation,TeamA:TeamB,No\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-8,\"Room 8\",/video-link-url,Customised,\"Out of use\",Court,,No\n" +
-      "MDI,\"HMP Moorland\",MDI-RM-9,\"Room 9\",/video-link-url,Customised,Blocked,Shared,,No\n"
+      "prisonCode,prisonDescription,roomKey,roomDescription,roomVideoLink,roomSetup,roomStatus,roomArea,permission,allowedParties,schedule\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,\"Court and probation\",Schedule,,\"Monday-Tuesday 10:00-11:00 Court CourtA\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-1,\"Room 1\",/video-link-url,Customised,Active,\"Court and probation\",Schedule,,\"Wednesday-Thursday 10:00-11:00 Probation TeamA\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,\"Court and probation\",Schedule,,\"Monday-Tuesday 10:00-11:00 Court CourtA\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-2,\"Room 2\",/video-link-url,Customised,Active,\"Court and probation\",Schedule,,\"Wednesday-Thursday 10:00-11:00 Probation TeamA\"\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-3,\"Room 3\",/video-link-url,Customised,Active,\"Court and probation\",Court,CourtA,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-4,\"Room 4\",/video-link-url,Customised,Active,\"Legal visits\",Shared,,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-5,\"Room 5\",/video-link-url,Customised,Active,\"Court and probation\",Probation,,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-6,\"Room 6\",/video-link-url,Customised,Active,\"Court and probation\",Court,,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-7,\"Room 7\",/video-link-url,Customised,Active,\"Court and probation\",Probation,TeamA:TeamB,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-8,\"Room 8\",/video-link-url,Customised,\"Out of use\",\"Court and probation\",Court,,No\n" +
+      "MDI,\"HMP Moorland\",MDI-RM-9,\"Room 9\",/video-link-url,Customised,Blocked,\"Court and probation\",Shared,,No\n"
   }
 
   private val listOfPrisons = listOf(
@@ -332,11 +333,12 @@ class CsvDataExtractionServiceTest {
     allowedParties = emptyList(),
     notes = null,
     schedule = roomSchedules,
+    roomArea = RoomArea.COURT_PROBATION,
   )
 
   private val roomAttributes2 = roomAttributes1.copy(attributeId = 2L)
   private val roomAttributes3 = roomAttributes1.copy(attributeId = 3L, schedule = emptyList(), locationUsage = LocationUsage.COURT, allowedParties = listOf("A"))
-  private val roomAttributes4 = roomAttributes1.copy(attributeId = 4L, schedule = emptyList(), locationUsage = LocationUsage.SHARED)
+  private val roomAttributes4 = roomAttributes1.copy(attributeId = 4L, schedule = emptyList(), locationUsage = LocationUsage.SHARED, roomArea = RoomArea.LEGAL_VISITS)
   private val roomAttributes5 = roomAttributes1.copy(attributeId = 5L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION)
   private val roomAttributes6 = roomAttributes1.copy(attributeId = 6L, schedule = emptyList(), locationUsage = LocationUsage.COURT)
   private val roomAttributes7 = roomAttributes1.copy(attributeId = 7L, schedule = emptyList(), locationUsage = LocationUsage.PROBATION, allowedParties = listOf("A", "B"))

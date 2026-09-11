@@ -9,6 +9,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AvailabilityStatus
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
@@ -109,6 +110,7 @@ class DateTimeAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
     private val decoratedProbationTeamLocation = wandsworthLocation2.toModel().copy(
@@ -120,6 +122,7 @@ class DateTimeAvailabilityServiceTest {
         allowedParties = listOf("BLACKPOOL_MC_PPOC"),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
     private val undecoratedLocation = wandsworthLocation3.toModel().copy(description = "a - undecorated room")
@@ -272,6 +275,7 @@ class DateTimeAvailabilityServiceTest {
         prisonVideoUrl = null,
         notes = null,
         schedule = emptyList(),
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
     private val location2 = risleyLocation2.toModel().copy(
@@ -284,6 +288,7 @@ class DateTimeAvailabilityServiceTest {
         prisonVideoUrl = null,
         notes = null,
         schedule = emptyList(),
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 

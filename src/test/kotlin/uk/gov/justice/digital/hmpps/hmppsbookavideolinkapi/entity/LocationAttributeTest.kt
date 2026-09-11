@@ -35,6 +35,7 @@ class LocationAttributeTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = COURT_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     assertDoesNotThrow {
@@ -62,6 +63,7 @@ class LocationAttributeTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = COURT_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     ).apply {
       addSchedule(
         usage = LocationScheduleUsage.COURT,
@@ -118,6 +120,7 @@ class LocationAttributeTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = COURT_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     ).apply {
       addSchedule(
         usage = LocationScheduleUsage.COURT,
@@ -154,6 +157,7 @@ class LocationAttributeTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = COURT_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     with(roomAttributes) {
@@ -164,6 +168,7 @@ class LocationAttributeTest {
       notes isEqualTo null
       amendedBy isEqualTo null
       amendedTime isEqualTo null
+      roomArea isEqualTo RoomArea.COURT_PROBATION
     }
 
     LocationAttribute.amend(
@@ -174,6 +179,7 @@ class LocationAttributeTest {
       prisonVideoUrl = "prison-room-url",
       comments = "updated notes",
       amendedBy = PROBATION_USER,
+      roomArea = RoomArea.LEGAL_VISITS,
     )
 
     with(roomAttributes) {
@@ -184,6 +190,7 @@ class LocationAttributeTest {
       notes isEqualTo "updated notes"
       amendedBy isEqualTo PROBATION_USER.username
       amendedTime isCloseTo LocalDateTime.now()
+      roomArea isEqualTo RoomArea.LEGAL_VISITS
     }
   }
 
@@ -201,6 +208,7 @@ class LocationAttributeTest {
         blockedFrom = yesterday(),
         blockedTo = today(),
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
     }.message isEqualTo "The blocked from date must be today or later."
   }
@@ -219,6 +227,7 @@ class LocationAttributeTest {
         blockedFrom = today(),
         blockedTo = yesterday(),
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
     }.message isEqualTo "The blocked to date must be on after the blocked from date."
   }
@@ -236,6 +245,7 @@ class LocationAttributeTest {
       blockedFrom = today(),
       blockedTo = tomorrow(),
       createdBy = PROBATION_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     assertThrows<IllegalArgumentException> {
@@ -249,6 +259,7 @@ class LocationAttributeTest {
         blockedTo = yesterday(),
         amendedBy = PROBATION_USER,
         comments = null,
+        roomArea = RoomArea.COURT_PROBATION,
       )
     }.message isEqualTo "The blocked to date must be on after the blocked from date."
   }
@@ -266,6 +277,7 @@ class LocationAttributeTest {
       blockedFrom = today(),
       blockedTo = tomorrow(),
       createdBy = PROBATION_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     assertThrows<IllegalArgumentException> {
@@ -281,6 +293,7 @@ class LocationAttributeTest {
         blockedToTime = LocalTime.of(10, 0),
         amendedBy = PROBATION_USER,
         comments = null,
+        roomArea = RoomArea.COURT_PROBATION,
       )
     }.message isEqualTo "The blocked from time must be before the blocked to time."
   }
@@ -301,6 +314,7 @@ class LocationAttributeTest {
         blockedTo = today(),
         blockedToTime = LocalTime.of(11, 0),
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
     }.message isEqualTo "The blocked from time must be before the blocked to time."
   }
@@ -320,6 +334,7 @@ class LocationAttributeTest {
       blockedTo = tomorrow(),
       blockedToTime = LocalTime.of(10, 0),
       createdBy = PROBATION_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     val activeRoom = LocationAttribute.reactivate(blockedRoom, SERVICE_USER)
@@ -348,6 +363,7 @@ class LocationAttributeTest {
       blockedFrom = today(),
       blockedTo = tomorrow(),
       createdBy = PROBATION_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     assertThrows<IllegalArgumentException> {
@@ -366,6 +382,7 @@ class LocationAttributeTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = COURT_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     ).apply {
       addSchedule(
         usage = LocationScheduleUsage.COURT,
@@ -399,6 +416,7 @@ class LocationAttributeTest {
       prisonVideoUrl = null,
       notes = null,
       createdBy = COURT_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     ).apply {
       addSchedule(
         usage = LocationScheduleUsage.COURT,
@@ -434,6 +452,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.PROBATION_ANY
@@ -452,6 +471,7 @@ class LocationAttributeTest {
         blockedFrom = today(),
         blockedTo = today(),
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.NONE
@@ -470,6 +490,7 @@ class LocationAttributeTest {
         blockedFrom = tomorrow(),
         blockedTo = tomorrow(),
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.PROBATION_ANY
@@ -488,6 +509,7 @@ class LocationAttributeTest {
         blockedFrom = tomorrow(),
         blockedTo = tomorrow(),
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.PROBATION_ANY
@@ -506,6 +528,7 @@ class LocationAttributeTest {
         blockedFrom = today(),
         blockedTo = today(),
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.PROBATION_ANY
@@ -522,6 +545,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(probationTeam(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.NONE
@@ -538,6 +562,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         allowedParties = setOf("TEAM_CODE"),
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -559,6 +584,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         allowedParties = setOf("TEAM_CODE"),
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -580,6 +606,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -601,6 +628,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, locationUsage = LocationScheduleUsage.PROBATION)
         schedule(this, locationUsage = LocationScheduleUsage.BLOCKED)
@@ -625,6 +653,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -646,6 +675,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -667,6 +697,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION) }
 
       roomAttributes.isAvailableFor(
@@ -688,6 +719,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION_TEAM"))
       }
@@ -711,6 +743,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }
@@ -734,6 +767,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }
@@ -757,6 +791,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.COURT) }
 
       roomAttributes.isAvailableFor(
@@ -778,6 +813,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.PROBATION)
@@ -802,6 +838,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.PROBATION)
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
@@ -826,6 +863,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.PROBATION, allowedParties = setOf("PROBATION"))
       }
@@ -849,6 +887,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.PROBATION)
       }
@@ -872,6 +911,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }
@@ -895,6 +935,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }
@@ -918,6 +959,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_COURT) }
 
       roomAttributes.isAvailableFor(
@@ -939,6 +981,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_SENTENCE) }
 
       roomAttributes.isAvailableFor(
@@ -960,6 +1003,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_COURT) }
 
       roomAttributes.isAvailableFor(
@@ -981,6 +1025,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_SENTENCE) }
 
       roomAttributes.isAvailableFor(
@@ -1005,6 +1050,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -1028,6 +1074,7 @@ class LocationAttributeTest {
         blockedFrom = today(),
         blockedTo = today(),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.NONE
@@ -1047,6 +1094,7 @@ class LocationAttributeTest {
         blockedFromTime = LocalTime.of(10, 0),
         blockedTo = today(),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), today(), LocalTime.of(9, 0), LocalTime.of(11, 0)) isEqualTo AvailabilityStatus.NONE
@@ -1067,6 +1115,7 @@ class LocationAttributeTest {
         blockedTo = today(),
         blockedToTime = LocalTime.of(11, 0),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), today(), LocalTime.of(8, 0), LocalTime.of(9, 0)) isEqualTo AvailabilityStatus.COURT_ANY
@@ -1089,6 +1138,7 @@ class LocationAttributeTest {
         blockedTo = today(),
         blockedToTime = LocalTime.of(11, 0),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), today(), LocalTime.of(11, 0), LocalTime.of(12, 0)) isEqualTo AvailabilityStatus.COURT_ANY
@@ -1111,6 +1161,7 @@ class LocationAttributeTest {
         blockedTo = today(),
         blockedToTime = LocalTime.of(11, 0),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), today(), LocalTime.of(9, 0), LocalTime.of(10, 30)) isEqualTo AvailabilityStatus.NONE
@@ -1131,6 +1182,7 @@ class LocationAttributeTest {
         blockedFrom = tomorrow(),
         blockedTo = tomorrow(),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.NONE
@@ -1149,6 +1201,7 @@ class LocationAttributeTest {
         blockedFrom = tomorrow(),
         blockedTo = tomorrow(),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.COURT_ANY
@@ -1167,6 +1220,7 @@ class LocationAttributeTest {
         blockedFrom = today(),
         blockedTo = today(),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), tomorrow(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.COURT_ANY
@@ -1185,6 +1239,7 @@ class LocationAttributeTest {
         blockedFrom = yesterday(),
         blockedTo = yesterday(),
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(court(), today(), LocalTime.of(12, 0), LocalTime.of(12, 30)) isEqualTo AvailabilityStatus.COURT_ANY
@@ -1201,6 +1256,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         addSchedule(
           LocationScheduleUsage.PROBATION,
@@ -1233,6 +1289,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -1254,6 +1311,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = PROBATION_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -1275,6 +1333,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         allowedParties = setOf("COURT"),
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -1296,6 +1355,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         allowedParties = setOf("COURT"),
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -1317,6 +1377,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -1338,6 +1399,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       )
 
       roomAttributes.isAvailableFor(
@@ -1359,6 +1421,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.COURT) }
 
       roomAttributes.isAvailableFor(
@@ -1380,6 +1443,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
       }
@@ -1403,6 +1467,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, locationUsage = LocationScheduleUsage.COURT)
         schedule(this, locationUsage = LocationScheduleUsage.BLOCKED)
@@ -1427,6 +1492,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }
@@ -1450,6 +1516,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }
@@ -1473,6 +1540,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION) }
 
       roomAttributes.isAvailableFor(
@@ -1494,6 +1562,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_SENTENCE) }
 
       roomAttributes.isAvailableFor(
@@ -1515,6 +1584,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply { schedule(this, locationUsage = LocationScheduleUsage.PROBATION_COURT) }
 
       roomAttributes.isAvailableFor(
@@ -1536,6 +1606,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.BLOCKED)
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.COURT)
@@ -1560,6 +1631,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(9, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
@@ -1584,6 +1656,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.COURT, allowedParties = setOf("COURT"))
       }
@@ -1607,6 +1680,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.COURT)
       }
@@ -1630,6 +1704,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }
@@ -1653,6 +1728,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(11, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }
@@ -1676,6 +1752,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(8, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
@@ -1701,6 +1778,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(8, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
@@ -1726,6 +1804,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(8, 0), endTime = LocalTime.of(10, 0), locationUsage = LocationScheduleUsage.COURT)
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
@@ -1751,6 +1830,7 @@ class LocationAttributeTest {
         prisonVideoUrl = null,
         notes = null,
         createdBy = COURT_USER,
+        roomArea = RoomArea.COURT_PROBATION,
       ).apply {
         schedule(this, startTime = LocalTime.of(10, 0), endTime = LocalTime.of(12, 0), locationUsage = LocationScheduleUsage.BLOCKED)
       }

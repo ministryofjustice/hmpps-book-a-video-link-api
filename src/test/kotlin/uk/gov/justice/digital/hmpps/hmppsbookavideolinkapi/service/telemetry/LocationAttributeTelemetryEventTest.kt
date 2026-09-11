@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
@@ -30,6 +31,7 @@ class LocationAttributeTelemetryEventTest {
     prisonVideoUrl = null,
     notes = null,
     createdBy = COURT_USER,
+    roomArea = RoomArea.COURT_PROBATION,
   )
 
   private val inactiveLocationAttribute = LocationAttribute.decoratedRoom(
@@ -41,6 +43,7 @@ class LocationAttributeTelemetryEventTest {
     prisonVideoUrl = null,
     notes = null,
     createdBy = COURT_USER,
+    roomArea = RoomArea.COURT_PROBATION,
   )
 
   private val blockedLocationAttribute = LocationAttribute.decoratedRoom(
@@ -54,6 +57,7 @@ class LocationAttributeTelemetryEventTest {
     prisonVideoUrl = null,
     notes = null,
     createdBy = PROBATION_USER,
+    roomArea = RoomArea.COURT_PROBATION,
   )
 
   @Test
@@ -80,6 +84,7 @@ class LocationAttributeTelemetryEventTest {
       prisonVideoUrl = null,
       comments = null,
       amendedBy = COURT_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     val properties = LocationAttributeTelemetryEvent(inactive, COURT_USER).properties()
@@ -106,6 +111,7 @@ class LocationAttributeTelemetryEventTest {
       blockedFrom = today(),
       blockedTo = tomorrow(),
       amendedBy = COURT_USER,
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     val properties = LocationAttributeTelemetryEvent(blocked, COURT_USER).properties()

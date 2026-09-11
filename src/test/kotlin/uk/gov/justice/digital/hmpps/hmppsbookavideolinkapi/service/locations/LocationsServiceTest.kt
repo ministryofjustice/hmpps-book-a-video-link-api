@@ -9,6 +9,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
@@ -441,6 +442,7 @@ class LocationsServiceTest {
       prisonVideoUrl = "video-link",
       notes = null,
       allowedParties = emptySet(),
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes
@@ -479,6 +481,7 @@ class LocationsServiceTest {
       prisonVideoUrl = "video-link",
       notes = null,
       allowedParties = emptySet(),
+      roomArea = RoomArea.COURT_PROBATION,
     )
 
     whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes

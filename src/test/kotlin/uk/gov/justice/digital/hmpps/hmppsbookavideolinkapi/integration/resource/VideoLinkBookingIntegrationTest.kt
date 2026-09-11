@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttrib
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationUsage
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.AmendCourtBookingRequestBuilder
@@ -959,6 +960,7 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         prisonVideoUrl = "https://probation-url",
         notes = null,
         allowedParties = emptySet(),
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 

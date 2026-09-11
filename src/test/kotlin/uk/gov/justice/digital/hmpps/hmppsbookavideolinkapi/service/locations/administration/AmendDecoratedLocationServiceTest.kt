@@ -10,6 +10,7 @@ import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationAttribute
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
@@ -43,6 +44,7 @@ class AmendDecoratedLocationServiceTest {
     prisonVideoUrl = "prison-video-url",
     notes = "some comments",
     createdBy = COURT_USER,
+    roomArea = RoomArea.COURT_PROBATION,
   )
   private val telemetryEventCaptor = argumentCaptor<TelemetryEvent>()
 
@@ -60,6 +62,7 @@ class AmendDecoratedLocationServiceTest {
       prisonVideoUrl isEqualTo "prison-video-url"
       allowedParties isEqualTo "COURT"
       notes isEqualTo "some comments"
+      roomArea isEqualTo RoomArea.COURT_PROBATION
     }
 
     service.amend(
@@ -70,6 +73,7 @@ class AmendDecoratedLocationServiceTest {
         allowedParties = emptySet(),
         prisonVideoUrl = "different-prison-video-url",
         comments = "amended comments",
+        roomArea = RoomArea.LEGAL_VISITS,
       ),
       COURT_USER,
     )
@@ -80,6 +84,7 @@ class AmendDecoratedLocationServiceTest {
       prisonVideoUrl isEqualTo "different-prison-video-url"
       allowedParties isEqualTo null
       notes isEqualTo "amended comments"
+      roomArea isEqualTo RoomArea.LEGAL_VISITS
     }
 
     verify(locationAttributeRepository).saveAndFlush(decoratedRoom)
