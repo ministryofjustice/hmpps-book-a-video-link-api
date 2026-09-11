@@ -12,6 +12,9 @@ abstract class LocationAvailabilityService<REQUEST>(private val locationsService
   protected fun getVideoLinkLocationsAt(prisonCode: String) = locationsService.getVideoLinkLocationsAtPrison(prisonCode = prisonCode, enabledOnly = true)
 
   abstract class AvailableLocationBuilder {
+    // Specified locations is for booking updates when the location is unchanged to ensure the selected room is offered in priority to others
+    protected val specifiedLocations = mutableSetOf<AvailableLocation>()
+
     protected val dedicatedProbationTeamLocations = mutableSetOf<AvailableLocation>()
     protected val probationCourtTeamLocations = mutableSetOf<AvailableLocation>()
     protected val probationSentenceTeamLocations = mutableSetOf<AvailableLocation>()
@@ -22,6 +25,7 @@ abstract class LocationAvailabilityService<REQUEST>(private val locationsService
 
     fun add(availabilityStatus: AvailabilityStatus, availableLocation: AvailableLocation) {
       when (availabilityStatus) {
+        AvailabilityStatus.SPECIFIED_ROOM -> specifiedLocations.add(availableLocation)
         AvailabilityStatus.PROBATION_ROOM -> dedicatedProbationTeamLocations.add(availableLocation)
         AvailabilityStatus.PROBATION_COURT -> probationCourtTeamLocations.add(availableLocation)
         AvailabilityStatus.PROBATION_SENTENCE -> probationSentenceTeamLocations.add(availableLocation)

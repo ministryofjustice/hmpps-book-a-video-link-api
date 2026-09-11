@@ -97,6 +97,28 @@ class TimeSlotLocationsBuilderTest {
     )
 
     @Test
+    fun `should favour SPECIFIED_ROOM over PROBATION_ROOM when times match`() {
+      val availableLocations = TimeSlotLocationsBuilder.builder {
+        add(availabilityStatus = AvailabilityStatus.SPECIFIED_ROOM, availableLocation = locationOne10am11am)
+        add(availabilityStatus = AvailabilityStatus.PROBATION_ROOM, availableLocation = locationTwo10am11am)
+        add(availabilityStatus = AvailabilityStatus.SHARED, availableLocation = locationThree11am12am)
+      }.build()
+
+      availableLocations containsExactly listOf(locationOne10am11am, locationThree11am12am)
+    }
+
+    @Test
+    fun `should favour SPECIFIED_ROOM over PROBATION_COURT when times match`() {
+      val availableLocations = TimeSlotLocationsBuilder.builder {
+        add(availabilityStatus = AvailabilityStatus.SPECIFIED_ROOM, availableLocation = locationOne10am11am)
+        add(availabilityStatus = AvailabilityStatus.PROBATION_COURT, availableLocation = locationTwo10am11am)
+        add(availabilityStatus = AvailabilityStatus.SHARED, availableLocation = locationThree11am12am)
+      }.build()
+
+      availableLocations containsExactly listOf(locationOne10am11am, locationThree11am12am)
+    }
+
+    @Test
     fun `should favour PROBATION_ROOM over PROBATION_COURT when times match`() {
       val availableLocations = TimeSlotLocationsBuilder.builder {
         add(availabilityStatus = AvailabilityStatus.PROBATION_ROOM, availableLocation = locationOne10am11am)
