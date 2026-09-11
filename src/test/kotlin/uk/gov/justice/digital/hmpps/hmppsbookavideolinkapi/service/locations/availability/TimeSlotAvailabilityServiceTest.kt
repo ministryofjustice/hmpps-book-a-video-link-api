@@ -580,6 +580,7 @@ class TimeSlotAvailabilityServiceTest {
         allowedParties = emptyList(),
         prisonVideoUrl = null,
         notes = null,
+        roomArea = RoomArea.COURT_PROBATION,
       ),
     )
 
