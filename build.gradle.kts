@@ -3,7 +3,7 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.7"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.8"
   id("org.openapi.generator") version "7.25.0"
   kotlin("plugin.spring") version "2.4.10"
   kotlin("plugin.jpa") version "2.4.10"
@@ -36,7 +36,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.7.13")
 
   // OpenAPI
-  val springDocVersion = "3.1.0"
+  val springDocVersion = "3.1.1"
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springDocVersion")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
   implementation("org.springdoc:springdoc-openapi-starter-common:$springDocVersion")
@@ -47,7 +47,7 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.31.1")
 
   // Phone number validation
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.38")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.39")
 
   // Test dependencies
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.0")
