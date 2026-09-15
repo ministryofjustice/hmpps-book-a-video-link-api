@@ -7,6 +7,7 @@
     "videoBooking": "VideoBooking"
   },
   "BookingContact": {
+    "contactArea": "ContactAreaType",
     "contactType": "ContactType",
     "email": "String",
     "name": "String",
@@ -44,6 +45,7 @@
   },
   "Contact": {
     "code": "String",
+    "contactArea": "ContactAreaType",
     "contactType": "ContactType",
     "email": "String",
     "name": "String",
@@ -68,9 +70,9 @@
     "amendedBy": "String",
     "amendedTime": "LocalDateTime",
     "blockedFrom": "LocalDate",
-    "blockedFromTime":"LocalTime",
+    "blockedFromTime": "LocalTime",
     "blockedTo": "LocalDate",
-    "blockedToTime":"LocalTime",
+    "blockedToTime": "LocalTime",
     "createdBy": "String",
     "createdTime": "LocalDateTime",
     "dpsLocationId": "UUID",
@@ -136,7 +138,7 @@
     "amendedBy": "String",
     "amendedTime": "LocalDateTime",
     "code": "String",
-    "courtTeam":"boolean",
+    "courtTeam": "boolean",
     "createdBy": "String",
     "createdTime": "LocalDateTime",
     "description": "String",
@@ -144,7 +146,7 @@
     "notes": "String",
     "probationTeamId": "long",
     "readOnly": "boolean",
-    "sentenceManagementTeam":"boolean"
+    "sentenceManagementTeam": "boolean"
   },
   "ReferenceCode": {
     "amendedBy": "String",
@@ -280,4 +282,3 @@
     "videoBookingId": "long"
   }
 }
-

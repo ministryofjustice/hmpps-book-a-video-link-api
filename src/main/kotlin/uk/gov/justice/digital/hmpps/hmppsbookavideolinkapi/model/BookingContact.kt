@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactAreaType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 
 @Schema(description = "Describes the details of a booking contact")
@@ -35,4 +36,14 @@ data class BookingContact(
     example = "true",
   )
   val primaryContact: Boolean,
+
+  @Schema(
+    description = """
+    Describes which area this contact works in (either VCC, OFFICIAL_VISITS, or null).
+    
+    A contact area is only present for prison contacts and null for the others.
+  """,
+    example = "VCC",
+  )
+  val contactArea: ContactAreaType? = null,
 )

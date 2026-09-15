@@ -1,0 +1,1 @@
+ALTER TABLE prison_contact ADD COLUMN contact_area VARCHAR(30) DEFAULT 'VCC';
