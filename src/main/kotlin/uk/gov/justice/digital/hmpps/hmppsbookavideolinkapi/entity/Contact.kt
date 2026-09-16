@@ -30,6 +30,9 @@ data class Contact(
   val telephone: String? = null,
 
   val primaryContact: Boolean,
+
+  @Enumerated(EnumType.STRING)
+  val contactArea: ContactAreaType? = null,
 )
 
 data class UniquePropertyId(val contactType: ContactType?, val email: String?) : Serializable {
@@ -52,4 +55,9 @@ enum class ContactType {
   PROBATION,
   PRISON,
   THIRD_PARTY,
+}
+
+enum class ContactAreaType {
+  VCC,
+  OFFICIAL_VISITS,
 }

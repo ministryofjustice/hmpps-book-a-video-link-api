@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactAreaType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
@@ -58,6 +59,7 @@ class BookingContactsResourceIntegrationTest : IntegrationTestBase() {
     assertThat(listOfContacts).extracting("contactType").doesNotContain(ContactType.PROBATION)
     assertThat(listOfContacts).hasSize(5)
     assertThat(listOfContacts).extracting("email").containsAll(listOf("j@j.com", "b@b.com", "p@p.com", "g@g.com", COURT_USER.email!!))
+    assertThat(listOfContacts.filter { it -> it.contactType == ContactType.PRISON }).extracting("contactArea").contains(ContactAreaType.VCC)
   }
 
   @Test

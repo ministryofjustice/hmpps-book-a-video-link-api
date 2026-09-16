@@ -6,6 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactAreaType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.contact
@@ -81,12 +82,12 @@ class ContactsServiceTest {
   }
 
   @Test
-  fun `getContactsForProbationBookingRequest should return contacts`() {
+  fun `getContactsForProbationBookingRequest should return contacts including contact area type for prison contacts`() {
     val probationTeam = probationTeam()
     val prison = prison()
 
     val probationContact = contact(ContactType.PROBATION, "probation.contact@example.com", "Probation contact")
-    val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact")
+    val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact", ContactAreaType.VCC)
 
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
     whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
@@ -96,6 +97,26 @@ class ContactsServiceTest {
     result hasSize 3
     result.containsAll(listOf(probationContact, prisonContact)) isBool true
     result.any { it.name == "User Name" && it.primaryContact } isBool true
+    result.any { it.contactArea == ContactAreaType.VCC } isBool true
+  }
+
+  @Test
+  fun `getContactsForProbationBookingRequest should return prison contacts for OFFICIAL_VISITS area`() {
+    val probationTeam = probationTeam()
+    val prison = prison()
+
+    val probationContact = contact(ContactType.PROBATION, "probation.contact@example.com", "Probation contact")
+    val prisonContact = contact(ContactType.PRISON, "prison.contact@example.com", "Prison contact", ContactAreaType.OFFICIAL_VISITS)
+
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PROBATION, probationTeam.code)) doReturn listOf(probationContact)
+    whenever(contactsRepository.findContactsByContactTypeAndCodeAndPrimaryContactTrue(ContactType.PRISON, prison.code)) doReturn listOf(prisonContact)
+
+    val result = service.getContactsForProbationBookingRequest(probationTeam, prison, probationUser(name = "User Name"))
+
+    result hasSize 3
+    result.containsAll(listOf(probationContact, prisonContact)) isBool true
+    result.any { it.name == "User Name" && it.primaryContact } isBool true
+    result.any { it.contactArea == ContactAreaType.OFFICIAL_VISITS } isBool true
   }
 
   @Test

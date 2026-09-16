@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactAreaType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
@@ -257,7 +258,7 @@ fun appointment(
   locationId = locationId,
 )
 
-fun bookingContact(contactType: ContactType, email: String?, name: String? = null) = BookingContact(
+fun bookingContact(contactType: ContactType, email: String?, name: String? = null, contactArea: ContactAreaType? = null) = BookingContact(
   videoBookingId = 0,
   contactType = contactType,
   name = name,
@@ -265,9 +266,10 @@ fun bookingContact(contactType: ContactType, email: String?, name: String? = nul
   email = email,
   telephone = null,
   primaryContact = true,
+  contactArea = contactArea,
 )
 
-fun contact(contactType: ContactType, email: String?, name: String? = null) = Contact(
+fun contact(contactType: ContactType, email: String?, name: String? = null, contactArea: ContactAreaType? = null) = Contact(
   contactType = contactType,
   code = "code",
   name = name,
@@ -275,6 +277,7 @@ fun contact(contactType: ContactType, email: String?, name: String? = null) = Co
   email = email,
   telephone = null,
   primaryContact = true,
+  contactArea = contactArea,
 )
 
 fun courtHearingType(description: String) = ReferenceCode(

@@ -29,4 +29,7 @@ data class BookingContact(
   val telephone: String? = null,
 
   val primaryContact: Boolean,
+
+  @Enumerated(EnumType.STRING)
+  val contactArea: ContactAreaType? = null,
 )
