@@ -88,21 +88,21 @@ class ContactsService(
 
     val filteredContacts = when (action) {
       BookingAction.CREATE -> when {
-        locations.containsOnlyVccLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC }
-        locations.containsOnlyLegalVisitLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS }
+        locations.containsOnlyVccLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC || it.contactType == ContactType.COURT }
+        locations.containsOnlyLegalVisitLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS || it.contactType == ContactType.COURT }
         else -> unfilteredContacts
       }
 
       BookingAction.AMEND -> when {
         // Will be extra logic here to use VideoBookingEvents - to check whether this booking was previously in a different area
-        locations.containsOnlyVccLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC }
-        locations.containsOnlyLegalVisitLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS }
+        locations.containsOnlyVccLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC || it.contactType == ContactType.COURT }
+        locations.containsOnlyLegalVisitLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS || it.contactType == ContactType.COURT }
         else -> unfilteredContacts
       }
 
       BookingAction.CANCEL, BookingAction.TRANSFERRED, BookingAction.RELEASED -> when {
-        locations.containsOnlyVccLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC }
-        locations.containsOnlyLegalVisitLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS }
+        locations.containsOnlyVccLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC || it.contactType == ContactType.COURT }
+        locations.containsOnlyLegalVisitLocations() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS || it.contactType == ContactType.COURT }
         else -> unfilteredContacts
       }
 
@@ -135,21 +135,21 @@ class ContactsService(
 
     val filteredContacts = when (action) {
       BookingAction.CREATE -> when {
-        location.isAVccLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC }
-        location.isALegalVisitLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS }
+        location.isAVccLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC || it.contactType == ContactType.PROBATION }
+        location.isALegalVisitLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS || it.contactType == ContactType.PROBATION }
         else -> unfilteredContacts
       }
 
       BookingAction.AMEND -> when {
         // Will be extra logic here to use VideoBookingEvents - to check whether this booking was previously in a different area
-        location.isAVccLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC }
-        location.isALegalVisitLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS }
+        location.isAVccLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC || it.contactType == ContactType.PROBATION }
+        location.isALegalVisitLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS || it.contactType == ContactType.PROBATION }
         else -> unfilteredContacts
       }
 
       BookingAction.CANCEL, BookingAction.TRANSFERRED, BookingAction.RELEASED -> when {
-        location.isAVccLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC }
-        location.isALegalVisitLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS }
+        location.isAVccLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.VCC || it.contactType == ContactType.PROBATION }
+        location.isALegalVisitLocation() -> unfilteredContacts.filter { it.contactArea == ContactAreaType.OFFICIAL_VISITS || it.contactType == ContactType.PROBATION }
         else -> unfilteredContacts
       }
 
