@@ -59,13 +59,18 @@ class EmailFacade(
   ) {
     val (pre, main, post) = Triple(booking.preHearing(), booking.mainHearing()!!, booking.postHearing())
     val prison = prisonRepository.findByCode(booking.prisonCode())!!
-    val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
+
+    // Get the locations - including room decorations - associated with this court booking
     val locations = setOfNotNull(
       pre?.prisonLocationId,
       main.prisonLocationId,
       post?.prisonLocationId,
     ).mapNotNull { locationsService.getLocationById(it) }.associateBy { it.dpsLocationId }
 
+    // Get the contacts who should receive a notification for this booking and action
+    val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
+
+    // Create the emails
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> CourtEmailFactory.user(
@@ -113,6 +118,7 @@ class EmailFacade(
       }
     }
 
+    // Send emails and save in the record of notifications
     emails.forEach { courtEmail -> sendEmailAndSaveNotification(courtEmail, booking, eventType) }
   }
 
@@ -125,10 +131,16 @@ class EmailFacade(
   ) {
     val appointment = booking.appointments().single()
     val prison = prisonRepository.findByCode(booking.prisonCode())!!
-    val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
+
+    // Get the location detail - including room decoration - where this booking takes place
     val location = locationsService.getLocationById(appointment.prisonLocationId)!!
+
+    // Get the list of contacts to send a notification for
+    val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
+
     val additionalBookingDetail = additionalBookingDetailRepository.findByVideoBooking(booking)
 
+    // Create the probation emails
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> ProbationEmailFactory.user(
@@ -173,6 +185,7 @@ class EmailFacade(
       }
     }
 
+    // Send the emails and record the notification sent
     emails.forEach { probationEmail -> sendEmailAndSaveNotification(probationEmail, booking, eventType) }
   }
 
