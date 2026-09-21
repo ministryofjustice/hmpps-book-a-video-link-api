@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BooleanFeature
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
@@ -43,7 +41,6 @@ class BookingFacade(
   private val availabilityService: AvailabilityService,
   private val changeTrackingService: ChangeTrackingService,
   private val emailFacade: EmailFacade,
-  private val featureSwitches: FeatureSwitches,
   private val rescheduleEmailsFacade: RescheduleEmailsFacade,
 ) {
   companion object {
@@ -89,7 +86,7 @@ class BookingFacade(
 
     // Only send emails on back of change check above.
     if (changeType != ChangeType.NONE) {
-      if (featureSwitches.isEnabled(BooleanFeature.FEATURE_SEND_RESCHEDULED_EMAILS) && rescheduleEmailsFacade.isConsideredRescheduled(originalBooking, amendedBooking)) {
+      if (rescheduleEmailsFacade.isConsideredRescheduled(originalBooking, amendedBooking)) {
         rescheduleEmailsFacade.sendEmails(originalBooking, amendedBooking, changeType, prisoner, amendedBy)
       } else {
         emailFacade.sendEmails(BookingAction.AMEND, amendedBooking, prisoner, amendedBy, changeType)
