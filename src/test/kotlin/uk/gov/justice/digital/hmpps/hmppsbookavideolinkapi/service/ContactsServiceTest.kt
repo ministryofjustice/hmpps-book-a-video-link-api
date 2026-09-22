@@ -24,7 +24,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.serviceUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.util.Optional
 
 class ContactsServiceTest {
@@ -32,8 +34,17 @@ class ContactsServiceTest {
   private val contactsRepository: ContactsRepository = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val userService: UserService = mock()
+  private val videoBookingEventRepository: VideoBookingEventRepository = mock()
+  private val locationsService: LocationsService = mock()
 
-  private val service = ContactsService(bookingContactsRepository, contactsRepository, videoBookingRepository, userService)
+  private val service = ContactsService(
+    bookingContactsRepository,
+    contactsRepository,
+    videoBookingRepository,
+    userService,
+    videoBookingEventRepository,
+    locationsService,
+  )
 
   @Test
   fun `getAllBookingContacts should return contacts`() {
@@ -101,7 +112,7 @@ class ContactsServiceTest {
   }
 
   @Test
-  fun `getContactsForProbationBookingRequest should return prison contacts for OFFICIAL_VISITS area`() {
+  fun `getContactsForProbationBookingRequest should NOT return prison contacts for the OFFICIAL_VISITS area`() {
     val probationTeam = probationTeam()
     val prison = prison()
 
@@ -113,10 +124,10 @@ class ContactsServiceTest {
 
     val result = service.getContactsForProbationBookingRequest(probationTeam, prison, probationUser(name = "User Name"))
 
-    result hasSize 3
-    result.containsAll(listOf(probationContact, prisonContact)) isBool true
+    result hasSize 2
+    result.containsAll(listOf(probationContact)) isBool true
     result.any { it.name == "User Name" && it.primaryContact } isBool true
-    result.any { it.contactArea == ContactAreaType.OFFICIAL_VISITS } isBool true
+    result.any { it.contactArea == ContactAreaType.OFFICIAL_VISITS } isBool false
   }
 
   @Test
