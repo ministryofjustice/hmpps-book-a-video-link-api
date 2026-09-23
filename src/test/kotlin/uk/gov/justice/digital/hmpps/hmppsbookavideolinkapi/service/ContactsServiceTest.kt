@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
-import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
@@ -33,7 +31,6 @@ class ContactsServiceTest {
   private val bookingContactsRepository: BookingContactsRepository = mock()
   private val contactsRepository: ContactsRepository = mock()
   private val videoBookingRepository: VideoBookingRepository = mock()
-  private val userService: UserService = mock()
   private val videoBookingEventRepository: VideoBookingEventRepository = mock()
   private val locationsService: LocationsService = mock()
 
@@ -41,38 +38,9 @@ class ContactsServiceTest {
     bookingContactsRepository,
     contactsRepository,
     videoBookingRepository,
-    userService,
     videoBookingEventRepository,
     locationsService,
   )
-
-  @Test
-  fun `getAllBookingContacts should return contacts`() {
-    val videoBookingId = 1L
-    val bookingContact = bookingContact(ContactType.PRISON, "prison.contact@example.com", "Prison Contact")
-    val booking = courtBooking("createdByUser").apply { amendedBy = "amendedByUser" }
-
-    whenever(bookingContactsRepository.findContactsByVideoBookingId(videoBookingId)) doReturn listOf(bookingContact)
-    whenever(videoBookingRepository.findById(videoBookingId)) doReturn Optional.of(booking)
-    whenever(userService.getUser("createdByUser")) doReturn courtUser(name = "Created User", email = "created@example.com")
-    whenever(userService.getUser("amendedByUser")) doReturn courtUser(name = "Amended User", email = "amended@example.com")
-
-    val result = service.getAllBookingContacts(videoBookingId)
-
-    result hasSize 3
-    result.any { it.name == "Created User" && it.primaryContact } isBool true
-    result.any { it.name == "Amended User" && it.primaryContact } isBool true
-  }
-
-  @Test
-  fun `getAllBookingContacts should throw EntityNotFoundException when no booking found`() {
-    val videoBookingId = 1L
-    whenever(videoBookingRepository.findById(videoBookingId)) doReturn Optional.empty()
-
-    val exception = assertThrows<EntityNotFoundException> { service.getAllBookingContacts(videoBookingId) }
-
-    exception.message isEqualTo "Video booking with ID $videoBookingId not found"
-  }
 
   @Test
   fun `getContactsForCourtBookingRequest should return contacts`() {
