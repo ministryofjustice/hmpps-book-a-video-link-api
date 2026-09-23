@@ -154,8 +154,6 @@ fun probationUserDelius(username: String = "user", name: String = "Test User", e
   username = username,
   name = name,
   email = email,
-  isProbationUser = true,
-  isCourtUser = false,
   probationTeams = probationTeams,
 )
 

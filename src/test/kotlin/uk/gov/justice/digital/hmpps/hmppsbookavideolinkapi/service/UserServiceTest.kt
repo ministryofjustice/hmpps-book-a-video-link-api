@@ -86,7 +86,6 @@ class UserServiceTest {
       username = userDetails.username,
       email = "test@example.com",
       name = "Test User",
-      isProbationUser = true,
       probationTeams = setOf(probationTeam.code),
     )
 
@@ -169,7 +168,7 @@ class UserServiceTest {
   @Test
   fun `should create court and probation users`() {
     ExternalUser(username = "username", name = "name", isCourtUser = true, isProbationUser = false)
-    ExternalUser(username = "username", name = "name", isCourtUser = false, isProbationUser = true)
+    ExternalUser(username = "username", name = "name", isProbationUser = true)
   }
 
   @Test
@@ -180,21 +179,14 @@ class UserServiceTest {
 
   @Test
   fun `should create delius users`() {
-    DeliusUser(username = "username", name = "name", isProbationUser = true)
-    DeliusUser(username = "username", name = "name", isProbationUser = true, isCourtUser = false, probationTeams = setOf("BLKPPP"))
+    DeliusUser(username = "username", name = "name")
+    DeliusUser(username = "username", name = "name", probationTeams = setOf("BLKPPP"))
   }
 
   @Test
   fun `should fail to create court or probation user`() {
     assertThrows<IllegalArgumentException> {
-      ExternalUser(username = "username", name = "name", isCourtUser = false, isProbationUser = false)
+      ExternalUser(username = "username", name = "name", isProbationUser = false)
     }.message isEqualTo "External user must be a court or probation user"
-  }
-
-  @Test
-  fun `should fail to create delius user`() {
-    assertThrows<IllegalArgumentException> {
-      DeliusUser(username = "username", name = "name", isProbationUser = false, isCourtUser = true)
-    }.message isEqualTo "Delius user must be a probation user"
   }
 }

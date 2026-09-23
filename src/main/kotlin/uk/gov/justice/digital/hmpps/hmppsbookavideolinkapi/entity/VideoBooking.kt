@@ -12,8 +12,10 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 import org.hibernate.Hibernate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.requireNot
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.DeliusUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import java.time.LocalDate
@@ -75,6 +77,12 @@ class VideoBooking private constructor(
 
   var guestPin: String? = null
 
+  /**
+   *  Transient, so only available in the same transaction at the time of creation, amendment, and cancellation by a delius user.
+   **/
+  @Transient
+  var deliusEmail: String? = null
+
   fun isBookingType(bookingType: BookingType) = this.bookingType == bookingType
 
   fun appointments() = prisonAppointments.toList()
@@ -135,7 +143,7 @@ class VideoBooking private constructor(
     this.hmctsNumber = cvpLinkDetails?.hmctsNumber
     this.guestPin = guestPin
     this.amendedBy = amendedBy.username
-    amendedTime = now()
+    this.amendedTime = now()
   }
 
   fun amendProbationBooking(
@@ -155,6 +163,7 @@ class VideoBooking private constructor(
     }
     this.amendedBy = amendedBy.username
     amendedTime = now()
+    this.deliusEmail = if (amendedBy is DeliusUser) amendedBy.email else null
   }
 
   fun removeAllAppointments() = prisonAppointments.clear()
@@ -168,6 +177,7 @@ class VideoBooking private constructor(
 
     statusCode = StatusCode.CANCELLED
     amendedBy = cancelledBy.username
+    deliusEmail = if (cancelledBy is DeliusUser) cancelledBy.email else null
     amendedTime = now()
   }
 
@@ -260,6 +270,7 @@ class VideoBooking private constructor(
     ).apply {
       this.notesForStaff = notesForStaff
       this.notesForPrisoners = notesForPrisoners?.takeIf { createdBy is PrisonUser }
+      this.deliusEmail = if (createdBy is DeliusUser) createdBy.email else null
     }
   }
 }

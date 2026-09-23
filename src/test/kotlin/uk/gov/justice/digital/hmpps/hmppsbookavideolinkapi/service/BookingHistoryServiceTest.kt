@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
@@ -109,6 +110,46 @@ class BookingHistoryServiceTest {
       videoUrl isEqualTo probationBooking.videoUrl
       createdBy isEqualTo PROBATION_USER.username
       createdTime isCloseTo LocalDateTime.now()
+      deliusEmail isEqualTo null
+      appointments() hasSize 1
+      with(appointments().first()) {
+        prisonCode isEqualTo WANDSWORTH
+        prisonerNumber isEqualTo "A1234AA"
+        appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
+        startTime isEqualTo LocalTime.of(9, 30)
+        endTime isEqualTo LocalTime.of(10, 30)
+        prisonLocationId isEqualTo wandsworthLocation.id
+      }
+    }
+  }
+
+  @Test
+  fun `Should create history for a delius user probation booking`() {
+    val probationBooking = probationBooking(createdBy = DELIUS_PROBATION_USER)
+      .addAppointment(
+        prison = prison(prisonCode = WANDSWORTH),
+        prisonerNumber = "A1234AA",
+        appointmentType = AppointmentType.VLB_PROBATION.name,
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 30),
+        endTime = LocalTime.of(10, 30),
+        locationId = wandsworthLocation.id,
+      )
+
+    service.createBookingHistory(HistoryType.CREATE, probationBooking)
+
+    verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
+
+    with(historyCaptor.firstValue) {
+      historyType isEqualTo HistoryType.CREATE
+      createdTime isCloseTo LocalDateTime.now()
+      probationMeetingType isEqualTo probationBooking.probationMeetingType
+      notesForPrisoners isEqualTo probationBooking.notesForPrisoners
+      notesForStaff isEqualTo probationBooking.notesForStaff
+      videoUrl isEqualTo probationBooking.videoUrl
+      createdBy isEqualTo DELIUS_PROBATION_USER.username
+      createdTime isCloseTo LocalDateTime.now()
+      deliusEmail!! isEqualTo DELIUS_PROBATION_USER.email
       appointments() hasSize 1
       with(appointments().first()) {
         prisonCode isEqualTo WANDSWORTH
