@@ -67,10 +67,15 @@ class EmailFacade(
       post?.prisonLocationId,
     ).mapNotNull { locationsService.getLocationById(it) }.associateBy { it.dpsLocationId }
 
-    // Get the contacts who should receive a notification for this booking and action
-    val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
+    // Get the contacts who should be notified of this court booking action
+    val contacts = contactsService.getCourtBookingContacts(
+      action = eventType,
+      videoBookingId = booking.videoBookingId,
+      locations = locations.values.toList(),
+      user,
+    ).withAnEmailAddress()
 
-    // Create the emails
+    // Create the emails based on recipient types
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> CourtEmailFactory.user(
@@ -135,12 +140,17 @@ class EmailFacade(
     // Get the location detail - including room decoration - where this booking takes place
     val location = locationsService.getLocationById(appointment.prisonLocationId)!!
 
-    // Get the list of contacts to send a notification for
-    val contacts = contactsService.getBookingContacts(booking.videoBookingId, user).withAnEmailAddress()
+    // Get the contacts who should be notified of this probation booking action
+    val contacts = contactsService.getProbationBookingContacts(
+      action = eventType,
+      videoBookingId = booking.videoBookingId,
+      location = location,
+      user,
+    ).withAnEmailAddress()
 
     val additionalBookingDetail = additionalBookingDetailRepository.findByVideoBooking(booking)
 
-    // Create the probation emails
+    // Create the emails based on recipient types
     val emails = contacts.mapNotNull { contact ->
       when (contact.contactType) {
         ContactType.USER -> ProbationEmailFactory.user(

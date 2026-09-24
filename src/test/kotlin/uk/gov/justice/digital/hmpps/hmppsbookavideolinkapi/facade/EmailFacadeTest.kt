@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyList
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
@@ -97,6 +98,7 @@ class EmailFacadeTest {
   private val notificationCaptor = argumentCaptor<Notification>()
   private val locationsService: LocationsService = mock()
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository = mock()
+
   private val facade = EmailFacade(
     prisonRepository,
     contactsService,
@@ -105,6 +107,7 @@ class EmailFacadeTest {
     emailService,
     notificationRepository,
   )
+
   private val courtBooking = courtBooking(notesForStaff = "court notes for staff")
     .addAppointment(
       prison = prison(prisonCode = WANDSWORTH),
@@ -143,6 +146,7 @@ class EmailFacadeTest {
   fun before() {
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
+
     whenever(locationsService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel()
     whenever(locationsService.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation.toModel()
     whenever(locationsService.getLocationById(birminghamLocation.id)) doReturn birminghamLocation.toModel(locationAttributes().copy(prisonVideoUrl = "birmingham-video-url"))
@@ -670,7 +674,7 @@ class EmailFacadeTest {
     @Test
     fun `should send emails but no events on cancellation of a court booking by service user`() {
       contactsService.stub {
-        on { getBookingContacts(any(), eq(SERVICE_USER)) } doReturn listOf(
+        on { getCourtBookingContacts(any(), any(), anyList(), eq(SERVICE_USER)) } doReturn listOf(
           bookingContact(contactType = ContactType.COURT, email = COURT_USER.email, name = COURT_USER.name),
         )
       }
@@ -861,7 +865,7 @@ class EmailFacadeTest {
     @Test
     fun `should send emails but no events on cancellation of a probation booking by service user`() {
       contactsService.stub {
-        on { getBookingContacts(any(), eq(SERVICE_USER)) } doReturn listOf(
+        on { getProbationBookingContacts(any(), any(), any(), eq(SERVICE_USER)) } doReturn listOf(
           bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name),
         )
       }
@@ -1326,7 +1330,7 @@ class EmailFacadeTest {
         lastPrisonId = WANDSWORTH,
       ).toPrisonerDetails()
 
-      whenever(contactsService.getBookingContacts(any(), anyOrNull())) doReturn listOf(
+      whenever(contactsService.getCourtBookingContacts(any(), any(), anyList(), anyOrNull())) doReturn listOf(
         bookingContact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
       )
 
@@ -1691,7 +1695,7 @@ class EmailFacadeTest {
         lastPrisonId = BIRMINGHAM,
       ).toPrisonerDetails()
 
-      setupCourtPrimaryContactsFor(SERVICE_USER)
+      setupProbationPrimaryContacts(SERVICE_USER)
 
       whenever(emailService.send(any<ProbationOfficerDetailsReminderEmail>())) doReturn Result.success(emailNotificationId to "probation template id")
 
@@ -1741,7 +1745,7 @@ class EmailFacadeTest {
 
     // Not ideal but have logic in test to mimic stubbed service behaviour regarding matching email addresses for contacts
     contactsService.stub {
-      on { getBookingContacts(any(), eq(user)) } doReturn listOfNotNull(
+      on { getProbationBookingContacts(any(), any(), any(), eq(user)) } doReturn listOfNotNull(
         bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
         bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name).takeUnless { it.email == mayBeEmail },
@@ -1758,7 +1762,7 @@ class EmailFacadeTest {
 
     // Not ideal but have logic in test to mimic stubbed service behaviour regarding matching email addresses for contacts
     contactsService.stub {
-      on { getBookingContacts(any(), eq(user)) } doReturn listOfNotNull(
+      on { getCourtBookingContacts(any(), any(), anyList(), eq(user)) } doReturn listOfNotNull(
         bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
         bookingContact(contactType = ContactType.COURT, email = COURT_USER.email, name = COURT_USER.name).takeUnless { it.email == mayBeEmail },

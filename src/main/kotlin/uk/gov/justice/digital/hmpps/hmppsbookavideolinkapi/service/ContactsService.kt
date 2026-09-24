@@ -49,7 +49,7 @@ class ContactsService(
 
     val filteredContacts = when (action) {
       BookingAction.CREATE, BookingAction.CANCEL, BookingAction.TRANSFERRED, BookingAction.RELEASED -> {
-        if (locations.containsOnlyVccLocations()) {
+        if (locations.containsNoLegalVisitLocations()) {
           allContacts.vccContacts()
         } else {
           allContacts
@@ -58,25 +58,11 @@ class ContactsService(
 
       BookingAction.AMEND -> {
         val previousLocations: List<Location> = getLocationsForPreviousCourtBookingHistory(videoBookingId, user)
-
-        when {
-          // Current is in VCC rooms only and previous has only VCC or undefined rooms
-          locations.containsOnlyVccLocations() && (previousLocations.containsOnlyVccLocations() || previousLocations.containsOnlyUndefinedLocations()) -> {
-            allContacts.vccContacts()
-          }
-
-          // Current is in the legal visits are and previous only has legal or undefined rooms
-          locations.containsOnlyLegalVisitLocations() && (previousLocations.containsOnlyLegalVisitLocations() || previousLocations.containsOnlyUndefinedLocations()) -> {
-            allContacts.legalVisitContacts()
-          }
-
-          // Current is in an undefined area and previous also in an undefined area
-          locations.containsOnlyUndefinedLocations() && previousLocations.containsOnlyUndefinedLocations() -> {
-            allContacts.vccContacts()
-          }
-
-          // Default is to send to all VCC and LEGAL prison contacts
-          else -> allContacts
+        if (locations.containsNoLegalVisitLocations() && previousLocations.containsNoLegalVisitLocations()) {
+          // Omit legal visit contacts if no legal visit rooms are on the current or previous version of the booking
+          allContacts.vccContacts()
+        } else {
+          allContacts
         }
       }
 
@@ -185,6 +171,7 @@ class ContactsService(
   private fun List<Location>.containsOnlyVccLocations(): Boolean = all { it.extraAttributes?.roomArea == RoomArea.COURT_PROBATION }
   private fun List<Location>.containsOnlyLegalVisitLocations(): Boolean = all { it.extraAttributes?.roomArea == RoomArea.LEGAL_VISITS }
   private fun List<Location>.containsOnlyUndefinedLocations(): Boolean = all { it.extraAttributes?.roomArea == null }
+  private fun List<Location>.containsNoLegalVisitLocations(): Boolean = none { it.extraAttributes?.roomArea == RoomArea.LEGAL_VISITS }
 
   /**
    * Function to get the last two video booking events (history rows) to compare the previous location to the current
@@ -240,9 +227,7 @@ class ContactsService(
   }
 
   /**
-   * DELETE THIS - superseded by the above.
-   * This function is CURRENTLY used by the email facade to retrieve contacts for a particular booking.
-   * It will be superseded by the specific court and probation functions above.
+   * Rescheduled email contacts
    */
   fun getBookingContacts(videoBookingId: Long, user: User): List<BookingContact> {
     videoBookingRepository.findById(videoBookingId).orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
