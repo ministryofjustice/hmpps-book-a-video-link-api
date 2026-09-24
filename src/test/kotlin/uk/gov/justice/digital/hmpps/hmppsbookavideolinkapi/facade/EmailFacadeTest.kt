@@ -1748,7 +1748,7 @@ class EmailFacadeTest {
       on { getProbationBookingContacts(any(), any(), any(), eq(user)) } doReturn listOfNotNull(
         bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
-        bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name).takeUnless { it.email == mayBeEmail },
+        bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name).takeUnless { user is DeliusUser || it.email == mayBeEmail },
       )
     }
   }

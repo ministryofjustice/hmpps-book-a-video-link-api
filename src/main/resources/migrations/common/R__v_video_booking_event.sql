@@ -68,7 +68,7 @@ select
     null as post_end_time,
     false as court_booking,
     rc.description as type,
-    bh.created_by as "user",
+    coalesce(bh.delius_email, bh.created_by) as "user",
     null as cvp_link,
     abd.contact_name as probation_officer_name,
     abd.contact_email as probation_officer_email,

@@ -29,12 +29,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.amendProbationBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAmendedBy
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAmendedTimeCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentDate
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasAppointmentTypeProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasBookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedBy
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedByPrison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasCreatedTimeCloseTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasDeliusEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasEndTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasHistoryType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasLocation
@@ -228,7 +230,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
     prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
     activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
-    val bookingId = webTestClient.createBooking(rrProbationBookingRequest, PROBATION_USER)
+    val bookingId = webTestClient.createBooking(rrProbationBookingRequest, DELIUS_PROBATION_USER)
 
     waitUntil {
       verify(activitiesAppointmentsClient).createAppointment(
@@ -251,7 +253,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .orElseThrow()
       .hasBookingType(BookingType.PROBATION)
       .hasMeetingType(ProbationMeetingType.RR)
-      .hasCreatedBy(PROBATION_USER)
+      .hasCreatedBy(DELIUS_PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)
       .hasNotesForStaff("rr integration test probation staff notes")
@@ -277,6 +279,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasHistoryType(HistoryType.CREATE)
       .hasProbationMeetingType(ProbationMeetingType.RR)
       .hasProbationTeam(persistedBooking.probationTeam!!)
+      .hasDeliusEmail(DELIUS_PROBATION_USER.email!!)
       .also { it.appointments() hasSize 1 }
 
     activitiesAppointmentsClient.stub {
@@ -325,10 +328,13 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasMeetingType(ProbationMeetingType.RR)
       .hasNotesForStaff("rr integration test probation staff notes amended")
       .hasNotesForPrisoner(null)
-      .hasCreatedBy(PROBATION_USER)
+      .hasCreatedBy(DELIUS_PROBATION_USER)
       .hasCreatedTimeCloseTo(LocalDateTime.now())
       .hasCreatedByPrison(false)
+      .hasAmendedBy(PROBATION_USER)
+      .hasAmendedTimeCloseTo(LocalDateTime.now())
       .also { it.probationTeam?.code isEqualTo BLACKPOOL_MC_PPOC }
+      .also { it.deliusEmail isEqualTo null }
 
     prisonAppointmentRepository
       .findByVideoBooking(persistedBooking)

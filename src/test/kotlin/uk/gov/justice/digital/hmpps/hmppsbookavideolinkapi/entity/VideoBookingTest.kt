@@ -6,6 +6,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
@@ -91,7 +92,7 @@ class VideoBookingTest {
     }
 
     @Test
-    fun `should amend prison created court booking with CVP video URL created by court user`() {
+    fun `should amend prison created court booking with CVP video URL amended by court user`() {
       val courtBooking = VideoBooking.newCourtBooking(
         court(code = "COURT_CODE"),
         hearingType = "TRIBUNAL",
@@ -594,6 +595,46 @@ class VideoBookingTest {
     }
 
     @Test
+    fun `should amend probation created probation booking amended by delius user`() {
+      val probationBooking = VideoBooking.newProbationBooking(
+        probationTeam(code = "TEAM_CODE"),
+        probationMeetingType = "OTHER",
+        createdBy = PROBATION_USER,
+        notesForStaff = "Some private staff notes",
+        notesForPrisoners = "Some public prisoners notes",
+      )
+
+      with(probationBooking) {
+        probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
+        isBookingType(BookingType.PROBATION) isBool true
+        probationMeetingType isEqualTo "OTHER"
+        createdBy isEqualTo PROBATION_USER.username
+        createdTime isCloseTo now()
+        createdByPrison isBool false
+        statusCode isEqualTo StatusCode.ACTIVE
+        notesForStaff isEqualTo "Some private staff notes"
+        notesForPrisoners isEqualTo null
+        deliusEmail isEqualTo null
+      }
+
+      probationBooking.amendProbationBooking(
+        probationMeetingType = "RR",
+        notesForStaff = "Amended staff notes",
+        notesForPrisoners = "Amended prisoners notes",
+        amendedBy = DELIUS_PROBATION_USER,
+      )
+
+      with(probationBooking) {
+        probationMeetingType isEqualTo "RR"
+        notesForStaff isEqualTo "Amended staff notes"
+        notesForPrisoners isEqualTo null
+        amendedBy isEqualTo DELIUS_PROBATION_USER.username
+        amendedTime isCloseTo now()
+        deliusEmail!! isEqualTo DELIUS_PROBATION_USER.email
+      }
+    }
+
+    @Test
     fun `should be probation booking created by probation user`() {
       val probationBooking = VideoBooking.newProbationBooking(
         probationTeam(code = "TEAM_CODE"),
@@ -612,6 +653,30 @@ class VideoBookingTest {
         statusCode isEqualTo StatusCode.ACTIVE
         notesForStaff isEqualTo "Some private staff notes"
         notesForPrisoners isEqualTo null
+        deliusEmail isEqualTo null
+      }
+    }
+
+    @Test
+    fun `should be probation booking created by delius user`() {
+      val probationBooking = VideoBooking.newProbationBooking(
+        probationTeam(code = "TEAM_CODE"),
+        probationMeetingType = "PSR",
+        createdBy = DELIUS_PROBATION_USER,
+        notesForStaff = "Some private staff notes",
+        notesForPrisoners = "Should be ignored for external user",
+      )
+
+      with(probationBooking) {
+        probationTeam isEqualTo probationTeam(code = "TEAM_CODE")
+        isBookingType(BookingType.PROBATION) isBool true
+        probationMeetingType isEqualTo "PSR"
+        createdBy isEqualTo DELIUS_PROBATION_USER.username
+        createdByPrison isBool false
+        statusCode isEqualTo StatusCode.ACTIVE
+        notesForStaff isEqualTo "Some private staff notes"
+        notesForPrisoners isEqualTo null
+        deliusEmail!! isEqualTo DELIUS_PROBATION_USER.email
       }
     }
 
@@ -669,6 +734,26 @@ class VideoBookingTest {
     courtBooking.statusCode isEqualTo StatusCode.CANCELLED
     courtBooking.amendedBy isEqualTo "user"
     courtBooking.amendedTime isCloseTo now()
+  }
+
+  @Test
+  fun `should cancel booking when active by delius user`() {
+    courtBooking.addAppointment(
+      prison = prison(prisonCode = BIRMINGHAM),
+      prisonerNumber = "ABC123",
+      appointmentType = "VLB_COURT_MAIN",
+      date = tomorrow(),
+      startTime = LocalTime.now(),
+      endTime = LocalTime.now().plusHours(1),
+      locationId = UUID.randomUUID(),
+    )
+
+    courtBooking.cancel(DELIUS_PROBATION_USER)
+
+    courtBooking.statusCode isEqualTo StatusCode.CANCELLED
+    courtBooking.amendedBy isEqualTo DELIUS_PROBATION_USER.username
+    courtBooking.amendedTime isCloseTo now()
+    courtBooking.deliusEmail!! isEqualTo DELIUS_PROBATION_USER.email
   }
 
   @Test
