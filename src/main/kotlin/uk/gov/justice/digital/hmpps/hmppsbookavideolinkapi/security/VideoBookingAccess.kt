@@ -40,8 +40,7 @@ private fun VideoBooking.isAccessibleBy(user: ExternalUser) = when {
 }
 
 // Unknown probation teams cannot be accessed by Delius probation users (exclusive to prison users)
-private fun VideoBooking.isAccessibleBy(user: DeliusUser) = user.isProbationUser &&
-  isBookingType(PROBATION) &&
+private fun VideoBooking.isAccessibleBy(user: DeliusUser) = isBookingType(PROBATION) &&
   probationTeam?.let { !it.isUnknown() && user.hasAccessTo(it) } == true
 
 class VideoBookingAccessException(message: String) : RuntimeException(message)

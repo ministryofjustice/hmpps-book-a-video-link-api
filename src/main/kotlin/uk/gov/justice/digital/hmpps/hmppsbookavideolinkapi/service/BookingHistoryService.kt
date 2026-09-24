@@ -42,6 +42,7 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
       notesForPrisoners = booking.notesForPrisoners,
       createdBy = booking.amendedBy ?: booking.createdBy,
       createdTime = booking.amendedTime ?: booking.createdTime,
+      deliusEmail = booking.deliusEmail,
     ).apply {
       addBookingHistoryAppointments(getAppointmentsForHistory(this, booking))
     }.also(bookingHistoryRepository::saveAndFlush)

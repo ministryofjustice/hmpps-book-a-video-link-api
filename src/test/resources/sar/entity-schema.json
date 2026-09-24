@@ -23,6 +23,7 @@
     "courtId": "Long",
     "createdBy": "String",
     "createdTime": "LocalDateTime",
+    "deliusEmail":"String",
     "hearingType": "String",
     "historyType": "HistoryType",
     "notesForPrisoners": "String",

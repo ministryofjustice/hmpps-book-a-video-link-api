@@ -92,8 +92,6 @@ class UserService(
           username = username,
           name = userDetails.name,
           email = manageUsersClient.getUsersEmail(username)?.email?.lowercase(),
-          isCourtUser = false,
-          isProbationUser = true,
           probationTeams = probationTeamRepository.findProbationTeamsByUsername(username).map { it.code }.toSet(),
         )
       }
@@ -198,21 +196,10 @@ class ExternalUser(
 
 class DeliusUser(
   val email: String? = null,
-  val isProbationUser: Boolean = false,
-  val isCourtUser: Boolean = false,
   private val probationTeams: Set<String> = emptySet(),
   username: String,
   name: String,
 ) : User(username, name) {
-
-  init {
-    require(isProbationUser) {
-      "Delius user must be a probation user"
-    }
-  }
-
-  fun hasAccessTo(court: Court) = false
-
   fun hasAccessTo(probationTeam: ProbationTeam) = probationTeams.any { it == probationTeam.code }
 
   override fun equals(other: Any?): Boolean {
@@ -223,7 +210,6 @@ class DeliusUser(
     other as DeliusUser
 
     if (email != other.email) return false
-    if (isProbationUser != other.isProbationUser) return false
     if (probationTeams != other.probationTeams) return false
 
     return true
@@ -232,7 +218,6 @@ class DeliusUser(
   override fun hashCode(): Int {
     var result = super.hashCode()
     result = 31 * result + (email?.hashCode() ?: 0)
-    result = 31 * result + isProbationUser.hashCode()
     result = 31 * result + probationTeams.hashCode()
     return result
   }
