@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.RescheduledCourtEmailFactory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationEmailFactory
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 
 @Component
 class RescheduleEmailsFacade(
@@ -33,6 +34,7 @@ class RescheduleEmailsFacade(
   private val rescheduledProbationEmailFactory: RescheduledProbationEmailFactory,
   private val emailService: EmailService,
   private val notificationRepository: NotificationRepository,
+  private val locationsService: LocationsService,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -58,13 +60,21 @@ class RescheduleEmailsFacade(
     user: User,
   ) {
     require(isConsideredRescheduled(oldBooking, amendedBooking)) { "Booking with ID ${oldBooking.videoLinkBookingId} is not rescheduled" }
-
     val prison = prisonRepository.findByCode(prisoner.prisonCode)!!
-    val contacts = contactsService.getBookingContacts(oldBooking.videoLinkBookingId, user).withAnEmailAddress()
 
     when (amendedBooking.bookingType) {
-      BookingType.COURT -> sendCourtEmails(oldBooking, amendedBooking, changeType, prison, prisoner, contacts, user)
-      BookingType.PROBATION -> sendProbationEmails(oldBooking, amendedBooking, changeType, prison, prisoner, contacts, user)
+      BookingType.COURT -> {
+        val (pre, main, post) = Triple(amendedBooking.preHearing(), amendedBooking.mainHearing()!!, amendedBooking.postHearing())
+        val locations = setOfNotNull(pre?.prisonLocationId, main.prisonLocationId, post?.prisonLocationId)
+          .mapNotNull { locationsService.getLocationById(it) }
+        val contacts = contactsService.getCourtBookingContacts(BookingAction.AMEND, amendedBooking.videoBookingId, locations, user).withAnEmailAddress()
+        sendCourtEmails(oldBooking, amendedBooking, changeType, prison, prisoner, contacts, user)
+      }
+      BookingType.PROBATION -> {
+        val location = locationsService.getLocationById(amendedBooking.probationMeeting()!!.prisonLocationId)
+        val contacts = contactsService.getProbationBookingContacts(BookingAction.AMEND, amendedBooking.videoBookingId, location!!, user).withAnEmailAddress()
+        sendProbationEmails(oldBooking, amendedBooking, changeType, prison, prisoner, contacts, user)
+      }
     }
   }
 
