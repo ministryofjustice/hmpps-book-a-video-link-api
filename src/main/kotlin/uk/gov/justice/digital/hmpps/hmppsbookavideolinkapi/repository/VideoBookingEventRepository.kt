@@ -51,4 +51,20 @@ interface VideoBookingEventRepository : ReadOnlyRepository<VideoBookingEvent, Lo
     """,
   )
   fun findByMainDateBetween(isCourtBooking: Boolean, fromDate: LocalDate, toDate: LocalDate): Stream<VideoBookingEvent>
+
+  @QueryHints(
+    value = [
+      QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true"),
+    ],
+  )
+  @Query(
+    value = """
+      FROM VideoBookingEvent vbe
+      WHERE vbe.videoBookingId = :videoBookingId
+        AND vbe.eventType != 'CANCEL' 
+      ORDER BY vbe.timestamp DESC
+      LIMIT 2
+    """,
+  )
+  fun findRecentHistoryByVideoBookingId(videoBookingId: Long): List<VideoBookingEvent>
 }
