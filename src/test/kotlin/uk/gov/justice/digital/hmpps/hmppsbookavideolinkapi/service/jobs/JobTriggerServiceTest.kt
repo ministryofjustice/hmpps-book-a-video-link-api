@@ -15,14 +15,12 @@ class JobTriggerServiceTest {
   private val probationOfficerDetailsReminderJob: ProbationOfficerDetailsReminderJob = mock()
   private val newPrisonVideoRoomsJob: NewPrisonVideoRoomsJob = mock()
   private val reactivateBlockedLocationsJob: ReactivateBlockedLocationsJob = mock()
-  private val mergeProbationRecallMeetingTypesJob: MergeProbationRecallMeetingTypesJob = mock()
   private val jobTriggerService: JobTriggerService = JobTriggerService(
     jobRunner,
     courtHearingLinkReminderJob,
     probationOfficerDetailsReminderJob,
     newPrisonVideoRoomsJob,
     reactivateBlockedLocationsJob,
-    mergeProbationRecallMeetingTypesJob,
   )
 
   @Test
