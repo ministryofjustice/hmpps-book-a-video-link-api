@@ -83,9 +83,6 @@ class EmailFacade(
           prisoner,
           booking,
           prison,
-          main,
-          pre,
-          post,
           locations,
           eventType,
         ).takeIf { user is PrisonUser || user is ExternalUser }
@@ -95,9 +92,6 @@ class EmailFacade(
           prisoner,
           booking,
           prison,
-          main,
-          pre,
-          post,
           locations,
           eventType,
         ).takeIf {
@@ -110,9 +104,6 @@ class EmailFacade(
           booking,
           prison,
           contacts,
-          main,
-          pre,
-          post,
           locations,
           eventType,
         ).takeIf {

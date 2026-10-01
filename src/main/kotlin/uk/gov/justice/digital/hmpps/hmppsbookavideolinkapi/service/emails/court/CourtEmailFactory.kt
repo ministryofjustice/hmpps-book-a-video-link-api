@@ -23,9 +23,6 @@ object CourtEmailFactory {
     prisoner: Prisoner,
     booking: VideoBooking,
     prison: Prison,
-    main: PrisonAppointment,
-    pre: PrisonAppointment?,
-    post: PrisonAppointment?,
     locations: Map<UUID, Location>,
     action: BookingAction,
   ): VideoBookingEmail? {
@@ -34,6 +31,8 @@ object CourtEmailFactory {
     require(contact.contactType == ContactType.USER) {
       "Incorrect contact type ${contact.contactType} for court user email"
     }
+
+    val (pre, main, post) = Triple(booking.preHearing(), booking.mainHearing()!!, booking.postHearing())
 
     return when (action) {
       BookingAction.CREATE -> NewCourtBookingUserEmail(
@@ -95,9 +94,6 @@ object CourtEmailFactory {
     prisoner: Prisoner,
     booking: VideoBooking,
     prison: Prison,
-    main: PrisonAppointment,
-    pre: PrisonAppointment?,
-    post: PrisonAppointment?,
     locations: Map<UUID, Location>,
     action: BookingAction,
   ): VideoBookingEmail? {
@@ -106,6 +102,8 @@ object CourtEmailFactory {
     require(contact.contactType == ContactType.COURT) {
       "Incorrect contact type ${contact.contactType} for court court email"
     }
+
+    val (pre, main, post) = Triple(booking.preHearing(), booking.mainHearing()!!, booking.postHearing())
 
     return when (action) {
       BookingAction.CREATE -> NewCourtBookingCourtEmail(
@@ -220,9 +218,6 @@ object CourtEmailFactory {
     booking: VideoBooking,
     prison: Prison,
     contacts: Collection<BookingContact>,
-    main: PrisonAppointment,
-    pre: PrisonAppointment?,
-    post: PrisonAppointment?,
     locations: Map<UUID, Location>,
     action: BookingAction,
   ): VideoBookingEmail? {
@@ -232,6 +227,7 @@ object CourtEmailFactory {
       "Incorrect contact type ${contact.contactType} for court prison email"
     }
 
+    val (pre, main, post) = Triple(booking.preHearing(), booking.mainHearing()!!, booking.postHearing())
     val primaryCourtContact = contacts.primaryCourtContact()
 
     return when (action) {

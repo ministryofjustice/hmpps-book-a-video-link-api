@@ -109,9 +109,6 @@ class CourtEmailFactoryTest {
       prisoner = prisoner,
       booking = if (action == BookingAction.CANCEL) courtBooking.cancel(COURT_USER) else courtBooking,
       prison = prison,
-      pre = null,
-      main = courtBooking.appointments().single(),
-      post = null,
       locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
     )
 
@@ -133,9 +130,6 @@ class CourtEmailFactoryTest {
       prisoner = prisoner,
       booking = courtBooking,
       prison = prison,
-      pre = null,
-      main = courtBooking.appointments().single(),
-      post = null,
       locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
     )
 
@@ -151,9 +145,6 @@ class CourtEmailFactoryTest {
         prisoner = prisoner,
         booking = courtBooking,
         prison = prison,
-        pre = null,
-        main = courtBooking.appointments().single(),
-        post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
       )
     }
@@ -170,9 +161,6 @@ class CourtEmailFactoryTest {
         prisoner = prisoner,
         booking = probationBooking,
         prison = prison,
-        pre = null,
-        main = probationBooking.appointments().single(),
-        post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
       )
     }
@@ -189,9 +177,6 @@ class CourtEmailFactoryTest {
       prisoner = prisoner,
       booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) courtBooking.apply { cancel(COURT_USER) } else courtBooking,
       prison = prison,
-      pre = null,
-      main = courtBooking.appointments().single(),
-      post = null,
       locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
     )
 
@@ -213,9 +198,6 @@ class CourtEmailFactoryTest {
         prisoner = prisoner,
         booking = courtBooking,
         prison = prison,
-        pre = null,
-        main = courtBooking.appointments().single(),
-        post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
       )
     }
@@ -232,9 +214,6 @@ class CourtEmailFactoryTest {
         prisoner = prisoner,
         booking = probationBooking,
         prison = prison,
-        pre = null,
-        main = probationBooking.appointments().single(),
-        post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
       )
     }
@@ -251,9 +230,6 @@ class CourtEmailFactoryTest {
         prisoner = prisoner,
         booking = courtBooking,
         prison = prison,
-        pre = null,
-        main = courtBooking.appointments().single(),
-        post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),
       )
@@ -271,9 +247,6 @@ class CourtEmailFactoryTest {
         prisoner = prisoner,
         booking = probationBooking,
         prison = prison,
-        pre = null,
-        main = probationBooking.appointments().single(),
-        post = null,
         locations = mapOf(wandsworthLocation.id to wandsworthLocation.toModel()),
         contacts = listOf(bookingContact(ContactType.PRISON, email = "contact@email.com")),
       )
