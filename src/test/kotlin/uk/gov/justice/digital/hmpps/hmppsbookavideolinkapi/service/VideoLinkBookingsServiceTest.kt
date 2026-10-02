@@ -32,6 +32,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.videoAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation2
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation3
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
@@ -85,8 +87,10 @@ class VideoLinkBookingsServiceTest {
       ),
     ) doReturn courtHearingTypeRefCode
 
-    whenever(locationsService.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation.toModel(locationAttributes())
-    whenever(locationsService.getLocationById(wandsworthLocation.id)) doReturn wandsworthLocation.toModel(locationAttributes())
+    setOf(wandsworthLocation, wandsworthLocation2, wandsworthLocation3.copy(localName = null)).forEach { location ->
+      whenever(locationsService.getLocationByKey(location.key)) doReturn location.toModel(locationAttributes())
+      whenever(locationsService.getLocationById(location.id)) doReturn location.toModel(locationAttributes())
+    }
   }
 
   @Nested
@@ -111,7 +115,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_MAIN.name,
-          locationId = wandsworthLocation.id,
+          locationId = wandsworthLocation2.id,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(1),
           endTime = LocalTime.MIDNIGHT.plusHours(2),
@@ -120,7 +124,7 @@ class VideoLinkBookingsServiceTest {
           prison = prison(prisonCode = WANDSWORTH),
           prisonerNumber = prisonerNumber,
           appointmentType = AppointmentType.VLB_COURT_POST.name,
-          locationId = wandsworthLocation.id,
+          locationId = wandsworthLocation3.id,
           date = tomorrow(),
           startTime = LocalTime.MIDNIGHT.plusHours(3),
           endTime = LocalTime.MIDNIGHT.plusHours(4),
@@ -132,8 +136,14 @@ class VideoLinkBookingsServiceTest {
       with(service.getVideoLinkBookingById(1L, COURT_USER)) {
         prisonAppointments hasSize 3
         prisonAppointments.first().appointmentType isEqualTo AppointmentType.VLB_COURT_PRE.name
+        prisonAppointments.first().dpsLocationId isEqualTo wandsworthLocation.id
+        prisonAppointments.first().dpsLocationDescription isEqualTo wandsworthLocation.localName
         prisonAppointments.second().appointmentType isEqualTo AppointmentType.VLB_COURT_MAIN.name
+        prisonAppointments.second().dpsLocationId isEqualTo wandsworthLocation2.id
+        prisonAppointments.second().dpsLocationDescription isEqualTo wandsworthLocation2.localName
         prisonAppointments.third().appointmentType isEqualTo AppointmentType.VLB_COURT_POST.name
+        prisonAppointments.third().dpsLocationId isEqualTo wandsworthLocation3.id
+        prisonAppointments.third().dpsLocationDescription isEqualTo wandsworthLocation3.key
 
         // Should be present for a court booking
         courtCode isEqualTo DERBY_JUSTICE_CENTRE
@@ -222,6 +232,8 @@ class VideoLinkBookingsServiceTest {
 
       with(service.getVideoLinkBookingById(1L, PROBATION_USER)) {
         prisonAppointments.single().appointmentType isEqualTo AppointmentType.VLB_PROBATION.name
+        prisonAppointments.single().dpsLocationId isEqualTo wandsworthLocation.id
+        prisonAppointments.single().dpsLocationDescription isEqualTo wandsworthLocation.localName
 
         // Should be present for a probation booking
         probationTeamCode isEqualTo "BLKPPP"

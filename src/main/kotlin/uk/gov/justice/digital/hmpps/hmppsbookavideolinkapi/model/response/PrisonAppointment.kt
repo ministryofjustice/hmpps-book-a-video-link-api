@@ -34,6 +34,9 @@ data class PrisonAppointment(
   )
   val dpsLocationId: UUID,
 
+  @Schema(description = "The description for the location", example = "VIDEO LINK")
+  val dpsLocationDescription: String,
+
   @Schema(description = "The date of the appointment", example = "2024-04-05")
   val appointmentDate: LocalDate,
 
