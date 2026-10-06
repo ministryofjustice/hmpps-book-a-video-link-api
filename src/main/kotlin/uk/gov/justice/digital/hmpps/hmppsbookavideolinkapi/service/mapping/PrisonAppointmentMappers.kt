@@ -10,6 +10,7 @@ fun PrisonAppointmentEntity.toModel(locations: Set<Location>) = run {
   PrisonAppointment(
     prisonAppointmentId = prisonAppointmentId,
     prisonCode = prisonCode(),
+    prisonName = prisonName(),
     prisonerNumber = prisonerNumber,
     appointmentType = appointmentType,
     prisonLocKey = location.key,
@@ -20,6 +21,7 @@ fun PrisonAppointmentEntity.toModel(locations: Set<Location>) = run {
     notesForStaff = notesForStaff,
     dpsLocationId = this.prisonLocationId,
     dpsLocationDescription = location.description ?: location.key,
+    prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
   )
 }
 

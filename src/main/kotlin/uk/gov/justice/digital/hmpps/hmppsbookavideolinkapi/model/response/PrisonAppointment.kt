@@ -18,6 +18,9 @@ data class PrisonAppointment(
   @Schema(description = "The prison code where this appointment will take place", example = "MDI")
   val prisonCode: String,
 
+  @Schema(description = "The name of the prison where this appointment will take place", example = "Moorland HMP")
+  val prisonName: String,
+
   @Schema(description = "The prisoner number for the person attending this appointment", example = "AA1234A")
   val prisonerNumber: String,
 
@@ -36,6 +39,9 @@ data class PrisonAppointment(
 
   @Schema(description = "The description for the location", example = "VIDEO LINK")
   val dpsLocationDescription: String,
+
+  @Schema(description = "The prison video URL for the location", example = "https://prison-video-link.co.uk")
+  val prisonVideoUrl: String?,
 
   @Schema(description = "The date of the appointment", example = "2024-04-05")
   val appointmentDate: LocalDate,

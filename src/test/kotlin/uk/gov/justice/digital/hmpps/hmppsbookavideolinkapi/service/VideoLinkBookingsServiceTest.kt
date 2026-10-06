@@ -358,7 +358,7 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
-        locations = setOf(wandsworthLocation.toModel()),
+        locations = setOf(wandsworthLocation.toModel(locationAttributes().copy(prisonVideoUrl = "decorated-video-link-url"))),
         courtHearingTypeDescription = "Tribunal",
       )
     }
@@ -400,7 +400,7 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
-        locations = setOf(wandsworthLocation.toModel()),
+        locations = setOf(wandsworthLocation.toModel(locationAttributes().copy(prisonVideoUrl = "decorated-video-link-url"))),
         courtHearingTypeDescription = "Tribunal",
       )
     }
@@ -531,7 +531,7 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
-        locations = setOf(wandsworthLocation.toModel()),
+        locations = setOf(wandsworthLocation.toModel(locationAttributes().copy(prisonVideoUrl = "decorated-video-link-url"))),
         courtHearingTypeDescription = "Tribunal",
       )
     }
@@ -573,7 +573,7 @@ class VideoLinkBookingsServiceTest {
       whenever(videoBookingRepository.findById(booking.videoBookingId)) doReturn Optional.of(booking)
 
       service.findMatchingVideoLinkBooking(searchRequest, COURT_USER) isEqualTo booking.toModel(
-        locations = setOf(wandsworthLocation.toModel()),
+        locations = setOf(wandsworthLocation.toModel(locationAttributes().copy(prisonVideoUrl = "decorated-video-link-url"))),
         courtHearingTypeDescription = "Tribunal",
       )
     }
