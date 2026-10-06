@@ -92,8 +92,10 @@ class ContactsService(
       BookingAction.CREATE, BookingAction.CANCEL, BookingAction.TRANSFERRED, BookingAction.RELEASED -> {
         if (location.isALegalVisitLocation()) {
           allContacts.legalVisitContacts()
-        } else {
+        } else if (location.isAVccLocation()) {
           allContacts.vccContacts()
+        } else {
+          allContacts
         }
       }
 
