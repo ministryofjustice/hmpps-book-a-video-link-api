@@ -48,6 +48,8 @@ class PrisonAppointment private constructor(
 
   fun prisonCode() = prison.code
 
+  fun prisonName() = prison.name
+
   fun isType(value: String) = appointmentType == value
 
   fun start(): LocalDateTime = appointmentDate.atTime(startTime)
