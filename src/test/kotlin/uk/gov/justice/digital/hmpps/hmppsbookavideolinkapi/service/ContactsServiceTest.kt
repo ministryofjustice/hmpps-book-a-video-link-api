@@ -348,11 +348,11 @@ class ContactsServiceTest {
 
     @ParameterizedTest
     @ValueSource(strings = [ "CREATE", "CANCEL", "TRANSFERRED", "RELEASED"])
-    fun `Probation contacts - action ${bookingAction} - in undecorated room with no area - send to VCC prison contacts only`(bookingAction: String) {
+    fun `Probation contacts - action ${bookingAction} - in undecorated room with no area - send to ALL prison contacts`(bookingAction: String) {
       val contacts = service.getProbationBookingContacts(BookingAction.valueOf(bookingAction), videoBookingId, undecoratedLocation, user)
 
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null)
     }
 
     @Test
