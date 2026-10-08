@@ -8,6 +8,7 @@ import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.context.jdbc.Sql
@@ -125,6 +126,7 @@ import java.time.LocalTime
 import java.util.UUID
 import kotlin.reflect.KClass
 
+@TestPropertySource(properties = ["feature.replacement.email.facade=true"])
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
