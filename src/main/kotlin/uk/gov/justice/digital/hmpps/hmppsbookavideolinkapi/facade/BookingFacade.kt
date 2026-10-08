@@ -52,6 +52,12 @@ class BookingFacade(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  private val replacementEmailFacadeEnabled = featureSwitches.isEnabled(BooleanFeature.FEATURE_REPLACEMENT_EMAIL_FACADE)
+
+  init {
+    log.info("Replacement email facade is ${if (replacementEmailFacadeEnabled) "enabled" else "disabled"}")
+  }
+
   fun create(bookingRequest: CreateVideoBookingRequest, createdBy: User): Long {
     require(createdBy is PrisonUser || availabilityService.isAvailable(bookingRequest)) {
       if (bookingRequest.bookingType == RequestBookingType.COURT) {
@@ -65,7 +71,7 @@ class BookingFacade(
 
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
 
-    if (featureSwitches.isEnabled(BooleanFeature.FEATURE_REPLACEMENT_EMAIL_FACADE)) {
+    if (replacementEmailFacadeEnabled) {
       log.info("Using replacement email facade for create")
       replacementEmailFacade.sendEmails(
         BookingDetails.create(
@@ -107,7 +113,7 @@ class BookingFacade(
 
     // Only send emails on back of change check above.
     if (changeType != ChangeType.NONE) {
-      if (featureSwitches.isEnabled(BooleanFeature.FEATURE_REPLACEMENT_EMAIL_FACADE)) {
+      if (replacementEmailFacadeEnabled) {
         log.info("Using replacement email facade for amend")
         replacementEmailFacade.sendEmails(
           BookingDetails.amended(
@@ -156,7 +162,20 @@ class BookingFacade(
 
   private fun cancelBooking(videoBookingId: Long, cancelledBy: User) {
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, cancelledBy)
-    emailFacade.sendEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
+
+    if (replacementEmailFacadeEnabled) {
+      log.info("Using replacement email facade for cancel")
+      replacementEmailFacade.sendEmails(
+        BookingDetails.cancelled(
+          videoBookingServiceDelegate.getVideoBookingById(videoBookingId, cancelledBy),
+          getPrisoner(booking.prisoner()),
+        ),
+        cancelledBy,
+      )
+    } else {
+      emailFacade.sendEmails(BookingAction.CANCEL, booking, getPrisoner(booking.prisoner()), cancelledBy)
+    }
+
     trackTelemetry(BookingAction.CANCEL, booking, cancelledBy)
   }
 
@@ -166,7 +185,19 @@ class BookingFacade(
     require(videoBooking.court!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled court" }
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
     require(videoBooking.videoUrl == null) { "Video booking with id ${videoBooking.videoBookingId} already has a court hearing link" }
-    emailFacade.sendEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
+
+    if (replacementEmailFacadeEnabled) {
+      log.info("Using replacement email facade for court hearing link reminder")
+      replacementEmailFacade.sendEmails(
+        BookingDetails.courtHearingLinkReminder(
+          videoBookingServiceDelegate.getVideoBookingById(videoBooking.videoBookingId, user),
+          getPrisoner(videoBooking.prisoner()),
+        ),
+        user,
+      )
+    } else {
+      emailFacade.sendEmails(BookingAction.COURT_HEARING_LINK_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
+    }
   }
 
   // Administrative action by service user
@@ -174,7 +205,19 @@ class BookingFacade(
     require(videoBooking.isBookingType(PROBATION) && videoBooking.isStatus(StatusCode.ACTIVE)) { "Video booking with id ${videoBooking.videoBookingId} must be an active probation booking" }
     require(videoBooking.probationTeam!!.enabled) { "Video booking with id ${videoBooking.videoBookingId} is not with an enabled probation team" }
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
-    emailFacade.sendEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
+
+    if (replacementEmailFacadeEnabled) {
+      log.info("Using replacement email facade for probation officer details reminder")
+      replacementEmailFacade.sendEmails(
+        BookingDetails.probationOfficerEmailReminder(
+          videoBookingServiceDelegate.getVideoBookingById(videoBooking.videoBookingId, user),
+          getPrisoner(videoBooking.prisoner()),
+        ),
+        user,
+      )
+    } else {
+      emailFacade.sendEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, videoBooking, getPrisoner(videoBooking.prisoner()), user)
+    }
   }
 
   // Administrative action by service user
@@ -182,7 +225,19 @@ class BookingFacade(
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to transfer")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
-    emailFacade.sendEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+
+    if (replacementEmailFacadeEnabled) {
+      log.info("Using replacement email facade for prisoner transfer")
+      replacementEmailFacade.sendEmails(
+        BookingDetails.transferred(
+          videoBookingServiceDelegate.getVideoBookingById(videoBookingId, user),
+          getReleasedOrTransferredPrisoner(booking.prisoner()),
+        ),
+        user,
+      )
+    } else {
+      emailFacade.sendEmails(BookingAction.TRANSFERRED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+    }
     trackTelemetry(BookingAction.TRANSFERRED, booking, user)
   }
 
@@ -191,7 +246,20 @@ class BookingFacade(
     val booking = videoBookingServiceDelegate.cancel(videoBookingId, user)
     log.info("Video booking ${booking.videoBookingId} cancelled due to release")
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CANCELLED, videoBookingId)
-    emailFacade.sendEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+
+    if (replacementEmailFacadeEnabled) {
+      log.info("Using replacement email facade for prisoner release")
+      replacementEmailFacade.sendEmails(
+        BookingDetails.released(
+          videoBookingServiceDelegate.getVideoBookingById(videoBookingId, user),
+          getReleasedOrTransferredPrisoner(booking.prisoner()),
+        ),
+        user,
+      )
+    } else {
+      emailFacade.sendEmails(BookingAction.RELEASED, booking, getReleasedOrTransferredPrisoner(booking.prisoner()), user)
+    }
+
     trackTelemetry(BookingAction.RELEASED, booking, user)
   }
 
