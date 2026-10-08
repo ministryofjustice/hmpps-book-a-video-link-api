@@ -66,9 +66,13 @@ class BookingFacade(
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
 
     if (featureSwitches.isEnabled(BooleanFeature.FEATURE_REPLACEMENT_EMAIL_FACADE)) {
+      log.info("Using replacement email facade for create")
       replacementEmailFacade.sendEmails(
         BookingDetails.create(
-          videoBookingServiceDelegate.getVideoBookingById(booking.videoBookingId, createdBy),
+          videoBookingServiceDelegate.getVideoBookingById(
+            booking.videoBookingId,
+            createdBy,
+          ),
           prisoner,
         ),
         createdBy,
@@ -103,13 +107,25 @@ class BookingFacade(
 
     // Only send emails on back of change check above.
     if (changeType != ChangeType.NONE) {
-      if (rescheduleEmailsFacade.isConsideredRescheduled(originalBooking, amendedBooking)) {
-        rescheduleEmailsFacade.sendEmails(originalBooking, amendedBooking, changeType, prisoner, amendedBy)
+      if (featureSwitches.isEnabled(BooleanFeature.FEATURE_REPLACEMENT_EMAIL_FACADE)) {
+        log.info("Using replacement email facade for amend")
+        replacementEmailFacade.sendEmails(
+          BookingDetails.amended(
+            originalBooking,
+            videoBookingServiceDelegate.getVideoBookingById(videoBookingId, amendedBy),
+            prisoner,
+          ),
+          amendedBy,
+        )
       } else {
-        emailFacade.sendEmails(BookingAction.AMEND, amendedBooking, prisoner, amendedBy, changeType)
+        if (rescheduleEmailsFacade.isConsideredRescheduled(originalBooking, amendedBooking)) {
+          rescheduleEmailsFacade.sendEmails(originalBooking, amendedBooking, changeType, prisoner, amendedBy)
+        } else {
+          emailFacade.sendEmails(BookingAction.AMEND, amendedBooking, prisoner, amendedBy, changeType)
+        }
       }
     } else {
-      log.info("No changes detected for video booking $videoBookingId, not sending email")
+      log.info("No changes detected for video booking $videoBookingId, not sending amend emails")
     }
 
     trackTelemetry(BookingAction.AMEND, amendedBooking, amendedBy)
