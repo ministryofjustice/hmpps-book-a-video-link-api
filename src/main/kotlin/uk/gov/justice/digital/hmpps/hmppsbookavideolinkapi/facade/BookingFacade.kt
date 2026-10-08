@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.BooleanFeature
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode
@@ -19,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ServiceUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoBookingServiceDelegate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
@@ -42,6 +45,8 @@ class BookingFacade(
   private val changeTrackingService: ChangeTrackingService,
   private val emailFacade: EmailFacade,
   private val rescheduleEmailsFacade: RescheduleEmailsFacade,
+  private val replacementEmailFacade: ReplacementEmailFacade,
+  private val featureSwitches: FeatureSwitches,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -59,7 +64,19 @@ class BookingFacade(
     val (booking, prisoner) = videoBookingServiceDelegate.create(bookingRequest, createdBy)
 
     outboundEventsService.send(DomainEventType.VIDEO_BOOKING_CREATED, booking.videoBookingId)
-    emailFacade.sendEmails(BookingAction.CREATE, booking, prisoner, createdBy)
+
+    if (featureSwitches.isEnabled(BooleanFeature.FEATURE_REPLACEMENT_EMAIL_FACADE)) {
+      replacementEmailFacade.sendEmails(
+        BookingDetails.create(
+          videoBookingServiceDelegate.getVideoBookingById(booking.videoBookingId, createdBy),
+          prisoner,
+        ),
+        createdBy,
+      )
+    } else {
+      emailFacade.sendEmails(BookingAction.CREATE, booking, prisoner, createdBy)
+    }
+
     trackTelemetry(BookingAction.CREATE, booking, createdBy)
 
     return booking.videoBookingId
