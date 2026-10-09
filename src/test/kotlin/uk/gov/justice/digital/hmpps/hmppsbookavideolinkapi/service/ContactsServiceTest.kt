@@ -428,15 +428,15 @@ class ContactsServiceTest {
     }
 
     @Test
-    fun `Probation contacts - booking amend - in undecorated room, previously undecorated - send to VCC prison contacts only`() {
+    fun `Probation contacts - booking amend - in undecorated room, previously undecorated - send to all prison contacts`() {
       // Location UUID returned from recent history as previous location
       whenever(locationsService.getLocationById(randomLocationUuid)) doReturn undecoratedLocation
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, undecoratedLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null)
     }
 
     @Test

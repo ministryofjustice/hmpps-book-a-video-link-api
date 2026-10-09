@@ -113,8 +113,8 @@ class ContactsService(
             allContacts.vccContacts()
           }
 
-          // Current location is undefined, previous was VCC or undefined
-          location.isInAnUndefinedArea() && (previousLocation?.isAVccLocation() == true || previousLocation?.isInAnUndefinedArea() == true) -> {
+          // Current location is undefined, previous was VCC
+          location.isInAnUndefinedArea() && previousLocation?.isAVccLocation() == true -> {
             allContacts.vccContacts()
           }
 
