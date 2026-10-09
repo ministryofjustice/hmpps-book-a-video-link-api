@@ -122,6 +122,7 @@ class BookingFacade(
             prisoner,
           ),
           amendedBy,
+          changeType,
         )
       } else {
         if (rescheduleEmailsFacade.isConsideredRescheduled(originalBooking, amendedBooking)) {
