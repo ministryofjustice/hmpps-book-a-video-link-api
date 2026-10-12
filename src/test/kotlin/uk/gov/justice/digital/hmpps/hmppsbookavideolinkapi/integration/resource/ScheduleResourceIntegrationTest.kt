@@ -43,6 +43,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class ScheduleResourceIntegrationTest : IntegrationTestBase() {
+
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
 
@@ -575,7 +576,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 3
 
       val scheduleResponsePage1 = webTestClient.getPaginatedProbationTeamsSchedule(
-        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
         fromDate = tomorrow(),
         page = 0,
         size = 2,
@@ -588,7 +589,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       }
 
       val scheduleResponsePage2 = webTestClient.getPaginatedProbationTeamsSchedule(
-        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
         fromDate = tomorrow(),
         page = 1,
         size = 2,
@@ -614,7 +615,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 6
 
       val scheduleResponsePage1 = webTestClient.getPaginatedProbationTeamsSchedule(
-        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
         fromDate = tomorrow(),
         toDate = tomorrow().plusDays(1),
         page = 0,
@@ -628,12 +629,12 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         listOf(
           Tuple("BLKPPP", tomorrow(), LocalTime.of(9, 0)),
           Tuple("BLKPPP", tomorrow(), LocalTime.of(10, 0)),
-          Tuple("SHEFCC", tomorrow(), LocalTime.of(11, 0)),
+          Tuple("BARSPP", tomorrow(), LocalTime.of(11, 0)),
         ),
       )
 
       val scheduleResponsePage2 = webTestClient.getPaginatedProbationTeamsSchedule(
-        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
         fromDate = tomorrow(),
         toDate = tomorrow().plusDays(1),
         page = 1,
@@ -647,7 +648,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         listOf(
           Tuple("BLKPPP", tomorrow().plusDays(1), LocalTime.of(9, 0)),
           Tuple("BLKPPP", tomorrow().plusDays(1), LocalTime.of(10, 0)),
-          Tuple("SHEFCC", tomorrow().plusDays(1), LocalTime.of(11, 0)),
+          Tuple("BARSPP", tomorrow().plusDays(1), LocalTime.of(11, 0)),
         ),
       )
     }
@@ -693,7 +694,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 3
 
       val scheduleResponse = webTestClient.getUnpaginatedProbationTeamsSchedule(
-        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
         fromDate = tomorrow(),
         sort1 = "probationTeamDescription",
         sort2 = "appointmentDate",
@@ -703,9 +704,9 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       assertThat(scheduleResponse).hasSize(3)
       assertThat(scheduleResponse).extracting("probationTeamCode", "startTime").containsExactlyElementsOf(
         listOf(
+          Tuple("BARSPP", LocalTime.of(11, 0)),
           Tuple("BLKPPP", LocalTime.of(9, 0)),
           Tuple("BLKPPP", LocalTime.of(10, 0)),
-          Tuple("SHEFCC", LocalTime.of(11, 0)),
         ),
       )
     }
@@ -721,7 +722,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       videoBookingRepository.findAll() hasSize 6
 
       val scheduleResponse = webTestClient.getUnpaginatedProbationTeamsSchedule(
-        probationTeamCodes = listOf("BLKPPP", "SHEFCC"),
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
         fromDate = tomorrow(),
         toDate = tomorrow().plusDays(1),
         sort1 = "probationTeamDescription",
@@ -732,12 +733,12 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       scheduleResponse hasSize 6
       assertThat(scheduleResponse).extracting("probationTeamCode", "appointmentDate", "startTime").containsExactlyElementsOf(
         listOf(
+          Tuple("BARSPP", tomorrow(), LocalTime.of(11, 0)),
+          Tuple("BARSPP", tomorrow().plusDays(1), LocalTime.of(11, 0)),
           Tuple("BLKPPP", tomorrow(), LocalTime.of(9, 0)),
           Tuple("BLKPPP", tomorrow(), LocalTime.of(10, 0)),
           Tuple("BLKPPP", tomorrow().plusDays(1), LocalTime.of(9, 0)),
           Tuple("BLKPPP", tomorrow().plusDays(1), LocalTime.of(10, 0)),
-          Tuple("SHEFCC", tomorrow(), LocalTime.of(11, 0)),
-          Tuple("SHEFCC", tomorrow().plusDays(1), LocalTime.of(11, 0)),
         ),
       )
     }
@@ -790,7 +791,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       webTestClient.createBooking(probationBookingRequest2, PROBATION_USER)
 
       val probationBookingRequest3 = probationBookingRequest(
-        probationTeamCode = "SHEFCC",
+        probationTeamCode = "BARSPP",
         prisonCode = PENTONVILLE,
         prisonerNumber = pentonvillePrisoner.number,
         appointmentDate = appointmentDate,

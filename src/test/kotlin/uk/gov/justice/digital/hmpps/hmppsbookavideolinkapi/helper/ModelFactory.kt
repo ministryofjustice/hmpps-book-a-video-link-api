@@ -170,6 +170,14 @@ fun prisoner(
   dateOfBirth = LocalDate.of(2000, 1, 1),
 )
 
+fun prisoner(prisoner: Prisoner) = ModelPrisoner(
+  prisonerNumber = prisoner.prisonerNumber,
+  prisonCode = prisoner.prisonId!!,
+  firstName = prisoner.firstName,
+  lastName = prisoner.lastName,
+  dateOfBirth = LocalDate.of(2000, 1, 1),
+)
+
 fun courtBookingRequest(
   courtCode: String = "DRBYMC",
   prisonCode: String = "WWI",

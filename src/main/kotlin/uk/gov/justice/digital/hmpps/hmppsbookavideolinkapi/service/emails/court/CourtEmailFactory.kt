@@ -3,85 +3,100 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode.CANCELLED
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
-import java.util.UUID
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 
 const val DEFAULT_COURT_URL_PREFIX = "https://join.meet.video.justice.gov.uk/#?conference="
 const val DEFAULT_COURT_URL_SUFFIX = "meet.video.justice.gov.uk"
 
-object CourtEmailFactory {
-  fun user(
-    contact: BookingContact,
-    prisoner: Prisoner,
-    booking: VideoBooking,
-    prison: Prison,
-    locations: Map<UUID, Location>,
-    action: BookingAction,
-  ): VideoBookingEmail? {
-    booking.requireIsCourtBooking()
-
-    require(contact.contactType == ContactType.USER) {
-      "Incorrect contact type ${contact.contactType} for court user email"
+object ReplacementCourtEmailFactory {
+  fun user(bookingDetails: BookingDetails, userContact: BookingContact): VideoBookingEmail? {
+    require(bookingDetails.bookingType == BookingType.COURT) {
+      "Incorrect booking type ${bookingDetails.bookingType} for court user email"
     }
 
-    val (pre, main, post) = Triple(booking.preHearing(), booking.mainHearing()!!, booking.postHearing())
+    require(userContact.contactType == ContactType.USER) {
+      "Incorrect contact type ${userContact.contactType} for court user email"
+    }
 
-    return when (action) {
-      BookingAction.CREATE -> NewCourtBookingUserEmail(
-        address = contact.email!!,
-        userName = contact.name ?: "Book Video",
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        court = booking.court!!.description,
-        prison = prison.name,
-        appointmentDate = main.appointmentDate,
-        preAppointmentDetails = pre?.appointmentDetails(locations),
-        mainAppointmentDetails = main.appointmentDetails(locations),
-        postAppointmentDetails = post?.appointmentDetails(locations),
-        comments = booking.notesForStaff,
-        courtHearingLink = booking.fullCvpVideoUrl(),
-      )
-      BookingAction.AMEND -> AmendedCourtBookingUserEmail(
-        address = contact.email!!,
-        userName = contact.name ?: "Book Video",
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        court = booking.court!!.description,
-        prison = prison.name,
-        appointmentDate = main.appointmentDate,
-        preAppointmentDetails = pre?.appointmentDetails(locations),
-        mainAppointmentDetails = main.appointmentDetails(locations),
-        postAppointmentDetails = post?.appointmentDetails(locations),
-        comments = booking.notesForStaff,
-        courtHearingLink = booking.fullCvpVideoUrl(),
-      )
-      BookingAction.CANCEL -> {
-        booking.requireIsCancelled()
+    val (pre, main, post) = Triple(bookingDetails.preHearing, bookingDetails.mainHearing!!, bookingDetails.postHearing)
 
-        CancelledCourtBookingUserEmail(
-          address = contact.email!!,
-          userName = contact.name ?: "Book Video",
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          prisonerNumber = prisoner.prisonerNumber,
-          court = booking.court!!.description,
-          prison = prison.name,
+    return when (bookingDetails) {
+      is BookingDetails.Create -> {
+        NewCourtBookingUserEmail(
+          address = userContact.email!!,
+          userName = userContact.name ?: "Book Video",
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          court = bookingDetails.courtDescription!!,
+          prison = bookingDetails.prisonName,
           appointmentDate = main.appointmentDate,
-          preAppointmentInfo = pre?.appointmentInformation(locations),
-          mainAppointmentInfo = main.appointmentInformation(locations),
-          postAppointmentInfo = post?.appointmentInformation(locations),
-          comments = booking.notesForStaff,
-          courtHearingLink = booking.fullCvpVideoUrl(),
+          preAppointmentDetails = pre?.appointmentDetails(),
+          mainAppointmentDetails = main.appointmentDetails(),
+          postAppointmentDetails = post?.appointmentDetails(),
+          comments = bookingDetails.notesForStaff,
+          courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+        )
+      }
+
+      is BookingDetails.Amended -> {
+        if (bookingDetails.isRescheduled()) {
+          RescheduledCourtBookingUserEmail(
+            address = userContact.email!!,
+            userName = userContact.name ?: "Book Video",
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
+            appointmentDate = main.appointmentDate,
+            preAppointmentDetails = pre?.appointmentDetails(),
+            mainAppointmentDetails = main.appointmentDetails(),
+            postAppointmentDetails = post?.appointmentDetails(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+            oldAppointmentDate = bookingDetails.oldMainHearing!!.appointmentDate,
+            oldPreAppointmentDetails = bookingDetails.oldPreHearing?.appointmentDetails(),
+            oldMainAppointmentDetails = bookingDetails.oldMainHearing.appointmentDetails(),
+            oldPostAppointmentDetails = bookingDetails.oldPostHearing?.appointmentDetails(),
+          )
+        } else {
+          AmendedCourtBookingUserEmail(
+            address = userContact.email!!,
+            userName = userContact.name ?: "Book Video",
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
+            appointmentDate = main.appointmentDate,
+            preAppointmentDetails = pre?.appointmentDetails(),
+            mainAppointmentDetails = main.appointmentDetails(),
+            postAppointmentDetails = post?.appointmentDetails(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+          )
+        }
+      }
+
+      is BookingDetails.Cancelled -> {
+        CancelledCourtBookingUserEmail(
+          address = userContact.email!!,
+          userName = userContact.name ?: "Book Video",
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          court = bookingDetails.courtDescription!!,
+          prison = bookingDetails.prisonName,
+          appointmentDate = main.appointmentDate,
+          preAppointmentInfo = pre?.appointmentInformation(),
+          mainAppointmentInfo = main.appointmentInformation(),
+          postAppointmentInfo = post?.appointmentInformation(),
+          comments = bookingDetails.notesForStaff,
+          courtHearingLink = bookingDetails.fullCvpVideoUrl(),
         )
       }
 
@@ -89,325 +104,375 @@ object CourtEmailFactory {
     }
   }
 
-  fun court(
-    contact: BookingContact,
-    prisoner: Prisoner,
-    booking: VideoBooking,
-    prison: Prison,
-    locations: Map<UUID, Location>,
-    action: BookingAction,
-  ): VideoBookingEmail? {
-    booking.requireIsCourtBooking()
-
-    require(contact.contactType == ContactType.COURT) {
-      "Incorrect contact type ${contact.contactType} for court court email"
+  fun court(bookingDetails: BookingDetails, courtContact: BookingContact): VideoBookingEmail? {
+    require(bookingDetails.bookingType == BookingType.COURT) {
+      "Incorrect booking type ${bookingDetails.bookingType} for court user email"
     }
 
-    val (pre, main, post) = Triple(booking.preHearing(), booking.mainHearing()!!, booking.postHearing())
+    require(courtContact.contactType == ContactType.COURT) {
+      "Incorrect contact type ${courtContact.contactType} for court court email"
+    }
 
-    return when (action) {
-      BookingAction.CREATE -> NewCourtBookingCourtEmail(
-        address = contact.email!!,
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        court = booking.court!!.description,
-        prison = prison.name,
-        appointmentDate = main.appointmentDate,
-        preAppointmentDetails = pre?.appointmentDetails(locations),
-        mainAppointmentDetails = main.appointmentDetails(locations),
-        postAppointmentDetails = post?.appointmentDetails(locations),
-        comments = booking.notesForStaff,
-        courtHearingLink = booking.fullCvpVideoUrl(),
-      )
+    val (pre, main, post) = Triple(bookingDetails.preHearing, bookingDetails.mainHearing!!, bookingDetails.postHearing)
 
-      BookingAction.AMEND -> AmendedCourtBookingCourtEmail(
-        address = contact.email!!,
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        appointmentDate = main.appointmentDate,
-        court = booking.court!!.description,
-        prison = prison.name,
-        preAppointmentDetails = pre?.appointmentDetails(locations),
-        mainAppointmentDetails = main.appointmentDetails(locations),
-        postAppointmentDetails = post?.appointmentDetails(locations),
-        comments = booking.notesForStaff,
-        courtHearingLink = booking.fullCvpVideoUrl(),
-      )
-
-      BookingAction.CANCEL -> {
-        booking.requireIsCancelled()
-
-        CancelledCourtBookingCourtEmail(
-          address = contact.email!!,
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          prisonerNumber = prisoner.prisonerNumber,
+    return when (bookingDetails) {
+      is BookingDetails.Create -> {
+        NewCourtBookingCourtEmail(
+          address = courtContact.email!!,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          court = bookingDetails.courtDescription!!,
+          prison = bookingDetails.prisonName,
           appointmentDate = main.appointmentDate,
-          court = booking.court!!.description,
-          prison = prison.name,
-          preAppointmentInfo = pre?.appointmentInformation(locations),
-          mainAppointmentInfo = main.appointmentInformation(locations),
-          postAppointmentInfo = post?.appointmentInformation(locations),
-          comments = booking.notesForStaff,
-          courtHearingLink = booking.fullCvpVideoUrl(),
+          preAppointmentDetails = pre?.appointmentDetails(),
+          mainAppointmentDetails = main.appointmentDetails(),
+          postAppointmentDetails = post?.appointmentDetails(),
+          comments = bookingDetails.notesForStaff,
+          courtHearingLink = bookingDetails.fullCvpVideoUrl(),
         )
       }
 
-      BookingAction.RELEASED -> {
-        booking.requireIsCancelled()
+      is BookingDetails.Amended -> {
+        if (bookingDetails.isRescheduled()) {
+          RescheduledCourtBookingCourtEmail(
+            address = courtContact.email!!,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            appointmentDate = main.appointmentDate,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
+            preAppointmentDetails = pre?.appointmentDetails(),
+            mainAppointmentDetails = main.appointmentDetails(),
+            postAppointmentDetails = post?.appointmentDetails(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+            oldAppointmentDate = bookingDetails.oldMainHearing!!.appointmentDate,
+            oldPreAppointmentDetails = bookingDetails.oldPreHearing?.appointmentDetails(),
+            oldMainAppointmentDetails = bookingDetails.oldMainHearing.appointmentDetails(),
+            oldPostAppointmentDetails = bookingDetails.oldPostHearing?.appointmentDetails(),
+          )
+        } else {
+          AmendedCourtBookingCourtEmail(
+            address = courtContact.email!!,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            appointmentDate = main.appointmentDate,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
+            preAppointmentDetails = pre?.appointmentDetails(),
+            mainAppointmentDetails = main.appointmentDetails(),
+            postAppointmentDetails = post?.appointmentDetails(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+          )
+        }
+      }
 
+      is BookingDetails.Cancelled -> {
+        CancelledCourtBookingCourtEmail(
+          address = courtContact.email!!,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          appointmentDate = main.appointmentDate,
+          court = bookingDetails.courtDescription!!,
+          prison = bookingDetails.prisonName,
+          preAppointmentInfo = pre?.appointmentInformation(),
+          mainAppointmentInfo = main.appointmentInformation(),
+          postAppointmentInfo = post?.appointmentInformation(),
+          comments = bookingDetails.notesForStaff,
+          courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+        )
+      }
+
+      is BookingDetails.Released -> {
         ReleasedCourtBookingCourtEmail(
-          address = contact.email!!,
-          court = booking.court!!.description,
-          prison = prison.name,
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          dateOfBirth = prisoner.dateOfBirth,
-          prisonerNumber = prisoner.prisonerNumber,
+          address = courtContact.email!!,
+          court = bookingDetails.courtDescription!!,
+          prison = bookingDetails.prisonName,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          dateOfBirth = bookingDetails.prisonerDateOfBirth,
+          prisonerNumber = bookingDetails.prisonerNumber,
           date = main.appointmentDate,
-          preAppointmentInfo = pre?.appointmentInformation(locations),
-          mainAppointmentInfo = main.appointmentInformation(locations),
-          postAppointmentInfo = post?.appointmentInformation(locations),
-          comments = booking.notesForStaff,
+          preAppointmentInfo = pre?.appointmentInformation(),
+          mainAppointmentInfo = main.appointmentInformation(),
+          postAppointmentInfo = post?.appointmentInformation(),
+          comments = bookingDetails.notesForStaff,
         )
       }
 
-      BookingAction.TRANSFERRED -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Transferred -> {
         TransferredCourtBookingCourtEmail(
-          address = contact.email!!,
-          court = booking.court!!.description,
-          prison = prison.name,
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          dateOfBirth = prisoner.dateOfBirth,
-          prisonerNumber = prisoner.prisonerNumber,
+          address = courtContact.email!!,
+          court = bookingDetails.courtDescription!!,
+          prison = bookingDetails.prisonName,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          dateOfBirth = bookingDetails.prisonerDateOfBirth,
+          prisonerNumber = bookingDetails.prisonerNumber,
           date = main.appointmentDate,
-          preAppointmentInfo = pre?.appointmentInformation(locations),
-          mainAppointmentInfo = main.appointmentInformation(locations),
-          postAppointmentInfo = post?.appointmentInformation(locations),
-          comments = booking.notesForStaff,
+          preAppointmentInfo = pre?.appointmentInformation(),
+          mainAppointmentInfo = main.appointmentInformation(),
+          postAppointmentInfo = post?.appointmentInformation(),
+          comments = bookingDetails.notesForStaff,
         )
       }
 
-      BookingAction.COURT_HEARING_LINK_REMINDER -> CourtHearingLinkReminderEmail(
-        address = contact.email!!,
-        court = booking.court!!.description,
-        prison = prison.name,
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prisonerNumber = prisoner.prisonerNumber,
-        date = main.appointmentDate,
-        preAppointmentInfo = pre?.appointmentInformation(locations),
-        mainAppointmentInfo = main.appointmentInformation(locations),
-        postAppointmentInfo = post?.appointmentInformation(locations),
-        comments = booking.notesForStaff,
-        bookingId = booking.videoBookingId.toString(),
-      )
+      is BookingDetails.CourtHearingLinkReminder -> {
+        CourtHearingLinkReminderEmail(
+          address = courtContact.email!!,
+          court = bookingDetails.courtDescription!!,
+          prison = bookingDetails.prisonName,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          date = main.appointmentDate,
+          preAppointmentInfo = pre?.appointmentInformation(),
+          mainAppointmentInfo = main.appointmentInformation(),
+          postAppointmentInfo = post?.appointmentInformation(),
+          comments = bookingDetails.notesForStaff,
+          bookingId = bookingDetails.videoLinkBookingId.toString(),
+        )
+      }
 
       else -> null
     }
   }
 
   fun prison(
-    contact: BookingContact,
-    prisoner: Prisoner,
-    booking: VideoBooking,
-    prison: Prison,
+    bookingDetails: BookingDetails,
+    prisonContact: BookingContact,
     contacts: Collection<BookingContact>,
-    locations: Map<UUID, Location>,
-    action: BookingAction,
   ): VideoBookingEmail? {
-    booking.requireIsCourtBooking()
-
-    require(contact.contactType == ContactType.PRISON) {
-      "Incorrect contact type ${contact.contactType} for court prison email"
+    require(bookingDetails.bookingType == BookingType.COURT) {
+      "Incorrect booking type ${bookingDetails.bookingType} for court user email"
     }
 
-    val (pre, main, post) = Triple(booking.preHearing(), booking.mainHearing()!!, booking.postHearing())
+    require(prisonContact.contactType == ContactType.PRISON) {
+      "Incorrect contact type ${prisonContact.contactType} for court prison email"
+    }
+
     val primaryCourtContact = contacts.primaryCourtContact()
 
-    return when (action) {
-      BookingAction.CREATE -> {
+    val (pre, main, post) = Triple(bookingDetails.preHearing, bookingDetails.mainHearing!!, bookingDetails.postHearing)
+
+    return when (bookingDetails) {
+      is BookingDetails.Create -> {
         if (primaryCourtContact != null) {
           NewCourtBookingPrisonCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
+            address = prisonContact.email!!,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            court = bookingDetails.courtDescription!!,
             courtEmailAddress = primaryCourtContact.email!!,
-            prison = prison.name,
+            prison = bookingDetails.prisonName,
             appointmentDate = main.appointmentDate,
-            preAppointmentDetails = pre?.appointmentDetails(locations),
-            mainAppointmentDetails = main.appointmentDetails(locations),
-            postAppointmentDetails = post?.appointmentDetails(locations),
-            comments = booking.notesForStaff,
-            courtHearingLink = booking.fullCvpVideoUrl(),
+            preAppointmentDetails = pre?.appointmentDetails(),
+            mainAppointmentDetails = main.appointmentDetails(),
+            postAppointmentDetails = post?.appointmentDetails(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
           )
         } else {
           NewCourtBookingPrisonNoCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            prison = prison.name,
+            address = prisonContact.email!!,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
             appointmentDate = main.appointmentDate,
-            preAppointmentDetails = pre?.appointmentDetails(locations),
-            mainAppointmentDetails = main.appointmentDetails(locations),
-            postAppointmentDetails = post?.appointmentDetails(locations),
-            comments = booking.notesForStaff,
-            courtHearingLink = booking.fullCvpVideoUrl(),
+            preAppointmentDetails = pre?.appointmentDetails(),
+            mainAppointmentDetails = main.appointmentDetails(),
+            postAppointmentDetails = post?.appointmentDetails(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
           )
         }
       }
 
-      BookingAction.AMEND -> {
-        if (primaryCourtContact != null) {
-          AmendedCourtBookingPrisonCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            courtEmailAddress = primaryCourtContact.email!!,
-            prison = prison.name,
+      is BookingDetails.Amended -> {
+        if (bookingDetails.isRescheduled()) {
+          contacts.primaryCourtContact()?.let { primaryCourtContact ->
+            RescheduledCourtBookingPrisonCourtEmail(
+              address = prisonContact.email!!,
+              prisonerFirstName = bookingDetails.prisonerFirstName,
+              prisonerLastName = bookingDetails.prisonerLastName,
+              prisonerNumber = bookingDetails.prisonerNumber,
+              court = bookingDetails.courtDescription!!,
+              prison = bookingDetails.prisonName,
+              courtEmailAddress = primaryCourtContact.email!!,
+              appointmentDate = main.appointmentDate,
+              preAppointmentDetails = pre?.appointmentDetails(),
+              mainAppointmentDetails = main.appointmentDetails(),
+              postAppointmentDetails = post?.appointmentDetails(),
+              comments = bookingDetails.notesForStaff,
+              courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+              oldAppointmentDate = bookingDetails.oldMainHearing!!.appointmentDate,
+              oldPreAppointmentDetails = bookingDetails.oldPreHearing?.appointmentDetails(),
+              oldMainAppointmentDetails = bookingDetails.oldMainHearing.appointmentDetails(),
+              oldPostAppointmentDetails = bookingDetails.oldPostHearing?.appointmentDetails(),
+            )
+          } ?: RescheduledCourtBookingPrisonNoCourtEmail(
+            address = prisonContact.email!!,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
             appointmentDate = main.appointmentDate,
-            preAppointmentDetails = pre?.appointmentDetails(locations),
-            mainAppointmentDetails = main.appointmentDetails(locations),
-            postAppointmentDetails = post?.appointmentDetails(locations),
-            comments = booking.notesForStaff,
-            courtHearingLink = booking.fullCvpVideoUrl(),
+            preAppointmentDetails = pre?.appointmentDetails(),
+            mainAppointmentDetails = main.appointmentDetails(),
+            postAppointmentDetails = post?.appointmentDetails(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+            oldAppointmentDate = bookingDetails.oldMainHearing!!.appointmentDate,
+            oldPreAppointmentDetails = bookingDetails.oldPreHearing?.appointmentDetails(),
+            oldMainAppointmentDetails = bookingDetails.oldMainHearing.appointmentDetails(),
+            oldPostAppointmentDetails = bookingDetails.oldPostHearing?.appointmentDetails(),
           )
         } else {
-          AmendedCourtBookingPrisonNoCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            prison = prison.name,
-            appointmentDate = main.appointmentDate,
-            preAppointmentDetails = pre?.appointmentDetails(locations),
-            mainAppointmentDetails = main.appointmentDetails(locations),
-            postAppointmentDetails = post?.appointmentDetails(locations),
-            comments = booking.notesForStaff,
-            courtHearingLink = booking.fullCvpVideoUrl(),
-          )
+          if (primaryCourtContact != null) {
+            AmendedCourtBookingPrisonCourtEmail(
+              address = prisonContact.email!!,
+              prisonerFirstName = bookingDetails.prisonerFirstName,
+              prisonerLastName = bookingDetails.prisonerLastName,
+              prisonerNumber = bookingDetails.prisonerNumber,
+              court = bookingDetails.courtDescription!!,
+              courtEmailAddress = primaryCourtContact.email!!,
+              prison = bookingDetails.prisonName,
+              appointmentDate = main.appointmentDate,
+              preAppointmentDetails = pre?.appointmentDetails(),
+              mainAppointmentDetails = main.appointmentDetails(),
+              postAppointmentDetails = post?.appointmentDetails(),
+              comments = bookingDetails.notesForStaff,
+              courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+            )
+          } else {
+            AmendedCourtBookingPrisonNoCourtEmail(
+              address = prisonContact.email!!,
+              prisonerFirstName = bookingDetails.prisonerFirstName,
+              prisonerLastName = bookingDetails.prisonerLastName,
+              prisonerNumber = bookingDetails.prisonerNumber,
+              court = bookingDetails.courtDescription!!,
+              prison = bookingDetails.prisonName,
+              appointmentDate = main.appointmentDate,
+              preAppointmentDetails = pre?.appointmentDetails(),
+              mainAppointmentDetails = main.appointmentDetails(),
+              postAppointmentDetails = post?.appointmentDetails(),
+              comments = bookingDetails.notesForStaff,
+              courtHearingLink = bookingDetails.fullCvpVideoUrl(),
+            )
+          }
         }
       }
 
-      BookingAction.CANCEL -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Cancelled -> {
         if (primaryCourtContact != null) {
           CancelledCourtBookingPrisonCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
+            address = prisonContact.email!!,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            court = bookingDetails.courtDescription!!,
             courtEmailAddress = primaryCourtContact.email!!,
-            prison = prison.name,
+            prison = bookingDetails.prisonName,
             appointmentDate = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.notesForStaff,
-            courtHearingLink = booking.fullCvpVideoUrl(),
+            preAppointmentInfo = pre?.appointmentInformation(),
+            mainAppointmentInfo = main.appointmentInformation(),
+            postAppointmentInfo = post?.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
           )
         } else {
           CancelledCourtBookingPrisonNoCourtEmail(
-            address = contact.email!!,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prisonerNumber = prisoner.prisonerNumber,
-            court = booking.court!!.description,
-            prison = prison.name,
+            address = prisonContact.email!!,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
             appointmentDate = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.notesForStaff,
-            courtHearingLink = booking.fullCvpVideoUrl(),
+            preAppointmentInfo = pre?.appointmentInformation(),
+            mainAppointmentInfo = main.appointmentInformation(),
+            postAppointmentInfo = post?.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            courtHearingLink = bookingDetails.fullCvpVideoUrl(),
           )
         }
       }
 
-      BookingAction.RELEASED -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Released -> {
         if (primaryCourtContact != null) {
           // Note: primary contact is only used to determine which template to use, it is not used in the template.
           ReleasedCourtBookingPrisonCourtEmail(
-            address = contact.email!!,
-            court = booking.court!!.description,
-            prison = prison.name,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            dateOfBirth = prisoner.dateOfBirth,
-            prisonerNumber = prisoner.prisonerNumber,
+            address = prisonContact.email!!,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            dateOfBirth = bookingDetails.prisonerDateOfBirth,
+            prisonerNumber = bookingDetails.prisonerNumber,
             date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.notesForStaff,
+            preAppointmentInfo = pre?.appointmentInformation(),
+            mainAppointmentInfo = main.appointmentInformation(),
+            postAppointmentInfo = post?.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
           )
         } else {
           ReleasedCourtBookingPrisonNoCourtEmail(
-            address = contact.email!!,
-            court = booking.court!!.description,
-            prison = prison.name,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            dateOfBirth = prisoner.dateOfBirth,
-            prisonerNumber = prisoner.prisonerNumber,
+            address = prisonContact.email!!,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            dateOfBirth = bookingDetails.prisonerDateOfBirth,
+            prisonerNumber = bookingDetails.prisonerNumber,
             date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.notesForStaff,
+            preAppointmentInfo = pre?.appointmentInformation(),
+            mainAppointmentInfo = main.appointmentInformation(),
+            postAppointmentInfo = post?.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
           )
         }
       }
 
-      BookingAction.TRANSFERRED -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Transferred -> {
         // Note: primary contact is only used to determine which template to use, it is not used in the template.
         if (primaryCourtContact != null) {
           TransferredCourtBookingPrisonCourtEmail(
-            address = contact.email!!,
-            court = booking.court!!.description,
-            prison = prison.name,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            dateOfBirth = prisoner.dateOfBirth,
-            prisonerNumber = prisoner.prisonerNumber,
+            address = prisonContact.email!!,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            dateOfBirth = bookingDetails.prisonerDateOfBirth,
+            prisonerNumber = bookingDetails.prisonerNumber,
             date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.notesForStaff,
+            preAppointmentInfo = pre?.appointmentInformation(),
+            mainAppointmentInfo = main.appointmentInformation(),
+            postAppointmentInfo = post?.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
           )
         } else {
           TransferredCourtBookingPrisonNoCourtEmail(
-            address = contact.email!!,
-            court = booking.court!!.description,
-            prison = prison.name,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            dateOfBirth = prisoner.dateOfBirth,
-            prisonerNumber = prisoner.prisonerNumber,
+            address = prisonContact.email!!,
+            court = bookingDetails.courtDescription!!,
+            prison = bookingDetails.prisonName,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            dateOfBirth = bookingDetails.prisonerDateOfBirth,
+            prisonerNumber = bookingDetails.prisonerNumber,
             date = main.appointmentDate,
-            preAppointmentInfo = pre?.appointmentInformation(locations),
-            mainAppointmentInfo = main.appointmentInformation(locations),
-            postAppointmentInfo = post?.appointmentInformation(locations),
-            comments = booking.notesForStaff,
+            preAppointmentInfo = pre?.appointmentInformation(),
+            mainAppointmentInfo = main.appointmentInformation(),
+            postAppointmentInfo = post?.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
           )
         }
       }
@@ -416,25 +481,11 @@ object CourtEmailFactory {
     }
   }
 
-  private fun PrisonAppointment.appointmentDetails(locations: Map<UUID, Location>) = AppointmentDetails(locations.room(this), startTime, endTime, locations.prisonVideoUrl(this))
+  private fun PrisonAppointment.appointmentDetails() = AppointmentDetails(dpsLocationDescription, startTime, endTime, prisonVideoUrl)
 
-  private fun PrisonAppointment.appointmentInformation(locations: Map<UUID, Location>) = "${locations.room(prisonLocationId)} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
-
-  private fun Map<UUID, Location>.room(id: UUID) = this[id]?.description ?: ""
-
-  private fun Map<UUID, Location>.room(pa: PrisonAppointment) = this[pa.prisonLocationId]?.description ?: ""
-
-  private fun Map<UUID, Location>.prisonVideoUrl(pa: PrisonAppointment) = this[pa.prisonLocationId]?.extraAttributes?.prisonVideoUrl
+  private fun PrisonAppointment.appointmentInformation() = "$dpsLocationDescription - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Collection<BookingContact>.primaryCourtContact() = singleOrNull { it.contactType == ContactType.COURT && it.primaryContact }
 
-  private fun VideoBooking.requireIsCourtBooking() {
-    require(isBookingType(COURT)) { "Booking ID $videoBookingId is not a court booking" }
-  }
-
-  private fun VideoBooking.requireIsCancelled() {
-    require(isStatus(CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
-  }
-
-  private fun VideoBooking.fullCvpVideoUrl() = hmctsNumber?.let { "${DEFAULT_COURT_URL_PREFIX}HMCTS$it@$DEFAULT_COURT_URL_SUFFIX" } ?: videoUrl
+  private fun BookingDetails.fullCvpVideoUrl() = hmctsNumber?.let { "${DEFAULT_COURT_URL_PREFIX}HMCTS$it@$DEFAULT_COURT_URL_SUFFIX" } ?: videoLinkUrl
 }

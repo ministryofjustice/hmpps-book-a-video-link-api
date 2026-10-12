@@ -1,55 +1,22 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation
 
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntry
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
 import java.time.LocalTime
 
 class ProbationEmailFactoryTest {
-
-  private val userBookingContact = bookingContact(
-    contactType = ContactType.USER,
-    email = "user@email.com",
-    name = "Fred",
-  )
-
-  private val courtBookingContact = bookingContact(
-    contactType = ContactType.COURT,
-    email = "user@email.com",
-    name = "Fred",
-  )
-
-  private val prisonBookingContact = bookingContact(
-    contactType = ContactType.PRISON,
-    email = "user@email.com",
-    name = "Fred",
-  )
-
-  private val probationBookingContact = bookingContact(
-    contactType = ContactType.PROBATION,
-    email = "user@email.com",
-    name = "Fred",
-  )
-
   private val prisoner = prisoner(
     prisonerNumber = "123456",
     prisonCode = BIRMINGHAM,
@@ -57,20 +24,7 @@ class ProbationEmailFactoryTest {
     lastName = "Bloggs",
   )
 
-  private val prison = prison(prisonCode = WANDSWORTH)
-
-  private val courtBooking = courtBooking()
-    .addAppointment(
-      prison = prison(prisonCode = BIRMINGHAM),
-      prisonerNumber = "123456",
-      appointmentType = "VLB_COURT_MAIN",
-      date = LocalDate.of(2100, 1, 1),
-      startTime = LocalTime.of(11, 0),
-      endTime = LocalTime.of(11, 30),
-      locationId = wandsworthLocation.id,
-    )
-
-  private val probationBooking = probationBooking(notesForStaff = "Probation staff notes")
+  private val probationBooking = probationBooking(notesForStaff = "probation meeting staff notes")
     .addAppointment(
       prison = prison(prisonCode = BIRMINGHAM),
       prisonerNumber = "123456",
@@ -81,208 +35,341 @@ class ProbationEmailFactoryTest {
       locationId = wandsworthLocation.id,
     )
 
-  private val userEmails = mapOf(
-    BookingAction.CREATE to NewProbationBookingUserEmail::class.java,
-    BookingAction.AMEND to AmendedProbationBookingUserEmail::class.java,
-    BookingAction.CANCEL to CancelledProbationBookingUserEmail::class.java,
-  )
+  private val probationBookingEntity = probationBooking
+  private val probationBookingDto = probationBookingEntity.toModel(locations = setOf(wandsworthLocation.toModel()))
 
-  private val probationEmails = mapOf(
-    BookingAction.CREATE to NewProbationBookingProbationEmail::class.java,
-    BookingAction.AMEND to AmendedProbationBookingProbationEmail::class.java,
-    BookingAction.CANCEL to CancelledProbationBookingProbationEmail::class.java,
-    BookingAction.RELEASED to ReleasedProbationBookingProbationEmail::class.java,
-    BookingAction.TRANSFERRED to TransferredProbationBookingProbationEmail::class.java,
-  )
+  @Nested
+  inner class UserEmails {
+    private val userContact = bookingContact(contactType = ContactType.USER, email = "user@email.com", name = "Fred")
 
-  private val prisonEmails = mapOf(
-    BookingAction.CREATE to NewProbationBookingPrisonProbationEmail::class.java,
-    BookingAction.AMEND to AmendedProbationBookingPrisonProbationEmail::class.java,
-    BookingAction.CANCEL to CancelledProbationBookingPrisonProbationEmail::class.java,
-    BookingAction.RELEASED to ReleasedProbationBookingPrisonProbationEmail::class.java,
-    BookingAction.TRANSFERRED to TransferredProbationBookingPrisonProbationEmail::class.java,
-  )
-
-  companion object {
-    @JvmStatic
-    fun supportedUserBookingActions() = setOf(BookingAction.CREATE, BookingAction.AMEND, BookingAction.CANCEL)
-
-    @JvmStatic
-    fun supportedProbationBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED)
-
-    @JvmStatic
-    fun unsupportedUserBookingActions() = setOf(BookingAction.RELEASED, BookingAction.TRANSFERRED, BookingAction.COURT_HEARING_LINK_REMINDER)
-
-    @JvmStatic
-    fun supportedPrisonBookingActions() = setOf(BookingAction.AMEND, BookingAction.CANCEL, BookingAction.RELEASED, BookingAction.TRANSFERRED)
-
-    @JvmStatic
-    fun unsupportedProbationBookingActions() = setOf(BookingAction.COURT_HEARING_LINK_REMINDER)
-  }
-
-  @ParameterizedTest
-  @MethodSource("supportedUserBookingActions")
-  fun `should return user emails for supported user based actions with staff notes`(action: BookingAction) {
-    val email = ProbationEmailFactory.user(
-      action = action,
-      contact = userBookingContact,
-      prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL) probationBooking.apply { cancel(COURT_USER) } else probationBooking,
-      prison = prison,
-      appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation.toModel(),
-      additionalBookingDetail = null,
-    )
-
-    email isInstanceOf userEmails[action]!!
-
-    email?.personalisation()!! containsEntry Pair("comments", "Probation staff notes")
-  }
-
-  @ParameterizedTest
-  @MethodSource("unsupportedUserBookingActions")
-  fun `should return no email for unsupported user based actions`(action: BookingAction) {
-    val email = ProbationEmailFactory.user(
-      action = action,
-      contact = userBookingContact,
-      prisoner = prisoner,
-      booking = probationBooking,
-      prison = prison,
-      appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation.toModel(),
-      additionalBookingDetail = null,
-    )
-
-    email isEqualTo null
-  }
-
-  @Test
-  fun `should reject incorrect contact type for user emails`() {
-    val error = assertThrows<IllegalArgumentException> {
-      ProbationEmailFactory.user(
-        action = BookingAction.CREATE,
-        contact = prisonBookingContact,
-        prisoner = prisoner,
-        booking = probationBooking,
-        prison = prison,
-        appointment = probationBooking.appointments().single(),
-        location = birminghamLocation.toModel(),
-        additionalBookingDetail = null,
+    @Test
+    fun `should return new probation booking user email`() {
+      val email = ProbationEmailFactory.user(
+        BookingDetails.create(
+          newBooking = probationBookingDto,
+          prisoner = prisoner,
+        ),
+        userContact = userContact,
       )
+
+      email isInstanceOf NewProbationBookingUserEmail::class.java
     }
 
-    error.message isEqualTo "Incorrect contact type ${prisonBookingContact.contactType} for probation user email"
-  }
-
-  @Test
-  fun `should reject court video bookings for user emails`() {
-    val error = assertThrows<IllegalArgumentException> {
-      ProbationEmailFactory.user(
-        action = BookingAction.CREATE,
-        contact = prisonBookingContact,
-        prisoner = prisoner,
-        booking = courtBooking,
-        prison = prison,
-        appointment = courtBooking.appointments().single(),
-        location = birminghamLocation.toModel(),
-        additionalBookingDetail = null,
+    @Test
+    fun `should return rescheduled probation booking user email`() {
+      val email = ProbationEmailFactory.user(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto.copy(prisonAppointments = listOf(probationBookingDto.prisonAppointments.single().copy(appointmentDate = LocalDate.of(2099, 1, 1)))),
+        ),
+        userContact = userContact,
       )
+
+      email isInstanceOf RescheduledProbationBookingUserEmail::class.java
     }
 
-    error.message isEqualTo "Booking ID 0 is not a probation booking"
-  }
-
-  @Test
-  fun `should reject court video bookings for probation emails`() {
-    val error = assertThrows<IllegalArgumentException> {
-      ProbationEmailFactory.prison(
-        action = BookingAction.CREATE,
-        contact = prisonBookingContact,
-        prisoner = prisoner,
-        booking = courtBooking,
-        prison = prison,
-        appointment = courtBooking.appointments().single(),
-        location = birminghamLocation.toModel(),
-        contacts = emptySet(),
-        additionalBookingDetail = null,
+    @Test
+    fun `should return amended probation booking user email`() {
+      val email = ProbationEmailFactory.user(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto,
+        ),
+        userContact = userContact,
       )
+
+      email isInstanceOf AmendedProbationBookingUserEmail::class.java
     }
 
-    error.message isEqualTo "Booking ID 0 is not a probation booking"
-  }
-
-  @ParameterizedTest
-  @MethodSource("supportedProbationBookingActions")
-  fun `should return user emails for supported probation based actions with staff notes`(action: BookingAction) {
-    val email = ProbationEmailFactory.probation(
-      action = action,
-      contact = probationBookingContact,
-      prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(PROBATION_USER) } else probationBooking,
-      prison = prison,
-      appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation.toModel(),
-      additionalBookingDetail = null,
-    )
-
-    email isInstanceOf probationEmails[action]!!
-
-    email?.personalisation()!! containsEntry Pair("comments", "Probation staff notes")
-  }
-
-  @ParameterizedTest
-  @MethodSource("unsupportedProbationBookingActions")
-  fun `should return no email for unsupported probation based actions`(action: BookingAction) {
-    val email = ProbationEmailFactory.probation(
-      action = action,
-      contact = probationBookingContact,
-      prisoner = prisoner,
-      booking = probationBooking,
-      prison = prison,
-      appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation.toModel(),
-      additionalBookingDetail = null,
-    )
-
-    email isEqualTo null
-  }
-
-  @ParameterizedTest
-  @MethodSource("supportedPrisonBookingActions")
-  fun `should return prison probation emails for supported user based actions with staff notes`(action: BookingAction) {
-    val email = ProbationEmailFactory.prison(
-      action = action,
-      contact = prisonBookingContact,
-      prisoner = prisoner,
-      booking = if (action == BookingAction.CANCEL || action == BookingAction.RELEASED || action == BookingAction.TRANSFERRED) probationBooking.apply { cancel(PROBATION_USER) } else probationBooking,
-      prison = prison,
-      appointment = probationBooking.appointments().single(),
-      location = wandsworthLocation.toModel(),
-      contacts = setOf(probationBookingContact),
-      additionalBookingDetail = null,
-    )
-
-    email isInstanceOf prisonEmails[action]!!
-
-    email?.personalisation()!! containsEntry Pair("comments", "Probation staff notes")
-  }
-
-  @Test
-  fun `should reject incorrect contact type for prison probation emails`() {
-    val error = assertThrows<IllegalArgumentException> {
-      ProbationEmailFactory.prison(
-        action = BookingAction.CREATE,
-        contact = courtBookingContact,
-        prisoner = prisoner,
-        booking = probationBooking,
-        prison = prison,
-        appointment = probationBooking.appointments().single(),
-        location = birminghamLocation.toModel(),
-        contacts = emptySet(),
-        additionalBookingDetail = null,
+    @Test
+    fun `should return cancelled probation booking user email`() {
+      val email = ProbationEmailFactory.user(
+        BookingDetails.cancelled(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        userContact = userContact,
       )
+
+      email isInstanceOf CancelledProbationBookingUserEmail::class.java
+    }
+  }
+
+  @Nested
+  inner class ProbationEmails {
+    private val probationContact = bookingContact(contactType = ContactType.PROBATION, email = "probation@email.com", name = "Fred")
+
+    @Test
+    fun `should return new probation booking probation email`() {
+      val email = ProbationEmailFactory.probation(
+        BookingDetails.create(
+          newBooking = probationBookingDto,
+          prisoner = prisoner,
+        ),
+        probationContact = probationContact,
+      )
+
+      email isInstanceOf NewProbationBookingProbationEmail::class.java
     }
 
-    error.message isEqualTo "Incorrect contact type ${courtBookingContact.contactType} for prison probation email"
+    @Test
+    fun `should return rescheduled probation booking probation email`() {
+      val email = ProbationEmailFactory.probation(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto.copy(prisonAppointments = listOf(probationBookingDto.prisonAppointments.single().copy(appointmentDate = LocalDate.of(2099, 1, 1)))),
+        ),
+        probationContact = probationContact,
+      )
+
+      email isInstanceOf RescheduledProbationBookingProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return amended probation booking probation email`() {
+      val email = ProbationEmailFactory.probation(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto,
+        ),
+        probationContact = probationContact,
+      )
+
+      email isInstanceOf AmendedProbationBookingProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return cancelled probation booking probation email`() {
+      val email = ProbationEmailFactory.probation(
+        BookingDetails.cancelled(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        probationContact = probationContact,
+      )
+
+      email isInstanceOf CancelledProbationBookingProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return released probation booking probation email`() {
+      val email = ProbationEmailFactory.probation(
+        BookingDetails.released(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        probationContact = probationContact,
+      )
+
+      email isInstanceOf ReleasedProbationBookingProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return transferred probation booking probation email`() {
+      val email = ProbationEmailFactory.probation(
+        BookingDetails.transferred(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        probationContact = probationContact,
+      )
+
+      email isInstanceOf TransferredProbationBookingProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return reminder probation booking probation email`() {
+      val email = ProbationEmailFactory.probation(
+        BookingDetails.probationOfficerEmailReminder(
+          booking = probationBookingDto,
+          prisoner = prisoner,
+        ),
+        probationContact = probationContact,
+      )
+
+      email isInstanceOf ProbationOfficerDetailsReminderEmail::class.java
+    }
+  }
+
+  @Nested
+  inner class PrisonEmails {
+    private val prisonContact = bookingContact(contactType = ContactType.PRISON, email = "prison@email.com", name = "Fred")
+    private val primaryProbationContact = bookingContact(contactType = ContactType.PROBATION, email = "probation@email.com", name = "Fred")
+
+    @Test
+    fun `should return new probation booking prison email - no primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.create(
+          newBooking = probationBookingDto,
+          prisoner = prisoner,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = emptySet(),
+      )
+
+      email isInstanceOf NewProbationBookingPrisonNoProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return new probation booking prison email - primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.create(
+          newBooking = probationBookingDto,
+          prisoner = prisoner,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = setOf(primaryProbationContact),
+      )
+
+      email isInstanceOf NewProbationBookingPrisonProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return rescheduled probation booking prison email - no primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto.copy(prisonAppointments = listOf(probationBookingDto.prisonAppointments.single().copy(appointmentDate = LocalDate.of(2099, 1, 1)))),
+        ),
+        prisonContact = prisonContact,
+        probationContacts = emptySet(),
+      )
+
+      email isInstanceOf RescheduledProbationBookingPrisonNoProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return rescheduled probation booking prison email - primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto.copy(prisonAppointments = listOf(probationBookingDto.prisonAppointments.single().copy(appointmentDate = LocalDate.of(2099, 1, 1)))),
+        ),
+        prisonContact = prisonContact,
+        probationContacts = setOf(primaryProbationContact),
+      )
+
+      email isInstanceOf RescheduledProbationBookingPrisonProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return amended probation booking prison email - no primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = emptySet(),
+      )
+
+      email isInstanceOf AmendedProbationBookingPrisonNoProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return amended probation booking prison email - primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = setOf(primaryProbationContact),
+      )
+
+      email isInstanceOf AmendedProbationBookingPrisonProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return cancelled probation booking prison email - no primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.cancelled(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = emptySet(),
+      )
+
+      email isInstanceOf CancelledProbationBookingPrisonNoProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return cancelled probation booking prison email - primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.cancelled(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = setOf(primaryProbationContact),
+      )
+
+      email isInstanceOf CancelledProbationBookingPrisonProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return released probation booking prison email - no primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.released(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = emptySet(),
+      )
+
+      email isInstanceOf ReleasedProbationBookingPrisonNoProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return released probation booking prison email - primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.released(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = setOf(primaryProbationContact),
+      )
+
+      email isInstanceOf ReleasedProbationBookingPrisonProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return transferred probation booking prison email - no primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.transferred(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = emptySet(),
+      )
+
+      email isInstanceOf TransferredProbationBookingPrisonNoProbationEmail::class.java
+    }
+
+    @Test
+    fun `should return transferred probation booking prison email - primary contact`() {
+      val email = ProbationEmailFactory.prison(
+        BookingDetails.transferred(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        prisonContact = prisonContact,
+        probationContacts = setOf(primaryProbationContact),
+      )
+
+      email isInstanceOf TransferredProbationBookingPrisonProbationEmail::class.java
+    }
   }
 }

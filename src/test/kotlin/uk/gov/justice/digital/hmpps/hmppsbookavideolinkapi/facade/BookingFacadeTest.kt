@@ -9,14 +9,15 @@ import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
@@ -31,6 +32,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.court
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
@@ -45,10 +47,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appoint
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeTrackingService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ChangeType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.VideoBookingServiceDelegate
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.DomainEventType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.AvailabilityService
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingAmendedTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCancelledTelemetryEvent
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.CourtBookingCreatedTelemetryEvent
@@ -70,9 +75,9 @@ class BookingFacadeTest {
   private val availabilityService: AvailabilityService = mock()
   private val changeTrackingService: ChangeTrackingService = mock()
   private val emailFacade: EmailFacade = mock()
-  private val rescheduleEmailsFacade: RescheduleEmailsFacade = mock()
-  private val replacementEmailFacade: ReplacementEmailFacade = mock()
-  private val featureSwitches: FeatureSwitches = mock()
+  private val bookingDetailsCaptor = argumentCaptor<BookingDetails>()
+  private val userCaptor = argumentCaptor<User>()
+  private val changeTypeCaptor = argumentCaptor<ChangeType>()
 
   private val facade = BookingFacade(
     videoBookingServiceDelegate,
@@ -82,9 +87,6 @@ class BookingFacadeTest {
     availabilityService,
     changeTrackingService,
     emailFacade,
-    rescheduleEmailsFacade,
-    replacementEmailFacade,
-    featureSwitches,
   )
   private val courtBooking = courtBooking(notesForStaff = "court notes for staff")
     .addAppointment(
@@ -163,18 +165,26 @@ class BookingFacadeTest {
     fun `should send events and emails on creation of court booking by court user`() {
       val bookingRequest = courtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = courtBooking.prisoner())
 
-      whenever(videoBookingServiceDelegate.create(bookingRequest, COURT_USER)) doReturn Pair(courtBooking, prisoner(prisonerNumber = courtBooking.prisoner(), prisonCode = WANDSWORTH))
+      videoBookingServiceDelegate.stub {
+        on { create(any(), any()) } doReturn Pair(courtBooking, prisoner(prisonerNumber = courtBooking.prisoner(), prisonCode = WANDSWORTH))
+        on { getVideoBookingById(anyLong(), any()) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
+      }
 
       facade.create(bookingRequest, COURT_USER)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
         verify(videoBookingServiceDelegate).create(bookingRequest, COURT_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, courtBooking.videoBookingId)
-        verify(emailFacade).sendEmails(BookingAction.CREATE, courtBooking, prisoner(prisonerNumber = courtBooking.prisoner(), prisonCode = WANDSWORTH), COURT_USER)
+        verify(videoBookingServiceDelegate).getVideoBookingById(anyLong(), eq(COURT_USER))
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingCreatedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Create::class.java
+      userCaptor.singleValue isEqualTo COURT_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as CourtBookingCreatedTelemetryEvent) {
         properties()["created_by"] isEqualTo "court"
       }
     }
@@ -193,18 +203,25 @@ class BookingFacadeTest {
     fun `should send events and emails on creation of court booking by a prison user`() {
       val bookingRequest = courtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = courtBookingCreatedByPrison.prisoner())
 
-      whenever(videoBookingServiceDelegate.create(bookingRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(courtBookingCreatedByPrison, prisoner(prisonerNumber = courtBookingCreatedByPrison.prisoner(), prisonCode = WANDSWORTH))
+      videoBookingServiceDelegate.stub {
+        on { create(any(), any()) } doReturn Pair(courtBookingCreatedByPrison, prisoner(prisonerNumber = courtBookingCreatedByPrison.prisoner(), prisonCode = WANDSWORTH))
+        on { getVideoBookingById(anyLong(), any()) } doReturn courtBookingCreatedByPrison.toModel(setOf(wandsworthLocation.toModel()))
+      }
 
       facade.create(bookingRequest, PRISON_USER_BIRMINGHAM)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
         verify(videoBookingServiceDelegate).create(bookingRequest, PRISON_USER_BIRMINGHAM)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, courtBookingCreatedByPrison.videoBookingId)
-        verify(emailFacade).sendEmails(BookingAction.CREATE, courtBookingCreatedByPrison, prisoner(prisonerNumber = courtBookingCreatedByPrison.prisoner(), prisonCode = WANDSWORTH), PRISON_USER_BIRMINGHAM)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingCreatedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Create::class.java
+      userCaptor.singleValue isEqualTo PRISON_USER_BIRMINGHAM
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as CourtBookingCreatedTelemetryEvent) {
         properties()["created_by"] isEqualTo "prison"
       }
     }
@@ -223,25 +240,32 @@ class BookingFacadeTest {
         endTime = LocalTime.MIDNIGHT.plusHours(1),
       )
 
-      whenever(videoBookingServiceDelegate.create(request, PROBATION_USER)) doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
+      videoBookingServiceDelegate.stub {
+        on { create(any(), any()) } doReturn Pair(probationBookingAtBirminghamPrison, prisoner(prisoner))
+        on { getVideoBookingById(anyLong(), any()) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
+      }
 
       facade.create(request, PROBATION_USER)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
         verify(videoBookingServiceDelegate).create(request, PROBATION_USER)
         verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, probationBookingAtBirminghamPrison.videoBookingId)
-        verify(emailFacade).sendEmails(BookingAction.CREATE, probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName), PROBATION_USER)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingCreatedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Create::class.java
+      userCaptor.singleValue isEqualTo PROBATION_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingCreatedTelemetryEvent) {
         properties()["created_by"] isEqualTo "probation"
       }
     }
 
     @Test
     fun `should send events and emails on creation of probation booking by prison user`() {
-      val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
+      val prisoner = Prisoner(probationBookingAtBirminghamPrisonCreatedByPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
 
       whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
 
@@ -253,18 +277,25 @@ class BookingFacadeTest {
         endTime = LocalTime.MIDNIGHT.plusHours(1),
       )
 
-      whenever(videoBookingServiceDelegate.create(request, PRISON_USER_BIRMINGHAM)) doReturn Pair(probationBookingAtBirminghamPrisonCreatedByPrison, prisoner(prisonCode = prisoner.prisonId, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName))
+      videoBookingServiceDelegate.stub {
+        on { create(any(), any()) } doReturn Pair(probationBookingAtBirminghamPrisonCreatedByPrison, prisoner(prisoner))
+        on { getVideoBookingById(anyLong(), any()) } doReturn probationBookingAtBirminghamPrisonCreatedByPrison.toModel(setOf(birminghamLocation.toModel()))
+      }
 
       facade.create(request, PRISON_USER_BIRMINGHAM)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
         verify(videoBookingServiceDelegate).create(request, PRISON_USER_BIRMINGHAM)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, probationBookingAtBirminghamPrison.videoBookingId)
-        verify(emailFacade).sendEmails(BookingAction.CREATE, probationBookingAtBirminghamPrisonCreatedByPrison, prisoner(prisonCode = prisoner.prisonId, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName), PRISON_USER_BIRMINGHAM)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CREATED, probationBookingAtBirminghamPrisonCreatedByPrison.videoBookingId)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingCreatedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Create::class.java
+      userCaptor.singleValue isEqualTo PRISON_USER_BIRMINGHAM
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingCreatedTelemetryEvent) {
         properties()["created_by"] isEqualTo "prison"
       }
     }
@@ -287,19 +318,27 @@ class BookingFacadeTest {
     fun `should send events and emails on cancellation of court booking by court user`() {
       val prisoner = Prisoner(courtBooking.prisoner(), WANDSWORTH, "Bob", "Builder", yesterday())
 
-      whenever(videoBookingServiceDelegate.cancel(1, COURT_USER)) doReturn courtBooking.cancel(COURT_USER)
-      whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
-
-      facade.cancel(1, COURT_USER)
-
-      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, COURT_USER)
-        verify(emailFacade).sendEmails(BookingAction.CANCEL, courtBooking, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), COURT_USER)
-        verify(telemetryService).track(telemetryCaptor.capture())
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
+      videoBookingServiceDelegate.stub {
+        on { cancel(courtBooking.videoBookingId, COURT_USER) } doReturn courtBooking.cancel(COURT_USER)
+        on { getVideoBookingById(courtBooking.videoBookingId, COURT_USER) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+      whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+
+      facade.cancel(courtBooking.videoBookingId, COURT_USER)
+
+      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
+        verify(videoBookingServiceDelegate).cancel(courtBooking.videoBookingId, COURT_USER)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+      }
+
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Cancelled::class.java
+      userCaptor.singleValue isEqualTo COURT_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as CourtBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "court"
       }
     }
@@ -308,19 +347,27 @@ class BookingFacadeTest {
     fun `should send events and emails on cancellation of court booking by prison user`() {
       val prisoner = Prisoner(courtBooking.prisoner(), WANDSWORTH, "Bob", "Builder", yesterday())
 
-      whenever(videoBookingServiceDelegate.cancel(1, PRISON_USER_BIRMINGHAM)) doReturn courtBooking.cancel(PRISON_USER_BIRMINGHAM)
-      whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
-
-      facade.cancel(1, PRISON_USER_BIRMINGHAM)
-
-      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, PRISON_USER_BIRMINGHAM)
-        verify(emailFacade).sendEmails(BookingAction.CANCEL, courtBooking, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), PRISON_USER_BIRMINGHAM)
-        verify(telemetryService).track(telemetryCaptor.capture())
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
+      videoBookingServiceDelegate.stub {
+        on { cancel(courtBooking.videoBookingId, PRISON_USER_BIRMINGHAM) } doReturn courtBooking.cancel(PRISON_USER_BIRMINGHAM)
+        on { getVideoBookingById(courtBooking.videoBookingId, PRISON_USER_BIRMINGHAM) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+      whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
+
+      facade.cancel(courtBooking.videoBookingId, PRISON_USER_BIRMINGHAM)
+
+      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
+        verify(videoBookingServiceDelegate).cancel(courtBooking.videoBookingId, PRISON_USER_BIRMINGHAM)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+      }
+
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Cancelled::class.java
+      userCaptor.singleValue isEqualTo PRISON_USER_BIRMINGHAM
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as CourtBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "prison"
       }
     }
@@ -329,20 +376,28 @@ class BookingFacadeTest {
     fun `should send emails but no events on cancellation of a court booking by service user`() {
       val prisoner = Prisoner(courtBooking.prisoner(), WANDSWORTH, "Bob", "Builder", yesterday())
 
-      whenever(videoBookingServiceDelegate.cancel(1, SERVICE_USER)) doReturn courtBooking.cancel(SERVICE_USER)
+      videoBookingServiceDelegate.stub {
+        on { cancel(courtBooking.videoBookingId, SERVICE_USER) } doReturn courtBooking.cancel(SERVICE_USER)
+        on { getVideoBookingById(courtBooking.videoBookingId, SERVICE_USER) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
+      }
+
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
 
-      facade.cancel(1, SERVICE_USER)
+      facade.cancel(courtBooking.videoBookingId, SERVICE_USER)
 
       inOrder(videoBookingServiceDelegate, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, SERVICE_USER)
-        verify(emailFacade).sendEmails(BookingAction.CANCEL, courtBooking, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), SERVICE_USER)
+        verify(videoBookingServiceDelegate).cancel(courtBooking.videoBookingId, SERVICE_USER)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Cancelled::class.java
+      userCaptor.singleValue isEqualTo SERVICE_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
       verifyNoInteractions(outboundEventsService)
 
-      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+      with(telemetryCaptor.singleValue as CourtBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "prison"
       }
     }
@@ -351,19 +406,27 @@ class BookingFacadeTest {
     fun `should send events and emails on cancellation of probation booking by probation user`() {
       val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
 
-      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
-      whenever(videoBookingServiceDelegate.cancel(1, PROBATION_USER)) doReturn probationBookingAtBirminghamPrison.cancel(PROBATION_USER)
-
-      facade.cancel(1, PROBATION_USER)
-
-      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, PROBATION_USER)
-        verify(emailFacade).sendEmails(BookingAction.CANCEL, probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), PROBATION_USER)
-        verify(telemetryService).track(telemetryCaptor.capture())
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
+      videoBookingServiceDelegate.stub {
+        on { cancel(probationBookingAtBirminghamPrison.videoBookingId, PROBATION_USER) } doReturn probationBookingAtBirminghamPrison.cancel(PROBATION_USER)
+        on { getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, PROBATION_USER) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+
+      facade.cancel(probationBookingAtBirminghamPrison.videoBookingId, PROBATION_USER)
+
+      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
+        verify(videoBookingServiceDelegate).cancel(probationBookingAtBirminghamPrison.videoBookingId, PROBATION_USER)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, probationBookingAtBirminghamPrison.videoBookingId)
+      }
+
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Cancelled::class.java
+      userCaptor.singleValue isEqualTo PROBATION_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "probation"
       }
     }
@@ -372,19 +435,27 @@ class BookingFacadeTest {
     fun `should send events and emails on cancellation of probation booking by Delius probation user`() {
       val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
 
-      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
-      whenever(videoBookingServiceDelegate.cancel(1, DELIUS_PROBATION_USER)) doReturn probationBookingAtBirminghamPrison.cancel(DELIUS_PROBATION_USER)
-
-      facade.cancel(1, DELIUS_PROBATION_USER)
-
-      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, DELIUS_PROBATION_USER)
-        verify(emailFacade).sendEmails(BookingAction.CANCEL, probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), DELIUS_PROBATION_USER)
-        verify(telemetryService).track(telemetryCaptor.capture())
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
+      videoBookingServiceDelegate.stub {
+        on { cancel(probationBookingAtBirminghamPrison.videoBookingId, DELIUS_PROBATION_USER) } doReturn probationBookingAtBirminghamPrison.cancel(DELIUS_PROBATION_USER)
+        on { getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, DELIUS_PROBATION_USER) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+
+      facade.cancel(probationBookingAtBirminghamPrison.videoBookingId, DELIUS_PROBATION_USER)
+
+      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
+        verify(videoBookingServiceDelegate).cancel(probationBookingAtBirminghamPrison.videoBookingId, DELIUS_PROBATION_USER)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, probationBookingAtBirminghamPrison.videoBookingId)
+      }
+
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Cancelled::class.java
+      userCaptor.singleValue isEqualTo DELIUS_PROBATION_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "probation"
       }
     }
@@ -393,19 +464,27 @@ class BookingFacadeTest {
     fun `should send events and emails on cancellation of probation booking by prison user`() {
       val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
 
-      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
-      whenever(videoBookingServiceDelegate.cancel(1, PRISON_USER_BIRMINGHAM)) doReturn probationBookingAtBirminghamPrison.apply { cancel(PRISON_USER_BIRMINGHAM) }
-
-      facade.cancel(1, PRISON_USER_BIRMINGHAM)
-
-      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, PRISON_USER_BIRMINGHAM)
-        verify(emailFacade).sendEmails(BookingAction.CANCEL, probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), PRISON_USER_BIRMINGHAM)
-        verify(telemetryService).track(telemetryCaptor.capture())
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
+      videoBookingServiceDelegate.stub {
+        on { cancel(probationBookingAtBirminghamPrison.videoBookingId, PRISON_USER_BIRMINGHAM) } doReturn probationBookingAtBirminghamPrison.cancel(PRISON_USER_BIRMINGHAM)
+        on { getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, PRISON_USER_BIRMINGHAM) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+
+      facade.cancel(probationBookingAtBirminghamPrison.videoBookingId, PRISON_USER_BIRMINGHAM)
+
+      inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
+        verify(videoBookingServiceDelegate).cancel(probationBookingAtBirminghamPrison.videoBookingId, PRISON_USER_BIRMINGHAM)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
+        verify(telemetryService).track(telemetryCaptor.capture())
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, probationBookingAtBirminghamPrison.videoBookingId)
+      }
+
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Cancelled::class.java
+      userCaptor.singleValue isEqualTo PRISON_USER_BIRMINGHAM
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "prison"
       }
     }
@@ -414,20 +493,28 @@ class BookingFacadeTest {
     fun `should send emails but no events on cancellation of a probation booking by service user`() {
       val prisoner = Prisoner(probationBookingAtBirminghamPrison.prisoner(), BIRMINGHAM, "Bob", "Builder", yesterday())
 
-      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
-      whenever(videoBookingServiceDelegate.cancel(1, SERVICE_USER)) doReturn probationBookingAtBirminghamPrison.cancel(SERVICE_USER)
+      videoBookingServiceDelegate.stub {
+        on { cancel(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER) } doReturn probationBookingAtBirminghamPrison.cancel(SERVICE_USER)
+        on { getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
+      }
 
-      facade.cancel(1, SERVICE_USER)
+      whenever(prisonerSearchClient.getPrisoner(prisoner.prisonerNumber)) doReturn prisoner
+
+      facade.cancel(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER)
 
       inOrder(videoBookingServiceDelegate, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, SERVICE_USER)
-        verify(emailFacade).sendEmails(BookingAction.CANCEL, probationBookingAtBirminghamPrison, prisoner(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, firstName = prisoner.firstName, lastName = prisoner.lastName).copy(dateOfBirth = prisoner.dateOfBirth), SERVICE_USER)
+        verify(videoBookingServiceDelegate).cancel(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Cancelled::class.java
+      userCaptor.singleValue isEqualTo SERVICE_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
       verifyNoInteractions(outboundEventsService)
 
-      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+      with(telemetryCaptor.singleValue as ProbationBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "prison"
       }
     }
@@ -442,7 +529,7 @@ class BookingFacadeTest {
 
       whenever(
         videoBookingServiceDelegate.amend(
-          1,
+          courtBooking.videoBookingId,
           bookingRequest,
           COURT_USER,
         ),
@@ -453,16 +540,21 @@ class BookingFacadeTest {
         },
         prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH),
       )
+      whenever { videoBookingServiceDelegate.getVideoBookingById(courtBooking.videoBookingId, COURT_USER) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
 
-      facade.amend(1, bookingRequest, COURT_USER)
+      facade.amend(courtBooking.videoBookingId, bookingRequest, COURT_USER)
 
       inOrder(videoBookingServiceDelegate, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).amend(1, bookingRequest, COURT_USER)
-        verify(emailFacade).sendEmails(BookingAction.AMEND, courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH), COURT_USER)
+        verify(videoBookingServiceDelegate).amend(courtBooking.videoBookingId, bookingRequest, COURT_USER)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingAmendedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Amended::class.java
+      userCaptor.singleValue isEqualTo COURT_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as CourtBookingAmendedTelemetryEvent) {
         properties()["amended_by"] isEqualTo "court"
       }
     }
@@ -481,7 +573,7 @@ class BookingFacadeTest {
     fun `should send events and emails on amendment of court booking by prison user`() {
       val bookingRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
 
-      whenever(videoBookingServiceDelegate.amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)) doReturn
+      whenever(videoBookingServiceDelegate.amend(courtBooking.videoBookingId, bookingRequest, PRISON_USER_BIRMINGHAM)) doReturn
         Pair(
           courtBooking.apply {
             amendedTime = now()
@@ -489,16 +581,21 @@ class BookingFacadeTest {
           },
           prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH),
         )
+      whenever { videoBookingServiceDelegate.getVideoBookingById(courtBooking.videoBookingId, PRISON_USER_BIRMINGHAM) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
 
-      facade.amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)
+      facade.amend(courtBooking.videoBookingId, bookingRequest, PRISON_USER_BIRMINGHAM)
 
       inOrder(videoBookingServiceDelegate, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).amend(1, bookingRequest, PRISON_USER_BIRMINGHAM)
-        verify(emailFacade).sendEmails(BookingAction.AMEND, courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH), PRISON_USER_BIRMINGHAM)
+        verify(videoBookingServiceDelegate).amend(courtBooking.videoBookingId, bookingRequest, PRISON_USER_BIRMINGHAM)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingAmendedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Amended::class.java
+      userCaptor.singleValue isEqualTo PRISON_USER_BIRMINGHAM
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as CourtBookingAmendedTelemetryEvent) {
         properties()["amended_by"] isEqualTo "prison"
       }
     }
@@ -507,7 +604,7 @@ class BookingFacadeTest {
     fun `should send events and reduced emails on amendment of court booking by prison user`() {
       val amendRequest = amendCourtBookingRequest(prisonCode = WANDSWORTH, prisonerNumber = "123456")
 
-      whenever(videoBookingServiceDelegate.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn
+      whenever(videoBookingServiceDelegate.amend(courtBooking.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn
         Pair(
           courtBooking.apply {
             amendedTime = now()
@@ -515,18 +612,22 @@ class BookingFacadeTest {
           },
           prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH),
         )
+      whenever { videoBookingServiceDelegate.getVideoBookingById(courtBooking.videoBookingId, PRISON_USER_BIRMINGHAM) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
+      whenever(changeTrackingService.determineChangeType(courtBooking.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn ChangeType.PRISON
 
-      whenever(changeTrackingService.determineChangeType(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn ChangeType.PRISON
-
-      facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+      facade.amend(courtBooking.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)
 
       inOrder(videoBookingServiceDelegate, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
-        verify(emailFacade).sendEmails(BookingAction.AMEND, courtBooking, prisoner(prisonerNumber = "123456", prisonCode = WANDSWORTH), PRISON_USER_BIRMINGHAM, ChangeType.PRISON)
+        verify(videoBookingServiceDelegate).amend(courtBooking.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingAmendedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Amended::class.java
+      userCaptor.singleValue isEqualTo PRISON_USER_BIRMINGHAM
+      changeTypeCaptor.singleValue isEqualTo ChangeType.PRISON
+
+      with(telemetryCaptor.singleValue as CourtBookingAmendedTelemetryEvent) {
         properties()["amended_by"] isEqualTo "prison"
       }
     }
@@ -539,24 +640,29 @@ class BookingFacadeTest {
 
       val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
 
-      whenever(videoBookingServiceDelegate.amend(1, amendRequest, PROBATION_USER)) doReturn Pair(
+      whenever(videoBookingServiceDelegate.amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PROBATION_USER)) doReturn Pair(
         probationBookingAtBirminghamPrison.apply {
           amendedTime = now()
           amendedBy = PROBATION_USER.username
         },
         prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId),
       )
+      whenever { videoBookingServiceDelegate.getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, PROBATION_USER) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
 
-      facade.amend(1, amendRequest, PROBATION_USER)
+      facade.amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PROBATION_USER)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).amend(1, amendRequest, PROBATION_USER)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
-        verify(emailFacade).sendEmails(BookingAction.AMEND, probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId), PROBATION_USER)
+        verify(videoBookingServiceDelegate).amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PROBATION_USER)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, probationBookingAtBirminghamPrison.videoBookingId)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingAmendedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Amended::class.java
+      userCaptor.singleValue isEqualTo PROBATION_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingAmendedTelemetryEvent) {
         properties()["amended_by"] isEqualTo "probation"
       }
     }
@@ -569,24 +675,29 @@ class BookingFacadeTest {
 
       val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
 
-      whenever(videoBookingServiceDelegate.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(
+      whenever(videoBookingServiceDelegate.amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(
         probationBookingAtBirminghamPrison.apply {
           amendedTime = now()
           amendedBy = PRISON_USER_BIRMINGHAM.username
         },
         prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId),
       )
+      whenever { videoBookingServiceDelegate.getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, PRISON_USER_BIRMINGHAM) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
 
-      facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+      facade.amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
-        verify(emailFacade).sendEmails(BookingAction.AMEND, probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId), PRISON_USER_BIRMINGHAM)
+        verify(videoBookingServiceDelegate).amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, probationBookingAtBirminghamPrison.videoBookingId)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingAmendedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Amended::class.java
+      userCaptor.singleValue isEqualTo PRISON_USER_BIRMINGHAM
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingAmendedTelemetryEvent) {
         properties()["amended_by"] isEqualTo "prison"
       }
     }
@@ -636,25 +747,30 @@ class BookingFacadeTest {
 
       val amendRequest = amendProbationBookingRequest(prisonCode = prisoner.prisonId!!, prisonerNumber = prisoner.prisonerNumber, appointmentDate = tomorrow())
 
-      whenever(videoBookingServiceDelegate.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(
+      whenever(videoBookingServiceDelegate.amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn Pair(
         probationBookingAtBirminghamPrison.apply {
           amendedTime = now()
           amendedBy = PRISON_USER_BIRMINGHAM.username
         },
         prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId),
       )
-      whenever(changeTrackingService.determineChangeType(1, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn ChangeType.PRISON
+      whenever { videoBookingServiceDelegate.getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, PRISON_USER_BIRMINGHAM) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
+      whenever(changeTrackingService.determineChangeType(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)) doReturn ChangeType.PRISON
 
-      facade.amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
+      facade.amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).amend(1, amendRequest, PRISON_USER_BIRMINGHAM)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, 1)
-        verify(emailFacade).sendEmails(BookingAction.AMEND, probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId), PRISON_USER_BIRMINGHAM, ChangeType.PRISON)
+        verify(videoBookingServiceDelegate).amend(probationBookingAtBirminghamPrison.videoBookingId, amendRequest, PRISON_USER_BIRMINGHAM)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_AMENDED, probationBookingAtBirminghamPrison.videoBookingId)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingAmendedTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Amended::class.java
+      userCaptor.singleValue isEqualTo PRISON_USER_BIRMINGHAM
+      changeTypeCaptor.singleValue isEqualTo ChangeType.PRISON
+
+      with(telemetryCaptor.singleValue as ProbationBookingAmendedTelemetryEvent) {
         properties()["amended_by"] isEqualTo "prison"
       }
     }
@@ -674,19 +790,24 @@ class BookingFacadeTest {
         lastPrisonId = WANDSWORTH,
       )
 
-      whenever(videoBookingServiceDelegate.cancel(1, SERVICE_USER)) doReturn courtBooking.cancel(SERVICE_USER)
+      whenever(videoBookingServiceDelegate.cancel(courtBooking.videoBookingId, SERVICE_USER)) doReturn courtBooking.cancel(SERVICE_USER)
+      whenever { videoBookingServiceDelegate.getVideoBookingById(courtBooking.videoBookingId, SERVICE_USER) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
 
-      facade.prisonerTransferred(1, SERVICE_USER)
+      facade.prisonerTransferred(courtBooking.videoBookingId, SERVICE_USER)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, SERVICE_USER)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
-        verify(emailFacade).sendEmails(BookingAction.TRANSFERRED, courtBooking, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.lastPrisonId!!).copy(dateOfBirth = prisoner.dateOfBirth), SERVICE_USER)
+        verify(videoBookingServiceDelegate).cancel(courtBooking.videoBookingId, SERVICE_USER)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Transferred::class.java
+      userCaptor.singleValue isEqualTo SERVICE_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as CourtBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "transfer"
       }
     }
@@ -702,19 +823,24 @@ class BookingFacadeTest {
         lastPrisonId = WANDSWORTH,
       )
 
-      whenever(videoBookingServiceDelegate.cancel(1, SERVICE_USER)) doReturn probationBookingAtBirminghamPrison.apply { cancel(SERVICE_USER) }
+      whenever(videoBookingServiceDelegate.cancel(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER)) doReturn probationBookingAtBirminghamPrison.apply { cancel(SERVICE_USER) }
+      whenever { videoBookingServiceDelegate.getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
       whenever(prisonerSearchClient.getPrisoner(probationBookingAtBirminghamPrison.prisoner())) doReturn prisoner
 
-      facade.prisonerTransferred(1, SERVICE_USER)
+      facade.prisonerTransferred(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, SERVICE_USER)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
-        verify(emailFacade).sendEmails(BookingAction.TRANSFERRED, probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.lastPrisonId!!).copy(dateOfBirth = prisoner.dateOfBirth), SERVICE_USER)
+        verify(videoBookingServiceDelegate).cancel(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, probationBookingAtBirminghamPrison.videoBookingId)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Transferred::class.java
+      userCaptor.singleValue isEqualTo SERVICE_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "transfer"
       }
     }
@@ -734,19 +860,24 @@ class BookingFacadeTest {
         lastPrisonId = WANDSWORTH,
       )
 
-      whenever(videoBookingServiceDelegate.cancel(1, SERVICE_USER)) doReturn courtBooking.apply { cancel(SERVICE_USER) }
+      whenever(videoBookingServiceDelegate.cancel(courtBooking.videoBookingId, SERVICE_USER)) doReturn courtBooking.apply { cancel(SERVICE_USER) }
+      whenever { videoBookingServiceDelegate.getVideoBookingById(courtBooking.videoBookingId, SERVICE_USER) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
 
-      facade.prisonerReleased(1, SERVICE_USER)
+      facade.prisonerReleased(courtBooking.videoBookingId, SERVICE_USER)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, SERVICE_USER)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
-        verify(emailFacade).sendEmails(BookingAction.RELEASED, courtBooking, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.lastPrisonId!!).copy(dateOfBirth = prisoner.dateOfBirth), SERVICE_USER)
+        verify(videoBookingServiceDelegate).cancel(courtBooking.videoBookingId, SERVICE_USER)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, courtBooking.videoBookingId)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as CourtBookingCancelledTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Released::class.java
+      userCaptor.singleValue isEqualTo SERVICE_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as CourtBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "release"
       }
     }
@@ -762,19 +893,24 @@ class BookingFacadeTest {
         lastPrisonId = WANDSWORTH,
       )
 
-      whenever(videoBookingServiceDelegate.cancel(1, SERVICE_USER)) doReturn probationBookingAtBirminghamPrison.apply { cancel(SERVICE_USER) }
+      whenever(videoBookingServiceDelegate.cancel(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER)) doReturn probationBookingAtBirminghamPrison.apply { cancel(SERVICE_USER) }
+      whenever { videoBookingServiceDelegate.getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
       whenever(prisonerSearchClient.getPrisoner(probationBookingAtBirminghamPrison.prisoner())) doReturn prisoner
 
-      facade.prisonerReleased(1, SERVICE_USER)
+      facade.prisonerReleased(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER)
 
       inOrder(videoBookingServiceDelegate, outboundEventsService, emailFacade, telemetryService) {
-        verify(videoBookingServiceDelegate).cancel(1, SERVICE_USER)
-        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, 1)
-        verify(emailFacade).sendEmails(BookingAction.RELEASED, probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.lastPrisonId!!).copy(dateOfBirth = prisoner.dateOfBirth), SERVICE_USER)
+        verify(videoBookingServiceDelegate).cancel(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER)
+        verify(outboundEventsService).send(DomainEventType.VIDEO_BOOKING_CANCELLED, probationBookingAtBirminghamPrison.videoBookingId)
+        verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
         verify(telemetryService).track(telemetryCaptor.capture())
       }
 
-      with(telemetryCaptor.firstValue as ProbationBookingCancelledTelemetryEvent) {
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.Released::class.java
+      userCaptor.singleValue isEqualTo SERVICE_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
+
+      with(telemetryCaptor.singleValue as ProbationBookingCancelledTelemetryEvent) {
         properties()["cancelled_by"] isEqualTo "release"
       }
     }
@@ -805,10 +941,15 @@ class BookingFacadeTest {
         lastPrisonId = WANDSWORTH,
       )
 
+      whenever { videoBookingServiceDelegate.getVideoBookingById(courtBooking.videoBookingId, SERVICE_USER) } doReturn courtBooking.toModel(setOf(wandsworthLocation.toModel()))
       whenever(prisonerSearchClient.getPrisoner(courtBooking.prisoner())) doReturn prisoner
 
       facade.courtHearingLinkReminder(courtBooking, SERVICE_USER)
-      verify(emailFacade).sendEmails(BookingAction.COURT_HEARING_LINK_REMINDER, courtBooking, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!).copy(dateOfBirth = prisoner.dateOfBirth), SERVICE_USER)
+      verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
+
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.CourtHearingLinkReminder::class.java
+      userCaptor.singleValue isEqualTo SERVICE_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
     }
 
     @Test
@@ -850,10 +991,15 @@ class BookingFacadeTest {
         lastPrisonId = BIRMINGHAM,
       )
 
+      whenever { videoBookingServiceDelegate.getVideoBookingById(probationBookingAtBirminghamPrison.videoBookingId, SERVICE_USER) } doReturn probationBookingAtBirminghamPrison.toModel(setOf(birminghamLocation.toModel()))
       whenever(prisonerSearchClient.getPrisoner(probationBookingAtBirminghamPrison.prisoner())) doReturn prisoner
 
       facade.sendProbationOfficerDetailsReminder(probationBookingAtBirminghamPrison, SERVICE_USER)
-      verify(emailFacade).sendEmails(BookingAction.PROBATION_OFFICER_DETAILS_REMINDER, probationBookingAtBirminghamPrison, prisoner(prisonerNumber = prisoner.prisonerNumber, prisonCode = prisoner.prisonId!!).copy(dateOfBirth = prisoner.dateOfBirth), SERVICE_USER)
+      verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
+
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.ProbationOfficerEmailReminder::class.java
+      userCaptor.singleValue isEqualTo SERVICE_USER
+      changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
     }
 
     @Test
