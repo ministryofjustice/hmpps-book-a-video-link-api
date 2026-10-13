@@ -36,7 +36,6 @@ generic-service:
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   businessHoursOnly: true
-  alertSeverity: hmpps-book-a-video-link-preprod
   sqsOldestAlertQueueNames:
     - "hmpps-book-a-video-link-preprod-hmpps_book_a_video_link_domain_queue"
   sqsNumberAlertQueueNames:
