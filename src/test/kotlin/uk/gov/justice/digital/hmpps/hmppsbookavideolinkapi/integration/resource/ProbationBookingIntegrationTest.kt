@@ -555,6 +555,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should amend existing probation booking notes as an external probation user`() {
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+    stubUser(PRISON_USER_WANDSWORTH)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,

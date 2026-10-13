@@ -39,7 +39,7 @@ class ChangeTrackingService(
     when {
       cb1 == cb2 -> return ChangeType.NONE
       // All changes by external users are currently considered global.
-      amendedBy is ExternalUser -> return ChangeType.GLOBAL
+      amendedBy is ExternalUser || amendedBy is DeliusUser -> return ChangeType.GLOBAL
     }
 
     // This is considered a change by a prison user at this point.

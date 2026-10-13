@@ -2,88 +2,98 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.proba
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AdditionalBookingDetail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.StatusCode.CANCELLED
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.PrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 
 object ProbationEmailFactory {
-  fun user(
-    contact: BookingContact,
-    prisoner: Prisoner,
-    booking: VideoBooking,
-    prison: Prison,
-    appointment: PrisonAppointment,
-    location: Location,
-    action: BookingAction,
-    additionalBookingDetail: AdditionalBookingDetail?,
-  ): VideoBookingEmail? {
-    booking.requireIsProbationBooking()
-
-    require(contact.contactType == ContactType.USER) {
-      "Incorrect contact type ${contact.contactType} for probation user email"
+  fun user(bookingDetails: BookingDetails, userContact: BookingContact): VideoBookingEmail? {
+    require(bookingDetails.bookingType == BookingType.PROBATION) {
+      "Incorrect booking type ${bookingDetails.bookingType} for probation user email"
     }
 
-    return when (action) {
-      BookingAction.CREATE -> NewProbationBookingUserEmail(
-        address = contact.email!!,
-        prisonerNumber = prisoner.prisonerNumber,
-        userName = contact.name ?: "Book Video",
-        probationTeam = booking.probationTeam!!.description,
-        appointmentDate = appointment.appointmentDate,
-        appointmentInfo = appointment.appointmentInformation(location),
-        comments = booking.notesForStaff,
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prison = prison.name,
-        prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-        probationOfficerName = additionalBookingDetail?.contactName,
-        probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-        probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
+    require(userContact.contactType == ContactType.USER) {
+      "Incorrect contact type ${userContact.contactType} for probation user email"
+    }
+
+    val mainMeeting = bookingDetails.mainMeeting!!
+
+    return when (bookingDetails) {
+      is BookingDetails.Create -> NewProbationBookingUserEmail(
+        address = userContact.email!!,
+        prisonerNumber = bookingDetails.prisonerNumber,
+        userName = userContact.name ?: "Book Video",
+        probationTeam = bookingDetails.probationTeamDescription!!,
+        appointmentDate = mainMeeting.appointmentDate,
+        appointmentInfo = mainMeeting.appointmentInformation(),
+        comments = bookingDetails.notesForStaff,
+        prisonerFirstName = bookingDetails.prisonerFirstName,
+        prisonerLastName = bookingDetails.prisonerLastName,
+        prison = bookingDetails.prisonName,
+        prisonVideoUrl = mainMeeting.prisonVideoUrl,
+        probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+        probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+        probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
       )
 
-      BookingAction.AMEND -> AmendedProbationBookingUserEmail(
-        address = contact.email!!,
-        prisonerNumber = prisoner.prisonerNumber,
-        userName = contact.name ?: "Book Video",
-        probationTeam = booking.probationTeam!!.description,
-        appointmentDate = appointment.appointmentDate,
-        appointmentInfo = appointment.appointmentInformation(location),
-        comments = booking.notesForStaff,
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prison = prison.name,
-        prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-        probationOfficerName = additionalBookingDetail?.contactName,
-        probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-        probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-      )
+      is BookingDetails.Amended -> {
+        if (bookingDetails.isRescheduled()) {
+          RescheduledProbationBookingUserEmail(
+            address = userContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            userName = userContact.name ?: "Book Video",
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            appointmentDate = mainMeeting.appointmentDate,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prison = bookingDetails.prisonName,
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            oldAppointmentDate = bookingDetails.oldMainMeeting!!.appointmentDate,
+            oldAppointmentInfo = bookingDetails.oldMainMeeting.appointmentInformation(),
+          )
+        } else {
+          AmendedProbationBookingUserEmail(
+            address = userContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            userName = userContact.name ?: "Book Video",
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            appointmentDate = mainMeeting.appointmentDate,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prison = bookingDetails.prisonName,
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+          )
+        }
+      }
 
-      BookingAction.CANCEL -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Cancelled -> {
         CancelledProbationBookingUserEmail(
-          address = contact.email!!,
-          userName = contact.name!!,
-          prisonerNumber = prisoner.prisonerNumber,
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          prison = prison.name,
-          probationTeam = booking.probationTeam!!.description,
-          appointmentDate = appointment.appointmentDate,
-          appointmentInfo = appointment.appointmentInformation(location),
-          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-          probationOfficerName = additionalBookingDetail?.contactName,
-          probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-          probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          comments = booking.notesForStaff,
+          address = userContact.email!!,
+          userName = userContact.name!!,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prison = bookingDetails.prisonName,
+          probationTeam = bookingDetails.probationTeamDescription!!,
+          appointmentDate = mainMeeting.appointmentDate,
+          appointmentInfo = mainMeeting.appointmentInformation(),
+          prisonVideoUrl = mainMeeting.prisonVideoUrl,
+          probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+          probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+          probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+          comments = bookingDetails.notesForStaff,
         )
       }
 
@@ -91,131 +101,138 @@ object ProbationEmailFactory {
     }
   }
 
-  fun probation(
-    contact: BookingContact,
-    prisoner: Prisoner,
-    booking: VideoBooking,
-    prison: Prison,
-    appointment: PrisonAppointment,
-    location: Location,
-    action: BookingAction,
-    additionalBookingDetail: AdditionalBookingDetail?,
-  ): VideoBookingEmail? {
-    booking.requireIsProbationBooking()
-
-    require(contact.contactType == ContactType.PROBATION) {
-      "Incorrect contact type ${contact.contactType} for probation probation email"
+  fun probation(bookingDetails: BookingDetails, probationContact: BookingContact): VideoBookingEmail? {
+    require(probationContact.contactType == ContactType.PROBATION) {
+      "Incorrect contact type ${probationContact.contactType} for probation probation email"
     }
 
-    return when (action) {
-      BookingAction.CREATE -> NewProbationBookingProbationEmail(
-        address = contact.email!!,
-        prisonerNumber = prisoner.prisonerNumber,
-        probationTeam = booking.probationTeam!!.description,
-        appointmentDate = appointment.appointmentDate,
-        appointmentInfo = appointment.appointmentInformation(location),
-        comments = booking.notesForStaff,
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        prison = prison.name,
-        prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-        probationOfficerName = additionalBookingDetail?.contactName,
-        probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-        probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
+    val mainMeeting = bookingDetails.mainMeeting!!
+
+    return when (bookingDetails) {
+      is BookingDetails.Create -> NewProbationBookingProbationEmail(
+        address = probationContact.email!!,
+        prisonerNumber = bookingDetails.prisonerNumber,
+        probationTeam = bookingDetails.probationTeamDescription!!,
+        appointmentDate = mainMeeting.appointmentDate,
+        appointmentInfo = mainMeeting.appointmentInformation(),
+        comments = bookingDetails.notesForStaff,
+        prisonerFirstName = bookingDetails.prisonerFirstName,
+        prisonerLastName = bookingDetails.prisonerLastName,
+        prison = bookingDetails.prisonName,
+        prisonVideoUrl = mainMeeting.prisonVideoUrl,
+        probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+        probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+        probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
       )
 
-      BookingAction.AMEND -> AmendedProbationBookingProbationEmail(
-        address = contact.email!!,
-        prisonerNumber = prisoner.prisonerNumber,
-        prisonerFirstName = prisoner.firstName,
-        prisonerLastName = prisoner.lastName,
-        appointmentDate = appointment.appointmentDate,
-        probationTeam = booking.probationTeam!!.description,
-        comments = booking.notesForStaff,
-        appointmentInfo = appointment.appointmentInformation(location),
-        prison = prison.name,
-        prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-        probationOfficerName = additionalBookingDetail?.contactName,
-        probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-        probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-      )
+      is BookingDetails.Amended -> {
+        if (bookingDetails.isRescheduled()) {
+          RescheduledProbationBookingProbationEmail(
+            address = probationContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            appointmentDate = mainMeeting.appointmentDate,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            comments = bookingDetails.notesForStaff,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            prison = bookingDetails.prisonName,
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            oldAppointmentDate = bookingDetails.oldMainMeeting!!.appointmentDate,
+            oldAppointmentInfo = bookingDetails.oldMainMeeting.appointmentInformation(),
+          )
+        } else {
+          AmendedProbationBookingProbationEmail(
+            address = probationContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prison = bookingDetails.prisonName,
+            appointmentDate = mainMeeting.appointmentDate,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            comments = bookingDetails.notesForStaff,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+          )
+        }
+      }
 
-      BookingAction.CANCEL -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Cancelled -> {
         CancelledProbationBookingProbationEmail(
-          address = contact.email!!,
-          prisonerNumber = prisoner.prisonerNumber,
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          appointmentDate = appointment.appointmentDate,
-          probationTeam = booking.probationTeam!!.description,
-          prison = prison.name,
-          appointmentInfo = appointment.appointmentInformation(location),
-          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-          probationOfficerName = additionalBookingDetail?.contactName,
-          probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-          probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          comments = booking.notesForStaff,
+          address = probationContact.email!!,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prison = bookingDetails.prisonName,
+          appointmentDate = mainMeeting.appointmentDate,
+          probationTeam = bookingDetails.probationTeamDescription!!,
+          appointmentInfo = mainMeeting.appointmentInformation(),
+          prisonVideoUrl = mainMeeting.prisonVideoUrl,
+          probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+          probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+          probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+          comments = bookingDetails.notesForStaff,
         )
       }
 
-      BookingAction.RELEASED -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Released -> {
         ReleasedProbationBookingProbationEmail(
-          address = contact.email!!,
-          prisonerNumber = prisoner.prisonerNumber,
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          dateOfBirth = prisoner.dateOfBirth,
-          appointmentDate = appointment.appointmentDate,
-          probationTeam = booking.probationTeam!!.description,
-          prison = prison.name,
-          appointmentInfo = appointment.appointmentInformation(location),
-          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-          probationOfficerName = additionalBookingDetail?.contactName,
-          probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-          probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          comments = booking.notesForStaff,
+          address = probationContact.email!!,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prison = bookingDetails.prisonName,
+          dateOfBirth = bookingDetails.prisonerDateOfBirth,
+          appointmentDate = mainMeeting.appointmentDate,
+          probationTeam = bookingDetails.probationTeamDescription!!,
+          appointmentInfo = mainMeeting.appointmentInformation(),
+          prisonVideoUrl = mainMeeting.prisonVideoUrl,
+          probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+          probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+          probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+          comments = bookingDetails.notesForStaff,
         )
       }
 
-      BookingAction.TRANSFERRED -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Transferred -> {
         TransferredProbationBookingProbationEmail(
-          address = contact.email!!,
-          prisonerNumber = prisoner.prisonerNumber,
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          dateOfBirth = prisoner.dateOfBirth,
-          appointmentDate = appointment.appointmentDate,
-          probationTeam = booking.probationTeam!!.description,
-          prison = prison.name,
-          appointmentInfo = appointment.appointmentInformation(location),
-          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-          probationOfficerName = additionalBookingDetail?.contactName,
-          probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-          probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          comments = booking.notesForStaff,
+          address = probationContact.email!!,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prison = bookingDetails.prisonName,
+          dateOfBirth = bookingDetails.prisonerDateOfBirth,
+          appointmentDate = mainMeeting.appointmentDate,
+          probationTeam = bookingDetails.probationTeamDescription!!,
+          appointmentInfo = mainMeeting.appointmentInformation(),
+          prisonVideoUrl = mainMeeting.prisonVideoUrl,
+          probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+          probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+          probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+          comments = bookingDetails.notesForStaff,
         )
       }
 
-      BookingAction.PROBATION_OFFICER_DETAILS_REMINDER -> {
+      is BookingDetails.ProbationOfficerEmailReminder -> {
         ProbationOfficerDetailsReminderEmail(
-          address = contact.email!!,
-          prisonerNumber = prisoner.prisonerNumber,
-          prisonerFirstName = prisoner.firstName,
-          prisonerLastName = prisoner.lastName,
-          appointmentDate = appointment.appointmentDate,
-          probationTeam = booking.probationTeam!!.description,
-          meetingType = booking.probationMeetingType!!,
-          prison = prison.name,
-          appointmentInfo = appointment.appointmentInformation(location),
-          prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-          comments = booking.notesForStaff,
-          bookingId = booking.videoBookingId.toString(),
+          address = probationContact.email!!,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prison = bookingDetails.prisonName,
+          appointmentDate = mainMeeting.appointmentDate,
+          probationTeam = bookingDetails.probationTeamDescription!!,
+          meetingType = bookingDetails.probationMeetingType!!,
+          appointmentInfo = mainMeeting.appointmentInformation(),
+          prisonVideoUrl = mainMeeting.prisonVideoUrl,
+          comments = bookingDetails.notesForStaff,
+          bookingId = bookingDetails.videoLinkBookingId.toString(),
         )
       }
 
@@ -224,216 +241,243 @@ object ProbationEmailFactory {
   }
 
   fun prison(
-    contact: BookingContact,
-    prisoner: Prisoner,
-    booking: VideoBooking,
-    prison: Prison,
-    appointment: PrisonAppointment,
-    location: Location,
-    action: BookingAction,
-    contacts: Collection<BookingContact>,
-    additionalBookingDetail: AdditionalBookingDetail?,
+    bookingDetails: BookingDetails,
+    prisonContact: BookingContact,
+    probationContacts: Collection<BookingContact>,
   ): VideoBookingEmail? {
-    booking.requireIsProbationBooking()
-
-    require(contact.contactType == ContactType.PRISON) {
-      "Incorrect contact type ${contact.contactType} for prison probation email"
+    require(prisonContact.contactType == ContactType.PRISON) {
+      "Incorrect contact type ${prisonContact.contactType} for prison probation email"
     }
 
-    val primaryProbationContact = contacts.primaryProbationContact()
+    val primaryProbationContact = probationContacts.primaryProbationContact()
 
-    return when (action) {
-      BookingAction.CREATE -> {
+    val mainMeeting = bookingDetails.mainMeeting!!
+
+    return when (bookingDetails) {
+      is BookingDetails.Create -> {
         if (primaryProbationContact != null) {
           NewProbationBookingPrisonProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            probationTeam = booking.probationTeam!!.description,
-            appointmentDate = appointment.appointmentDate,
-            appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.notesForStaff,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prison = prison.name,
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            appointmentDate = mainMeeting.appointmentDate,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prison = bookingDetails.prisonName,
             probationEmailAddress = primaryProbationContact.email!!,
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
           )
         } else {
           NewProbationBookingPrisonNoProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            probationTeam = booking.probationTeam!!.description,
-            appointmentDate = appointment.appointmentDate,
-            appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.notesForStaff,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prison = prison.name,
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            appointmentDate = mainMeeting.appointmentDate,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prison = bookingDetails.prisonName,
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
           )
         }
       }
 
-      BookingAction.AMEND -> {
-        if (primaryProbationContact != null) {
-          AmendedProbationBookingPrisonProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            probationTeam = booking.probationTeam!!.description,
-            appointmentDate = appointment.appointmentDate,
-            appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.notesForStaff,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prison = prison.name,
-            probationEmailAddress = primaryProbationContact.email!!,
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
+      is BookingDetails.Amended -> {
+        if (bookingDetails.isRescheduled()) {
+          probationContacts.primaryProbationContact()?.let { primaryProbationContact ->
+            RescheduledProbationBookingPrisonProbationEmail(
+              address = prisonContact.email!!,
+              prisonerNumber = bookingDetails.prisonerNumber,
+              probationTeam = bookingDetails.probationTeamDescription!!,
+              appointmentDate = mainMeeting.appointmentDate,
+              appointmentInfo = mainMeeting.appointmentInformation(),
+              comments = bookingDetails.notesForStaff,
+              prisonerFirstName = bookingDetails.prisonerFirstName,
+              prisonerLastName = bookingDetails.prisonerLastName,
+              prison = bookingDetails.prisonName,
+              probationEmailAddress = primaryProbationContact.email!!,
+              prisonVideoUrl = mainMeeting.prisonVideoUrl,
+              probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+              probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+              probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+              oldAppointmentDate = bookingDetails.oldMainMeeting!!.appointmentDate,
+              oldAppointmentInfo = bookingDetails.oldMainMeeting.appointmentInformation(),
+            )
+          } ?: RescheduledProbationBookingPrisonNoProbationEmail(
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            appointmentDate = mainMeeting.appointmentDate,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prison = bookingDetails.prisonName,
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            oldAppointmentDate = bookingDetails.oldMainMeeting!!.appointmentDate,
+            oldAppointmentInfo = bookingDetails.oldMainMeeting.appointmentInformation(),
           )
         } else {
-          AmendedProbationBookingPrisonNoProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            probationTeam = booking.probationTeam!!.description,
-            appointmentDate = appointment.appointmentDate,
-            appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.notesForStaff,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prison = prison.name,
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-          )
+          if (primaryProbationContact != null) {
+            AmendedProbationBookingPrisonProbationEmail(
+              address = prisonContact.email!!,
+              prisonerNumber = bookingDetails.prisonerNumber,
+              probationTeam = bookingDetails.probationTeamDescription!!,
+              appointmentDate = mainMeeting.appointmentDate,
+              appointmentInfo = mainMeeting.appointmentInformation(),
+              comments = bookingDetails.notesForStaff,
+              prisonerFirstName = bookingDetails.prisonerFirstName,
+              prisonerLastName = bookingDetails.prisonerLastName,
+              prison = bookingDetails.prisonName,
+              probationEmailAddress = primaryProbationContact.email!!,
+              prisonVideoUrl = mainMeeting.prisonVideoUrl,
+              probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+              probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+              probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            )
+          } else {
+            AmendedProbationBookingPrisonNoProbationEmail(
+              address = prisonContact.email!!,
+              prisonerNumber = bookingDetails.prisonerNumber,
+              probationTeam = bookingDetails.probationTeamDescription!!,
+              appointmentDate = mainMeeting.appointmentDate,
+              appointmentInfo = mainMeeting.appointmentInformation(),
+              comments = bookingDetails.notesForStaff,
+              prisonerFirstName = bookingDetails.prisonerFirstName,
+              prisonerLastName = bookingDetails.prisonerLastName,
+              prison = bookingDetails.prisonName,
+              prisonVideoUrl = mainMeeting.prisonVideoUrl,
+              probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+              probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+              probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            )
+          }
         }
       }
 
-      BookingAction.CANCEL -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Cancelled -> {
         if (primaryProbationContact != null) {
           CancelledProbationBookingPrisonProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            probationTeam = booking.probationTeam!!.description,
-            appointmentDate = appointment.appointmentDate,
-            appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.notesForStaff,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prison = prison.name,
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            appointmentDate = mainMeeting.appointmentDate,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prison = bookingDetails.prisonName,
             probationEmailAddress = primaryProbationContact.email!!,
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
           )
         } else {
           CancelledProbationBookingPrisonNoProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            probationTeam = booking.probationTeam!!.description,
-            appointmentDate = appointment.appointmentDate,
-            appointmentInfo = appointment.appointmentInformation(location),
-            comments = booking.notesForStaff,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            prison = prison.name,
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            appointmentDate = mainMeeting.appointmentDate,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            comments = bookingDetails.notesForStaff,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prison = bookingDetails.prisonName,
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
           )
         }
       }
 
-      BookingAction.RELEASED -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Released -> {
         if (primaryProbationContact != null) {
           ReleasedProbationBookingPrisonProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            dateOfBirth = prisoner.dateOfBirth,
-            appointmentDate = appointment.appointmentDate,
-            probationTeam = booking.probationTeam!!.description,
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            dateOfBirth = bookingDetails.prisonerDateOfBirth,
+            appointmentDate = mainMeeting.appointmentDate,
+            probationTeam = bookingDetails.probationTeamDescription!!,
             probationEmailAddress = primaryProbationContact.email!!,
-            prison = prison.name,
-            appointmentInfo = appointment.appointmentInformation(location),
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-            comments = booking.notesForStaff,
+            prison = bookingDetails.prisonName,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            comments = bookingDetails.notesForStaff,
           )
         } else {
           ReleasedProbationBookingPrisonNoProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            dateOfBirth = prisoner.dateOfBirth,
-            appointmentDate = appointment.appointmentDate,
-            probationTeam = booking.probationTeam!!.description,
-            prison = prison.name,
-            appointmentInfo = appointment.appointmentInformation(location),
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-            comments = booking.notesForStaff,
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            dateOfBirth = bookingDetails.prisonerDateOfBirth,
+            appointmentDate = mainMeeting.appointmentDate,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            prison = bookingDetails.prisonName,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            comments = bookingDetails.notesForStaff,
           )
         }
       }
 
-      BookingAction.TRANSFERRED -> {
-        booking.requireIsCancelled()
-
+      is BookingDetails.Transferred -> {
         if (primaryProbationContact != null) {
           TransferredProbationBookingPrisonProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            dateOfBirth = prisoner.dateOfBirth,
-            appointmentDate = appointment.appointmentDate,
-            probationTeam = booking.probationTeam!!.description,
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            dateOfBirth = bookingDetails.prisonerDateOfBirth,
+            appointmentDate = mainMeeting.appointmentDate,
+            probationTeam = bookingDetails.probationTeamDescription!!,
             probationEmailAddress = primaryProbationContact.email!!,
-            prison = prison.name,
-            appointmentInfo = appointment.appointmentInformation(location),
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-            comments = booking.notesForStaff,
+            prison = bookingDetails.prisonName,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            comments = bookingDetails.notesForStaff,
           )
         } else {
           TransferredProbationBookingPrisonNoProbationEmail(
-            address = contact.email!!,
-            prisonerNumber = prisoner.prisonerNumber,
-            prisonerFirstName = prisoner.firstName,
-            prisonerLastName = prisoner.lastName,
-            dateOfBirth = prisoner.dateOfBirth,
-            appointmentDate = appointment.appointmentDate,
-            probationTeam = booking.probationTeam!!.description,
-            prison = prison.name,
-            appointmentInfo = appointment.appointmentInformation(location),
-            prisonVideoUrl = location.extraAttributes?.prisonVideoUrl,
-            probationOfficerName = additionalBookingDetail?.contactName,
-            probationOfficerEmailAddress = additionalBookingDetail?.contactEmail,
-            probationOfficerContactNumber = additionalBookingDetail?.contactNumber,
-            comments = booking.notesForStaff,
+            address = prisonContact.email!!,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            dateOfBirth = bookingDetails.prisonerDateOfBirth,
+            appointmentDate = mainMeeting.appointmentDate,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            prison = bookingDetails.prisonName,
+            appointmentInfo = mainMeeting.appointmentInformation(),
+            prisonVideoUrl = mainMeeting.prisonVideoUrl,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+            comments = bookingDetails.notesForStaff,
           )
         }
       }
@@ -442,15 +486,7 @@ object ProbationEmailFactory {
     }
   }
 
-  private fun VideoBooking.requireIsProbationBooking() {
-    require(isBookingType(PROBATION)) { "Booking ID $videoBookingId is not a probation booking" }
-  }
-
-  private fun VideoBooking.requireIsCancelled() {
-    require(isStatus(CANCELLED)) { "Booking ID $videoBookingId is not a cancelled" }
-  }
-
-  private fun PrisonAppointment.appointmentInformation(location: Location) = "${location.description} - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
+  private fun PrisonAppointment.appointmentInformation() = "$dpsLocationDescription - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Collection<BookingContact>.primaryProbationContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
 }
