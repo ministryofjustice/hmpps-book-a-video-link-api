@@ -18,11 +18,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATI
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.additionalDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.CaseloadAccessException
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.security.VideoBookingAccessException
@@ -31,14 +33,17 @@ import java.util.Optional
 class CancelVideoBookingServiceTest {
   private val probationBooking = probationBooking().withProbationPrisonAppointment(prisonCode = BIRMINGHAM)
   private val courtBooking = courtBooking().withMainCourtPrisonAppointment()
+  private val additionalBookingDetail = additionalDetails(probationBooking)
   private val videoBookingRepository: VideoBookingRepository = mock()
   private val bookingHistoryService: BookingHistoryService = mock()
+  private val additionalBookingDetailRepository: AdditionalBookingDetailRepository = mock()
 
-  private val service = CancelVideoBookingService(videoBookingRepository, bookingHistoryService)
+  private val service = CancelVideoBookingService(videoBookingRepository, bookingHistoryService, additionalBookingDetailRepository)
 
   @Test
   fun `should cancel a probation video booking for External probation user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(probationBooking)
+    whenever(additionalBookingDetailRepository.findByVideoBooking(probationBooking)) doReturn additionalBookingDetail
     whenever(videoBookingRepository.saveAndFlush(probationBooking)) doReturn probationBooking
 
     probationBooking.statusCode isEqualTo StatusCode.ACTIVE
@@ -48,12 +53,13 @@ class CancelVideoBookingServiceTest {
     booking.statusCode isEqualTo StatusCode.CANCELLED
 
     verify(videoBookingRepository).saveAndFlush(booking)
-    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking, additionalBookingDetail)
   }
 
   @Test
   fun `should cancel a probation video booking for Delius probation user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(probationBooking)
+    whenever(additionalBookingDetailRepository.findByVideoBooking(probationBooking)) doReturn additionalBookingDetail
     whenever(videoBookingRepository.saveAndFlush(probationBooking)) doReturn probationBooking
 
     probationBooking.statusCode isEqualTo StatusCode.ACTIVE
@@ -63,7 +69,7 @@ class CancelVideoBookingServiceTest {
     booking.statusCode isEqualTo StatusCode.CANCELLED
 
     verify(videoBookingRepository).saveAndFlush(booking)
-    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking, additionalBookingDetail)
   }
 
   @Test
@@ -96,6 +102,7 @@ class CancelVideoBookingServiceTest {
   @Test
   fun `should cancel a Birmingham video booking for Birmingham prison user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(probationBooking)
+    whenever(additionalBookingDetailRepository.findByVideoBooking(probationBooking)) doReturn additionalBookingDetail
     whenever(videoBookingRepository.saveAndFlush(probationBooking)) doReturn probationBooking
 
     probationBooking.statusCode isEqualTo StatusCode.ACTIVE
@@ -105,12 +112,13 @@ class CancelVideoBookingServiceTest {
     booking.statusCode isEqualTo StatusCode.CANCELLED
 
     verify(videoBookingRepository).saveAndFlush(booking)
-    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking, additionalBookingDetail)
   }
 
   @Test
   fun `should fail to cancel a Birmingham video booking for Risley prison user`() {
     whenever(videoBookingRepository.findById(1)) doReturn Optional.of(probationBooking)
+    whenever(additionalBookingDetailRepository.findByVideoBooking(probationBooking)) doReturn additionalBookingDetail
     whenever(videoBookingRepository.saveAndFlush(probationBooking)) doReturn probationBooking
 
     probationBooking.statusCode isEqualTo StatusCode.ACTIVE

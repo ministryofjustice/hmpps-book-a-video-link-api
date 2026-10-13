@@ -58,6 +58,12 @@ class BookingHistory(
   val createdTime: LocalDateTime = LocalDateTime.now(),
 
   val deliusEmail: String? = null,
+
+  val contactName: String? = null,
+
+  val contactEmail: String? = null,
+
+  val contactNumber: String? = null,
 ) {
   @OneToMany(mappedBy = "bookingHistory", fetch = FetchType.EAGER, cascade = [CascadeType.ALL], orphanRemoval = true)
   private val appointments: MutableList<BookingHistoryAppointment> = mutableListOf()

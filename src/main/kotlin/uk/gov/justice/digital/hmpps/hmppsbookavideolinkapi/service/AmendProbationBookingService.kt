@@ -51,6 +51,8 @@ class AmendProbationBookingService(
 
     val prisoner = request.prisoner().validate()
 
+    val additionalBookingDetail: AdditionalBookingDetail?
+
     return booking.amendProbationBooking(
       probationMeetingType = request.probationMeetingType!!.name,
       notesForStaff = request.notesForStaff,
@@ -59,8 +61,8 @@ class AmendProbationBookingService(
     )
       .also { thisBooking -> appointmentsService.amendAppointmentForProbation(thisBooking, request.prisoner(), amendedBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
-      .also { thisBooking -> request.saveAdditionalDetailsFor(thisBooking) }
-      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking) }
+      .also { thisBooking -> additionalBookingDetail = request.saveAdditionalDetailsFor(thisBooking) }
+      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.AMEND, thisBooking, additionalBookingDetail) }
       .also { thisBooking -> log.info("AMEND PROBATION BOOKING: probation team booking ${thisBooking.videoBookingId} amended") } to prisoner
   }
 
@@ -74,7 +76,7 @@ class AmendProbationBookingService(
     return prisonerSearchClient.getPrisoner(prisonerNumber)?.toPrisonerDetails() ?: throw ValidationException("Prisoner $prisonerNumber not found.")
   }
 
-  private fun AmendVideoBookingRequest.saveAdditionalDetailsFor(booking: VideoBooking) {
+  private fun AmendVideoBookingRequest.saveAdditionalDetailsFor(booking: VideoBooking): AdditionalBookingDetail? {
     val mayBeExistingDetails = additionalBookingDetailRepository.findByVideoBooking(booking)
 
     if (additionalBookingDetails == null) {
@@ -84,7 +86,7 @@ class AmendProbationBookingService(
       }
     } else {
       if (mayBeExistingDetails != null) {
-        additionalBookingDetailRepository.saveAndFlush(
+        return additionalBookingDetailRepository.saveAndFlush(
           mayBeExistingDetails.apply {
             contactName = additionalBookingDetails.contactName
             contactEmail = additionalBookingDetails.contactEmail
@@ -92,7 +94,7 @@ class AmendProbationBookingService(
           },
         )
       } else {
-        additionalBookingDetailRepository.saveAndFlush(
+        return additionalBookingDetailRepository.saveAndFlush(
           AdditionalBookingDetail.newDetails(
             videoBooking = booking,
             contactName = additionalBookingDetails.contactName,
@@ -102,5 +104,7 @@ class AmendProbationBookingService(
         )
       }
     }
+
+    return null
   }
 }
