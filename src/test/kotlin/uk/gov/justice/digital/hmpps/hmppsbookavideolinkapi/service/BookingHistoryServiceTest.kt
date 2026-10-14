@@ -98,7 +98,7 @@ class BookingHistoryServiceTest {
         locationId = wandsworthLocation.id,
       )
 
-    val additionalBookingDetail = additionalDetails(probationBooking, "court contact", "court@email.com", "0114 2345678")
+    val additionalBookingDetail = additionalDetails(probationBooking)
 
     service.createBookingHistory(HistoryType.CREATE, probationBooking, additionalBookingDetail)
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
@@ -141,7 +141,7 @@ class BookingHistoryServiceTest {
         locationId = wandsworthLocation.id,
       )
 
-    val additionalBookingDetail = additionalDetails(probationBooking, "court contact", "court@email.com", "0114 2345678")
+    val additionalBookingDetail = additionalDetails(probationBooking)
 
     service.createBookingHistory(HistoryType.CREATE, probationBooking, additionalBookingDetail)
 
@@ -245,7 +245,7 @@ class BookingHistoryServiceTest {
         amendedTime = today().atStartOfDay()
       }
 
-    val additionalBookingDetail = additionalDetails(probationBooking, "court contact", "court@email.com", "0114 2345678")
+    val additionalBookingDetail = additionalDetails(probationBooking)
 
     service.createBookingHistory(HistoryType.AMEND, probationBooking, additionalBookingDetail)
 
@@ -277,7 +277,7 @@ class BookingHistoryServiceTest {
         locationId = wandsworthLocation.id,
       ).cancel(probationUser(username = "probation cancellation user"))
 
-    val additionalBookingDetail = additionalDetails(probationBooking, "court contact", "court@email.com", "0114 2345678")
+    val additionalBookingDetail = additionalDetails(probationBooking)
 
     service.createBookingHistory(HistoryType.CANCEL, probationBooking, additionalBookingDetail)
 
