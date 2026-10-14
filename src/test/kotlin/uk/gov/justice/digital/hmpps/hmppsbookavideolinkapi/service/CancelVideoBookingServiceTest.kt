@@ -84,7 +84,7 @@ class CancelVideoBookingServiceTest {
     booking.statusCode isEqualTo StatusCode.CANCELLED
 
     verify(videoBookingRepository).saveAndFlush(booking)
-    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.CANCEL, booking, null)
   }
 
   @Test

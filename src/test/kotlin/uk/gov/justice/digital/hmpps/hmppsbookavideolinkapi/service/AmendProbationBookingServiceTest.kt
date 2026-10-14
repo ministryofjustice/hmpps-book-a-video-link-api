@@ -274,7 +274,7 @@ class AmendProbationBookingServiceTest {
     booking isEqualTo probationBooking
     prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
 
-    verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking, null)
     verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
 
     amendedBookingCaptor
@@ -313,7 +313,7 @@ class AmendProbationBookingServiceTest {
       verify(additionalBookingDetailRepository).findByVideoBooking(probationBooking)
       verify(additionalBookingDetailRepository).delete(additionalBookingDetail)
       verify(additionalBookingDetailRepository).flush()
-      verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking)
+      verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, probationBooking, null)
     }
   }
 

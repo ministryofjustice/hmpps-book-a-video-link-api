@@ -127,7 +127,7 @@ class AmendCourtBookingServiceTest {
     booking isEqualTo persistedVideoBooking
     prisoner isEqualTo prisoner(prisonerNumber, BIRMINGHAM)
 
-    verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking)
+    verify(bookingHistoryService).createBookingHistory(HistoryType.AMEND, courtBooking, null)
     verify(videoBookingRepository).saveAndFlush(amendedBookingCaptor.capture())
 
     with(amendedBookingCaptor.firstValue) {
