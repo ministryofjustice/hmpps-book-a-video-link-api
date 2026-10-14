@@ -31,6 +31,12 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
       }
     }
 
+    additionalBookingDetail?.let {
+      require(booking.videoBookingId == it.videoBooking.videoBookingId) {
+        "Booking ids do not match: ${booking.videoBookingId}, ${it.videoBooking.videoBookingId}"
+      }
+    }
+
     BookingHistory(
       videoBookingId = booking.videoBookingId,
       historyType = historyType,
