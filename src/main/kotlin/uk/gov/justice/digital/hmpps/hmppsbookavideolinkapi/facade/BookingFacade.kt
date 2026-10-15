@@ -173,7 +173,7 @@ class BookingFacade(
     require(videoBooking.appointments().any { it.appointmentDate > LocalDate.now() }) { "Video booking with id ${videoBooking.videoBookingId} must be after today" }
 
     emailFacade.sendEmails(
-      BookingDetails.probationOfficerEmailReminder(
+      BookingDetails.probationOfficerDetailsReminder(
         videoBookingServiceDelegate.getVideoBookingById(videoBooking.videoBookingId, user),
         getPrisoner(videoBooking.prisoner()),
       ),
@@ -229,6 +229,7 @@ enum class BookingAction {
   AMEND,
   CANCEL,
   COURT_HEARING_LINK_REMINDER,
+  PROBATION_OFFICER_ATTENDANCE_REMINDER,
   PROBATION_OFFICER_DETAILS_REMINDER,
   RELEASED,
   TRANSFERRED,

@@ -702,6 +702,37 @@ class ProbationBookingRequestPrisonNoProbationTeamEmail(
   probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
 )
 
+class ProbationOfficerAttendanceReminderEmail(
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  meetingType: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  prisonVideoUrl: String?,
+  comments: String?,
+  probationOfficerName: String,
+  probationOfficerEmailAddress: String,
+  probationOfficerContactNumber: String?,
+) : ProbationEmail(
+  address = probationOfficerEmailAddress,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  probationTeam = probationTeam,
+  appointmentDate = appointmentDate,
+  appointmentInfo = appointmentInfo,
+  prisonVideoUrl = prisonVideoUrl,
+  prison = prison,
+  comments = comments,
+  meetingType = meetingType,
+  probationOfficerName = probationOfficerName,
+  probationOfficerEmailAddress = probationOfficerEmailAddress,
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+)
+
 class ProbationOfficerDetailsReminderEmail(
   address: String,
   prison: String,

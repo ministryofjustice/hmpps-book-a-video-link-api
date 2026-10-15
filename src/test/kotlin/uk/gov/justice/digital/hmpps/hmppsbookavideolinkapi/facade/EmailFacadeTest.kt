@@ -1594,7 +1594,7 @@ class EmailFacadeTest {
   @Nested
   @DisplayName("Probation officer details reminder")
   inner class ProbationOfficerDetailsReminder {
-    private val probationBookingDetails = BookingDetails.probationOfficerEmailReminder(
+    private val probationBookingDetails = BookingDetails.probationOfficerDetailsReminder(
       probationBookingAtBirminghamPrison.toModel(
         setOf(birminghamLocation.toModel(locationAttributes().copy(prisonVideoUrl = "decorated-video-link-url"))),
       ).copy(videoLinkBookingId = 3L, statusCode = BookingStatus.CANCELLED),

@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
@@ -184,7 +185,7 @@ class ProbationEmailFactoryTest {
     @Test
     fun `should return reminder probation booking probation email`() {
       val email = ProbationEmailFactory.probation(
-        BookingDetails.probationOfficerEmailReminder(
+        BookingDetails.probationOfficerDetailsReminder(
           booking = probationBookingDto,
           prisoner = prisoner,
         ),
@@ -370,6 +371,24 @@ class ProbationEmailFactoryTest {
       )
 
       email isInstanceOf TransferredProbationBookingPrisonProbationEmail::class.java
+    }
+  }
+
+  @Nested
+  inner class ProbationOfficerEmails {
+    @Test
+    fun `should return probation officer reminder email`() {
+      val email = ProbationEmailFactory.probationOfficerAttendanceReminder(
+        BookingDetails.probationOfficerAttendanceReminder(
+          booking = probationBookingEntity.toModel(
+            locations = setOf(wandsworthLocation.toModel()),
+            additionalBookingDetails = AdditionalBookingDetails("Fred", "email@address.com", "1111"),
+          ),
+          prisoner = prisoner,
+        ),
+      )
+
+      email isInstanceOf ProbationOfficerAttendanceReminderEmail::class.java
     }
   }
 }
