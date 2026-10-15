@@ -49,7 +49,7 @@ sealed class BookingDetails private constructor(
     fun released(cancelledBooking: VideoLinkBooking, prisoner: Prisoner) = Released(cancelledBooking, prisoner)
     fun transferred(cancelledBooking: VideoLinkBooking, prisoner: Prisoner) = Transferred(cancelledBooking, prisoner)
     fun courtHearingLinkReminder(booking: VideoLinkBooking, prisoner: Prisoner) = CourtHearingLinkReminder(booking, prisoner)
-    fun probationOfficerDetailsReminder(booking: VideoLinkBooking, prisoner: Prisoner) = ProbationOfficerEmailReminder(booking, prisoner)
+    fun probationOfficerDetailsReminder(booking: VideoLinkBooking, prisoner: Prisoner) = ProbationOfficerDetailsReminder(booking, prisoner)
     fun probationOfficerAttendanceReminder(booking: VideoLinkBooking, prisoner: Prisoner) = ProbationOfficerAttendanceReminder(booking, prisoner)
   }
 
@@ -102,7 +102,7 @@ sealed class BookingDetails private constructor(
 
   class CourtHearingLinkReminder(booking: VideoLinkBooking, prisoner: Prisoner) : BookingDetails(booking, prisoner, BookingAction.COURT_HEARING_LINK_REMINDER)
 
-  class ProbationOfficerEmailReminder(booking: VideoLinkBooking, prisoner: Prisoner) : BookingDetails(booking, prisoner, BookingAction.PROBATION_OFFICER_DETAILS_REMINDER)
+  class ProbationOfficerDetailsReminder(booking: VideoLinkBooking, prisoner: Prisoner) : BookingDetails(booking, prisoner, BookingAction.PROBATION_OFFICER_DETAILS_REMINDER)
 
   class ProbationOfficerAttendanceReminder(booking: VideoLinkBooking, prisoner: Prisoner) : BookingDetails(booking, prisoner, BookingAction.PROBATION_OFFICER_ATTENDANCE_REMINDER)
 }

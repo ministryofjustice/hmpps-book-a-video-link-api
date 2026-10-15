@@ -997,7 +997,7 @@ class BookingFacadeTest {
       facade.sendProbationOfficerDetailsReminder(probationBookingAtBirminghamPrison, SERVICE_USER)
       verify(emailFacade).sendEmails(bookingDetailsCaptor.capture(), userCaptor.capture(), changeTypeCaptor.capture())
 
-      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.ProbationOfficerEmailReminder::class.java
+      bookingDetailsCaptor.singleValue isInstanceOf BookingDetails.ProbationOfficerDetailsReminder::class.java
       userCaptor.singleValue isEqualTo SERVICE_USER
       changeTypeCaptor.singleValue isEqualTo ChangeType.GLOBAL
     }

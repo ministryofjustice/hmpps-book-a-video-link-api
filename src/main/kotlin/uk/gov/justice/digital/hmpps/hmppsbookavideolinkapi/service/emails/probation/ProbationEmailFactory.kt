@@ -219,7 +219,7 @@ object ProbationEmailFactory {
         )
       }
 
-      is BookingDetails.ProbationOfficerEmailReminder -> {
+      is BookingDetails.ProbationOfficerDetailsReminder -> {
         ProbationOfficerDetailsReminderEmail(
           address = probationContact.email!!,
           prisonerNumber = bookingDetails.prisonerNumber,
