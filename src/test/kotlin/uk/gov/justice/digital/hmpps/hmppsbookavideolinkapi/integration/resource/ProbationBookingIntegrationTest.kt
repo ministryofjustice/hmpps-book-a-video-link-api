@@ -310,8 +310,8 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
         endTime = LocalTime.of(13, 0),
         notesForStaff = "rr integration test probation staff notes amended",
         additionalBookingDetails = AdditionalBookingDetails(
-          contactName = "rr probation contact",
-          contactEmail = "rr_probation_contact@email.com",
+          contactName = "updated rr probation contact",
+          contactEmail = "updated_rr_probation_contact@email.com",
           contactNumber = null,
         ),
       ),
@@ -360,9 +360,17 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
     additionalBookingDetailRepository
       .findByVideoBooking(persistedBooking)!!
-      .also { it.contactName isEqualTo "rr probation contact" }
-      .also { it.contactEmail isEqualTo "rr_probation_contact@email.com" }
+      .also { it.contactName isEqualTo "updated rr probation contact" }
+      .also { it.contactEmail isEqualTo "updated_rr_probation_contact@email.com" }
       .also { it.contactNumber isEqualTo null }
+
+    bookingHistoryRepository
+      .findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
+      .last()
+      .hasHistoryType(HistoryType.AMEND)
+      .hasContactName("updated rr probation contact")
+      .hasContactEmail("updated_rr_probation_contact@email.com")
+      .hasContactNumber(null)
   }
 
   @Test
@@ -496,6 +504,14 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasNotesForPrisoner("other integration test probation prisoner notes amended")
 
     additionalBookingDetailRepository.findByVideoBooking(persistedBooking) isEqualTo null
+
+    bookingHistoryRepository
+      .findAllByVideoBookingIdOrderByCreatedTime(persistedBooking.videoBookingId)
+      .last()
+      .hasHistoryType(HistoryType.AMEND)
+      .hasContactName(null)
+      .hasContactEmail(null)
+      .hasContactNumber(null)
   }
 
   @Test
@@ -620,6 +636,14 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
     val amendedAppointment = prisonAppointmentRepository.findByVideoBooking(amendedBooking).single()
     amendedAppointment.hasNotesForStaff("integration test probation staff notes amended")
+
+    bookingHistoryRepository
+      .findAllByVideoBookingIdOrderByCreatedTime(videoBookingId)
+      .last()
+      .hasHistoryType(HistoryType.AMEND)
+      .hasContactName(null)
+      .hasContactEmail(null)
+      .hasContactNumber(null)
   }
 
   @Test
@@ -660,6 +684,14 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
     amendedBooking.hasAmendedBy(DELIUS_PROBATION_USER)
     amendedBooking.hasNotesForStaff("integration test probation staff notes amended")
+
+    bookingHistoryRepository
+      .findAllByVideoBookingIdOrderByCreatedTime(videoBookingId)
+      .last()
+      .hasHistoryType(HistoryType.AMEND)
+      .hasContactName(null)
+      .hasContactEmail(null)
+      .hasContactNumber(null)
   }
 
   private fun appointmentSearchResult(date: LocalDate, startTime: LocalTime, endTime: LocalTime, prisonCode: String, prisonerNumber: String, locationId: Long, appointmentType: SupportedAppointmentTypes.Type) = run {
