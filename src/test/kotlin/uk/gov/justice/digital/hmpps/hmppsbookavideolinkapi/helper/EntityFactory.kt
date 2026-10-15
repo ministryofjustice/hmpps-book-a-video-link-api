@@ -430,3 +430,6 @@ fun BookingHistory.hasHistoryType(that: HistoryType): BookingHistory = also { it
 fun BookingHistory.hasProbationMeetingType(that: ProbationMeetingType): BookingHistory = also { it.probationMeetingType isEqualTo that.name }
 fun BookingHistory.hasProbationTeam(that: ProbationTeam): BookingHistory = also { it.probationTeamId isEqualTo that.probationTeamId }
 fun BookingHistory.hasDeliusEmail(that: String): BookingHistory = also { it.deliusEmail isEqualTo that }
+fun BookingHistory.hasContactName(that: String?): BookingHistory = also { it.contactName isEqualTo that }
+fun BookingHistory.hasContactEmail(that: String?): BookingHistory = also { it.contactEmail isEqualTo that }
+fun BookingHistory.hasContactNumber(that: String?): BookingHistory = also { it.contactNumber isEqualTo that }

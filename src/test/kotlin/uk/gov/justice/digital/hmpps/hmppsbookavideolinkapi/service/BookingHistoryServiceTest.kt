@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATI
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.additionalDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtUser
@@ -97,8 +98,9 @@ class BookingHistoryServiceTest {
         locationId = wandsworthLocation.id,
       )
 
-    service.createBookingHistory(HistoryType.CREATE, probationBooking)
+    val additionalBookingDetail = additionalDetails(probationBooking)
 
+    service.createBookingHistory(HistoryType.CREATE, probationBooking, additionalBookingDetail)
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
     with(historyCaptor.firstValue) {
@@ -111,6 +113,9 @@ class BookingHistoryServiceTest {
       createdBy isEqualTo PROBATION_USER.username
       createdTime isCloseTo LocalDateTime.now()
       deliusEmail isEqualTo null
+      contactName isEqualTo additionalBookingDetail.contactName
+      contactEmail isEqualTo additionalBookingDetail.contactEmail
+      contactNumber isEqualTo additionalBookingDetail.contactNumber
       appointments() hasSize 1
       with(appointments().first()) {
         prisonCode isEqualTo WANDSWORTH
@@ -136,7 +141,9 @@ class BookingHistoryServiceTest {
         locationId = wandsworthLocation.id,
       )
 
-    service.createBookingHistory(HistoryType.CREATE, probationBooking)
+    val additionalBookingDetail = additionalDetails(probationBooking)
+
+    service.createBookingHistory(HistoryType.CREATE, probationBooking, additionalBookingDetail)
 
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
@@ -150,6 +157,9 @@ class BookingHistoryServiceTest {
       createdBy isEqualTo DELIUS_PROBATION_USER.username
       createdTime isCloseTo LocalDateTime.now()
       deliusEmail!! isEqualTo DELIUS_PROBATION_USER.email
+      contactName isEqualTo additionalBookingDetail.contactName
+      contactEmail isEqualTo additionalBookingDetail.contactEmail
+      contactNumber isEqualTo additionalBookingDetail.contactNumber
       appointments() hasSize 1
       with(appointments().first()) {
         prisonCode isEqualTo WANDSWORTH
@@ -235,7 +245,9 @@ class BookingHistoryServiceTest {
         amendedTime = today().atStartOfDay()
       }
 
-    service.createBookingHistory(HistoryType.AMEND, probationBooking)
+    val additionalBookingDetail = additionalDetails(probationBooking)
+
+    service.createBookingHistory(HistoryType.AMEND, probationBooking, additionalBookingDetail)
 
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
@@ -245,6 +257,9 @@ class BookingHistoryServiceTest {
       notesForStaff isEqualTo probationBooking.notesForStaff
       createdBy isEqualTo "amended by someone else"
       createdTime isEqualTo today().atStartOfDay()
+      contactName isEqualTo additionalBookingDetail.contactName
+      contactEmail isEqualTo additionalBookingDetail.contactEmail
+      contactNumber isEqualTo additionalBookingDetail.contactNumber
       appointments() hasSize 1
     }
   }
@@ -262,7 +277,9 @@ class BookingHistoryServiceTest {
         locationId = wandsworthLocation.id,
       ).cancel(probationUser(username = "probation cancellation user"))
 
-    service.createBookingHistory(HistoryType.CANCEL, probationBooking)
+    val additionalBookingDetail = additionalDetails(probationBooking)
+
+    service.createBookingHistory(HistoryType.CANCEL, probationBooking, additionalBookingDetail)
 
     verify(bookingHistoryRepository).saveAndFlush(historyCaptor.capture())
 
@@ -272,6 +289,9 @@ class BookingHistoryServiceTest {
       notesForStaff isEqualTo probationBooking.notesForStaff
       createdBy isEqualTo "probation cancellation user"
       createdTime isCloseTo LocalDateTime.now()
+      contactName isEqualTo additionalBookingDetail.contactName
+      contactEmail isEqualTo additionalBookingDetail.contactEmail
+      contactNumber isEqualTo additionalBookingDetail.contactNumber
       appointments() hasSize 1
     }
   }

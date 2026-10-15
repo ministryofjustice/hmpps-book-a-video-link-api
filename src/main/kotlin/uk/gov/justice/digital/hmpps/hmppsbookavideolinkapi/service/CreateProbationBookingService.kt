@@ -47,6 +47,8 @@ class CreateProbationBookingService(
 
     val prisoner = request.prisoner().validate()
 
+    val additionalBookingDetail: AdditionalBookingDetail?
+
     return VideoBooking.newProbationBooking(
       probationTeam = probationTeam,
       probationMeetingType = request.probationMeetingType!!.name,
@@ -56,22 +58,20 @@ class CreateProbationBookingService(
     )
       .also { thisBooking -> appointmentsService.createAppointmentForProbation(thisBooking, request.prisoner(), createdBy) }
       .also { thisBooking -> videoBookingRepository.saveAndFlush(thisBooking) }
-      .also { thisBooking -> request.saveAdditionalDetailsFor(thisBooking) }
-      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, thisBooking) }
+      .also { thisBooking -> additionalBookingDetail = request.saveAdditionalDetailsFor(thisBooking) }
+      .also { thisBooking -> bookingHistoryService.createBookingHistory(HistoryType.CREATE, thisBooking, additionalBookingDetail) }
       .also { thisBooking -> log.info("CREATE PROBATION BOOKING: booking ${thisBooking.videoBookingId} created") } to prisoner
   }
 
-  private fun CreateVideoBookingRequest.saveAdditionalDetailsFor(booking: VideoBooking) {
-    additionalBookingDetails?.let { details ->
-      additionalBookingDetailRepository.saveAndFlush(
-        AdditionalBookingDetail.newDetails(
-          videoBooking = booking,
-          contactName = details.contactName,
-          contactEmail = details.contactEmail,
-          contactPhoneNumber = details.contactNumber,
-        ),
-      )
-    }
+  private fun CreateVideoBookingRequest.saveAdditionalDetailsFor(booking: VideoBooking) = additionalBookingDetails?.let { details ->
+    additionalBookingDetailRepository.saveAndFlush(
+      AdditionalBookingDetail.newDetails(
+        videoBooking = booking,
+        contactName = details.contactName,
+        contactEmail = details.contactEmail,
+        contactPhoneNumber = details.contactNumber,
+      ),
+    )
   }
 
   // We will only be creating appointments for one single prisoner as part of the initial rollout.

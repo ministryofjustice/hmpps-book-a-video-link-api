@@ -8,6 +8,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -170,7 +171,7 @@ class CreateCourtBookingServiceTest {
 
     verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
-    verify(bookingHistoryService).createBookingHistory(any(), any())
+    verify(bookingHistoryService).createBookingHistory(any(), any(), isNull())
   }
 
   @Test

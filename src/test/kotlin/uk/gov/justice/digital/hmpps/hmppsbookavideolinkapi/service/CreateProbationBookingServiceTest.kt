@@ -150,7 +150,7 @@ class CreateProbationBookingServiceTest {
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
-    verify(bookingHistoryService).createBookingHistory(any(), any())
+    verify(bookingHistoryService).createBookingHistory(any(), any(), any())
   }
 
   @Test
@@ -212,7 +212,7 @@ class CreateProbationBookingServiceTest {
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
-    verify(bookingHistoryService).createBookingHistory(any(), any())
+    verify(bookingHistoryService).createBookingHistory(any(), any(), any())
   }
 
   @Test
@@ -276,7 +276,7 @@ class CreateProbationBookingServiceTest {
 
     verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
-    verify(bookingHistoryService).createBookingHistory(any(), any())
+    verify(bookingHistoryService).createBookingHistory(any(), any(), any())
   }
 
   @Test

@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AdditionalBookingDetail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistory
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingHistoryAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.COURT
@@ -17,7 +18,7 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
   fun getByVideoBookingId(videoBookingId: Long): List<BookingHistory> = bookingHistoryRepository.findAllByVideoBookingIdOrderByCreatedTime(videoBookingId)
 
   @Transactional
-  fun createBookingHistory(historyType: HistoryType, booking: VideoBooking) {
+  fun createBookingHistory(historyType: HistoryType, booking: VideoBooking, additionalBookingDetail: AdditionalBookingDetail? = null) {
     when (historyType) {
       HistoryType.CREATE -> require(booking.isStatus(StatusCode.ACTIVE) && booking.amendedBy == null) {
         "Booking ${booking.videoBookingId} must be new for $historyType booking history"
@@ -27,6 +28,12 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
       }
       HistoryType.CANCEL -> require(booking.isStatus(StatusCode.CANCELLED)) {
         "Booking ${booking.videoBookingId} must be cancelled for $historyType booking history"
+      }
+    }
+
+    additionalBookingDetail?.let {
+      require(booking.videoBookingId == it.videoBooking.videoBookingId) {
+        "Booking ids do not match: ${booking.videoBookingId}, ${it.videoBooking.videoBookingId}"
       }
     }
 
@@ -43,6 +50,9 @@ class BookingHistoryService(private val bookingHistoryRepository: BookingHistory
       createdBy = booking.amendedBy ?: booking.createdBy,
       createdTime = booking.amendedTime ?: booking.createdTime,
       deliusEmail = booking.deliusEmail,
+      contactName = additionalBookingDetail?.contactName,
+      contactEmail = additionalBookingDetail?.contactEmail,
+      contactNumber = additionalBookingDetail?.contactNumber,
     ).apply {
       addBookingHistoryAppointments(getAppointmentsForHistory(this, booking))
     }.also(bookingHistoryRepository::saveAndFlush)
