@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.junit.jupiter.api.Assumptions.assumingThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
@@ -34,18 +36,21 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.risleyLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.LocationAttributeRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.administration.AdministrationNewVideoRoomEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.CourtHearingLinkReminderEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerAttendanceReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerDetailsReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.OutboundEventsPublisher
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType
 import java.nio.charset.StandardCharsets
 import java.time.DayOfWeek.FRIDAY
 import java.time.DayOfWeek.MONDAY
+import java.time.DayOfWeek.SATURDAY
 import java.time.DayOfWeek.SUNDAY
 import java.time.DayOfWeek.THURSDAY
 import java.time.DayOfWeek.TUESDAY
@@ -325,6 +330,85 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
       locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000000"))!!.locationStatus isEqualTo LocationStatus.ACTIVE
       locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000001"))!!.locationStatus isEqualTo LocationStatus.TEMPORARILY_BLOCKED
       locationAttributeRepository.findByDpsLocationId(UUID.fromString("00000000-0000-0000-0000-000000000002"))!!.locationStatus isEqualTo LocationStatus.ACTIVE
+    }
+  }
+
+  @Nested
+  @DisplayName("Probation officer attendance reminder")
+  inner class ProbationOfficerAttendanceReminder {
+    private val probationBookingRequestInTwoDaysTime = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      appointmentDate = today().plusDays(2),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      additionalBookingDetails = AdditionalBookingDetails("name", "two.days@justice.gov.uk", null),
+    )
+
+    private val probationBookingRequestInFourDaysTime = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      prisonerNumber = "123456",
+      prisonCode = BIRMINGHAM,
+      location = birminghamLocation,
+      appointmentDate = today().plusDays(4),
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+      additionalBookingDetails = AdditionalBookingDetails("name", "four.days@justice.gov.uk", null),
+    )
+
+    @BeforeEach
+    fun before() {
+      prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(Prisoner(BIRMINGHAM, "123456")))
+    }
+
+    @Test
+    fun `should send one probation officer attendance reminder email to the probation officer for booking happening in 2 days time`() {
+      assumingThat(today().dayOfWeek in listOf(MONDAY, TUESDAY, WEDNESDAY, SUNDAY, SATURDAY)) {
+        videoBookingRepository.findAll() hasSize 0
+        notificationRepository.findAll() hasSize 0
+
+        val bookingId = webTestClient.createBooking(probationBookingRequestInTwoDaysTime, PROBATION_USER)
+        val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+        val fourDays = webTestClient.createBooking(probationBookingRequestInFourDaysTime, PROBATION_USER)
+        videoBookingRepository.findById(fourDays).orElseThrow()
+
+        // Clear out notifications as we are only interested in what the job creates.
+        notificationRepository.deleteAll()
+
+        webTestClient.triggerJob(JobType.PROBATION_OFFICER_ATTENDANCE_REMINDER).also { it isEqualTo JobType.PROBATION_OFFICER_ATTENDANCE_REMINDER.resultMessage }
+
+        val notifications = notificationRepository.findAll().also { it hasSize 1 }
+
+        notifications.isPresent("two.days@justice.gov.uk", ProbationOfficerAttendanceReminderEmail::class, persistedBooking)
+      }
+    }
+
+    @Test
+    fun `should send two probation officer attendance reminder emails to the probation officers for bookings happening in 2 and 4 days time`() {
+      assumingThat(today().dayOfWeek in listOf(THURSDAY, FRIDAY)) {
+        videoBookingRepository.findAll() hasSize 0
+        notificationRepository.findAll() hasSize 0
+
+        val twoDays = webTestClient.createBooking(probationBookingRequestInTwoDaysTime, PROBATION_USER)
+        val persistedBookingTwoDaysAway = videoBookingRepository.findById(twoDays).orElseThrow()
+
+        val fourDays = webTestClient.createBooking(probationBookingRequestInFourDaysTime, PROBATION_USER)
+        val persistedBookingFourDaysAway = videoBookingRepository.findById(fourDays).orElseThrow()
+
+        // Clear out notifications as we are only interested in what the job creates.
+        notificationRepository.deleteAll()
+
+        webTestClient.triggerJob(JobType.PROBATION_OFFICER_ATTENDANCE_REMINDER).also { it isEqualTo JobType.PROBATION_OFFICER_ATTENDANCE_REMINDER.resultMessage }
+
+        val notifications = notificationRepository.findAll().also { it hasSize 2 }
+
+        notifications.isPresent("two.days@justice.gov.uk", ProbationOfficerAttendanceReminderEmail::class, persistedBookingTwoDaysAway)
+        notifications.isPresent("four.days@justice.gov.uk", ProbationOfficerAttendanceReminderEmail::class, persistedBookingFourDaysAway)
+      }
     }
   }
 
