@@ -184,7 +184,7 @@ class ProbationEmailFactoryTest {
     @Test
     fun `should return reminder probation booking probation email`() {
       val email = ProbationEmailFactory.probation(
-        BookingDetails.probationOfficerEmailReminder(
+        BookingDetails.probationOfficerDetailsReminder(
           booking = probationBookingDto,
           prisoner = prisoner,
         ),

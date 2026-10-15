@@ -8,6 +8,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.Additional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService.Companion.getServiceAsUser
 
+/**
+ * This job is responsible for sending probation officer details email reminders for bookings which are missing probation officer contact details.
+ *
+ * The interval for this job is driven by the [DailyJob] class.
+ */
 @Component
 class ProbationOfficerDetailsReminderJob(
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,

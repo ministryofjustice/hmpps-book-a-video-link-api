@@ -48,6 +48,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonNoProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestPrisonProbationTeamEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerAttendanceReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerDetailsReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
@@ -119,6 +120,7 @@ class EmailConfiguration(
   @Value("\${notify.templates.probation.transfer-booking.prison-probation-email:}") private val transferProbationBookingPrisonProbationEmail: String,
   @Value("\${notify.templates.probation.transfer-booking.prison-no-probation-email:}") private val transferProbationBookingPrisonNoProbationEmail: String,
   @Value("\${notify.templates.court.hearing-link-reminder.court:}") private val courtHearingLinkReminderEmail: String,
+  @Value("\${notify.templates.probation.probation-officer-attendance-reminder.probation:}") private val probationOfficerAttendanceReminderEmail: String,
   @Value("\${notify.templates.probation.probation-officer-details-reminder.probation:}") private val probationOfficerDetailsReminderEmail: String,
   @Value("\${notify.templates.probation.rescheduled-booking.user:}") private val rescheduledProbationBookingUser: String,
   @Value("\${notify.templates.probation.rescheduled-booking.prison-probation-email:}") private val rescheduledProbationBookingPrisonProbationEmail: String,
@@ -186,6 +188,7 @@ class EmailConfiguration(
     transferProbationBookingPrisonNoProbationEmail = transferProbationBookingPrisonNoProbationEmail,
     cancelledCourtBookingCourtEmail = cancelledCourtBookingCourtEmail,
     courtHearingLinkReminderEmail = courtHearingLinkReminderEmail,
+    probationOfficerAttendanceReminderEmail = probationOfficerAttendanceReminderEmail,
     probationOfficerDetailsReminderEmail = probationOfficerDetailsReminderEmail,
     administrationNewVideoRoom = administrationNewVideoRoom,
     rescheduledProbationBookingUser = rescheduledProbationBookingUser,
@@ -284,6 +287,7 @@ data class EmailTemplates(
   val rescheduledProbationBookingPrisonProbationEmail: String,
   val rescheduledProbationBookingPrisonNoProbationEmail: String,
   val rescheduledProbationBookingProbationEmail: String,
+  val probationOfficerAttendanceReminderEmail: String,
 ) {
 
   private val emailTemplateMappings = mapOf(
@@ -330,6 +334,7 @@ data class EmailTemplates(
     TransferredProbationBookingPrisonProbationEmail::class.java to transferProbationBookingPrisonProbationEmail,
     TransferredProbationBookingPrisonNoProbationEmail::class.java to transferProbationBookingPrisonNoProbationEmail,
     CourtHearingLinkReminderEmail::class.java to courtHearingLinkReminderEmail,
+    ProbationOfficerAttendanceReminderEmail::class.java to probationOfficerAttendanceReminderEmail,
     ProbationOfficerDetailsReminderEmail::class.java to probationOfficerDetailsReminderEmail,
     AdministrationNewVideoRoomEmail::class.java to administrationNewVideoRoom,
     RescheduledCourtBookingUserEmail::class.java to rescheduledCourtBookingUser,

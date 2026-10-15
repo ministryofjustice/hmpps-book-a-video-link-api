@@ -5,6 +5,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import java.time.DayOfWeek
 import java.time.LocalDate
 
+/**
+ * A base class for jobs that run daily with a given future offset for identifying the bookings to process.
+ */
 abstract class DailyJob(
   jobType: JobType,
   private val timeSource: TimeSource,

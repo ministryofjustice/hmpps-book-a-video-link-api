@@ -238,6 +238,23 @@ fun VideoBooking.withProbationPrisonAppointment(
   locationId = location.id,
 )
 
+fun VideoBooking.withProbationPrisonAppointment(
+  date: LocalDate = tomorrow(),
+  prison: Prison,
+  location: Location = birminghamLocation,
+  prisoner: Prisoner,
+  startTime: LocalTime = LocalTime.MIDNIGHT,
+  endTime: LocalTime = LocalTime.MIDNIGHT.plusHours(1),
+) = addAppointment(
+  prison = prison,
+  prisonerNumber = prisoner.number,
+  appointmentType = "VLB_PROBATION",
+  date = date,
+  startTime = startTime,
+  endTime = endTime,
+  locationId = location.id,
+)
+
 fun appointment(
   booking: VideoBooking,
   prisonCode: String,

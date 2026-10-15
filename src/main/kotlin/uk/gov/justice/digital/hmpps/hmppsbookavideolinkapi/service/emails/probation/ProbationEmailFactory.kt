@@ -486,6 +486,27 @@ object ProbationEmailFactory {
     }
   }
 
+  fun probationOfficerAttendanceReminder(bookingDetails: BookingDetails.ProbationOfficerAttendanceReminder): VideoBookingEmail {
+    val mainMeeting = bookingDetails.mainMeeting!!
+    val additionalBookingDetails = bookingDetails.additionalBookingDetails!!
+
+    return ProbationOfficerAttendanceReminderEmail(
+      prisonerNumber = bookingDetails.prisonerNumber,
+      prisonerFirstName = bookingDetails.prisonerFirstName,
+      prisonerLastName = bookingDetails.prisonerLastName,
+      prison = bookingDetails.prisonName,
+      appointmentDate = mainMeeting.appointmentDate,
+      probationTeam = bookingDetails.probationTeamDescription!!,
+      meetingType = bookingDetails.probationMeetingType!!,
+      appointmentInfo = mainMeeting.appointmentInformation(),
+      prisonVideoUrl = mainMeeting.prisonVideoUrl,
+      comments = bookingDetails.notesForStaff,
+      probationOfficerName = additionalBookingDetails.contactName,
+      probationOfficerEmailAddress = additionalBookingDetails.contactEmail,
+      probationOfficerContactNumber = additionalBookingDetails.contactNumber,
+    )
+  }
+
   private fun PrisonAppointment.appointmentInformation() = "$dpsLocationDescription - ${startTime.toHourMinuteStyle()} to ${endTime.toHourMinuteStyle()}"
 
   private fun Collection<BookingContact>.primaryProbationContact() = singleOrNull { it.contactType == ContactType.PROBATION && it.primaryContact }
