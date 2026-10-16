@@ -50,7 +50,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs.JobType
 import java.nio.charset.StandardCharsets
 import java.time.DayOfWeek.FRIDAY
 import java.time.DayOfWeek.MONDAY
-import java.time.DayOfWeek.SATURDAY
 import java.time.DayOfWeek.SUNDAY
 import java.time.DayOfWeek.THURSDAY
 import java.time.DayOfWeek.TUESDAY
@@ -366,7 +365,7 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `should send one probation officer attendance reminder email to the probation officer for booking happening in 2 days time`() {
-      assumingThat(today().dayOfWeek in listOf(MONDAY, TUESDAY, WEDNESDAY, SUNDAY, SATURDAY)) {
+      assumingThat(today().dayOfWeek in listOf(MONDAY, TUESDAY, WEDNESDAY)) {
         videoBookingRepository.findAll() hasSize 0
         notificationRepository.findAll() hasSize 0
 
@@ -388,25 +387,22 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should send two probation officer attendance reminder emails to the probation officers for bookings happening in 2 and 4 days time`() {
+    fun `should send one probation officer attendance reminder email to the probation officer for booking happening in 4 days time`() {
       assumingThat(today().dayOfWeek in listOf(THURSDAY, FRIDAY)) {
         videoBookingRepository.findAll() hasSize 0
         notificationRepository.findAll() hasSize 0
 
-        val twoDays = webTestClient.createBooking(probationBookingRequestInTwoDaysTime, PROBATION_USER)
-        val persistedBookingTwoDaysAway = videoBookingRepository.findById(twoDays).orElseThrow()
-
-        val fourDays = webTestClient.createBooking(probationBookingRequestInFourDaysTime, PROBATION_USER)
-        val persistedBookingFourDaysAway = videoBookingRepository.findById(fourDays).orElseThrow()
+        webTestClient.createBooking(probationBookingRequestInTwoDaysTime, PROBATION_USER)
+        val bookingId = webTestClient.createBooking(probationBookingRequestInFourDaysTime, PROBATION_USER)
+        val persistedBookingFourDaysAway = videoBookingRepository.findById(bookingId).orElseThrow()
 
         // Clear out notifications as we are only interested in what the job creates.
         notificationRepository.deleteAll()
 
         webTestClient.triggerJob(JobType.PROBATION_OFFICER_ATTENDANCE_REMINDER).also { it isEqualTo JobType.PROBATION_OFFICER_ATTENDANCE_REMINDER.resultMessage }
 
-        val notifications = notificationRepository.findAll().also { it hasSize 2 }
+        val notifications = notificationRepository.findAll().also { it hasSize 1 }
 
-        notifications.isPresent("two.days@justice.gov.uk", ProbationOfficerAttendanceReminderEmail::class, persistedBookingTwoDaysAway)
         notifications.isPresent("four.days@justice.gov.uk", ProbationOfficerAttendanceReminderEmail::class, persistedBookingFourDaysAway)
       }
     }

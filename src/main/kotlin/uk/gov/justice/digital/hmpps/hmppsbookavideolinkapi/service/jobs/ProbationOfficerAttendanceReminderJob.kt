@@ -7,6 +7,9 @@ import java.time.DayOfWeek
 
 /**
  * The purpose of this job is to send probation officers attendance reminders for bookings which are due to start soon.
+ *
+ * The job looks for bookings 2 days ahead when running on Monday, Tuesday, and Wednesday, and 4 days ahead when running
+ * on Thursday and Friday. It does not run at the weekend.
  */
 @Component
 class ProbationOfficerAttendanceReminderJob(
@@ -17,11 +20,13 @@ class ProbationOfficerAttendanceReminderJob(
   block = {
     val today = timeSource.today()
 
-    // Always look 2 days ahead for attendance reminders for every day of the week
-    service.sendProbationOfficerAttendanceReminders(today.plusDays(2))
+    if (today.dayOfWeek in listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY)) {
+      // Always look 2 days ahead for attendance reminders on these days
+      service.sendProbationOfficerAttendanceReminders(today.plusDays(2))
+    }
 
-    // Also look at the following Monday and Tuesday as well for Thursdays and Fridays for attendance reminders
     if (today.dayOfWeek in listOf(DayOfWeek.THURSDAY, DayOfWeek.FRIDAY)) {
+      // Always look 4 days ahead for attendance reminders on these days
       service.sendProbationOfficerAttendanceReminders(today.plusDays(4))
     }
   },
