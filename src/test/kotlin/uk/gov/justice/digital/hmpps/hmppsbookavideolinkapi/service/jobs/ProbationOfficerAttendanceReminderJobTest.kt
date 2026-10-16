@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.jobs
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerAttendanceEmailReminderService
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -21,44 +22,48 @@ class ProbationOfficerAttendanceReminderJobTest {
   private val attendanceEmailReminderService: ProbationOfficerAttendanceEmailReminderService = mock()
 
   @Test
-  fun `should call probation officer attendance reminders`() {
+  fun `should call probation officer attendance reminders on Mondays with a 2 day offset`() {
     runAndVerifyJobOn(MONDAY, 2)
   }
 
   @Test
-  fun `should call probation officer attendance reminder on Tuesdays`() {
+  fun `should call probation officer attendance reminder on Tuesdays with a 2 day offset`() {
     runAndVerifyJobOn(TUESDAY, 2)
   }
 
   @Test
-  fun `should call probation officer attendance reminder on Wednesdays`() {
+  fun `should call probation officer attendance reminder on Wednesdays with a 2 day offset`() {
     runAndVerifyJobOn(WEDNESDAY, 2)
   }
 
   @Test
-  fun `should call probation officer attendance reminder twice on Thursdays`() {
-    runAndVerifyJobOn(THURSDAY, 2, 4)
+  fun `should call probation officer attendance reminder on Thursdays with a 4 day offset`() {
+    runAndVerifyJobOn(THURSDAY, 4)
   }
 
   @Test
-  fun `should call probation officer attendance reminder twice on Fridays`() {
-    runAndVerifyJobOn(FRIDAY, 2, 4)
+  fun `should call probation officer attendance reminder on Fridays with a 4 day offset`() {
+    runAndVerifyJobOn(FRIDAY, 4)
   }
 
   @Test
-  fun `should call probation officer attendance reminder on Saturdays`() {
-    runAndVerifyJobOn(SATURDAY, 2)
+  fun `should be no-op on Saturdays`() {
+    runJobOn(SATURDAY)
+
+    verifyNoInteractions(attendanceEmailReminderService)
   }
 
   @Test
-  fun `should call probation officer attendance reminder on Sundays`() {
-    runAndVerifyJobOn(SUNDAY, 2)
+  fun `should be no-op on Sundays`() {
+    runJobOn(SUNDAY)
+
+    verifyNoInteractions(attendanceEmailReminderService)
   }
 
-  private fun runAndVerifyJobOn(date: LocalDate, vararg offset: Long) {
+  private fun runAndVerifyJobOn(date: LocalDate, offset: Long) {
     runJobOn(date)
 
-    offset.forEach { verify(attendanceEmailReminderService).sendProbationOfficerAttendanceReminders(date.plusDays(it)) }
+    verify(attendanceEmailReminderService).sendProbationOfficerAttendanceReminders(date.plusDays(offset))
   }
 
   private fun runJobOn(date: LocalDate) {
