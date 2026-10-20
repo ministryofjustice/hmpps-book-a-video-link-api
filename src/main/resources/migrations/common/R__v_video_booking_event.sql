@@ -70,8 +70,8 @@ select
     rc.description as type,
     coalesce(bh.delius_email, bh.created_by) as "user",
     null as cvp_link,
-    abd.contact_name as probation_officer_name,
-    abd.contact_email as probation_officer_email,
+    bh.contact_name as probation_officer_name,
+    bh.contact_email as probation_officer_email,
     bh.created_time::date as timestamp_date_part
 from video_booking vlb
   join booking_history bh on bh.video_booking_id = vlb.video_booking_id
