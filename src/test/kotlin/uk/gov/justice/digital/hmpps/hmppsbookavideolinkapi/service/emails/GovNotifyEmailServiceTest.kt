@@ -115,6 +115,7 @@ class GovNotifyEmailServiceTest {
     rescheduledProbationBookingPrisonNoProbationEmail = "rescheduledProbationBookingPrisonNoProbationEmail",
     rescheduledProbationBookingProbationEmail = "rescheduledProbationBookingProbationEmail",
     probationOfficerAttendanceReminderEmail = "probationOfficerAttendanceReminderEmail",
+    probationOfficerReassignedEmail = "probationOfficerReassignedEmail",
   )
 
   private val service = GovNotifyEmailService(client, emailTemplates, "http://localhost:3000")
