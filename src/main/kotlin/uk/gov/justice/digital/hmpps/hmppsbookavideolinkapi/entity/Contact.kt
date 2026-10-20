@@ -53,6 +53,7 @@ enum class ContactType {
   USER,
   COURT,
   PROBATION,
+  PROBATION_OFFICER_REASSIGNED,
   PRISON,
   THIRD_PARTY,
 }

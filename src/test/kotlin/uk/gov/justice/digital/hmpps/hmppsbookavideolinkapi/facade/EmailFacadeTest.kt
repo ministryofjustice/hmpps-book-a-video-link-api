@@ -821,7 +821,7 @@ class EmailFacadeTest {
     @Test
     fun `should send emails but no events on cancellation of a probation booking by service user`() {
       contactsService.stub {
-        on { getProbationBookingContacts(any(), any(), any(), eq(SERVICE_USER)) } doReturn listOf(
+        on { getProbationBookingContacts(any(), any(), eq(SERVICE_USER)) } doReturn listOf(
           bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name),
         )
       }
@@ -1685,7 +1685,7 @@ class EmailFacadeTest {
 
     // Not ideal but have logic in tests to mimic stubbed service behaviour regarding matching email addresses for contacts
     contactsService.stub {
-      on { getProbationBookingContacts(any(), any(), any(), eq(user)) } doReturn listOfNotNull(
+      on { getProbationBookingContacts(any(), any(), eq(user)) } doReturn listOfNotNull(
         bookingContact(contactType = ContactType.USER, email = mayBeEmail, name = user.name).takeUnless { user is ServiceUser },
         bookingContact(contactType = ContactType.PRISON, email = PRISON_USER_BIRMINGHAM.email, name = PRISON_USER_BIRMINGHAM.name).takeUnless { it.email == mayBeEmail },
         bookingContact(contactType = ContactType.PROBATION, email = PROBATION_USER.email, name = PROBATION_USER.name).takeUnless { user is DeliusUser || it.email == mayBeEmail },

@@ -13,10 +13,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 
 @Service
@@ -80,15 +82,17 @@ class ContactsService(
    * filtering this list using rules based on the type of booking, type of action, type of prison location, and
    * the type of contact.
    */
-  fun getProbationBookingContacts(action: BookingAction, videoBookingId: Long, location: Location, user: User): List<BookingContact> {
+  fun getProbationBookingContacts(bookingDetails: BookingDetails, location: Location, user: User): List<BookingContact> {
     // Construct a set of all contacts that could be relevant to this booking
     // This will naturally avoid COURT contacts on PROBATION bookings, and vice versa.
     val allContacts = buildSet {
-      getUserContactIfHasAnEmailAddress(videoBookingId, user)?.let { add(it) }
-      addAll(bookingContactsRepository.findContactsByVideoBookingId(videoBookingId).filter { it.contactType != ContactType.COURT })
+      getUserContactIfHasAnEmailAddress(bookingDetails.videoLinkBookingId, user)?.let { add(it) }
+      addAll(bookingContactsRepository.findContactsByVideoBookingId(bookingDetails.videoLinkBookingId).filter { it.contactType != ContactType.COURT })
+      getUnassignedProbationOfficer(bookingDetails)?.let { add(it) }
+      getAssignedProbationOfficer(bookingDetails)?.let { add(it) }
     }
 
-    val filteredContacts = when (action) {
+    val filteredContacts = when (bookingDetails.action) {
       BookingAction.CREATE, BookingAction.CANCEL, BookingAction.TRANSFERRED, BookingAction.RELEASED -> {
         if (location.isALegalVisitLocation()) {
           allContacts.legalVisitContacts()
@@ -100,7 +104,7 @@ class ContactsService(
       }
 
       BookingAction.AMEND -> {
-        val previousLocation: Location? = getLocationForPreviousProbationBookingHistory(videoBookingId, user)
+        val previousLocation: Location? = getLocationForPreviousProbationBookingHistory(bookingDetails.videoLinkBookingId, user)
 
         when {
           // Current location is legal, previous was legal or undefined
@@ -142,6 +146,36 @@ class ContactsService(
     )
   }
 
+  private fun AdditionalBookingDetails.isJusticeGovUkEmail() = contactEmail.trim().endsWith("@JUSTICE.GOV.UK", ignoreCase = true)
+
+  private fun getUnassignedProbationOfficer(bookingDetails: BookingDetails) = bookingDetails
+    .let { it as? BookingDetails.Amended }
+    ?.getUnassignedProbationOfficer()
+    ?.takeIf { it.isJusticeGovUkEmail() }
+    ?.let {
+      BookingContact(
+        videoBookingId = bookingDetails.videoLinkBookingId,
+        contactType = ContactType.PROBATION_OFFICER_REASSIGNED,
+        name = it.contactName,
+        email = it.contactEmail,
+        primaryContact = true,
+      )
+    }
+
+  private fun getAssignedProbationOfficer(bookingDetails: BookingDetails) = bookingDetails
+    .let { it as? BookingDetails.Amended }
+    ?.getAssignedProbationOfficer()
+    ?.takeIf { it.isJusticeGovUkEmail() }
+    ?.let {
+      BookingContact(
+        videoBookingId = bookingDetails.videoLinkBookingId,
+        contactType = ContactType.PROBATION_OFFICER_REASSIGNED,
+        name = it.contactName,
+        email = it.contactEmail,
+        primaryContact = true,
+      )
+    }
+
   /**
    * Extension function for a set of booking contacts to filter the superset to a narrower list
    * of prison contacts, retaining user, court and probation contacts where they exist.
@@ -150,6 +184,7 @@ class ContactsService(
     (it.contactType == ContactType.PRISON && it.contactArea == ContactAreaType.VCC) ||
       it.contactType == ContactType.COURT ||
       it.contactType == ContactType.PROBATION ||
+      it.contactType == ContactType.PROBATION_OFFICER_REASSIGNED ||
       it.contactType == ContactType.USER
   }
 
@@ -161,6 +196,7 @@ class ContactsService(
     (it.contactType == ContactType.PRISON && it.contactArea == ContactAreaType.OFFICIAL_VISITS) ||
       it.contactType == ContactType.COURT ||
       it.contactType == ContactType.PROBATION ||
+      it.contactType == ContactType.PROBATION_OFFICER_REASSIGNED ||
       it.contactType == ContactType.USER
   }
 

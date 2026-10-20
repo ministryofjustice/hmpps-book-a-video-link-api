@@ -248,22 +248,31 @@ object ProbationEmailFactory {
     // Check booking contact is the correct contact type and if it has been reassigned to a different probation officer.
 
     if (bookingDetails is BookingDetails.Amended) {
-      return ProbationOfficerReassignedEmail(
-        address = bookingContact.email!!,
-        prison = bookingDetails.prisonName,
-        prisonerFirstName = bookingDetails.prisonerFirstName,
-        prisonerLastName = bookingDetails.prisonerLastName,
-        prisonerNumber = bookingDetails.prisonerNumber,
-        probationTeam = bookingDetails.probationTeamDescription!!,
-        meetingType = bookingDetails.probationMeetingType!!,
-        appointmentDate = bookingDetails.mainMeeting!!.appointmentDate,
-        appointmentInfo = bookingDetails.mainMeeting.appointmentInformation(),
-        prisonVideoUrl = bookingDetails.mainMeeting.prisonVideoUrl,
-        comments = bookingDetails.notesForStaff,
-        probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
-        probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
-        probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
-      )
+      val contactEmail = bookingContact.email!!
+
+      val unassignedEmail = bookingDetails.getUnassignedProbationOfficer()?.contactEmail
+      val assignedEmail = bookingDetails.getAssignedProbationOfficer()?.contactEmail
+
+      when (contactEmail) {
+        unassignedEmail -> return ProbationOfficerReassignedEmail(
+          address = bookingContact.email!!,
+          prison = bookingDetails.prisonName,
+          prisonerFirstName = bookingDetails.prisonerFirstName,
+          prisonerLastName = bookingDetails.prisonerLastName,
+          prisonerNumber = bookingDetails.prisonerNumber,
+          probationTeam = bookingDetails.probationTeamDescription!!,
+          meetingType = bookingDetails.probationMeetingType!!,
+          appointmentDate = bookingDetails.mainMeeting!!.appointmentDate,
+          appointmentInfo = bookingDetails.mainMeeting.appointmentInformation(),
+          prisonVideoUrl = bookingDetails.mainMeeting.prisonVideoUrl,
+          comments = bookingDetails.notesForStaff,
+          probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+          probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+          probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+        )
+
+        assignedEmail -> return probation(bookingDetails, bookingContact.copy(contactType = ContactType.PROBATION))
+      }
     }
 
     return null

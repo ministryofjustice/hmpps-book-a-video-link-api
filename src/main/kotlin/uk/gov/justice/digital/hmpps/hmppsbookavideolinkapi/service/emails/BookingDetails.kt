@@ -71,6 +71,10 @@ sealed class BookingDetails private constructor(
     val oldPostHearing = oldBooking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_POST" }
     val oldMainMeeting = oldBooking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_PROBATION" }
 
+    fun getUnassignedProbationOfficer() = oldBooking.additionalBookingDetails?.takeIf { it.contactEmail != booking.additionalBookingDetails?.contactEmail }
+
+    fun getAssignedProbationOfficer() = booking.additionalBookingDetails?.takeIf { it.contactEmail != oldBooking.additionalBookingDetails?.contactEmail }
+
     fun isRescheduled() = run {
       oldBooking.overallStartDateTime() != booking.overallStartDateTime() || oldBooking.overallEndDateTime() != booking.overallEndDateTime()
     }

@@ -88,8 +88,7 @@ class EmailFacade(
 
     // Get the contacts who should be notified of this probation booking action
     val contacts = contactsService.getProbationBookingContacts(
-      action = bookingDetails.action,
-      videoBookingId = bookingDetails.videoLinkBookingId,
+      bookingDetails = bookingDetails,
       location = location,
       user,
     ).withAnEmailAddress()
@@ -102,6 +101,8 @@ class EmailFacade(
 
         ContactType.PROBATION -> ProbationEmailFactory.probation(bookingDetails, contact)
           .takeIf { (user is PrisonUser || user is ServiceUser) && changeType in setOf(ChangeType.GLOBAL) }
+
+        ContactType.PROBATION_OFFICER_REASSIGNED -> ProbationEmailFactory.probationOfficer(bookingDetails, contact)
 
         ContactType.PRISON -> ProbationEmailFactory.prison(bookingDetails, contact, contacts)
           .takeIf { changeType in setOf(ChangeType.GLOBAL, ChangeType.PRISON) }
