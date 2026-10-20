@@ -47,6 +47,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probat
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationBookingRequestUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerAttendanceReminderEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerDetailsReminderEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerReassignedEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonNoProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
@@ -115,6 +116,7 @@ class EmailTemplatesTest {
     RescheduledProbationBookingPrisonNoProbationEmail::class.java to "rescheduledProbationBookingPrisonNoProbationEmail",
     RescheduledProbationBookingProbationEmail::class.java to "rescheduledProbationBookingProbationEmail",
     ProbationOfficerAttendanceReminderEmail::class.java to "probationOfficerAttendanceReminderEmail",
+    ProbationOfficerReassignedEmail::class.java to "probationOfficerReassignedEmail",
   )
 
   private val templates = EmailTemplates(
@@ -172,6 +174,7 @@ class EmailTemplatesTest {
     rescheduledProbationBookingPrisonNoProbationEmail = "rescheduledProbationBookingPrisonNoProbationEmail",
     rescheduledProbationBookingProbationEmail = "rescheduledProbationBookingProbationEmail",
     probationOfficerAttendanceReminderEmail = "probationOfficerAttendanceReminderEmail",
+    probationOfficerReassignedEmail = "probationOfficerReassignedEmail",
   )
 
   @Test
@@ -240,6 +243,7 @@ class EmailTemplatesTest {
       "25",
       "26",
       "27",
+      "28",
     )
 
     val error = assertThrows<IllegalArgumentException> {
@@ -298,6 +302,7 @@ class EmailTemplatesTest {
         "23",
         "24",
         "25",
+        "26",
       )
     }
 

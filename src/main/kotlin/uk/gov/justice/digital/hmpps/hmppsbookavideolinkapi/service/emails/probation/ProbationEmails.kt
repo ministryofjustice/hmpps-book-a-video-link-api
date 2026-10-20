@@ -764,6 +764,38 @@ class ProbationOfficerDetailsReminderEmail(
   }
 }
 
+class ProbationOfficerReassignedEmail(
+  address: String,
+  prison: String,
+  prisonerFirstName: String,
+  prisonerLastName: String,
+  prisonerNumber: String,
+  probationTeam: String,
+  meetingType: String,
+  appointmentDate: LocalDate,
+  appointmentInfo: String,
+  prisonVideoUrl: String?,
+  comments: String?,
+  probationOfficerName: String?,
+  probationOfficerEmailAddress: String?,
+  probationOfficerContactNumber: String?,
+) : ProbationEmail(
+  address = address,
+  prisonerFirstName = prisonerFirstName,
+  prisonerLastName = prisonerLastName,
+  prisonerNumber = prisonerNumber,
+  probationTeam = probationTeam,
+  appointmentDate = appointmentDate,
+  appointmentInfo = appointmentInfo,
+  prisonVideoUrl = prisonVideoUrl,
+  prison = prison,
+  comments = comments,
+  meetingType = meetingType,
+  probationOfficerName = probationOfficerName ?: "Not yet known",
+  probationOfficerEmailAddress = probationOfficerEmailAddress ?: "Not yet known",
+  probationOfficerContactNumber = probationOfficerContactNumber ?: "Not yet known",
+)
+
 class RescheduledProbationBookingUserEmail(
   address: String,
   prisonerFirstName: String,
