@@ -195,6 +195,8 @@ notify:
         probation: "bbc6e3ef-1d01-466a-b608-079d624b1e4f"
       probation-officer-details-reminder:
         probation: "459a1bff-466f-42ed-bf6d-ad7206342fbb"
+      probation-officer-reassigned:
+        probation: "76abcf1e-ce4b-4d7b-a8f6-a1a60708f007"
       rescheduled-booking:
         user: "cd7a1305-6eda-40e0-a816-32e733fd163c"
         probation: "0d7ba32b-1a4e-4a07-a146-cf4cc85de153"
