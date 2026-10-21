@@ -102,7 +102,7 @@ class EmailFacade(
         ContactType.PROBATION -> ProbationEmailFactory.probation(bookingDetails, contact)
           .takeIf { (user is PrisonUser || user is ServiceUser) && changeType in setOf(ChangeType.GLOBAL) }
 
-        ContactType.PROBATION_OFFICER_REASSIGNED -> ProbationEmailFactory.probationOfficer(bookingDetails, contact)
+        ContactType.PROBATION_OFFICER -> ProbationEmailFactory.probationOfficer(bookingDetails, contact)
 
         ContactType.PRISON -> ProbationEmailFactory.prison(bookingDetails, contact, contacts)
           .takeIf { changeType in setOf(ChangeType.GLOBAL, ChangeType.PRISON) }

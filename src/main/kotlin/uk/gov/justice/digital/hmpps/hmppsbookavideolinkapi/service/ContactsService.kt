@@ -88,8 +88,7 @@ class ContactsService(
     val allContacts = buildSet {
       getUserContactIfHasAnEmailAddress(bookingDetails.videoLinkBookingId, user)?.let { add(it) }
       addAll(bookingContactsRepository.findContactsByVideoBookingId(bookingDetails.videoLinkBookingId).filter { it.contactType != ContactType.COURT })
-      getUnassignedProbationOfficer(bookingDetails)?.let { add(it) }
-      getAssignedProbationOfficer(bookingDetails)?.let { add(it) }
+      addAll(getProbationOfficerContacts(bookingDetails))
     }
 
     val filteredContacts = when (bookingDetails.action) {
@@ -148,33 +147,24 @@ class ContactsService(
 
   private fun AdditionalBookingDetails.isJusticeGovUkEmail() = contactEmail.trim().endsWith("@JUSTICE.GOV.UK", ignoreCase = true)
 
-  private fun getUnassignedProbationOfficer(bookingDetails: BookingDetails) = bookingDetails
-    .let { it as? BookingDetails.Amended }
-    ?.getUnassignedProbationOfficer()
-    ?.takeIf { it.isJusticeGovUkEmail() }
-    ?.let {
-      BookingContact(
-        videoBookingId = bookingDetails.videoLinkBookingId,
-        contactType = ContactType.PROBATION_OFFICER_REASSIGNED,
-        name = it.contactName,
-        email = it.contactEmail,
-        primaryContact = true,
-      )
+  private fun getProbationOfficerContacts(bookingDetails: BookingDetails): List<BookingContact> {
+    val allAdditionalBookingDetails = when (bookingDetails) {
+      is BookingDetails.Amended -> bookingDetails.getAllAdditionalBookingDetails()
+      else -> emptyList()
     }
 
-  private fun getAssignedProbationOfficer(bookingDetails: BookingDetails) = bookingDetails
-    .let { it as? BookingDetails.Amended }
-    ?.getAssignedProbationOfficer()
-    ?.takeIf { it.isJusticeGovUkEmail() }
-    ?.let {
-      BookingContact(
-        videoBookingId = bookingDetails.videoLinkBookingId,
-        contactType = ContactType.PROBATION_OFFICER_REASSIGNED,
-        name = it.contactName,
-        email = it.contactEmail,
-        primaryContact = true,
-      )
-    }
+    return allAdditionalBookingDetails
+      .filter { it.isJusticeGovUkEmail() }
+      .map {
+        BookingContact(
+          videoBookingId = bookingDetails.videoLinkBookingId,
+          contactType = ContactType.PROBATION_OFFICER,
+          name = it.contactName,
+          email = it.contactEmail,
+          primaryContact = true,
+        )
+      }
+  }
 
   /**
    * Extension function for a set of booking contacts to filter the superset to a narrower list
@@ -184,7 +174,7 @@ class ContactsService(
     (it.contactType == ContactType.PRISON && it.contactArea == ContactAreaType.VCC) ||
       it.contactType == ContactType.COURT ||
       it.contactType == ContactType.PROBATION ||
-      it.contactType == ContactType.PROBATION_OFFICER_REASSIGNED ||
+      it.contactType == ContactType.PROBATION_OFFICER ||
       it.contactType == ContactType.USER
   }
 
@@ -196,7 +186,7 @@ class ContactsService(
     (it.contactType == ContactType.PRISON && it.contactArea == ContactAreaType.OFFICIAL_VISITS) ||
       it.contactType == ContactType.COURT ||
       it.contactType == ContactType.PROBATION ||
-      it.contactType == ContactType.PROBATION_OFFICER_REASSIGNED ||
+      it.contactType == ContactType.PROBATION_OFFICER ||
       it.contactType == ContactType.USER
   }
 

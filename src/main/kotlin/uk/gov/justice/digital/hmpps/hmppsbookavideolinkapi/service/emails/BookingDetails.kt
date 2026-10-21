@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 
@@ -70,10 +71,12 @@ sealed class BookingDetails private constructor(
     val oldMainHearing = oldBooking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_MAIN" }
     val oldPostHearing = oldBooking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_POST" }
     val oldMainMeeting = oldBooking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_PROBATION" }
+    val oldAdditionalBookingDetails = oldBooking.additionalBookingDetails
 
-    fun getUnassignedProbationOfficer() = oldBooking.additionalBookingDetails?.takeIf { it.contactEmail != booking.additionalBookingDetails?.contactEmail }
-
-    fun getAssignedProbationOfficer() = booking.additionalBookingDetails?.takeIf { it.contactEmail != oldBooking.additionalBookingDetails?.contactEmail }
+    fun getAllAdditionalBookingDetails(): List<AdditionalBookingDetails> {
+      val allAdditionalBookingDetails = listOfNotNull(booking.additionalBookingDetails, oldBooking.additionalBookingDetails)
+      return allAdditionalBookingDetails.distinctBy { it.contactEmail }
+    }
 
     fun isRescheduled() = run {
       oldBooking.overallStartDateTime() != booking.overallStartDateTime() || oldBooking.overallEndDateTime() != booking.overallEndDateTime()

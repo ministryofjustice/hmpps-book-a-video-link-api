@@ -241,41 +241,47 @@ object ProbationEmailFactory {
   }
 
   fun probationOfficer(bookingDetails: BookingDetails, bookingContact: BookingContact): VideoBookingEmail? {
+    require(bookingContact.contactType == ContactType.PROBATION_OFFICER) {
+      "Incorrect contact type ${bookingContact.contactType} for probation officer probation email"
+    }
+
     require(bookingContact.email != null) {
       "Booking contact email is required for probation officer"
     }
 
-    // Check booking contact is the correct contact type and if it has been reassigned to a different probation officer.
+    return when (bookingDetails) {
+      is BookingDetails.Amended -> {
+        when {
+          bookingDetails.oldAdditionalBookingDetails?.contactEmail == bookingDetails.additionalBookingDetails?.contactEmail -> null
 
-    if (bookingDetails is BookingDetails.Amended) {
-      val contactEmail = bookingContact.email!!
+          bookingContact.email!! == bookingDetails.oldAdditionalBookingDetails?.contactEmail -> ProbationOfficerReassignedEmail(
+            address = bookingContact.email!!,
+            prison = bookingDetails.prisonName,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            meetingType = bookingDetails.probationMeetingType!!,
+            appointmentDate = bookingDetails.mainMeeting!!.appointmentDate,
+            appointmentInfo = bookingDetails.mainMeeting.appointmentInformation(),
+            prisonVideoUrl = bookingDetails.mainMeeting.prisonVideoUrl,
+            comments = bookingDetails.notesForStaff,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+          )
 
-      val unassignedEmail = bookingDetails.getUnassignedProbationOfficer()?.contactEmail
-      val assignedEmail = bookingDetails.getAssignedProbationOfficer()?.contactEmail
+          bookingContact.email!! == bookingDetails.additionalBookingDetails?.contactEmail -> probation(
+            bookingDetails,
+            bookingContact.copy(contactType = ContactType.PROBATION),
+          )
 
-      when (contactEmail) {
-        unassignedEmail -> return ProbationOfficerReassignedEmail(
-          address = bookingContact.email!!,
-          prison = bookingDetails.prisonName,
-          prisonerFirstName = bookingDetails.prisonerFirstName,
-          prisonerLastName = bookingDetails.prisonerLastName,
-          prisonerNumber = bookingDetails.prisonerNumber,
-          probationTeam = bookingDetails.probationTeamDescription!!,
-          meetingType = bookingDetails.probationMeetingType!!,
-          appointmentDate = bookingDetails.mainMeeting!!.appointmentDate,
-          appointmentInfo = bookingDetails.mainMeeting.appointmentInformation(),
-          prisonVideoUrl = bookingDetails.mainMeeting.prisonVideoUrl,
-          comments = bookingDetails.notesForStaff,
-          probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
-          probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
-          probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
-        )
-
-        assignedEmail -> return probation(bookingDetails, bookingContact.copy(contactType = ContactType.PROBATION))
+          else -> null
+        }
       }
-    }
 
-    return null
+      else -> null
+    }
   }
 
   fun prison(

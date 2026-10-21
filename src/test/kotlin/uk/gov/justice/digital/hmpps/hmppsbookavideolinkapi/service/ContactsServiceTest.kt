@@ -499,7 +499,7 @@ class ContactsServiceTest {
     }
 
     @Test
-    fun `Probation contacts - booking amend - same probation officer - no extra contact`() {
+    fun `Probation contacts - booking amend - same probation officer - officer included`() {
       whenever(locationsService.getLocationById(randomLocationUuid)) doReturn vccLocation
 
       val additionalBookingDetails = AdditionalBookingDetails(
@@ -519,13 +519,13 @@ class ContactsServiceTest {
       )
       val contacts = service.getProbationBookingContacts(bookingDetails, vccLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null)
     }
 
     @Test
-    fun `Probation contacts - booking amend - adding probation officer - extra contact`() {
+    fun `Probation contacts - booking amend - adding probation officer - officer included`() {
       whenever(locationsService.getLocationById(randomLocationUuid)) doReturn vccLocation
 
       val additionalBookingDetails = AdditionalBookingDetails(
@@ -545,12 +545,12 @@ class ContactsServiceTest {
       val contacts = service.getProbationBookingContacts(bookingDetails, vccLocation, user)
 
       assertThat(contacts.size).isEqualTo(4)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER_REASSIGNED)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
       contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null)
     }
 
     @Test
-    fun `Probation contacts - booking amend - removing probation officer - extra contact for unassigned officer`() {
+    fun `Probation contacts - booking amend - removing probation officer - officer included`() {
       whenever(locationsService.getLocationById(randomLocationUuid)) doReturn vccLocation
 
       val additionalBookingDetails = AdditionalBookingDetails(
@@ -570,12 +570,12 @@ class ContactsServiceTest {
       val contacts = service.getProbationBookingContacts(bookingDetails, vccLocation, user)
 
       assertThat(contacts.size).isEqualTo(4)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER_REASSIGNED)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
       contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null)
     }
 
     @Test
-    fun `Probation contacts - booking amend - removing probation officer - not justice email - no extra contact`() {
+    fun `Probation contacts - booking amend - removing probation officer - not justice email - officer not included`() {
       whenever(locationsService.getLocationById(randomLocationUuid)) doReturn vccLocation
 
       val additionalBookingDetails = AdditionalBookingDetails(
@@ -600,7 +600,7 @@ class ContactsServiceTest {
     }
 
     @Test
-    fun `Probation contacts - booking amend - changing probation officer - extra contacts for both officers`() {
+    fun `Probation contacts - booking amend - changing probation officer - both officers included`() {
       whenever(locationsService.getLocationById(randomLocationUuid)) doReturn vccLocation
 
       val additionalBookingDetailsOne = AdditionalBookingDetails(
@@ -626,7 +626,7 @@ class ContactsServiceTest {
       val contacts = service.getProbationBookingContacts(bookingDetails, vccLocation, user)
 
       assertThat(contacts.size).isEqualTo(5)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER_REASSIGNED, ContactType.PROBATION_OFFICER_REASSIGNED)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER, ContactType.PROBATION_OFFICER)
       contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null, null)
     }
 
