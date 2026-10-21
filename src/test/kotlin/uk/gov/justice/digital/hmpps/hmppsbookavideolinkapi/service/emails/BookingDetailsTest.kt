@@ -1,10 +1,14 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
 
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.locationAttributes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
@@ -13,6 +17,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLoca
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withPreMainPostCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withProbationPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
@@ -246,6 +251,69 @@ class BookingDetailsTest {
         prisonerFirstName isEqualTo "Fred"
         prisonerLastName isEqualTo "Bloggs"
         prisonerDateOfBirth isEqualTo LocalDate.of(2000, 1, 1)
+      }
+    }
+
+    @DisplayName("BookingDetails.Amended::getAllAdditionalBookingDetails")
+    @Nested
+    inner class GetAllAdditionalBookingDetails {
+      val officerOne = AdditionalBookingDetails(
+        contactName = "Officer One",
+        contactEmail = "one@example.com",
+        contactNumber = null,
+      )
+
+      val officerTwo = AdditionalBookingDetails(
+        contactName = "Officer Two",
+        contactEmail = "two@example.com",
+        contactNumber = null,
+      )
+
+      val probationBookingOfficerOne = probationBooking.copy(
+        additionalBookingDetails = officerOne,
+      )
+
+      val probationBookingOfficerTwo = probationBooking.copy(
+        additionalBookingDetails = officerTwo,
+      )
+
+      @Test
+      fun `should return no probation officers if not set`() {
+        with(BookingDetails.amended(probationBooking, probationBooking, prisoner)) {
+          getAllAdditionalBookingDetails() hasSize 0
+        }
+      }
+
+      @Test
+      fun `should return probation officer if unchanged`() {
+        with(BookingDetails.amended(probationBookingOfficerOne, probationBookingOfficerOne, prisoner)) {
+          getAllAdditionalBookingDetails() hasSize 1
+          getAllAdditionalBookingDetails() containsExactly listOf(officerOne)
+        }
+      }
+
+      @Test
+      fun `should return both probation officers if changed`() {
+        with(BookingDetails.amended(probationBookingOfficerOne, probationBookingOfficerTwo, prisoner)) {
+          getAllAdditionalBookingDetails() hasSize 2
+          getAllAdditionalBookingDetails() containsExactlyInAnyOrder listOf(officerOne, officerTwo)
+        }
+      }
+
+      @Test
+      fun `should return probation officer if added`() {
+        with(BookingDetails.amended(probationBooking, probationBookingOfficerTwo, prisoner)) {
+          getAllAdditionalBookingDetails() hasSize 1
+          getAllAdditionalBookingDetails() containsExactly listOf(officerTwo)
+        }
+      }
+
+      @Test
+      fun `should return probation officer if removed`() {
+        with(BookingDetails.amended(probationBookingOfficerOne, probationBooking, prisoner)) {
+          getAllAdditionalBookingDetails() hasSize 1
+          getAllAdditionalBookingDetails() containsExactly listOf(officerOne)
+        }
       }
     }
   }
