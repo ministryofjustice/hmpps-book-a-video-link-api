@@ -29,11 +29,11 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.22.3")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.22.4")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
-  runtimeOnly("org.postgresql:postgresql:42.7.13")
+  runtimeOnly("org.postgresql:postgresql:42.7.14")
 
   // OpenAPI
   val springDocVersion = "3.1.1"
@@ -63,7 +63,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
   // SAR test library
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.8.4")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.8.5")
 
   testImplementation("net.javacrumbs.json-unit:json-unit:5.1.1")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.1")
