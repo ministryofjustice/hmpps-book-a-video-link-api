@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 
@@ -85,14 +84,6 @@ sealed class BookingDetails private constructor(
         }
         return field
       }
-
-    fun getAllAdditionalBookingDetails(): List<AdditionalBookingDetails> {
-      require(booking.bookingType == BookingType.PROBATION) {
-        "Booking $videoLinkBookingId is not a probation booking"
-      }
-      val allAdditionalBookingDetails = listOfNotNull(booking.additionalBookingDetails, oldBooking.additionalBookingDetails)
-      return allAdditionalBookingDetails.distinctBy { it.contactEmail }
-    }
 
     fun isRescheduled() = run {
       oldBooking.overallStartDateTime() != booking.overallStartDateTime() || oldBooking.overallEndDateTime() != booking.overallEndDateTime()

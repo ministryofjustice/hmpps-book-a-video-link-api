@@ -20,4 +20,20 @@ CREATE OR REPLACE VIEW v_booking_contacts AS
   UNION
     select vlb.video_booking_id, 'THIRD_PARTY' as contact_type, tp.name, tp.organisation as position, tp.email, tp.telephone, tp.primary_contact, null as contact_area
     from video_booking vlb, third_party tp
-    where tp.video_booking_id = vlb.video_booking_id;
+    where tp.video_booking_id = vlb.video_booking_id
+  UNION
+    select vlb.video_booking_id, 'PROBATION_OFFICER' as contact_type, bh.contact_name, null::varchar(100) as position, bh.contact_email, bh.contact_number::varchar(20), true as primary_contact, null as contact_area
+    from
+      video_booking vlb,
+      lateral (
+        select distinct on (upper(trim(bh.contact_email))) bh.contact_name, bh.contact_email, bh.contact_number
+        from
+          (
+            select bh.contact_name, bh.contact_email, bh.contact_number
+            from booking_history bh
+            where bh.video_booking_id = vlb.video_booking_id
+            order by booking_history_id desc
+            limit 2
+          ) bh
+        where upper(trim(bh.contact_email)) like '%@JUSTICE.GOV.UK'
+      ) bh;

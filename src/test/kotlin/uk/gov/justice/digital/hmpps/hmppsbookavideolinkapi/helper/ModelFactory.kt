@@ -24,21 +24,17 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Probati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.RequestedAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.UnknownPrisonerDetails
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.DeliusUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ExternalUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.PrisonUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.User
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as ModelPrisoner
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails as ResponseAdditionalBookingDetails
 
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG", localName = "Birmingham room")
 val birminghamLocation2 = location(prisonCode = BIRMINGHAM, locationKeySuffix = "XXXXXXX", localName = "Birmingham room 2")
@@ -430,79 +426,6 @@ fun amendProbationBookingRequest(
     notesForPrisoners = notesForPrisoners,
   )
 }
-
-fun prisonAppointment() = PrisonAppointment(
-  prisonAppointmentId = 0L,
-  prisonCode = "",
-  prisonName = "",
-  prisonerNumber = "",
-  appointmentType = "VLB_PROBATION",
-  prisonLocKey = "",
-  dpsLocationId = UUID(0L, 0L),
-  dpsLocationDescription = "",
-  prisonVideoUrl = null,
-  appointmentDate = LocalDate.now(),
-  startTime = LocalTime.now(),
-  endTime = LocalTime.now().plusHours(1),
-  notesForPrisoners = null,
-  notesForStaff = null,
-)
-
-fun videoLinkBooking(
-  videoLinkBookingId: Long = 1L,
-  statusCode: BookingStatus = BookingStatus.ACTIVE,
-  additionalBookingDetails: ResponseAdditionalBookingDetails? = null,
-) = VideoLinkBooking(
-  videoLinkBookingId = videoLinkBookingId,
-  statusCode = statusCode,
-  bookingType = BookingType.PROBATION,
-  prisonAppointments = listOf(prisonAppointment()),
-  videoLinkUrl = null,
-  hmctsNumber = null,
-  guestPin = null,
-  createdBy = "",
-  createdAt = LocalDateTime.now(),
-  amendedBy = null,
-  amendedAt = null,
-  notesForStaff = null,
-  notesForPrisoners = null,
-  additionalBookingDetails = additionalBookingDetails,
-)
-
-fun createBookingDetails(videoLinkBookingId: Long = 1L) = BookingDetails.Create(
-  prisoner = prisoner(prisonerNumber = "", prisonCode = ""),
-  booking = videoLinkBooking(videoLinkBookingId = videoLinkBookingId),
-)
-
-fun amendBookingDetails(
-  videoLinkBookingId: Long = 1L,
-  oldBooking: VideoLinkBooking = videoLinkBooking(videoLinkBookingId = videoLinkBookingId),
-  amendedBooking: VideoLinkBooking = videoLinkBooking(videoLinkBookingId = videoLinkBookingId),
-) = BookingDetails.Amended(
-  prisoner = prisoner(prisonerNumber = "", prisonCode = ""),
-  oldBooking = oldBooking,
-  amendedBooking = amendedBooking,
-)
-
-fun cancelBookingDetails(videoLinkBookingId: Long = 1L) = BookingDetails.Cancelled(
-  prisoner = prisoner(prisonerNumber = "", prisonCode = ""),
-  booking = videoLinkBooking(videoLinkBookingId = videoLinkBookingId, statusCode = BookingStatus.CANCELLED),
-)
-
-fun transferredBookingDetails(videoLinkBookingId: Long = 1L) = BookingDetails.Transferred(
-  prisoner = prisoner(prisonerNumber = "", prisonCode = ""),
-  booking = videoLinkBooking(videoLinkBookingId = videoLinkBookingId, statusCode = BookingStatus.CANCELLED),
-)
-
-fun releasedBookingDetails(videoLinkBookingId: Long = 1L) = BookingDetails.Released(
-  prisoner = prisoner(prisonerNumber = "", prisonCode = ""),
-  booking = videoLinkBooking(videoLinkBookingId = videoLinkBookingId, statusCode = BookingStatus.CANCELLED),
-)
-
-fun courtHearingLinkReminderBookingDetails(videoLinkBookingId: Long = 1L) = BookingDetails.CourtHearingLinkReminder(
-  prisoner = prisoner(prisonerNumber = "", prisonCode = ""),
-  booking = videoLinkBooking(videoLinkBookingId = videoLinkBookingId),
-)
 
 fun VideoLinkBooking.hasBookingType(that: BookingType) = also { it.bookingType isEqualTo that }
 fun VideoLinkBooking.hasCourt(that: String?) = also { it.courtCode isEqualTo that }

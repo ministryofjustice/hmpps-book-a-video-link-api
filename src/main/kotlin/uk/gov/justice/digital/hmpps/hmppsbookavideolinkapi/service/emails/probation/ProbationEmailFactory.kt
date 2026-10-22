@@ -251,10 +251,18 @@ object ProbationEmailFactory {
 
     return when (bookingDetails) {
       is BookingDetails.Amended -> {
-        when {
-          bookingDetails.oldAdditionalBookingDetails?.contactEmail == bookingDetails.additionalBookingDetails?.contactEmail -> null
+        val oldProbationOfficerEmail = bookingDetails.oldAdditionalBookingDetails?.contactEmail?.trim()
+        val newProbationOfficerEmail = bookingDetails.additionalBookingDetails?.contactEmail?.trim()
+        val contactEmail = bookingContact.email!!.trim()
 
-          bookingContact.email!! == bookingDetails.oldAdditionalBookingDetails?.contactEmail -> ProbationOfficerReassignedEmail(
+        val isSame = oldProbationOfficerEmail.equals(newProbationOfficerEmail, ignoreCase = true)
+        val isContactOld = contactEmail.equals(oldProbationOfficerEmail, ignoreCase = true)
+        val isContactNew = contactEmail.equals(newProbationOfficerEmail, ignoreCase = true)
+
+        when {
+          isSame -> null
+
+          isContactOld -> ProbationOfficerReassignedEmail(
             address = bookingContact.email!!,
             prison = bookingDetails.prisonName,
             prisonerFirstName = bookingDetails.prisonerFirstName,
@@ -271,7 +279,7 @@ object ProbationEmailFactory {
             probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
           )
 
-          bookingContact.email!! == bookingDetails.additionalBookingDetails?.contactEmail -> probation(
+          isContactNew -> probation(
             bookingDetails,
             bookingContact.copy(contactType = ContactType.PROBATION),
           )

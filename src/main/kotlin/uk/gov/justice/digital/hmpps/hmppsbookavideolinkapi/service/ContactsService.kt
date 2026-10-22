@@ -13,12 +13,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.BookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 
 @Service
@@ -82,16 +80,15 @@ class ContactsService(
    * filtering this list using rules based on the type of booking, type of action, type of prison location, and
    * the type of contact.
    */
-  fun getProbationBookingContacts(bookingDetails: BookingDetails, location: Location, user: User): List<BookingContact> {
+  fun getProbationBookingContacts(action: BookingAction, videoBookingId: Long, location: Location, user: User): List<BookingContact> {
     // Construct a set of all contacts that could be relevant to this booking
     // This will naturally avoid COURT contacts on PROBATION bookings, and vice versa.
     val allContacts = buildSet {
-      getUserContactIfHasAnEmailAddress(bookingDetails.videoLinkBookingId, user)?.let { add(it) }
-      addAll(bookingContactsRepository.findContactsByVideoBookingId(bookingDetails.videoLinkBookingId).filter { it.contactType != ContactType.COURT })
-      addAll(getProbationOfficerContacts(bookingDetails))
+      getUserContactIfHasAnEmailAddress(videoBookingId, user)?.let { add(it) }
+      addAll(bookingContactsRepository.findContactsByVideoBookingId(videoBookingId).filter { it.contactType != ContactType.COURT })
     }
 
-    val filteredContacts = when (bookingDetails.action) {
+    val filteredContacts = when (action) {
       BookingAction.CREATE, BookingAction.CANCEL, BookingAction.TRANSFERRED, BookingAction.RELEASED -> {
         if (location.isALegalVisitLocation()) {
           allContacts.legalVisitContacts()
@@ -103,7 +100,7 @@ class ContactsService(
       }
 
       BookingAction.AMEND -> {
-        val previousLocation: Location? = getLocationForPreviousProbationBookingHistory(bookingDetails.videoLinkBookingId, user)
+        val previousLocation: Location? = getLocationForPreviousProbationBookingHistory(videoBookingId, user)
 
         when {
           // Current location is legal, previous was legal or undefined
@@ -143,27 +140,6 @@ class ContactsService(
       email = email,
       primaryContact = true,
     )
-  }
-
-  private fun AdditionalBookingDetails.isJusticeGovUkEmail() = contactEmail.trim().endsWith("@JUSTICE.GOV.UK", ignoreCase = true)
-
-  private fun getProbationOfficerContacts(bookingDetails: BookingDetails): List<BookingContact> {
-    val allAdditionalBookingDetails = when (bookingDetails) {
-      is BookingDetails.Amended -> bookingDetails.getAllAdditionalBookingDetails()
-      else -> emptyList()
-    }
-
-    return allAdditionalBookingDetails
-      .filter { it.isJusticeGovUkEmail() }
-      .map {
-        BookingContact(
-          videoBookingId = bookingDetails.videoLinkBookingId,
-          contactType = ContactType.PROBATION_OFFICER,
-          name = it.contactName,
-          email = it.contactEmail,
-          primaryContact = true,
-        )
-      }
   }
 
   /**

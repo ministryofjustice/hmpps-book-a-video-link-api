@@ -88,7 +88,8 @@ class EmailFacade(
 
     // Get the contacts who should be notified of this probation booking action
     val contacts = contactsService.getProbationBookingContacts(
-      bookingDetails = bookingDetails,
+      action = bookingDetails.action,
+      videoBookingId = bookingDetails.videoLinkBookingId,
       location = location,
       user,
     ).withAnEmailAddress()
