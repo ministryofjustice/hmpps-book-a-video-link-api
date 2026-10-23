@@ -33,7 +33,7 @@ abstract class ProbationEmail(
     userName?.let { addPersonalisation("userName", userName) }
     probationEmailAddress?.let { addPersonalisation("probationEmailAddress", probationEmailAddress) }
     dateOfBirth?.let { addPersonalisation("dateOfBirth", dateOfBirth.toMediumFormatStyle()) }
-    prisonVideoUrl?.let { addPersonalisation("prisonVideoUrl", prisonVideoUrl) }
+    prisonVideoUrl?.let { addPersonalisation("prisonVideoUrl", prisonVideoUrl) } ?: addPersonalisation("prisonVideoUrl", "Not yet known")
     probationOfficerName?.let { addPersonalisation("probationOfficerName", probationOfficerName) }
     probationOfficerEmailAddress?.let { addPersonalisation("probationOfficerEmailAddress", probationOfficerEmailAddress) }
     probationOfficerContactNumber?.let { addPersonalisation("probationOfficerContactNumber", probationOfficerContactNumber) }
