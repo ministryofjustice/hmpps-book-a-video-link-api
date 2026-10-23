@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: probation-officer-attendance-reminder
+spec:
+  schedule:  "{{ .Values.cron.probationOfficerAttendanceReminderJob }}"
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 43200
+  successfulJobsHistoryLimit: 5
+  timeZone: "Europe/London"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 345600 # 4 days
+      template:
+        spec:
+          containers:
+            - name: probation-officer-attendance-reminder-job
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
+              args:
+                - /bin/sh
+                - -c
+                - curl --fail --retry 2 -XPOST http://hmpps-book-a-video-link-api/job-admin/run/PROBATION_OFFICER_ATTENDANCE_REMINDER
+          restartPolicy: Never

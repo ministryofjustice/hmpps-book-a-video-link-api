@@ -86,3 +86,4 @@ cron:
   probationOfficerDetailsReminderJob: "0 12 * * *"
   administrationNewVideoRoomJob: "0 9 * * 1-5"
   reactivateBlockedLocationsJob: "0,15,30,45 6-21 * * *"
+  probationOfficerAttendanceReminder: "0 15 * * 1-5"
