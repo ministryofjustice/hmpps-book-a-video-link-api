@@ -16,8 +16,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BLACKPOOL_MC_PPOC
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
@@ -62,11 +65,15 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appoint
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingHistoryRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerReassignedEmail
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import kotlin.reflect.KClass
 
 @ContextConfiguration(classes = [TestEmailConfiguration::class])
 @Sql("classpath:integration-test-data/seed-probation-team-user-access.sql")
@@ -86,6 +93,9 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
 
   @Autowired
   private lateinit var additionalBookingDetailRepository: AdditionalBookingDetailRepository
+
+  @Autowired
+  private lateinit var notificationRepository: NotificationRepository
 
   private val ftr56ProbationBookingRequest = probationBookingRequest(
     probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -692,6 +702,62 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasContactName(null)
       .hasContactEmail(null)
       .hasContactNumber(null)
+  }
+
+  @Test
+  fun `should send emails on probation officer reassignment`() {
+    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = WANDSWORTH,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(11, 15),
+      endTime = LocalTime.of(11, 45),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = wandsworthLocation,
+      additionalBookingDetails = AdditionalBookingDetails(
+        contactName = "Test Name",
+        contactEmail = "one@justice.gov.uk",
+        contactNumber = null,
+      ),
+    )
+
+    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+    val amendedProbationBookingRequest = amendProbationBookingRequest(
+      prisonCode = WANDSWORTH,
+      prisonerNumber = "123456",
+      probationMeetingType = ProbationMeetingType.PSR,
+      location = wandsworthLocation,
+      appointmentDate = tomorrow(),
+      startTime = probationBookingRequest.prisoners.single().appointments.single().startTime,
+      endTime = probationBookingRequest.prisoners.single().appointments.single().endTime,
+      notesForStaff = "integration test probation staff notes amended",
+      additionalBookingDetails = AdditionalBookingDetails(
+        contactName = "Test Name",
+        contactEmail = "two@justice.gov.uk",
+        contactNumber = null,
+      ),
+    )
+
+    webTestClient.amendBooking(persistedBooking.videoBookingId, amendedProbationBookingRequest, PROBATION_USER)
+
+    with(notificationRepository.findAll()) {
+      isPresent("one@justice.gov.uk", ProbationOfficerReassignedEmail::class, persistedBooking)
+      isPresent("two@justice.gov.uk", AmendedProbationBookingProbationEmail::class, persistedBooking)
+    }
+  }
+
+  private fun <T : VideoBookingEmail> Collection<Notification>.isPresent(email: String, template: KClass<T>, booking: VideoBooking? = null) {
+    val match = singleOrNull { it.email == email && it.templateName == template.simpleName && it.videoBooking == booking }
+
+    requireNotNull(match) {
+      "Notification not present: email '$email', template '${template.simpleName}'"
+    }
   }
 
   private fun appointmentSearchResult(date: LocalDate, startTime: LocalTime, endTime: LocalTime, prisonCode: String, prisonerNumber: String, locationId: Long, appointmentType: SupportedAppointmentTypes.Type) = run {

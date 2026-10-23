@@ -241,32 +241,55 @@ object ProbationEmailFactory {
   }
 
   fun probationOfficer(bookingDetails: BookingDetails, bookingContact: BookingContact): VideoBookingEmail? {
+    require(bookingContact.contactType == ContactType.PROBATION_OFFICER) {
+      "Incorrect contact type ${bookingContact.contactType} for probation officer probation email"
+    }
+
     require(bookingContact.email != null) {
       "Booking contact email is required for probation officer"
     }
 
-    // Check booking contact is the correct contact type and if it has been reassigned to a different probation officer.
+    return when (bookingDetails) {
+      is BookingDetails.Amended -> {
+        val oldProbationOfficerEmail = bookingDetails.oldAdditionalBookingDetails?.contactEmail?.trim()
+        val newProbationOfficerEmail = bookingDetails.additionalBookingDetails?.contactEmail?.trim()
+        val contactEmail = bookingContact.email!!.trim()
 
-    if (bookingDetails is BookingDetails.Amended) {
-      return ProbationOfficerReassignedEmail(
-        address = bookingContact.email!!,
-        prison = bookingDetails.prisonName,
-        prisonerFirstName = bookingDetails.prisonerFirstName,
-        prisonerLastName = bookingDetails.prisonerLastName,
-        prisonerNumber = bookingDetails.prisonerNumber,
-        probationTeam = bookingDetails.probationTeamDescription!!,
-        meetingType = bookingDetails.probationMeetingType!!,
-        appointmentDate = bookingDetails.mainMeeting!!.appointmentDate,
-        appointmentInfo = bookingDetails.mainMeeting.appointmentInformation(),
-        prisonVideoUrl = bookingDetails.mainMeeting.prisonVideoUrl,
-        comments = bookingDetails.notesForStaff,
-        probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
-        probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
-        probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
-      )
+        val isSame = oldProbationOfficerEmail.equals(newProbationOfficerEmail, ignoreCase = true)
+        val isContactOld = contactEmail.equals(oldProbationOfficerEmail, ignoreCase = true)
+        val isContactNew = contactEmail.equals(newProbationOfficerEmail, ignoreCase = true)
+
+        when {
+          isSame -> null
+
+          isContactOld -> ProbationOfficerReassignedEmail(
+            address = bookingContact.email!!,
+            prison = bookingDetails.prisonName,
+            prisonerFirstName = bookingDetails.prisonerFirstName,
+            prisonerLastName = bookingDetails.prisonerLastName,
+            prisonerNumber = bookingDetails.prisonerNumber,
+            probationTeam = bookingDetails.probationTeamDescription!!,
+            meetingType = bookingDetails.probationMeetingType!!,
+            appointmentDate = bookingDetails.mainMeeting!!.appointmentDate,
+            appointmentInfo = bookingDetails.mainMeeting.appointmentInformation(),
+            prisonVideoUrl = bookingDetails.mainMeeting.prisonVideoUrl,
+            comments = bookingDetails.notesForStaff,
+            probationOfficerName = bookingDetails.additionalBookingDetails?.contactName,
+            probationOfficerEmailAddress = bookingDetails.additionalBookingDetails?.contactEmail,
+            probationOfficerContactNumber = bookingDetails.additionalBookingDetails?.contactNumber,
+          )
+
+          isContactNew -> probation(
+            bookingDetails,
+            bookingContact.copy(contactType = ContactType.PROBATION),
+          )
+
+          else -> null
+        }
+      }
+
+      else -> null
     }
-
-    return null
   }
 
   fun prison(

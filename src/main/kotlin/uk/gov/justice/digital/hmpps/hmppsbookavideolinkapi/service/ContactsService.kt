@@ -150,6 +150,7 @@ class ContactsService(
     (it.contactType == ContactType.PRISON && it.contactArea == ContactAreaType.VCC) ||
       it.contactType == ContactType.COURT ||
       it.contactType == ContactType.PROBATION ||
+      it.contactType == ContactType.PROBATION_OFFICER ||
       it.contactType == ContactType.USER
   }
 
@@ -161,6 +162,7 @@ class ContactsService(
     (it.contactType == ContactType.PRISON && it.contactArea == ContactAreaType.OFFICIAL_VISITS) ||
       it.contactType == ContactType.COURT ||
       it.contactType == ContactType.PROBATION ||
+      it.contactType == ContactType.PROBATION_OFFICER ||
       it.contactType == ContactType.USER
   }
 
