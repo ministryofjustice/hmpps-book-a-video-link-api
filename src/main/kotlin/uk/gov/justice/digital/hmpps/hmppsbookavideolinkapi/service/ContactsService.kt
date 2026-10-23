@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
-import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.trimmedEquals
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactAreaType
@@ -16,14 +16,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 
 @Service
 class ContactsService(
   private val bookingContactsRepository: BookingContactsRepository,
   private val contactsRepository: ContactsRepository,
-  private val videoBookingRepository: VideoBookingRepository,
   private val videoBookingEventRepository: VideoBookingEventRepository,
   private val locationsService: LocationsService,
 ) {
@@ -42,10 +40,7 @@ class ContactsService(
   fun getCourtBookingContacts(action: BookingAction, videoBookingId: Long, locations: List<Location>, user: User): List<BookingContact> {
     // Construct a set of all contacts that could be relevant to this booking
     // This will naturally avoid PROBATION contacts for COURT bookings, and vice versa.
-    val allContacts = buildSet {
-      getUserContactIfHasAnEmailAddress(videoBookingId, user)?.let { add(it) }
-      addAll(bookingContactsRepository.findContactsByVideoBookingId(videoBookingId))
-    }
+    val allContacts = getBookingContacts(videoBookingId, user)
 
     val filteredContacts = when (action) {
       BookingAction.CREATE, BookingAction.CANCEL, BookingAction.TRANSFERRED, BookingAction.RELEASED -> {
@@ -83,10 +78,7 @@ class ContactsService(
   fun getProbationBookingContacts(action: BookingAction, videoBookingId: Long, location: Location, user: User): List<BookingContact> {
     // Construct a set of all contacts that could be relevant to this booking
     // This will naturally avoid COURT contacts on PROBATION bookings, and vice versa.
-    val allContacts = buildSet {
-      getUserContactIfHasAnEmailAddress(videoBookingId, user)?.let { add(it) }
-      addAll(bookingContactsRepository.findContactsByVideoBookingId(videoBookingId).filter { it.contactType != ContactType.COURT })
-    }
+    val allContacts = getBookingContacts(videoBookingId, user).filter { it.contactType != ContactType.COURT }
 
     val filteredContacts = when (action) {
       BookingAction.CREATE, BookingAction.CANCEL, BookingAction.TRANSFERRED, BookingAction.RELEASED -> {
@@ -130,23 +122,10 @@ class ContactsService(
   }
 
   /**
-   * Function to examine the user object for an email address and to construct a BookingContact for them.
-   */
-  private fun getUserContactIfHasAnEmailAddress(videoBookingId: Long, user: User) = user.mayBeEmail()?.let { email ->
-    BookingContact(
-      videoBookingId = videoBookingId,
-      contactType = ContactType.USER,
-      name = user.name,
-      email = email,
-      primaryContact = true,
-    )
-  }
-
-  /**
    * Extension function for a set of booking contacts to filter the superset to a narrower list
    * of prison contacts, retaining user, court and probation contacts where they exist.
    */
-  private fun Set<BookingContact>.vccContacts(): List<BookingContact> = this.filter {
+  private fun Collection<BookingContact>.vccContacts(): List<BookingContact> = this.filter {
     (it.contactType == ContactType.PRISON && it.contactArea == ContactAreaType.VCC) ||
       it.contactType == ContactType.COURT ||
       it.contactType == ContactType.PROBATION ||
@@ -158,7 +137,7 @@ class ContactsService(
    * Extension function for a set of booking contacts to filter the superset to a narrower list
    * of prison contacts, retaining user, court and probation contacts where they exist.
    */
-  private fun Set<BookingContact>.legalVisitContacts(): List<BookingContact> = this.filter {
+  private fun Collection<BookingContact>.legalVisitContacts(): List<BookingContact> = this.filter {
     (it.contactType == ContactType.PRISON && it.contactArea == ContactAreaType.OFFICIAL_VISITS) ||
       it.contactType == ContactType.COURT ||
       it.contactType == ContactType.PROBATION ||
@@ -172,9 +151,6 @@ class ContactsService(
   private fun Location.isInAnUndefinedArea(): Boolean = this.extraAttributes?.roomArea == null
   private fun Location.isAVccLocation(): Boolean = this.extraAttributes?.roomArea == RoomArea.COURT_PROBATION
   private fun Location.isALegalVisitLocation(): Boolean = this.extraAttributes?.roomArea == RoomArea.LEGAL_VISITS
-  private fun List<Location>.containsOnlyVccLocations(): Boolean = all { it.extraAttributes?.roomArea == RoomArea.COURT_PROBATION }
-  private fun List<Location>.containsOnlyLegalVisitLocations(): Boolean = all { it.extraAttributes?.roomArea == RoomArea.LEGAL_VISITS }
-  private fun List<Location>.containsOnlyUndefinedLocations(): Boolean = all { it.extraAttributes?.roomArea == null }
   private fun List<Location>.containsNoLegalVisitLocations(): Boolean = none { it.extraAttributes?.roomArea == RoomArea.LEGAL_VISITS }
 
   /**
@@ -234,8 +210,6 @@ class ContactsService(
    * Rescheduled email contacts
    */
   fun getBookingContacts(videoBookingId: Long, user: User): List<BookingContact> {
-    videoBookingRepository.findById(videoBookingId).orElseThrow { EntityNotFoundException("Video booking with ID $videoBookingId not found") }
-
     val userContact = user.mayBeEmail()?.let { email ->
       BookingContact(
         videoBookingId = videoBookingId,
@@ -246,7 +220,9 @@ class ContactsService(
       )
     }
 
-    return bookingContactsRepository.findContactsByVideoBookingId(videoBookingId).filter { it.email != userContact?.email } + listOfNotNull(userContact)
+    return bookingContactsRepository.findContactsByVideoBookingId(videoBookingId)
+      .filter { !it.email.trimmedEquals(userContact?.email) }
+      .plus(listOfNotNull(userContact))
   }
 
   /**
