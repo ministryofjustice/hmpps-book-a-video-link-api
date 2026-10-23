@@ -35,7 +35,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.yesterday
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.BookingContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ContactsRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingEventRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalDate
@@ -46,14 +45,12 @@ import kotlin.Long
 class ContactsServiceTest {
   private val bookingContactsRepository: BookingContactsRepository = mock()
   private val contactsRepository: ContactsRepository = mock()
-  private val videoBookingRepository: VideoBookingRepository = mock()
   private val videoBookingEventRepository: VideoBookingEventRepository = mock()
   private val locationsService: LocationsService = mock()
 
   private val service = ContactsService(
     bookingContactsRepository,
     contactsRepository,
-    videoBookingRepository,
     videoBookingEventRepository,
     locationsService,
   )
