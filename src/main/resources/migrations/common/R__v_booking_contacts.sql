@@ -32,7 +32,7 @@ CREATE OR REPLACE VIEW v_booking_contacts AS
             select bh.contact_name, bh.contact_email, bh.contact_number
             from booking_history bh
             where bh.video_booking_id = vlb.video_booking_id
-            order by booking_history_id desc
+            order by bh.booking_history_id desc
             limit 2
           ) bh
         where upper(trim(bh.contact_email)) like '%@JUSTICE.GOV.UK'
