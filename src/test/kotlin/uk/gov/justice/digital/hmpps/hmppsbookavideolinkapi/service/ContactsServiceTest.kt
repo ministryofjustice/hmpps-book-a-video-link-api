@@ -292,6 +292,7 @@ class ContactsServiceTest {
       bookingContact(ContactType.PRISON, "vcc@example.com", "Prison VCC", ContactAreaType.VCC),
       bookingContact(ContactType.PRISON, "official-visits@example.com", "Prison official visits", ContactAreaType.OFFICIAL_VISITS),
       bookingContact(ContactType.PROBATION, "probation-team@example.com", "Probation team"),
+      bookingContact(ContactType.PROBATION_OFFICER, "probation-officer@example.com", "Probation officer"),
     )
 
     val user = prisonUser(name = "User Name", email = "user@example.com")
@@ -331,9 +332,9 @@ class ContactsServiceTest {
     fun `Probation contacts - action ${bookingAction} - in official visits area - send only to official visit prison contacts`(bookingAction: String) {
       val contacts = service.getProbationBookingContacts(BookingAction.valueOf(bookingAction), videoBookingId, officialVisitLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.OFFICIAL_VISITS, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.OFFICIAL_VISITS, null, null, null)
     }
 
     @ParameterizedTest
@@ -341,9 +342,9 @@ class ContactsServiceTest {
     fun `Probation contacts - action ${bookingAction} - in VCC area - send to VCC prison contacts only`(bookingAction: String) {
       val contacts = service.getProbationBookingContacts(BookingAction.valueOf(bookingAction), videoBookingId, vccLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null)
     }
 
     @ParameterizedTest
@@ -351,8 +352,8 @@ class ContactsServiceTest {
     fun `Probation contacts - action ${bookingAction} - in undecorated room with no area - send to ALL prison contacts`(bookingAction: String) {
       val contacts = service.getProbationBookingContacts(BookingAction.valueOf(bookingAction), videoBookingId, undecoratedLocation, user)
 
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null, null)
     }
 
     @Test
@@ -362,9 +363,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, officialVisitLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.OFFICIAL_VISITS, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.OFFICIAL_VISITS, null, null, null)
     }
 
     @Test
@@ -374,9 +375,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, officialVisitLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.OFFICIAL_VISITS, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.OFFICIAL_VISITS, null, null, null)
     }
 
     @Test
@@ -386,9 +387,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, undecoratedLocation, user)
 
-      assertThat(contacts.size).isEqualTo(4)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.OFFICIAL_VISITS, ContactAreaType.VCC, null, null)
+      assertThat(contacts.size).isEqualTo(5)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.OFFICIAL_VISITS, ContactAreaType.VCC, null, null, null)
     }
 
     @Test
@@ -398,9 +399,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, vccLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null)
     }
 
     @Test
@@ -410,9 +411,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, vccLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null)
     }
 
     @Test
@@ -422,9 +423,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, undecoratedLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null)
     }
 
     @Test
@@ -434,9 +435,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, undecoratedLocation, user)
 
-      assertThat(contacts.size).isEqualTo(4)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null)
+      assertThat(contacts.size).isEqualTo(5)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null, null)
     }
 
     @Test
@@ -446,9 +447,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, vccLocation, user)
 
-      assertThat(contacts.size).isEqualTo(4)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null)
+      assertThat(contacts.size).isEqualTo(5)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null, null)
     }
 
     @Test
@@ -458,9 +459,9 @@ class ContactsServiceTest {
 
       val contacts = service.getProbationBookingContacts(BookingAction.AMEND, videoBookingId, officialVisitLocation, user)
 
-      assertThat(contacts.size).isEqualTo(4)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null)
+      assertThat(contacts.size).isEqualTo(5)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, ContactAreaType.OFFICIAL_VISITS, null, null, null)
     }
 
     @Test
@@ -468,9 +469,9 @@ class ContactsServiceTest {
       // This will not happen in real life as the court hearing link reminder is only sent to court contacts
       val contacts = service.getProbationBookingContacts(BookingAction.COURT_HEARING_LINK_REMINDER, videoBookingId, undecoratedLocation, user)
 
-      assertThat(contacts.size).isEqualTo(3)
-      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION)
-      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null)
+      assertThat(contacts.size).isEqualTo(4)
+      contacts.map { it.contactType } containsExactlyInAnyOrder listOf(ContactType.PRISON, ContactType.USER, ContactType.PROBATION, ContactType.PROBATION_OFFICER)
+      contacts.map { it.contactArea } containsExactlyInAnyOrder listOf(ContactAreaType.VCC, null, null, null)
 
       verifyNoInteractions(locationsService)
     }

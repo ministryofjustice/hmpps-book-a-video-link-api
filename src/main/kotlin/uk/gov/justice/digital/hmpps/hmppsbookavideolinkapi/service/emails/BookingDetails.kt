@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingAction
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.VideoLinkBooking
 
@@ -34,6 +35,12 @@ sealed class BookingDetails private constructor(
   val probationMeetingType = booking.probationMeetingType?.description
   val mainMeeting = booking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_PROBATION" }
   val additionalBookingDetails = booking.additionalBookingDetails
+    get() {
+      require(booking.bookingType == BookingType.PROBATION) {
+        "Booking $videoLinkBookingId is not a probation booking"
+      }
+      return field
+    }
   val notesForStaff = booking.notesForStaff
   val videoLinkUrl = booking.videoLinkUrl
   val prisonName = (mainHearing ?: mainMeeting)!!.prisonName
@@ -70,6 +77,13 @@ sealed class BookingDetails private constructor(
     val oldMainHearing = oldBooking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_MAIN" }
     val oldPostHearing = oldBooking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_COURT_POST" }
     val oldMainMeeting = oldBooking.prisonAppointments.singleOrNull { it.appointmentType == "VLB_PROBATION" }
+    val oldAdditionalBookingDetails = oldBooking.additionalBookingDetails
+      get() {
+        require(booking.bookingType == BookingType.PROBATION) {
+          "Booking $videoLinkBookingId is not a probation booking"
+        }
+        return field
+      }
 
     fun isRescheduled() = run {
       oldBooking.overallStartDateTime() != booking.overallStartDateTime() || oldBooking.overallEndDateTime() != booking.overallEndDateTime()
