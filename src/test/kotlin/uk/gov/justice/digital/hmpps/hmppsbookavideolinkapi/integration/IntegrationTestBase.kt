@@ -175,6 +175,14 @@ abstract class IntegrationTestBase {
     .expectBody(Long::class.java)
     .returnResult().responseBody!!
 
+  protected fun WebTestClient.cancelBooking(videoBookingId: Long, user: User) = this
+    .delete()
+    .uri("/video-link-booking/id/$videoBookingId")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isNoContent
+
   companion object {
     private val pgContainer = PostgresContainer.instance
 

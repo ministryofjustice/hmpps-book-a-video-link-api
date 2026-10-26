@@ -1968,14 +1968,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     .expectBody(VideoLinkBooking::class.java)
     .returnResult().responseBody!!
 
-  private fun WebTestClient.cancelBooking(videoBookingId: Long, user: User) = this
-    .delete()
-    .uri("/video-link-booking/id/$videoBookingId")
-    .accept(MediaType.APPLICATION_JSON)
-    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
-    .exchange()
-    .expectStatus().isNoContent
-
   private fun WebTestClient.requestVideoLink(request: RequestVideoBookingRequest, externalUser: ExternalUser) = this
     .post()
     .uri("/video-link-booking/request")
