@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.stub
@@ -69,7 +70,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.Notificati
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.AmendedProbationBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ProbationOfficerReassignedEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.RescheduledProbationBookingUserEmail
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -704,51 +712,212 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .hasContactNumber(null)
   }
 
-  @Test
-  fun `should send emails on probation officer reassignment`() {
-    prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+  @Nested
+  inner class ProbationOfficer {
+    @Test
+    fun `should send create emails to user and probation officer`() {
+      prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
 
-    val probationBookingRequest = probationBookingRequest(
-      probationTeamCode = BLACKPOOL_MC_PPOC,
-      probationMeetingType = ProbationMeetingType.PSR,
-      prisonCode = WANDSWORTH,
-      prisonerNumber = "123456",
-      startTime = LocalTime.of(11, 15),
-      endTime = LocalTime.of(11, 45),
-      appointmentType = AppointmentType.VLB_PROBATION,
-      location = wandsworthLocation,
-      additionalBookingDetails = AdditionalBookingDetails(
-        contactName = "Test Name",
-        contactEmail = "one@justice.gov.uk",
-        contactNumber = null,
-      ),
-    )
+      val probationBookingRequest = probationBookingRequest(
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        probationMeetingType = ProbationMeetingType.PSR,
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        startTime = LocalTime.of(11, 15),
+        endTime = LocalTime.of(11, 45),
+        appointmentType = AppointmentType.VLB_PROBATION,
+        location = wandsworthLocation,
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "Test Name",
+          contactEmail = "probation_officer@justice.gov.uk",
+          contactNumber = null,
+        ),
+      )
 
-    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+      val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
 
-    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+      val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
 
-    val amendedProbationBookingRequest = amendProbationBookingRequest(
-      prisonCode = WANDSWORTH,
-      prisonerNumber = "123456",
-      probationMeetingType = ProbationMeetingType.PSR,
-      location = wandsworthLocation,
-      appointmentDate = tomorrow(),
-      startTime = probationBookingRequest.prisoners.single().appointments.single().startTime,
-      endTime = probationBookingRequest.prisoners.single().appointments.single().endTime,
-      notesForStaff = "integration test probation staff notes amended",
-      additionalBookingDetails = AdditionalBookingDetails(
-        contactName = "Test Name",
-        contactEmail = "two@justice.gov.uk",
-        contactNumber = null,
-      ),
-    )
+      with(notificationRepository.findAll()) {
+        isPresent(PROBATION_USER.email!!, NewProbationBookingUserEmail::class, persistedBooking)
+        isPresent("probation_officer@justice.gov.uk", NewProbationBookingProbationEmail::class, persistedBooking)
+      }
+    }
 
-    webTestClient.amendBooking(persistedBooking.videoBookingId, amendedProbationBookingRequest, PROBATION_USER)
+    @Test
+    fun `should send amend emails to user and probation officer`() {
+      prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
 
-    with(notificationRepository.findAll()) {
-      isPresent("one@justice.gov.uk", ProbationOfficerReassignedEmail::class, persistedBooking)
-      isPresent("two@justice.gov.uk", AmendedProbationBookingProbationEmail::class, persistedBooking)
+      val probationBookingRequest = probationBookingRequest(
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        probationMeetingType = ProbationMeetingType.PSR,
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        startTime = LocalTime.of(12, 15),
+        endTime = LocalTime.of(12, 45),
+        appointmentType = AppointmentType.VLB_PROBATION,
+        location = wandsworthLocation,
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "Test Name",
+          contactEmail = "probation_officer@justice.gov.uk",
+          contactNumber = null,
+        ),
+      )
+
+      val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+      val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+      val amendedProbationBookingRequest = amendProbationBookingRequest(
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        probationMeetingType = ProbationMeetingType.PSR,
+        location = wandsworthLocation,
+        appointmentDate = tomorrow(),
+        startTime = probationBookingRequest.prisoners.single().appointments.single().startTime,
+        endTime = probationBookingRequest.prisoners.single().appointments.single().endTime,
+        notesForStaff = "integration test probation staff notes amended",
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "Test Name",
+          contactEmail = "probation_officer@justice.gov.uk",
+          contactNumber = null,
+        ),
+      )
+
+      webTestClient.amendBooking(persistedBooking.videoBookingId, amendedProbationBookingRequest, PROBATION_USER)
+
+      with(notificationRepository.findAll()) {
+        isPresent(PROBATION_USER.email!!, AmendedProbationBookingUserEmail::class, persistedBooking)
+        isPresent("probation_officer@justice.gov.uk", AmendedProbationBookingProbationEmail::class, persistedBooking)
+      }
+    }
+
+    @Test
+    fun `should send reschedule emails to user and probation officer`() {
+      prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+
+      val probationBookingRequest = probationBookingRequest(
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        probationMeetingType = ProbationMeetingType.PSR,
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        startTime = LocalTime.of(13, 15),
+        endTime = LocalTime.of(13, 45),
+        appointmentType = AppointmentType.VLB_PROBATION,
+        location = wandsworthLocation,
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "Test Name",
+          contactEmail = "probation_officer@justice.gov.uk",
+          contactNumber = null,
+        ),
+      )
+
+      val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+      val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+      val amendedProbationBookingRequest = amendProbationBookingRequest(
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        probationMeetingType = ProbationMeetingType.PSR,
+        location = wandsworthLocation,
+        appointmentDate = tomorrow().plusDays(1),
+        startTime = probationBookingRequest.prisoners.single().appointments.single().startTime,
+        endTime = probationBookingRequest.prisoners.single().appointments.single().endTime,
+        notesForStaff = "integration test probation staff notes amended",
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "Test Name",
+          contactEmail = "probation_officer@justice.gov.uk",
+          contactNumber = null,
+        ),
+      )
+
+      webTestClient.amendBooking(persistedBooking.videoBookingId, amendedProbationBookingRequest, PROBATION_USER)
+
+      with(notificationRepository.findAll()) {
+        isPresent(PROBATION_USER.email!!, RescheduledProbationBookingUserEmail::class, persistedBooking)
+        isPresent("probation_officer@justice.gov.uk", RescheduledProbationBookingProbationEmail::class, persistedBooking)
+      }
+    }
+
+    @Test
+    fun `should send cancel emails to user and probation officer`() {
+      prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+
+      val probationBookingRequest = probationBookingRequest(
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        probationMeetingType = ProbationMeetingType.PSR,
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        startTime = LocalTime.of(14, 15),
+        endTime = LocalTime.of(14, 45),
+        appointmentType = AppointmentType.VLB_PROBATION,
+        location = wandsworthLocation,
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "Test Name",
+          contactEmail = "probation_officer@justice.gov.uk",
+          contactNumber = null,
+        ),
+      )
+
+      val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+      val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+      webTestClient.cancelBooking(persistedBooking.videoBookingId, PROBATION_USER)
+
+      with(notificationRepository.findAll()) {
+        isPresent(PROBATION_USER.email!!, CancelledProbationBookingUserEmail::class, persistedBooking)
+        isPresent("probation_officer@justice.gov.uk", CancelledProbationBookingProbationEmail::class, persistedBooking)
+      }
+    }
+
+    @Test
+    fun `should send emails on probation officer reassignment`() {
+      prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
+
+      val probationBookingRequest = probationBookingRequest(
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        probationMeetingType = ProbationMeetingType.PSR,
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        startTime = LocalTime.of(15, 15),
+        endTime = LocalTime.of(15, 45),
+        appointmentType = AppointmentType.VLB_PROBATION,
+        location = wandsworthLocation,
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "Test Name",
+          contactEmail = "probation_officer1@justice.gov.uk",
+          contactNumber = null,
+        ),
+      )
+
+      val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+      val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow()
+
+      val amendedProbationBookingRequest = amendProbationBookingRequest(
+        prisonCode = WANDSWORTH,
+        prisonerNumber = "123456",
+        probationMeetingType = ProbationMeetingType.PSR,
+        location = wandsworthLocation,
+        appointmentDate = tomorrow(),
+        startTime = probationBookingRequest.prisoners.single().appointments.single().startTime,
+        endTime = probationBookingRequest.prisoners.single().appointments.single().endTime,
+        notesForStaff = "integration test probation staff notes amended",
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "Test Name",
+          contactEmail = "probation_officer2@justice.gov.uk",
+          contactNumber = null,
+        ),
+      )
+
+      webTestClient.amendBooking(persistedBooking.videoBookingId, amendedProbationBookingRequest, PROBATION_USER)
+
+      with(notificationRepository.findAll()) {
+        isPresent("probation_officer1@justice.gov.uk", ProbationOfficerReassignedEmail::class, persistedBooking)
+        isPresent("probation_officer2@justice.gov.uk", AmendedProbationBookingProbationEmail::class, persistedBooking)
+      }
     }
   }
 

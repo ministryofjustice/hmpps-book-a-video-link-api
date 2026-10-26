@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.bookingContact
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prison
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisoner
@@ -382,13 +383,100 @@ class ProbationEmailFactoryTest {
         BookingDetails.probationOfficerAttendanceReminder(
           booking = probationBookingEntity.toModel(
             locations = setOf(wandsworthLocation.toModel()),
-            additionalBookingDetails = AdditionalBookingDetails("Fred", "email@address.com", "1111"),
+            additionalBookingDetails = AdditionalBookingDetails("Fred", "probation_officer@justice.gov.uk", "1111"),
           ),
           prisoner = prisoner,
         ),
       )
 
       email isInstanceOf ProbationOfficerAttendanceReminderEmail::class.java
+      email.address isEqualTo "probation_officer@justice.gov.uk"
+    }
+
+    @Test
+    fun `should return new probation booking probation email`() {
+      val email = ProbationEmailFactory.probationOfficer(
+        BookingDetails.create(
+          newBooking = probationBookingDto,
+          prisoner = prisoner,
+        ),
+        bookingContact = bookingContact(ContactType.PROBATION_OFFICER, "probation_officer@justice.gov.uk", "Fred"),
+      )
+
+      email isInstanceOf NewProbationBookingProbationEmail::class.java
+      email?.address isEqualTo "probation_officer@justice.gov.uk"
+    }
+
+    @Test
+    fun `should return amended probation booking probation email`() {
+      val email = ProbationEmailFactory.probationOfficer(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto,
+        ),
+        bookingContact = bookingContact(ContactType.PROBATION_OFFICER, "probation_officer@justice.gov.uk", "Fred"),
+      )
+
+      email isInstanceOf AmendedProbationBookingProbationEmail::class.java
+      email?.address isEqualTo "probation_officer@justice.gov.uk"
+    }
+
+    @Test
+    fun `should return rescheduled probation booking probation email`() {
+      val email = ProbationEmailFactory.probationOfficer(
+        BookingDetails.amended(
+          oldBooking = probationBookingDto,
+          prisoner = prisoner,
+          amendedBooking = probationBookingDto.copy(prisonAppointments = listOf(probationBookingDto.prisonAppointments.single().copy(appointmentDate = LocalDate.of(2099, 1, 1)))),
+        ),
+        bookingContact = bookingContact(ContactType.PROBATION_OFFICER, "probation_officer@justice.gov.uk", "Fred"),
+      )
+
+      email isInstanceOf RescheduledProbationBookingProbationEmail::class.java
+      email?.address isEqualTo "probation_officer@justice.gov.uk"
+    }
+
+    @Test
+    fun `should return cancelled probation booking probation email`() {
+      val email = ProbationEmailFactory.probationOfficer(
+        BookingDetails.cancelled(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        bookingContact = bookingContact(ContactType.PROBATION_OFFICER, "probation_officer@justice.gov.uk", "Fred"),
+      )
+
+      email isInstanceOf CancelledProbationBookingProbationEmail::class.java
+      email?.address isEqualTo "probation_officer@justice.gov.uk"
+    }
+
+    @Test
+    fun `should return released probation booking probation email`() {
+      val email = ProbationEmailFactory.probationOfficer(
+        BookingDetails.released(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        bookingContact = bookingContact(ContactType.PROBATION_OFFICER, "probation_officer@justice.gov.uk", "Fred"),
+      )
+
+      email isInstanceOf ReleasedProbationBookingProbationEmail::class.java
+      email?.address isEqualTo "probation_officer@justice.gov.uk"
+    }
+
+    @Test
+    fun `should return transferred probation booking probation email`() {
+      val email = ProbationEmailFactory.probationOfficer(
+        BookingDetails.transferred(
+          cancelledBooking = probationBookingEntity.cancel(PROBATION_USER).toModel(locations = setOf(wandsworthLocation.toModel())),
+          prisoner = prisoner,
+        ),
+        bookingContact = bookingContact(ContactType.PROBATION_OFFICER, "probation_officer@justice.gov.uk", "Fred"),
+      )
+
+      email isInstanceOf TransferredProbationBookingProbationEmail::class.java
+      email?.address isEqualTo "probation_officer@justice.gov.uk"
     }
   }
 }

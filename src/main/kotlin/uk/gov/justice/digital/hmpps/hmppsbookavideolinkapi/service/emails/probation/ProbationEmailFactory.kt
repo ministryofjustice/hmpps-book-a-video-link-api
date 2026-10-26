@@ -251,6 +251,13 @@ object ProbationEmailFactory {
     }
 
     return when (bookingDetails) {
+      is BookingDetails.Create, is BookingDetails.Cancelled, is BookingDetails.Transferred, is BookingDetails.Released -> {
+        probation(
+          bookingDetails,
+          bookingContact.copy(contactType = ContactType.PROBATION),
+        )
+      }
+
       is BookingDetails.Amended -> {
         val oldProbationOfficerEmail = bookingDetails.oldAdditionalBookingDetails?.contactEmail
         val newProbationOfficerEmail = bookingDetails.additionalBookingDetails?.contactEmail
@@ -261,7 +268,7 @@ object ProbationEmailFactory {
         val isContactNew = contactEmail.emailEquals(newProbationOfficerEmail)
 
         when {
-          isSame -> null
+          isSame -> probation(bookingDetails, bookingContact.copy(contactType = ContactType.PROBATION))
 
           isContactOld -> ProbationOfficerReassignedEmail(
             address = bookingContact.email!!,
@@ -285,7 +292,7 @@ object ProbationEmailFactory {
             bookingContact.copy(contactType = ContactType.PROBATION),
           )
 
-          else -> null
+          else -> probation(bookingDetails, bookingContact.copy(contactType = ContactType.PROBATION))
         }
       }
 

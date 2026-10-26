@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBooki
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
@@ -52,7 +53,12 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.court.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingPrisonProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.CancelledProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.NewProbationBookingUserEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.ReleasedProbationBookingProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingPrisonProbationEmail
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation.TransferredProbationBookingProbationEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentScheduleInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentsChangedInformation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Identifier
@@ -542,6 +548,11 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       appointmentType = AppointmentType.VLB_PROBATION,
       location = birminghamLocation,
       notesForPrisoners = "integration test probation prisoner notes",
+      additionalBookingDetails = AdditionalBookingDetails(
+        contactName = "Test Name",
+        contactEmail = "one@justice.gov.uk",
+        contactNumber = null,
+      ),
     )
 
     val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
@@ -567,14 +578,16 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
 
     val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.CANCELLED }
 
-    // There will be 5 notifications, 2 on back of create and 3 on back of cancellation
-    val notifications = notificationRepository.findAll().also { it hasSize 5 }
+    // There will be 7 notifications, 3 on back of create and 4 on back of cancellation
+    val notifications = notificationRepository.findAll().also { it hasSize 7 }
 
     notifications.isPresent("probation.user@probation.com", NewProbationBookingUserEmail::class, persistedBooking)
     notifications.isPresent("a@a.com", NewProbationBookingPrisonProbationEmail::class, persistedBooking)
+    notifications.isPresent("one@justice.gov.uk", NewProbationBookingProbationEmail::class, persistedBooking)
     notifications.isPresent("t@t.com", CancelledProbationBookingProbationEmail::class, persistedBooking)
     notifications.isPresent("m@m.com", CancelledProbationBookingProbationEmail::class, persistedBooking)
     notifications.isPresent("a@a.com", CancelledProbationBookingPrisonProbationEmail::class, persistedBooking)
+    notifications.isPresent("one@justice.gov.uk", CancelledProbationBookingProbationEmail::class, persistedBooking)
   }
 
   @Test
@@ -608,6 +621,99 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       isPresent("j@j.com", TransferredCourtBookingCourtEmail::class, persistedBooking)
       isPresent("g@g.com", TransferredCourtBookingPrisonCourtEmail::class, persistedBooking)
       isPresent("p@p.com", TransferredCourtBookingPrisonCourtEmail::class, persistedBooking)
+    }
+  }
+
+  @Test
+  fun `should cancel a probation video booking and send transfer emails when prisoner is moved to a different prison`() {
+    videoBookingRepository.findAll() hasSize 0
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
+    prisonApi().stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.TRN)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = PENTONVILLE,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = pentonvilleLocation,
+      notesForPrisoners = "integration test probation prisoner notes",
+      additionalBookingDetails = AdditionalBookingDetails(
+        contactName = "Test Name",
+        contactEmail = "probation_officer@justice.gov.uk",
+        contactNumber = null,
+      ),
+    )
+
+    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+    videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
+
+    inboundEventsListener.onMessage(
+      raw(PrisonerReceivedEvent(ReceivedInformation("123456", "TRANSFERRED", BIRMINGHAM))),
+    )
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.CANCELLED }
+
+    with(notificationRepository.findAll()) {
+      isPresent("t@t.com", TransferredProbationBookingProbationEmail::class, persistedBooking)
+      isPresent("m@m.com", TransferredProbationBookingProbationEmail::class, persistedBooking)
+      isPresent("p@p.com", TransferredProbationBookingPrisonProbationEmail::class, persistedBooking)
+      isPresent("g@g.com", TransferredProbationBookingPrisonProbationEmail::class, persistedBooking)
+      isPresent("probation_officer@justice.gov.uk", TransferredProbationBookingProbationEmail::class, persistedBooking)
+    }
+  }
+
+  @Test
+  fun `should cancel a probation video booking and send release emails on receipt of a appointments changed event and last movement REL`() {
+    videoBookingRepository.findAll() hasSize 0
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
+    prisonApi().stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.REL)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = BLACKPOOL_MC_PPOC,
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = PENTONVILLE,
+      prisonerNumber = "123456",
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = pentonvilleLocation,
+      notesForPrisoners = "integration test probation prisoner notes",
+      additionalBookingDetails = AdditionalBookingDetails(
+        contactName = "Test Name",
+        contactEmail = "probation_officer@justice.gov.uk",
+        contactNumber = null,
+      ),
+    )
+
+    val bookingId = webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+    videoBookingRepository.findById(bookingId).orElseThrow().statusCode isEqualTo StatusCode.ACTIVE
+
+    inboundEventsListener.onMessage(
+      raw(
+        PrisonerAppointmentsChangedEvent(
+          personReference = PersonReference(listOf(Identifier("NOMS", "123456"))),
+          additionalInformation = AppointmentsChangedInformation(
+            action = "YES",
+            prisonId = PENTONVILLE,
+            user = "SOME_USER",
+          ),
+        ),
+      ),
+    )
+
+    val persistedBooking = videoBookingRepository.findById(bookingId).orElseThrow().also { it.statusCode isEqualTo StatusCode.CANCELLED }
+
+    with(notificationRepository.findAll()) {
+      isPresent("t@t.com", ReleasedProbationBookingProbationEmail::class, persistedBooking)
+      isPresent("m@m.com", ReleasedProbationBookingProbationEmail::class, persistedBooking)
+      isPresent("p@p.com", ReleasedProbationBookingPrisonProbationEmail::class, persistedBooking)
+      isPresent("g@g.com", ReleasedProbationBookingPrisonProbationEmail::class, persistedBooking)
+      isPresent("probation_officer@justice.gov.uk", ReleasedProbationBookingProbationEmail::class, persistedBooking)
     }
   }
 
