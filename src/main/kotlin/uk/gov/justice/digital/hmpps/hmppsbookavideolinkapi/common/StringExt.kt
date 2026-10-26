@@ -23,3 +23,5 @@ fun String.isUkPhoneNumber(): Boolean = runCatching {
 
 // Crude, this will title case every word in the given string.
 fun String.toTitleCase() = lowercase().split(" ").joinToString(separator = " ") { word -> word.replaceFirstChar { it.titlecase(Locale.getDefault()) } }
+
+fun String?.emailEquals(other: String?) = this?.trim().equals(other?.trim(), ignoreCase = true)
