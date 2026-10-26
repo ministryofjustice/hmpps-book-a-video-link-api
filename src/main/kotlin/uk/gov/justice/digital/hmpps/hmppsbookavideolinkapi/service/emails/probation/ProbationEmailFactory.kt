@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.emails.probation
 
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.trimmedEquals
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.emailEquals
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactType
@@ -256,9 +256,9 @@ object ProbationEmailFactory {
         val newProbationOfficerEmail = bookingDetails.additionalBookingDetails?.contactEmail
         val contactEmail = bookingContact.email!!
 
-        val isSame = oldProbationOfficerEmail.trimmedEquals(newProbationOfficerEmail, ignoreCase = true)
-        val isContactOld = contactEmail.trimmedEquals(oldProbationOfficerEmail, ignoreCase = true)
-        val isContactNew = contactEmail.trimmedEquals(newProbationOfficerEmail, ignoreCase = true)
+        val isSame = oldProbationOfficerEmail.emailEquals(newProbationOfficerEmail)
+        val isContactOld = contactEmail.emailEquals(oldProbationOfficerEmail)
+        val isContactNew = contactEmail.emailEquals(newProbationOfficerEmail)
 
         when {
           isSame -> null

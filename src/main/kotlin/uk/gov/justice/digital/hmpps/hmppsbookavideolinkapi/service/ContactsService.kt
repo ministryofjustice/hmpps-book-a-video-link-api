@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.trimmedEquals
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.emailEquals
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingContact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Contact
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ContactAreaType
@@ -209,7 +209,7 @@ class ContactsService(
   /**
    * Rescheduled email contacts
    */
-  fun getBookingContacts(videoBookingId: Long, user: User): List<BookingContact> {
+  private fun getBookingContacts(videoBookingId: Long, user: User): List<BookingContact> {
     val userContact = user.mayBeEmail()?.let { email ->
       BookingContact(
         videoBookingId = videoBookingId,
@@ -220,9 +220,7 @@ class ContactsService(
       )
     }
 
-    return bookingContactsRepository.findContactsByVideoBookingId(videoBookingId)
-      .filter { !it.email.trimmedEquals(userContact?.email) }
-      .plus(listOfNotNull(userContact))
+    return bookingContactsRepository.findContactsByVideoBookingId(videoBookingId).filter { !it.email.emailEquals(userContact?.email) } + listOfNotNull(userContact)
   }
 
   /**
