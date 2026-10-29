@@ -13,7 +13,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
@@ -62,11 +61,10 @@ class AmendCourtBookingServiceTest {
 
   private val persistedVideoBooking: VideoBooking = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val locationValidator: LocationValidator = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
 
-  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationsInsidePrisonClient, locationValidator)
+  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationValidator)
 
   private val service = AmendCourtBookingService(
     videoBookingRepository,
@@ -90,7 +88,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -98,7 +95,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -106,7 +102,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -118,9 +113,7 @@ class AmendCourtBookingServiceTest {
     withBookingFixture(1, courtBooking)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationValidator.validatePrisonLocationIds(BIRMINGHAM, setOf(birminghamLocation.id))) doReturn listOf(birminghamLocation)
 
     val (booking, prisoner) = service.amend(1, amendCourtBookingRequest, PRISON_USER_BIRMINGHAM)
 
@@ -170,7 +163,7 @@ class AmendCourtBookingServiceTest {
       }
     }
 
-    verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
+    verify(locationValidator).validatePrisonLocationIds(BIRMINGHAM, setOf(birminghamLocation.id))
     verify(prisonerSearchClient).getPrisoner(prisonerNumber)
     verify(bookingHistoryService).createBookingHistory(any(), any(), isNull())
   }
@@ -193,7 +186,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -201,7 +193,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -209,7 +200,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -217,7 +207,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -244,7 +233,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = pentonvilleLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
@@ -252,7 +240,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = pentonvilleLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -279,7 +266,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
@@ -287,7 +273,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -314,7 +299,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -322,7 +306,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -349,7 +332,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -357,7 +339,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -365,7 +346,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -392,7 +372,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -400,7 +379,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -408,7 +386,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -435,7 +412,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -443,7 +419,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -451,7 +426,6 @@ class AmendCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_PROBATION,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -488,7 +462,6 @@ class AmendCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -505,8 +478,6 @@ class AmendCourtBookingServiceTest {
     val courtBooking = courtBooking().withMainCourtPrisonAppointment()
     withBookingFixture(1, courtBooking)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
 
     assertDoesNotThrow { service.amend(1, amendCourtBookingRequest, PRISON_USER_BIRMINGHAM) }

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.resource
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -48,647 +47,323 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository
 
-  @Nested
-  inner class AvailabilityCheckByDpsLocationID {
-    @Test
-    fun `should offer alternatives for a court booking when the prison room is already occupied`() {
-      videoBookingRepository.findAll() hasSize 0
+  @Test
+  fun `should offer alternatives for a court booking when the prison room is already occupied`() {
+    videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
 
-      val courtBookingRequest = courtBookingRequest(
-        courtCode = "DRBYMC",
-        prisonerNumber = "A1111AA",
-        prisonCode = PENTONVILLE,
-        location = pentonvilleLocation,
-        startTime = LocalTime.of(12, 0),
-        endTime = LocalTime.of(12, 30),
-      )
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = "DRBYMC",
+      prisonerNumber = "A1111AA",
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+    )
 
-      webTestClient.createBooking(courtBookingRequest, COURT_USER)
+    webTestClient.createBooking(courtBookingRequest, COURT_USER)
 
-      // Do the availability check for a booking at the same time as the existing booking above
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.COURT,
-        courtOrProbationCode = "DRBYMC",
-        prisonCode = PENTONVILLE,
-        date = LocalDate.now().plusDays(1),
-        mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
-      )
+    // Do the availability check for a booking at the same time as the existing booking above
+    val availabilityRequest = AvailabilityRequest(
+      bookingType = BookingType.COURT,
+      courtOrProbationCode = "DRBYMC",
+      prisonCode = PENTONVILLE,
+      date = LocalDate.now().plusDays(1),
+      mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
+    )
 
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
 
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isFalse()
-        assertThat(alternatives).hasSize(3)
-      }
+    assertThat(availabilityResponse).isNotNull
+    with(availabilityResponse) {
+      assertThat(availabilityOk).isFalse()
+      assertThat(alternatives).hasSize(3)
     }
-
-    @Test
-    fun `should confirm availability for a court booking when the prison room is free`() {
-      videoBookingRepository.findAll() hasSize 0
-
-      // With no bookings present, the availability check should succeed
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.COURT,
-        courtOrProbationCode = "DRBYMC",
-        prisonCode = PENTONVILLE,
-        date = LocalDate.now().plusDays(1),
-        mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
-      )
-
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
-
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isTrue()
-        assertThat(alternatives).isEmpty()
-      }
-    }
-
-    @Test
-    fun `should exclude specific booking when checking for availability`() {
-      videoBookingRepository.findAll() hasSize 0
-
-      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-
-      val courtBookingRequest = courtBookingRequest(
-        courtCode = "DRBYMC",
-        prisonerNumber = "A1111AA",
-        prisonCode = PENTONVILLE,
-        location = pentonvilleLocation,
-        startTime = LocalTime.of(12, 0),
-        endTime = LocalTime.of(12, 30),
-      )
-
-      val id = webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
-      // Do the availability check for a booking at the same time as the existing booking above
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.COURT,
-        courtOrProbationCode = "DRBYMC",
-        prisonCode = PENTONVILLE,
-        date = LocalDate.now().plusDays(1),
-        mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
-        vlbIdToExclude = id,
-      )
-
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
-
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isTrue()
-        assertThat(alternatives).hasSize(0)
-      }
-    }
-
-    @Test
-    fun `should confirm availability for a probation booking when the prison room is free`() {
-      videoBookingRepository.findAll() hasSize 0
-
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.PROBATION,
-        courtOrProbationCode = "BLKPPP",
-        prisonCode = PENTONVILLE,
-        date = LocalDate.now().plusDays(1),
-        mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
-      )
-
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
-
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isTrue()
-        assertThat(alternatives).isEmpty()
-      }
-    }
-
-    @Test
-    fun `should return alternatives for a probation booking when the prison room is already occupied`() {
-      videoBookingRepository.findAll() hasSize 0
-
-      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
-
-      val probationBookingRequest = probationBookingRequest(
-        probationTeamCode = "BLKPPP",
-        probationMeetingType = ProbationMeetingType.PSR,
-        prisonCode = PENTONVILLE,
-        prisonerNumber = "A1111AA",
-        appointmentDate = tomorrow(),
-        startTime = LocalTime.of(9, 0),
-        endTime = LocalTime.of(9, 30),
-        appointmentType = AppointmentType.VLB_PROBATION,
-        location = pentonvilleLocation,
-      )
-
-      webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
-
-      videoBookingRepository.findAll() hasSize 1
-
-      // Check for availability of the times just created i.e. an overlapping appointment
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.PROBATION,
-        courtOrProbationCode = "BLKPPP",
-        prisonCode = PENTONVILLE,
-        date = tomorrow(),
-        mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(9, 0), end = LocalTime.of(9, 30)),
-      )
-
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
-
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isFalse()
-        assertThat(alternatives).hasSize(3)
-      }
-    }
-
-    @Test
-    fun `should find 16 available times in the morning for room 1 by time slot when nothing booked tomorrow`() {
-      activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
-      locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
-
-      // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.ACTIVE,
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation.toModel(),
-        PROBATION_USER,
-      )
-
-      val response = webTestClient.findByTimeSlot(
-        TimeSlotAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.PROBATION,
-          probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = tomorrow(),
-          timeSlots = listOf(TimeSlot.AM),
-          courtCode = null,
-          bookingDuration = 30,
-          vlbIdToExclude = null,
-        ),
-      )
-
-      response.locations hasSize 16
-      response.locations.all { it.name == risleyLocation.localName } isBool true
-    }
-
-    @Test
-    fun `should find no available times in the morning if room is blocked`() {
-      activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
-      locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
-
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.PROBATION,
-          locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
-          blockedFrom = today(),
-          blockedTo = tomorrow(),
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation.toModel(),
-        PROBATION_USER,
-      )
-
-      val response = webTestClient.findByTimeSlot(
-        TimeSlotAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.PROBATION,
-          probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = tomorrow(),
-          timeSlots = listOf(TimeSlot.AM),
-          courtCode = null,
-          bookingDuration = 30,
-          vlbIdToExclude = null,
-        ),
-      )
-
-      response.locations hasSize 0
-    }
-
-    @Test
-    fun `should find two available room by date and time when nothing booked tomorrow`() {
-      activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
-      locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
-
-      // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.ACTIVE,
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation.toModel(),
-        COURT_USER,
-      )
-
-      // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.ACTIVE,
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation2.toModel(),
-        COURT_USER,
-      )
-
-      val response = webTestClient.findByDateAndTime(
-        DateTimeAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.COURT,
-          courtCode = DERBY_JUSTICE_CENTRE,
-          date = tomorrow(),
-          startTime = LocalTime.of(9, 0),
-          endTime = LocalTime.of(9, 30),
-          probationTeamCode = null,
-          appointmentToExclude = null,
-        ),
-      )
-
-      response.locations hasSize 2
-      response.locations.single { it.name == risleyLocation.localName }
-      response.locations.single { it.name == risleyLocation2.localName }
-    }
-
-    @Test
-    fun `should find one available room by date and time when one room is blocked and nothing booked tomorrow`() {
-      activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
-      locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
-
-      // Blocked room
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
-          blockedFrom = today(),
-          blockedTo = tomorrow(),
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation.toModel(),
-        COURT_USER,
-      )
-
-      // Free room. A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.ACTIVE,
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation2.toModel(),
-        COURT_USER,
-      )
-
-      val response = webTestClient.findByDateAndTime(
-        DateTimeAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.COURT,
-          courtCode = DERBY_JUSTICE_CENTRE,
-          date = tomorrow(),
-          startTime = LocalTime.of(9, 0),
-          endTime = LocalTime.of(9, 30),
-          probationTeamCode = null,
-          appointmentToExclude = null,
-        ),
-      )
-
-      response.locations hasSize 1
-      response.locations.single { it.name == risleyLocation2.localName }
-    }
-
-    private fun locationAndIntervalById(location: ApiLocation, start: LocalTime, end: LocalTime) = locationAndInterval(location, start, end).copy(prisonLocKey = null)
   }
 
-  @Nested
-  inner class AvailabilityCheckByDpsLocationKey {
-    @Test
-    fun `should offer alternatives for a court booking when the prison room is already occupied`() {
-      videoBookingRepository.findAll() hasSize 0
+  @Test
+  fun `should confirm availability for a court booking when the prison room is free`() {
+    videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    // With no bookings present, the availability check should succeed
+    val availabilityRequest = AvailabilityRequest(
+      bookingType = BookingType.COURT,
+      courtOrProbationCode = "DRBYMC",
+      prisonCode = PENTONVILLE,
+      date = LocalDate.now().plusDays(1),
+      mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
+    )
 
-      val courtBookingRequest = courtBookingRequest(
-        courtCode = "DRBYMC",
-        prisonerNumber = "A1111AA",
-        prisonCode = PENTONVILLE,
-        location = pentonvilleLocation,
-        startTime = LocalTime.of(12, 0),
-        endTime = LocalTime.of(12, 30),
-      )
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
 
-      webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
-      // Do the availability check for a booking at the same time as the existing booking above
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.COURT,
-        courtOrProbationCode = "DRBYMC",
-        prisonCode = PENTONVILLE,
-        date = LocalDate.now().plusDays(1),
-        mainAppointment = locationAndIntervalByKey(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
-      )
-
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
-
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isFalse()
-        assertThat(alternatives).hasSize(3)
-      }
+    assertThat(availabilityResponse).isNotNull
+    with(availabilityResponse) {
+      assertThat(availabilityOk).isTrue()
+      assertThat(alternatives).isEmpty()
     }
+  }
 
-    @Test
-    fun `should confirm availability for a court booking when the prison room is free`() {
-      videoBookingRepository.findAll() hasSize 0
+  @Test
+  fun `should exclude specific booking when checking for availability`() {
+    videoBookingRepository.findAll() hasSize 0
 
-      // With no bookings present, the availability check should succeed
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.COURT,
-        courtOrProbationCode = "DRBYMC",
-        prisonCode = PENTONVILLE,
-        date = LocalDate.now().plusDays(1),
-        mainAppointment = locationAndIntervalByKey(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
-      )
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
 
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
+    val courtBookingRequest = courtBookingRequest(
+      courtCode = "DRBYMC",
+      prisonerNumber = "A1111AA",
+      prisonCode = PENTONVILLE,
+      location = pentonvilleLocation,
+      startTime = LocalTime.of(12, 0),
+      endTime = LocalTime.of(12, 30),
+    )
 
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isTrue()
-        assertThat(alternatives).isEmpty()
-      }
+    val id = webTestClient.createBooking(courtBookingRequest, COURT_USER)
+
+    // Do the availability check for a booking at the same time as the existing booking above
+    val availabilityRequest = AvailabilityRequest(
+      bookingType = BookingType.COURT,
+      courtOrProbationCode = "DRBYMC",
+      prisonCode = PENTONVILLE,
+      date = LocalDate.now().plusDays(1),
+      mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
+      vlbIdToExclude = id,
+    )
+
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
+
+    assertThat(availabilityResponse).isNotNull
+    with(availabilityResponse) {
+      assertThat(availabilityOk).isTrue()
+      assertThat(alternatives).hasSize(0)
     }
+  }
 
-    @Test
-    fun `should exclude specific booking when checking for availability`() {
-      videoBookingRepository.findAll() hasSize 0
+  @Test
+  fun `should confirm availability for a probation booking when the prison room is free`() {
+    videoBookingRepository.findAll() hasSize 0
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    val availabilityRequest = AvailabilityRequest(
+      bookingType = BookingType.PROBATION,
+      courtOrProbationCode = "BLKPPP",
+      prisonCode = PENTONVILLE,
+      date = LocalDate.now().plusDays(1),
+      mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
+    )
 
-      val courtBookingRequest = courtBookingRequest(
-        courtCode = "DRBYMC",
-        prisonerNumber = "A1111AA",
-        prisonCode = PENTONVILLE,
-        location = pentonvilleLocation,
-        startTime = LocalTime.of(12, 0),
-        endTime = LocalTime.of(12, 30),
-      )
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
 
-      val id = webTestClient.createBooking(courtBookingRequest, COURT_USER)
-
-      // Do the availability check for a booking at the same time as the existing booking above
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.COURT,
-        courtOrProbationCode = "DRBYMC",
-        prisonCode = PENTONVILLE,
-        date = LocalDate.now().plusDays(1),
-        mainAppointment = locationAndIntervalByKey(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
-        vlbIdToExclude = id,
-      )
-
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
-
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isTrue()
-        assertThat(alternatives).hasSize(0)
-      }
+    assertThat(availabilityResponse).isNotNull
+    with(availabilityResponse) {
+      assertThat(availabilityOk).isTrue()
+      assertThat(alternatives).isEmpty()
     }
+  }
 
-    @Test
-    fun `should confirm availability for a probation booking when the prison room is free`() {
-      videoBookingRepository.findAll() hasSize 0
+  @Test
+  fun `should return alternatives for a probation booking when the prison room is already occupied`() {
+    videoBookingRepository.findAll() hasSize 0
 
-      val availabilityRequest = AvailabilityRequest(
+    prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+
+    val probationBookingRequest = probationBookingRequest(
+      probationTeamCode = "BLKPPP",
+      probationMeetingType = ProbationMeetingType.PSR,
+      prisonCode = PENTONVILLE,
+      prisonerNumber = "A1111AA",
+      appointmentDate = tomorrow(),
+      startTime = LocalTime.of(9, 0),
+      endTime = LocalTime.of(9, 30),
+      appointmentType = AppointmentType.VLB_PROBATION,
+      location = pentonvilleLocation,
+    )
+
+    webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
+
+    videoBookingRepository.findAll() hasSize 1
+
+    // Check for availability of the times just created i.e. an overlapping appointment
+    val availabilityRequest = AvailabilityRequest(
+      bookingType = BookingType.PROBATION,
+      courtOrProbationCode = "BLKPPP",
+      prisonCode = PENTONVILLE,
+      date = tomorrow(),
+      mainAppointment = locationAndIntervalById(pentonvilleLocation, start = LocalTime.of(9, 0), end = LocalTime.of(9, 30)),
+    )
+
+    val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
+
+    assertThat(availabilityResponse).isNotNull
+    with(availabilityResponse) {
+      assertThat(availabilityOk).isFalse()
+      assertThat(alternatives).hasSize(3)
+    }
+  }
+
+  @Test
+  fun `should find 16 available times in the morning for room 1 by time slot when nothing booked tomorrow`() {
+    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
+
+    // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.ACTIVE,
+        roomArea = RoomArea.COURT_PROBATION,
+      ),
+      risleyLocation.toModel(),
+      PROBATION_USER,
+    )
+
+    val response = webTestClient.findByTimeSlot(
+      TimeSlotAvailabilityRequest(
+        prisonCode = RISLEY,
         bookingType = BookingType.PROBATION,
-        courtOrProbationCode = "BLKPPP",
-        prisonCode = PENTONVILLE,
-        date = LocalDate.now().plusDays(1),
-        mainAppointment = locationAndIntervalByKey(pentonvilleLocation, start = LocalTime.of(12, 0), end = LocalTime.of(12, 30)),
-      )
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        date = tomorrow(),
+        timeSlots = listOf(TimeSlot.AM),
+        courtCode = null,
+        bookingDuration = 30,
+        vlbIdToExclude = null,
+      ),
+    )
 
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
+    response.locations hasSize 16
+    response.locations.all { it.name == risleyLocation.localName } isBool true
+  }
 
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isTrue()
-        assertThat(alternatives).isEmpty()
-      }
-    }
+  @Test
+  fun `should find no available times in the morning if room is blocked`() {
+    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
 
-    @Test
-    fun `should return alternatives for a probation booking when the prison room is already occupied`() {
-      videoBookingRepository.findAll() hasSize 0
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.PROBATION,
+        locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
+        blockedFrom = today(),
+        blockedTo = tomorrow(),
+        roomArea = RoomArea.COURT_PROBATION,
+      ),
+      risleyLocation.toModel(),
+      PROBATION_USER,
+    )
 
-      prisonSearchApi().stubGetPrisoner("A1111AA", PENTONVILLE)
+    val response = webTestClient.findByTimeSlot(
+      TimeSlotAvailabilityRequest(
+        prisonCode = RISLEY,
+        bookingType = BookingType.PROBATION,
+        probationTeamCode = BLACKPOOL_MC_PPOC,
+        date = tomorrow(),
+        timeSlots = listOf(TimeSlot.AM),
+        courtCode = null,
+        bookingDuration = 30,
+        vlbIdToExclude = null,
+      ),
+    )
 
-      val probationBookingRequest = probationBookingRequest(
-        probationTeamCode = "BLKPPP",
-        probationMeetingType = ProbationMeetingType.PSR,
-        prisonCode = PENTONVILLE,
-        prisonerNumber = "A1111AA",
-        appointmentDate = tomorrow(),
+    response.locations hasSize 0
+  }
+
+  @Test
+  fun `should find two available room by date and time when nothing booked tomorrow`() {
+    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
+
+    // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.ACTIVE,
+        roomArea = RoomArea.COURT_PROBATION,
+      ),
+      risleyLocation.toModel(),
+      COURT_USER,
+    )
+
+    // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.ACTIVE,
+        roomArea = RoomArea.COURT_PROBATION,
+      ),
+      risleyLocation2.toModel(),
+      COURT_USER,
+    )
+
+    val response = webTestClient.findByDateAndTime(
+      DateTimeAvailabilityRequest(
+        prisonCode = RISLEY,
+        bookingType = BookingType.COURT,
+        courtCode = DERBY_JUSTICE_CENTRE,
+        date = tomorrow(),
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
-        appointmentType = AppointmentType.VLB_PROBATION,
-        location = pentonvilleLocation,
-      )
+        probationTeamCode = null,
+        appointmentToExclude = null,
+      ),
+    )
 
-      webTestClient.createBooking(probationBookingRequest, PROBATION_USER)
-
-      videoBookingRepository.findAll() hasSize 1
-
-      // Check for availability of the times just created i.e. an overlapping appointment
-      val availabilityRequest = AvailabilityRequest(
-        bookingType = BookingType.PROBATION,
-        courtOrProbationCode = "BLKPPP",
-        prisonCode = PENTONVILLE,
-        date = tomorrow(),
-        mainAppointment = locationAndIntervalByKey(pentonvilleLocation, start = LocalTime.of(9, 0), end = LocalTime.of(9, 30)),
-      )
-
-      val availabilityResponse = webTestClient.availabilityCheck(availabilityRequest)
-
-      assertThat(availabilityResponse).isNotNull
-      with(availabilityResponse) {
-        assertThat(availabilityOk).isFalse()
-        assertThat(alternatives).hasSize(3)
-      }
-    }
-
-    @Test
-    fun `should find 16 available times in the morning for room 1 by time slot when nothing booked tomorrow`() {
-      activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
-      locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
-
-      // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.ACTIVE,
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation.toModel(),
-        PROBATION_USER,
-      )
-
-      val response = webTestClient.findByTimeSlot(
-        TimeSlotAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.PROBATION,
-          probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = tomorrow(),
-          timeSlots = listOf(TimeSlot.AM),
-          courtCode = null,
-          bookingDuration = 30,
-          vlbIdToExclude = null,
-        ),
-      )
-
-      response.locations hasSize 16
-      response.locations.all { it.name == risleyLocation.localName } isBool true
-    }
-
-    @Test
-    fun `should find no available times in the morning if room is blocked`() {
-      activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
-      locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
-
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.PROBATION,
-          locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
-          blockedFrom = today(),
-          blockedTo = tomorrow(),
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation.toModel(),
-        PROBATION_USER,
-      )
-
-      val response = webTestClient.findByTimeSlot(
-        TimeSlotAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.PROBATION,
-          probationTeamCode = BLACKPOOL_MC_PPOC,
-          date = tomorrow(),
-          timeSlots = listOf(TimeSlot.AM),
-          courtCode = null,
-          bookingDuration = 30,
-          vlbIdToExclude = null,
-        ),
-      )
-
-      response.locations hasSize 0
-    }
-
-    @Test
-    fun `should find two available room by date and time when nothing booked tomorrow`() {
-      activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
-      locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
-
-      // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.ACTIVE,
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation.toModel(),
-        COURT_USER,
-      )
-
-      // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.ACTIVE,
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation2.toModel(),
-        COURT_USER,
-      )
-
-      val response = webTestClient.findByDateAndTime(
-        DateTimeAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.COURT,
-          courtCode = DERBY_JUSTICE_CENTRE,
-          date = tomorrow(),
-          startTime = LocalTime.of(9, 0),
-          endTime = LocalTime.of(9, 30),
-          probationTeamCode = null,
-          appointmentToExclude = null,
-        ),
-      )
-
-      response.locations hasSize 2
-      response.locations.single { it.name == risleyLocation.localName }
-      response.locations.single { it.name == risleyLocation2.localName }
-    }
-
-    @Test
-    fun `should find one available room by date and time when one room is blocked and nothing booked tomorrow`() {
-      activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
-      locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
-      locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
-
-      // Blocked room
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
-          blockedFrom = today(),
-          blockedTo = tomorrow(),
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation.toModel(),
-        COURT_USER,
-      )
-
-      // Free room. A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
-      webTestClient.createDecoratedRoom(
-        CreateDecoratedRoomRequest(
-          locationUsage = ModelLocationUsage.SHARED,
-          locationStatus = ModelLocationStatus.ACTIVE,
-          roomArea = RoomArea.COURT_PROBATION,
-        ),
-        risleyLocation2.toModel(),
-        COURT_USER,
-      )
-
-      val response = webTestClient.findByDateAndTime(
-        DateTimeAvailabilityRequest(
-          prisonCode = RISLEY,
-          bookingType = BookingType.COURT,
-          courtCode = DERBY_JUSTICE_CENTRE,
-          date = tomorrow(),
-          startTime = LocalTime.of(9, 0),
-          endTime = LocalTime.of(9, 30),
-          probationTeamCode = null,
-          appointmentToExclude = null,
-        ),
-      )
-
-      response.locations hasSize 1
-      response.locations.single { it.name == risleyLocation2.localName }
-    }
-
-    private fun locationAndIntervalByKey(location: ApiLocation, start: LocalTime, end: LocalTime) = locationAndInterval(location, start, end).copy(dpsLocationId = null)
+    response.locations hasSize 2
+    response.locations.single { it.name == risleyLocation.localName }
+    response.locations.single { it.name == risleyLocation2.localName }
   }
+
+  @Test
+  fun `should find one available room by date and time when one room is blocked and nothing booked tomorrow`() {
+    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
+    locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
+    locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
+
+    // Blocked room
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.TEMPORARILY_BLOCKED,
+        blockedFrom = today(),
+        blockedTo = tomorrow(),
+        roomArea = RoomArea.COURT_PROBATION,
+      ),
+      risleyLocation.toModel(),
+      COURT_USER,
+    )
+
+    // Free room. A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
+    webTestClient.createDecoratedRoom(
+      CreateDecoratedRoomRequest(
+        locationUsage = ModelLocationUsage.SHARED,
+        locationStatus = ModelLocationStatus.ACTIVE,
+        roomArea = RoomArea.COURT_PROBATION,
+      ),
+      risleyLocation2.toModel(),
+      COURT_USER,
+    )
+
+    val response = webTestClient.findByDateAndTime(
+      DateTimeAvailabilityRequest(
+        prisonCode = RISLEY,
+        bookingType = BookingType.COURT,
+        courtCode = DERBY_JUSTICE_CENTRE,
+        date = tomorrow(),
+        startTime = LocalTime.of(9, 0),
+        endTime = LocalTime.of(9, 30),
+        probationTeamCode = null,
+        appointmentToExclude = null,
+      ),
+    )
+
+    response.locations hasSize 1
+    response.locations.single { it.name == risleyLocation2.localName }
+  }
+
+  private fun locationAndIntervalById(location: ApiLocation, start: LocalTime, end: LocalTime) = locationAndInterval(location, start, end)
 
   private fun WebTestClient.availabilityCheck(request: AvailabilityRequest) = this
     .post()

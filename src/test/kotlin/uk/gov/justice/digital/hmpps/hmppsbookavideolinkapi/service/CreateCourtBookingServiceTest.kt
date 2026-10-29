@@ -15,7 +15,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerValidator
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -60,10 +59,9 @@ class CreateCourtBookingServiceTest {
 
   private val persistedVideoBooking: VideoBooking = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val locationValidator: LocationValidator = mock()
 
-  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationsInsidePrisonClient, locationValidator)
+  private val appointmentsService = AppointmentsService(prisonAppointmentRepository, prisonRepository, locationValidator)
 
   private val service = CreateCourtBookingService(
     courtRepository,
@@ -86,7 +84,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -94,7 +91,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -102,7 +98,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -117,8 +112,7 @@ class CreateCourtBookingServiceTest {
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(videoBookingRepository.saveAndFlush(any<VideoBooking>())) doReturn persistedVideoBooking
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, prisonCode)) doReturn prisonerSearchPrisoner(prisonerNumber, prisonCode)
-    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
+    whenever(locationValidator.validatePrisonLocationIds(BIRMINGHAM, setOf(birminghamLocation.id))) doReturn listOf(birminghamLocation)
 
     val (booking, prisoner) = service.create(courtBookingRequest, COURT_USER)
 
@@ -169,7 +163,7 @@ class CreateCourtBookingServiceTest {
       }
     }
 
-    verify(locationValidator).validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))
+    verify(locationValidator).validatePrisonLocationIds(BIRMINGHAM, setOf(birminghamLocation.id))
     verify(prisonerValidator).validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)
     verify(bookingHistoryService).createBookingHistory(any(), any(), isNull())
   }
@@ -182,7 +176,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -204,7 +197,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -212,7 +204,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -220,7 +211,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -228,7 +218,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -258,7 +247,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
@@ -266,7 +254,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -296,7 +283,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 31),
@@ -304,7 +290,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -334,7 +319,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -342,7 +326,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = wandsworthLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -372,7 +355,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -380,7 +362,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 0),
           endTime = LocalTime.of(9, 30),
@@ -388,7 +369,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -418,7 +398,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -426,7 +405,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -434,7 +412,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -464,7 +441,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -472,7 +448,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_POST,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 0),
           endTime = LocalTime.of(10, 30),
@@ -480,7 +455,6 @@ class CreateCourtBookingServiceTest {
         ),
         Appointment(
           type = AppointmentType.VLB_PROBATION,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 30),
           endTime = LocalTime.of(11, 0),
@@ -510,7 +484,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -531,9 +504,6 @@ class CreateCourtBookingServiceTest {
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
-    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
     assertDoesNotThrow {
       service.create(courtBookingRequest, PRISON_USER_BIRMINGHAM)
@@ -577,7 +547,6 @@ class CreateCourtBookingServiceTest {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = birminghamLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(9, 30),
           endTime = LocalTime.of(10, 0),
@@ -598,9 +567,6 @@ class CreateCourtBookingServiceTest {
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     whenever(prisonRepository.findByCode(BIRMINGHAM)) doReturn prison(BIRMINGHAM)
     whenever(prisonerValidator.validatePrisonerAtPrison(prisonerNumber, BIRMINGHAM)) doReturn prisonerSearchPrisoner(prisonerNumber, BIRMINGHAM)
-    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
     assertDoesNotThrow {
       service.create(courtBookingRequest, PRISON_USER_BIRMINGHAM)

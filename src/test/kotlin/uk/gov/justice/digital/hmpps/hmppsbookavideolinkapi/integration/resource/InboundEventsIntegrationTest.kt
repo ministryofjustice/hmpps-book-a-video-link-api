@@ -474,7 +474,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
       appointments = listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_PRE,
-          locationKey = pentonvilleLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(10, 45),
           endTime = LocalTime.of(11, 0),
@@ -482,7 +481,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
         ),
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = pentonvilleLocation.key,
           date = tomorrow(),
           startTime = LocalTime.of(11, 0),
           endTime = LocalTime.of(11, 30),

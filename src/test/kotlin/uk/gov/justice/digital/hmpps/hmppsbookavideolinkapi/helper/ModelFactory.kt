@@ -71,7 +71,6 @@ fun location(prisonCode: String, locationKeySuffix: String, active: Boolean = tr
 
 fun locationAndInterval(location: Location, start: LocalTime, end: LocalTime) = LocationAndInterval(
   dpsLocationId = location.id,
-  prisonLocKey = location.key,
   interval = Interval(start = start, end = end),
 )
 
@@ -199,11 +198,10 @@ fun courtBookingRequest(
       listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = location?.key ?: "$prisonCode-$locationSuffix",
           date = date,
           startTime = startTime,
           endTime = endTime,
-          dpsLocationId = location?.id,
+          dpsLocationId = location?.id ?: UUID.randomUUID(),
         ),
       )
     },
@@ -275,11 +273,10 @@ fun probationBookingRequest(
 ): CreateVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
-    locationKey = location?.key ?: "$prisonCode-$locationSuffix",
     date = appointmentDate,
     startTime = startTime,
     endTime = endTime,
-    dpsLocationId = location?.id,
+    dpsLocationId = location?.id ?: UUID.randomUUID(),
   )
 
   val prisoner = PrisonerDetails(
@@ -366,11 +363,10 @@ fun amendCourtBookingRequest(
       listOf(
         Appointment(
           type = AppointmentType.VLB_COURT_MAIN,
-          locationKey = location?.key ?: "$prisonCode-$locationSuffix",
           date = appointmentDate,
           startTime = startTime,
           endTime = endTime,
-          dpsLocationId = location?.id,
+          dpsLocationId = location?.id ?: UUID.randomUUID(),
         ),
       )
     },
@@ -403,11 +399,10 @@ fun amendProbationBookingRequest(
 ): AmendVideoBookingRequest {
   val appointment = Appointment(
     type = appointmentType,
-    locationKey = location?.key ?: "$prisonCode-$locationSuffix",
     date = appointmentDate,
     startTime = startTime,
     endTime = endTime,
-    dpsLocationId = location?.id,
+    dpsLocationId = location?.id ?: UUID.randomUUID(),
   )
 
   val prisoner = PrisonerDetails(

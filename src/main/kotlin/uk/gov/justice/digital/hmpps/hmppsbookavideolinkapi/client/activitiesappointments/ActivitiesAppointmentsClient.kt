@@ -141,9 +141,9 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
    * Returns all matching appointment types for a prison, not just video link bookings. It will filter down to the
    * supplied location IDs where there is a match.
    */
-  fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<Long>) = if (locationIds.isNotEmpty()) {
+  fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<UUID>) = if (locationIds.isNotEmpty()) {
     log.info("A&A CLIENT: scheduled appointments in locations - query params - prisonCode=$prisonCode, onDate=$onDate, locationIds=${locationIds.toList()}")
-    getPrisonAppointments(prisonCode, onDate).filter { locationIds.toList().contains(it.internalLocation?.id) }
+    getPrisonAppointments(prisonCode, onDate).filter { locationIds.toList().contains(it.internalLocation?.dpsLocationId) }
   } else {
     emptyList()
   }
