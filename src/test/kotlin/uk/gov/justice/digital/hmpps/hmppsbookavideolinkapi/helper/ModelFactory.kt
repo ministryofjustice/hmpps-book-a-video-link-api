@@ -1,10 +1,15 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper
 
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentAttendeeSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCategorySummary
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentLocationSummary
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.EmailAddressDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.manageusers.model.UserDetailsDto.AuthSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.CvpLinkDetails
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.RoomArea
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
@@ -34,6 +39,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.Prisoner as PrisonerHelper
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.Prisoner as ModelPrisoner
 
 val birminghamLocation = location(prisonCode = BIRMINGHAM, locationKeySuffix = "ABCEDFG", localName = "Birmingham room")
@@ -421,6 +427,43 @@ fun amendProbationBookingRequest(
     notesForPrisoners = notesForPrisoners,
   )
 }
+
+fun appointmentSearchResult(
+  prisoner: PrisonerHelper,
+  location: Location,
+  date: LocalDate,
+  startTime: LocalTime,
+  endTime: LocalTime? = null,
+  isCancelled: Boolean = false,
+  isDeleted: Boolean = false,
+  appointmentType: String = "VLB",
+) = AppointmentSearchResult(
+  appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
+  startDate = date,
+  startTime = startTime.toHourMinuteStyle(),
+  endTime = endTime?.toHourMinuteStyle(),
+  isCancelled = isCancelled,
+  isDeleted = isDeleted,
+  isExpired = false,
+  isEdited = false,
+  appointmentId = 99,
+  appointmentSeriesId = 1,
+  appointmentName = "appointment name",
+  attendees = listOf(AppointmentAttendeeSearchResult(1, prisoner.number, 1)),
+  category = AppointmentCategorySummary(appointmentType, "video link booking"),
+  inCell = false,
+  isRepeat = false,
+  maxSequenceNumber = 1,
+  prisonCode = prisoner.prison,
+  sequenceNumber = 1,
+  internalLocation = AppointmentLocationSummary(-1, prisoner.prison, "VIDEO LINK", location.id),
+  timeSlot = AppointmentSearchResult.TimeSlot.AM,
+  createdTime = LocalDateTime.now(),
+  customName = null,
+  updatedTime = null,
+  cancelledTime = null,
+  cancelledBy = null,
+)
 
 fun VideoLinkBooking.hasBookingType(that: BookingType) = also { it.bookingType isEqualTo that }
 fun VideoLinkBooking.hasCourt(that: String?) = also { it.courtCode isEqualTo that }

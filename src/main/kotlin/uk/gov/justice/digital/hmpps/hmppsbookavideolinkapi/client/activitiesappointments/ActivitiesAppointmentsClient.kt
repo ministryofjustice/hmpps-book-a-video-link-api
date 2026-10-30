@@ -149,6 +149,13 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
   }
 
   /**
+   * Returns all matching appointment types for a prison on a given date at a given location.
+   */
+  fun getScheduledPrisonAppointments(prisonCode: String, onDate: LocalDate, dpsLocationId: UUID) = run {
+    getPrisonAppointments(prisonCode, onDate, dpsLocationId = dpsLocationId)
+  }
+
+  /**
    * Returns scheduled appointments for a prison that start between the from and to dates.
    * Where the toDate is null it will return appointments that occur on the fromDate only.
    * It will ignore canceled and deleted appointments.
@@ -159,9 +166,9 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .filterNot { it.isCancelled || it.isDeleted }
   }
 
-  private fun getPrisonAppointments(prisonCode: String, fromDate: LocalDate, toDate: LocalDate? = null) = activitiesAppointmentsApiWebClient.post()
+  private fun getPrisonAppointments(prisonCode: String, fromDate: LocalDate, toDate: LocalDate? = null, dpsLocationId: UUID? = null) = activitiesAppointmentsApiWebClient.post()
     .uri("/appointments/{prisonCode}/search", prisonCode)
-    .bodyValue(AppointmentSearchRequest(startDate = fromDate, endDate = toDate, inCell = false))
+    .bodyValue(AppointmentSearchRequest(startDate = fromDate, endDate = toDate, inCell = false, dpsLocationId = dpsLocationId))
     .retrieve()
     .bodyToMono<List<AppointmentSearchResult>>()
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }

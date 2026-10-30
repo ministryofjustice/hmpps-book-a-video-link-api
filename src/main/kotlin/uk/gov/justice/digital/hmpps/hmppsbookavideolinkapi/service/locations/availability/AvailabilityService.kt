@@ -174,6 +174,13 @@ class AvailabilityService(
   private fun PrisonAppointment.dateTimeAndLocationIsTheSame(date: LocalDate?, interval: Interval?, location: Location?) = this.appointmentDate == date && this.startTime == interval?.start && this.endTime == interval.end && this.prisonLocationId == location?.id
 }
 
+@Deprecated(
+  "Use ReplacementExternalAppointmentsService instead",
+  replaceWith = ReplaceWith(
+    "ReplacementExternalAppointmentsService",
+    imports = ["uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.ReplacementExternalAppointmentsService"],
+  ),
+)
 @Service
 class ExternalAppointmentsService(
   private val prisonApiClient: PrisonApiClient,
