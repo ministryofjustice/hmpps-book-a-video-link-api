@@ -2,10 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement.MovementType.REL
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement.MovementType.TRN
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
@@ -21,7 +18,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.telemetry.Tel
 @Component
 class PrisonerAppointmentsChangedEventHandler(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
-  private val prisonApiClient: PrisonApiClient,
+  private val prisonerSearchClient: PrisonerSearchClient,
   private val bookingFacade: BookingFacade,
   private val timeSource: TimeSource,
   private val telemetryService: TelemetryService,
@@ -40,21 +37,19 @@ class PrisonerAppointmentsChangedEventHandler(
         .distinct()
 
       if (bookings.isNotEmpty()) {
-        val movementType = prisonApiClient.getLatestPrisonerMovementOnDate(event.prisonerNumber(), now.toLocalDate())
-
-        when (movementType) {
-          REL -> {
+        when (val movementType = prisonerSearchClient.getPrisoner(event.prisonerNumber())?.lastMovementTypeCode) {
+          "REL" -> {
             log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: processing release for prisoner ${event.prisonerNumber()} - $event")
             bookings.forEach { bookingFacade.prisonerReleased(it, UserService.getServiceAsUser()) }
             captureTelemetry(event.prisonCode(), event.prisonerNumber(), movementType)
           }
-          TRN -> {
+          "TRN" -> {
             log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: processing transfer for prisoner ${event.prisonerNumber()} - $event")
             bookings.forEach { bookingFacade.prisonerTransferred(it, UserService.getServiceAsUser()) }
             captureTelemetry(event.prisonCode(), event.prisonerNumber(), movementType)
           }
           null -> log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: no-op - last movement type is null for prisoner ${event.prisonerNumber()} - $event")
-          else -> log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: no-op - last movement type ${movementType.value} for prisoner ${event.prisonerNumber()} - $event")
+          else -> log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: no-op - last movement type $movementType for prisoner ${event.prisonerNumber()} - $event")
         }
 
         return
@@ -64,7 +59,7 @@ class PrisonerAppointmentsChangedEventHandler(
     log.info("PRISONER_APPOINTMENTS_CHANGED_EVENT: no action taken for prisoner ${event.prisonerNumber()} - $event.")
   }
 
-  private fun captureTelemetry(prisonCode: String, prisonerNumber: String, movementType: Movement.MovementType) {
-    telemetryService.track(PrisonerAppointmentsCancelledByPrisonTelemetryEvent(prisonCode, prisonerNumber, movementType.name))
+  private fun captureTelemetry(prisonCode: String, prisonerNumber: String, movementType: String) {
+    telemetryService.track(PrisonerAppointmentsCancelledByPrisonTelemetryEvent(prisonCode, prisonerNumber, movementType))
   }
 }

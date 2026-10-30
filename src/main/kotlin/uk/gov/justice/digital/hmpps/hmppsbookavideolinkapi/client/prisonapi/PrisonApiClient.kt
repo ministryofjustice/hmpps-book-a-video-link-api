@@ -118,21 +118,6 @@ class PrisonApiClient(private val prisonApiWebClient: WebClient) {
         .block() ?: emptyList()
       ).filter { appointment -> locationIds.isEmpty() || appointment.locationId in locationIds }
   }
-
-  fun getLatestPrisonerMovementOnDate(prisonerNumber: String, date: LocalDate): Movement.MovementType? = run {
-    if (date.isAfter(LocalDate.now())) return null
-
-    prisonApiWebClient.get()
-      .uri { uriBuilder: UriBuilder ->
-        uriBuilder
-          .path("/api/movements/offender/{prisonerNumber}")
-          .queryParam("movementsAfter", date)
-          .build(prisonerNumber)
-      }
-      .retrieve()
-      .bodyToMono<List<Movement>>()
-      .block()?.filter { it.movementDate == date }?.maxByOrNull { it.movementDateTime() }?.movementType
-  }
 }
 
 // Overriding due to deserialisation issues from generated type. Only including fields we are interested in.
