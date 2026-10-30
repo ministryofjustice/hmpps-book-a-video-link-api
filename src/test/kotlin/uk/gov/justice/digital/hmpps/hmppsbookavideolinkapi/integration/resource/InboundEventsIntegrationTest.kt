@@ -9,7 +9,6 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.context.jdbc.Sql
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Notification
@@ -31,7 +30,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isCloseTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AdditionalBookingDetails
@@ -108,8 +106,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should cancel a video booking and send release emails on receipt of a appointments changed event and last movement REL`() {
     videoBookingRepository.findAll() hasSize 0
-    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
-    prisonApi().stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.REL)
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE, lastMovementTypeCode = "REL")
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -194,7 +191,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   fun `should cancel a video booking and send transfer emails on receipt of a appointments changed event and last movement TRN`() {
     videoBookingRepository.findAll() hasSize 0
     prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
-    prisonApi().stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.TRN)
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE, lastMovementTypeCode = "TRN")
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -594,7 +591,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   fun `should cancel a video booking and send transfer emails when prisoner is moved to a different prison`() {
     videoBookingRepository.findAll() hasSize 0
     prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
-    prisonApi().stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.TRN)
 
     val courtBookingRequest = courtBookingRequest(
       courtCode = DERBY_JUSTICE_CENTRE,
@@ -628,7 +624,6 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   fun `should cancel a probation video booking and send transfer emails when prisoner is moved to a different prison`() {
     videoBookingRepository.findAll() hasSize 0
     prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
-    prisonApi().stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.TRN)
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,
@@ -669,8 +664,7 @@ class InboundEventsIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should cancel a probation video booking and send release emails on receipt of a appointments changed event and last movement REL`() {
     videoBookingRepository.findAll() hasSize 0
-    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE)
-    prisonApi().stubGetLatestPrisonerMovement("123456", today(), Movement.MovementType.REL)
+    prisonSearchApi().stubGetPrisoner("123456", prisonCode = PENTONVILLE, lastPrisonCode = PENTONVILLE, lastMovementTypeCode = "REL")
 
     val probationBookingRequest = probationBookingRequest(
       probationTeamCode = BLACKPOOL_MC_PPOC,

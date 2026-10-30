@@ -7,8 +7,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Movement
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TimeSource
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingFacade
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
@@ -16,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.SERVICE_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsEntriesExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.withMainCourtPrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.AppointmentsChangedInformation
@@ -28,18 +28,18 @@ import java.time.LocalDateTime
 
 class PrisonerAppointmentsChangedEventHandlerTest {
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
-  private val prisonApiClient: PrisonApiClient = mock()
+  private val prisonerSearchClient: PrisonerSearchClient = mock()
   private val bookingFacade: BookingFacade = mock()
   private val timeSource = TimeSource { LocalDateTime.of(2024, 4, 9, 12, 0) }
   private val videoBooking = courtBooking().withMainCourtPrisonAppointment()
   private val telemetryService: TelemetryService = mock()
   private val telemetryCaptor = argumentCaptor<PrisonerAppointmentsCancelledByPrisonTelemetryEvent>()
-  private val handler = PrisonerAppointmentsChangedEventHandler(prisonAppointmentRepository, prisonApiClient, bookingFacade, timeSource, telemetryService)
+  private val handler = PrisonerAppointmentsChangedEventHandler(prisonAppointmentRepository, prisonerSearchClient, bookingFacade, timeSource, telemetryService)
 
   @Test
   fun `should transfer prisoner on cancel`() {
     whenever(prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter("123456", timeSource.today(), timeSource.now().toLocalTime())) doReturn videoBooking.appointments()
-    whenever(prisonApiClient.getLatestPrisonerMovementOnDate("123456", timeSource.today())) doReturn Movement.MovementType.TRN
+    whenever(prisonerSearchClient.getPrisoner("123456")) doReturn prisonerSearchPrisoner("123456", PENTONVILLE, lastMovementTypeCode = "TRN")
 
     handler.handle(event(true, PENTONVILLE, "123456"))
     verify(bookingFacade).prisonerTransferred(videoBooking.videoBookingId, SERVICE_USER)
@@ -55,7 +55,7 @@ class PrisonerAppointmentsChangedEventHandlerTest {
     handler.handle(event(false, PENTONVILLE, "123456"))
 
     verifyNoInteractions(prisonAppointmentRepository)
-    verifyNoInteractions(prisonApiClient)
+    verifyNoInteractions(prisonerSearchClient)
     verifyNoInteractions(bookingFacade)
     verifyNoInteractions(telemetryService)
   }
@@ -63,7 +63,7 @@ class PrisonerAppointmentsChangedEventHandlerTest {
   @Test
   fun `should release prisoner on cancel`() {
     whenever(prisonAppointmentRepository.findActivePrisonerPrisonAppointmentsAfter("54321", timeSource.today(), timeSource.now().toLocalTime())) doReturn videoBooking.appointments()
-    whenever(prisonApiClient.getLatestPrisonerMovementOnDate("54321", timeSource.today())) doReturn Movement.MovementType.REL
+    whenever(prisonerSearchClient.getPrisoner("54321")) doReturn prisonerSearchPrisoner("54321", PENTONVILLE, lastMovementTypeCode = "REL")
 
     handler.handle(event(true, RISLEY, "54321"))
     verify(bookingFacade).prisonerReleased(videoBooking.videoBookingId, SERVICE_USER)
@@ -79,7 +79,7 @@ class PrisonerAppointmentsChangedEventHandlerTest {
     handler.handle(event(false, PENTONVILLE, "123456"))
 
     verifyNoInteractions(prisonAppointmentRepository)
-    verifyNoInteractions(prisonApiClient)
+    verifyNoInteractions(prisonerSearchClient)
     verifyNoInteractions(bookingFacade)
     verifyNoInteractions(telemetryService)
   }
