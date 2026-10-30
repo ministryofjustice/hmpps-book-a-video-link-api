@@ -208,6 +208,7 @@ springdoc:
     tags-sorter: alpha
     enabled: false
     operations-sorter: alpha
+    filter: true
   api-docs:
     enabled: false
 
