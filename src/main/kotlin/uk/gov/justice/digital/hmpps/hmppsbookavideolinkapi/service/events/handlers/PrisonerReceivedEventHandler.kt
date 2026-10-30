@@ -30,7 +30,6 @@ class PrisonerReceivedEventHandler(
 
   override fun handle(event: PrisonerReceivedEvent) {
     findAllFutureBookingsAtDifferentPrisonTo(event).forEach { futureBooking ->
-      // TODO consider if we want/need different email templates to the normal transfer ones.
       bookingFacade.prisonerTransferred(futureBooking.videoBookingId, UserService.getServiceAsUser())
     }
   }
