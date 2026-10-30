@@ -141,11 +141,18 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
    * Returns all matching appointment types for a prison, not just video link bookings. It will filter down to the
    * supplied location IDs where there is a match.
    */
-  fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<Long>) = if (locationIds.isNotEmpty()) {
+  fun getScheduledAppointments(prisonCode: String, onDate: LocalDate, locationIds: Collection<UUID>) = if (locationIds.isNotEmpty()) {
     log.info("A&A CLIENT: scheduled appointments in locations - query params - prisonCode=$prisonCode, onDate=$onDate, locationIds=${locationIds.toList()}")
-    getPrisonAppointments(prisonCode, onDate).filter { locationIds.toList().contains(it.internalLocation?.id) }
+    getPrisonAppointments(prisonCode, onDate).filter { locationIds.toList().contains(it.internalLocation?.dpsLocationId) }
   } else {
     emptyList()
+  }
+
+  /**
+   * Returns all matching appointment types for a prison on a given date at a given location.
+   */
+  fun getScheduledPrisonAppointments(prisonCode: String, onDate: LocalDate, dpsLocationId: UUID) = run {
+    getPrisonAppointments(prisonCode, onDate, dpsLocationId = dpsLocationId)
   }
 
   /**
@@ -159,9 +166,9 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
       .filterNot { it.isCancelled || it.isDeleted }
   }
 
-  private fun getPrisonAppointments(prisonCode: String, fromDate: LocalDate, toDate: LocalDate? = null) = activitiesAppointmentsApiWebClient.post()
+  private fun getPrisonAppointments(prisonCode: String, fromDate: LocalDate, toDate: LocalDate? = null, dpsLocationId: UUID? = null) = activitiesAppointmentsApiWebClient.post()
     .uri("/appointments/{prisonCode}/search", prisonCode)
-    .bodyValue(AppointmentSearchRequest(startDate = fromDate, endDate = toDate, inCell = false))
+    .bodyValue(AppointmentSearchRequest(startDate = fromDate, endDate = toDate, inCell = false, dpsLocationId = dpsLocationId))
     .retrieve()
     .bodyToMono<List<AppointmentSearchResult>>()
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }

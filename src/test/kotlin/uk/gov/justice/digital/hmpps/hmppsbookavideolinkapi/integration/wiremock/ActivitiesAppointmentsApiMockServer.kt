@@ -296,6 +296,34 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
         ),
     )
   }
+
+  fun stubGetScheduledPrisonAppointmentsOnDateAtLocation(
+    prisonCode: String,
+    fromDate: LocalDate,
+    dpsLocationId: UUID,
+    vararg searchResult: AppointmentSearchResult,
+  ) {
+    stubFor(
+      post("/appointments/$prisonCode/search")
+        .withRequestBody(
+          WireMock.equalToJson(
+            mapper.writeValueAsString(
+              AppointmentSearchRequest(
+                startDate = fromDate,
+                inCell = false,
+                dpsLocationId = dpsLocationId,
+              ),
+            ),
+          ),
+        )
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(searchResult.toList()))
+            .withStatus(201),
+        ),
+    )
+  }
 }
 
 fun appointmentResult(

@@ -13,7 +13,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toMediumFormatStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.EmailService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.VideoBookingEmail
@@ -37,7 +36,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUserD
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestCourtVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.requestProbationVideoLinkRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.wandsworthLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.CourtRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.NotificationRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepository
@@ -60,7 +58,6 @@ class RequestBookingServiceTest {
   private val prisonRepository: PrisonRepository = mock()
   private val referenceCodeRepository: ReferenceCodeRepository = mock()
   private val notificationRepository: NotificationRepository = mock()
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val service = RequestBookingService(
     emailService,
     contactsService,
@@ -77,8 +74,7 @@ class RequestBookingServiceTest {
     whenever(probationTeamRepository.findByCode(BLACKPOOL_MC_PPOC)) doReturn probationTeam(BLACKPOOL_MC_PPOC)
     whenever(prisonRepository.findByCode(WANDSWORTH)) doReturn prison(WANDSWORTH)
     whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("COURT_HEARING_TYPE"), any())) doReturn courtHearingType("Tribunal")
-    whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("PROBATION_MEETING_TYPE"), any())) doReturn courtHearingType("Pre-sentence report")
-    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(wandsworthLocation.key))) doReturn listOf(wandsworthLocation)
+    whenever(referenceCodeRepository.findByGroupCodeAndCode(eq("PROBATION_MEETING_TYPE"), any())) doReturn courtHearingType("Pre-sentence report") //    whenever(locationsInsidePrisonClient.getLocationsByKeys(setOf(wandsworthLocation.key))) doReturn listOf(wandsworthLocation)
     whenever(contactsService.getContactsForCourtBookingRequest(any(), any(), any())) doReturn listOf(
       contact(contactType = ContactType.USER, email = "jon@somewhere.com", name = "Jon"),
       contact(contactType = ContactType.PRISON, email = "jon@prison.com", name = "Jon"),
