@@ -15,6 +15,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -24,7 +25,9 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.getBvlsRequestContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetProbationTeamPreferencesRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.MigratedProbationTeamPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetProbationTeamPreferencesResponse
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.DeliusUser
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.ProbationTeamsService
 
 @Tag(name = "Probation Teams Controller")
@@ -116,4 +119,36 @@ class ProbationTeamsController(private val probationTeamsService: ProbationTeams
     request: SetProbationTeamPreferencesRequest,
     httpRequest: HttpServletRequest,
   ) = probationTeamsService.setUserProbationTeamPreferences(request, httpRequest.getBvlsRequestContext().user)
+
+  @Operation(
+    summary = """
+      Endpoint to migrate the probation team preferences for an nDelius user from a matching external account.
+      This is called by the UI when the current nDelius user has no team preferences, and a matching external
+      account email does have preferences set. It uses the user's email address to match accounts.
+      Role required: BOOK_A_VIDEO_LINK_ADMIN.
+    """,
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Response containing the number of migrated probation teams",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = MigratedProbationTeamPreferencesResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PutMapping(
+    value = ["/user-preferences/delius-migrate"],
+    produces = [MediaType.APPLICATION_JSON_VALUE],
+  )
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasAnyRole('BOOK_A_VIDEO_LINK_ADMIN')")
+  fun migrateProbationTeamPreferences(
+    httpRequest: HttpServletRequest,
+  ) = probationTeamsService.migrateProbationTeamPreferences(httpRequest.getBvlsRequestContext().user as DeliusUser)
 }

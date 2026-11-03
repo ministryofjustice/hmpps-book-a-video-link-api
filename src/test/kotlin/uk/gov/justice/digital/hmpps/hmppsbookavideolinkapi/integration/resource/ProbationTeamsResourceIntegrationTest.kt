@@ -6,14 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
+import org.springframework.test.web.reactive.server.expectBodyList
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUserDelius
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetProbationTeamPreferencesRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.MigratedProbationTeamPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetProbationTeamPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserProbationRepository
@@ -107,6 +111,40 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     userProbationRepository.deleteAll()
   }
 
+  @Test
+  fun `should migrate team preferences for an nDelius user from their equivalent external account`() {
+    // Define the users to migrate preferences from and to
+    val externalUser = probationUser(username = "delius.user@probation.com", name = "External user")
+    val deliusUser = probationUserDelius(username = "X1111", name = "Delius User", email = "delius.user@probation.com")
+
+    // Provide stubbed responses
+    stubUser(externalUser)
+    stubUser(deliusUser)
+
+    // Set some team preferences for an external account
+    val teamsToSet = listOf("BLKPPP", "BARSPP", "PPOCFD")
+    val request = SetProbationTeamPreferencesRequest(probationTeamCodes = teamsToSet)
+    val response = webTestClient.setUserPreferenceTeams(request, externalUser)
+
+    // Check these preferences are saved
+    assertThat(response?.probationTeamsSaved).isEqualTo(3)
+    userProbationRepository.findAll() hasSize 3
+
+    // Now migrate these to the matching Delius account
+    val migrationResponse = webTestClient.migrateUserPreferencesForDeliusUser(deliusUser)
+    assertThat(migrationResponse?.probationTeamsMigrated).isEqualTo(3)
+
+    // Now check these same teams are present against both accounts
+    val teamsForDeliusUser = webTestClient.getUserPreferenceTeams(deliusUser)
+    assertThat(teamsForDeliusUser).extracting("code").containsAll(teamsToSet)
+
+    // Validate total count of team preferences
+    userProbationRepository.findAll() hasSize 6
+
+    // Remove them
+    userProbationRepository.deleteAll()
+  }
+
   private fun WebTestClient.getProbationTeams(enabledOnly: Boolean, user: User = PROBATION_USER) = get()
     .uri("/probation-teams?enabledOnly=$enabledOnly")
     .accept(MediaType.APPLICATION_JSON)
@@ -114,7 +152,7 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
-    .expectBodyList(ProbationTeam::class.java)
+    .expectBodyList<ProbationTeam>()
     .returnResult().responseBody!!
 
   private fun WebTestClient.getUserPreferenceTeams(user: User) = get()
@@ -124,7 +162,7 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
-    .expectBodyList(ProbationTeam::class.java)
+    .expectBodyList<ProbationTeam>()
     .returnResult().responseBody
 
   private fun WebTestClient.setUserPreferenceTeams(request: SetProbationTeamPreferencesRequest, user: User) = post()
@@ -135,6 +173,16 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
     .exchange()
     .expectStatus().isOk
     .expectHeader().contentType(MediaType.APPLICATION_JSON)
-    .expectBody(SetProbationTeamPreferencesResponse::class.java)
+    .expectBody<SetProbationTeamPreferencesResponse>()
+    .returnResult().responseBody
+
+  private fun WebTestClient.migrateUserPreferencesForDeliusUser(user: User) = put()
+    .uri("/probation-teams/user-preferences/delius-migrate")
+    .accept(MediaType.APPLICATION_JSON)
+    .headers(setAuthorisation(user = user.username, roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
+    .exchange()
+    .expectStatus().isOk
+    .expectHeader().contentType(MediaType.APPLICATION_JSON)
+    .expectBody<MigratedProbationTeamPreferencesResponse>()
     .returnResult().responseBody
 }

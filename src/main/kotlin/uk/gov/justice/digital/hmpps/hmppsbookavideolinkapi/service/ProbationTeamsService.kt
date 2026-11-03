@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfigura
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ProbationTeam
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UserProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.SetProbationTeamPreferencesRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.MigratedProbationTeamPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.SetProbationTeamPreferencesResponse
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ProbationTeamRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.UserProbationRepository
@@ -41,5 +42,28 @@ class ProbationTeamsService(
     }.forEach(userProbationRepository::saveAndFlush)
 
     return SetProbationTeamPreferencesResponse(probationTeamsSaved = newTeams.size)
+  }
+
+  @Transactional
+  fun migrateProbationTeamPreferences(user: DeliusUser): MigratedProbationTeamPreferencesResponse {
+    val currentTeams = userProbationRepository.findAllByUsername(user.username)
+    if (currentTeams.isNotEmpty() || user.email.isNullOrEmpty()) {
+      return MigratedProbationTeamPreferencesResponse(probationTeamsMigrated = 0)
+    }
+
+    // Look for the equivalent external account preferences for the email address of this user
+    val teamsCodesForExternalAccount = probationTeamRepository.findProbationTeamsByUsername(user.email)
+      .map { it.code }
+
+    // Make sure only to take probation teams that are enabled
+    val newTeams = probationTeamRepository.findAllByCodeIn(teamsCodesForExternalAccount)
+      .filter { it.enabled }
+
+    // Recreate these preferences for the current user
+    newTeams.map { probationTeam ->
+      UserProbation(probationTeam = probationTeam, username = user.username, createdBy = user.username)
+    }.forEach(userProbationRepository::saveAndFlush)
+
+    return MigratedProbationTeamPreferencesResponse(probationTeamsMigrated = newTeams.size)
   }
 }
