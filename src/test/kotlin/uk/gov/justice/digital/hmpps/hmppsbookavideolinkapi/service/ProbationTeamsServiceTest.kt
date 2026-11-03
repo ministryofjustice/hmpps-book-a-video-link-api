@@ -6,9 +6,14 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.UserProbation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.probationUser
@@ -94,5 +99,76 @@ class ProbationTeamsServiceTest {
       generateEntity(5L, "NORTHWEST", "North West", enabled = false).toModel(),
     )
     verify(probationTeamRepository, never()).findAllByEnabledIsTrue()
+  }
+
+  @Test
+  fun `Should migrate team preferences for an nDelius user from a matching external account`() {
+    val listOfTeamsForUser = listOf(
+      generateEntity(1L, "NORTH", "One"),
+      generateEntity(2L, "SOUTH", "Two"),
+    )
+
+    val deliusUser = DeliusUser(
+      email = "test@delius.com",
+      username = "delius-user",
+      name = "Delius user",
+    )
+
+    whenever(userProbationRepository.findAllByUsername(deliusUser.username)).thenReturn(emptyList())
+    whenever(probationTeamRepository.findProbationTeamsByUsername(deliusUser.email!!)).thenReturn(listOfTeamsForUser)
+    whenever(probationTeamRepository.findAllByCodeIn(listOfTeamsForUser.map { it.code })).thenReturn(listOfTeamsForUser)
+
+    val result = service.migrateProbationTeamPreferences(deliusUser)
+
+    assertThat(result.probationTeamsMigrated).isEqualTo(2)
+
+    verify(userProbationRepository).findAllByUsername(deliusUser.username)
+    verify(probationTeamRepository).findProbationTeamsByUsername(deliusUser.email)
+    verify(userProbationRepository, times(2)).saveAndFlush(any())
+  }
+
+  @Test
+  fun `Should not migrate team preferences where an nDelius user already has preferences`() {
+    val userProbationForUser = listOf(
+      UserProbation(
+        userProbationId = 0L,
+        probationTeam = generateEntity(1L, "NORTH", "One"),
+        username = "delius-user",
+        createdBy = "delius-user",
+      ),
+    )
+
+    val deliusUser = DeliusUser(
+      email = "test@delius.com",
+      username = "delius-user",
+      name = "Delius user",
+    )
+
+    whenever(userProbationRepository.findAllByUsername(deliusUser.username)).thenReturn(userProbationForUser)
+
+    val result = service.migrateProbationTeamPreferences(deliusUser)
+
+    assertThat(result.probationTeamsMigrated).isEqualTo(0)
+    verify(userProbationRepository).findAllByUsername(deliusUser.username)
+    verifyNoInteractions(probationTeamRepository)
+    verifyNoMoreInteractions(userProbationRepository)
+  }
+
+  @Test
+  fun `Should not migrate team preferences for an nDelius user if the account has no email address`() {
+    val deliusUser = DeliusUser(
+      email = null,
+      username = "delius-user",
+      name = "Delius user",
+    )
+
+    whenever(userProbationRepository.findAllByUsername(deliusUser.username)).thenReturn(emptyList())
+
+    val result = service.migrateProbationTeamPreferences(deliusUser)
+
+    assertThat(result.probationTeamsMigrated).isEqualTo(0)
+    verify(userProbationRepository).findAllByUsername(deliusUser.username)
+    verifyNoInteractions(probationTeamRepository)
+    verifyNoMoreInteractions(userProbationRepository)
   }
 }
