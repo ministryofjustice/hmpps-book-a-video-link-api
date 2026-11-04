@@ -115,7 +115,7 @@ class ProbationTeamsServiceTest {
     )
 
     whenever(userProbationRepository.findAllByUsername(deliusUser.username)).thenReturn(emptyList())
-    whenever(probationTeamRepository.findProbationTeamsByUsername(deliusUser.email!!)).thenReturn(listOfTeamsForUser)
+    whenever(probationTeamRepository.findProbationTeamsByUsername(deliusUser.email!!.uppercase())).thenReturn(listOfTeamsForUser)
     whenever(probationTeamRepository.findAllByCodeIn(listOfTeamsForUser.map { it.code })).thenReturn(listOfTeamsForUser)
 
     val result = service.migrateProbationTeamPreferences(deliusUser)
@@ -123,7 +123,7 @@ class ProbationTeamsServiceTest {
     assertThat(result.probationTeamsMigrated).isEqualTo(2)
 
     verify(userProbationRepository).findAllByUsername(deliusUser.username)
-    verify(probationTeamRepository).findProbationTeamsByUsername(deliusUser.email)
+    verify(probationTeamRepository).findProbationTeamsByUsername(deliusUser.email.uppercase())
     verify(userProbationRepository, times(2)).saveAndFlush(any())
   }
 
