@@ -35,6 +35,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Optional
+import java.util.UUID
 
 class BookedLocationsServiceTest {
 
@@ -74,7 +75,7 @@ class BookedLocationsServiceTest {
           getScheduledAppointments(
             prisonCode = WANDSWORTH,
             onDate = tomorrow(),
-            locationIds = setOf(1, 2),
+            locationIds = setOf(wandsworthLocation.id, wandsworthLocation2.id),
           )
         } doReturn listOf(
           searchResult(
@@ -84,6 +85,7 @@ class BookedLocationsServiceTest {
             endTime = LocalTime.of(11, 0),
             prisonerNumber = "123456",
             locationId = 1,
+            dpsLocationId = wandsworthLocation.id,
           ),
           searchResult(
             prisonCode = WANDSWORTH,
@@ -92,6 +94,7 @@ class BookedLocationsServiceTest {
             endTime = LocalTime.of(12, 0),
             prisonerNumber = "123456",
             locationId = 2,
+            dpsLocationId = wandsworthLocation2.id,
           ),
         )
       }
@@ -136,7 +139,7 @@ class BookedLocationsServiceTest {
           getScheduledAppointments(
             prisonCode = WANDSWORTH,
             onDate = tomorrow(),
-            locationIds = setOf(1, 2),
+            locationIds = setOf(wandsworthLocation.id, wandsworthLocation2.id),
           )
         } doReturn listOf(
           searchResult(
@@ -146,6 +149,7 @@ class BookedLocationsServiceTest {
             endTime = LocalTime.of(11, 0),
             prisonerNumber = "123456",
             locationId = 1,
+            dpsLocationId = wandsworthLocation.id,
           ),
           searchResult(
             prisonCode = WANDSWORTH,
@@ -154,6 +158,7 @@ class BookedLocationsServiceTest {
             endTime = LocalTime.of(12, 0),
             prisonerNumber = "123456",
             locationId = 2,
+            dpsLocationId = wandsworthLocation2.id,
           ),
         )
       }
@@ -199,7 +204,7 @@ class BookedLocationsServiceTest {
           getScheduledAppointments(
             prisonCode = WANDSWORTH,
             onDate = tomorrow(),
-            locationIds = setOf(1, 2),
+            locationIds = setOf(wandsworthLocation.id, wandsworthLocation2.id),
           )
         } doReturn listOf(
           searchResult(
@@ -209,6 +214,7 @@ class BookedLocationsServiceTest {
             endTime = LocalTime.of(11, 0),
             prisonerNumber = "123456",
             locationId = 1,
+            dpsLocationId = wandsworthLocation.id,
           ),
           searchResult(
             prisonCode = WANDSWORTH,
@@ -217,6 +223,7 @@ class BookedLocationsServiceTest {
             endTime = LocalTime.of(12, 0),
             prisonerNumber = "123456",
             locationId = 2,
+            dpsLocationId = wandsworthLocation2.id,
             isCancelled = true,
           ),
         )
@@ -253,6 +260,7 @@ class BookedLocationsServiceTest {
       prisonerNumber: String,
       locationId: Long,
       isCancelled: Boolean = false,
+      dpsLocationId: UUID? = null,
     ) = AppointmentSearchResult(
       appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
       startDate = date,
@@ -271,7 +279,7 @@ class BookedLocationsServiceTest {
       maxSequenceNumber = 1,
       prisonCode = prisonCode,
       sequenceNumber = 1,
-      internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
+      internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK", dpsLocationId),
       timeSlot = AppointmentSearchResult.TimeSlot.AM,
       createdTime = LocalDateTime.now(),
       isDeleted = false,

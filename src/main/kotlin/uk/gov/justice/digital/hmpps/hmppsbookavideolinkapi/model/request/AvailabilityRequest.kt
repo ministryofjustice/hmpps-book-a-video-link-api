@@ -75,21 +75,13 @@ data class AvailabilityRequest(
   val vlbIdToExclude: Long? = null,
 )
 
-@Schema(description = "The prison location key and start/end interval for an appointment slot")
+@Schema(description = "The prison location ID and start/end interval for an appointment slot")
 data class LocationAndInterval(
   @Schema(
     description = "The unique UUID for the location where the appointment takes place. The id field from the locations-inside-prison service.",
     example = "a4fe3fef-34fd-4354fde-a12efe",
   )
-  val dpsLocationId: UUID?,
-
-  @Deprecated(message = "Do not use, use dpsLocationId instead")
-  @Schema(
-    description = "The location of the appointment at the prison",
-    example = "VCC-ROOM-1",
-    requiredMode = RequiredMode.REQUIRED,
-  )
-  val prisonLocKey: String?,
+  val dpsLocationId: UUID,
 
   @Schema(
     description = "The start and end time of a prison appointment to define the interval",

@@ -11,7 +11,6 @@ class AmendVideoBookingRequestTest : ValidatorBase<AmendVideoBookingRequest>() {
 
   private val appointment = Appointment(
     type = AppointmentType.VLB_COURT_MAIN,
-    locationKey = "WWI-A-1-001",
     date = tomorrow(),
     startTime = LocalTime.now(),
     endTime = LocalTime.now().plusHours(1),
@@ -70,11 +69,6 @@ class AmendVideoBookingRequestTest : ValidatorBase<AmendVideoBookingRequest>() {
   @Test
   fun `should fail when prisoner missing appointments`() {
     courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = emptyList()))) failsWithSingle ModelError("prisoners[0].appointments", "At least one appointment must be supplied for the prisoner")
-  }
-
-  @Test
-  fun `should fail when location key too long`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = "a".repeat(161)))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key should not exceed 160 characters")
   }
 
   @Test

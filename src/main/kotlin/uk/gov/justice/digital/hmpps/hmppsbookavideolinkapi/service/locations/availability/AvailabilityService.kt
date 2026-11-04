@@ -53,7 +53,7 @@ class AvailabilityService(
   ).availabilityOk
 
   private fun CreateVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }
-    ?.let { LocationAndInterval(it.dpsLocationId, it.locationKey, Interval(it.startTime, it.endTime)) }
+    ?.let { LocationAndInterval(it.dpsLocationId, Interval(it.startTime, it.endTime)) }
 
   fun isAvailable(videoBookingId: Long, request: AmendVideoBookingRequest): Boolean {
     val existingBooking = videoBookingRepository.findById(videoBookingId).orElseThrow()
@@ -73,14 +73,14 @@ class AvailabilityService(
     ).availabilityOk
   }
 
-  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.dpsLocationId, it.locationKey, Interval(it.startTime, it.endTime)) }
+  private fun AmendVideoBookingRequest.appointment(type: AppointmentType) = prisoners.single().appointments.singleOrNull { it.type == type }?.let { LocationAndInterval(it.dpsLocationId, Interval(it.startTime, it.endTime)) }
 
   /**
    * Assumptions:
-   *  - current booking journeys for BVLS allows only one person at one prison per booking.
+   *  - current booking journeys for BVLS allow only one person at one prison per booking.
    *  - we consider ONLY the prison locations in the request for alternative times (we do not consider others - yet)
-   *  - the decision about whether a user is allowed to book into a locations is still the users own.
-   *  - we assume all appointments for this booking are on the same day and at the same prison
+   *  - the decision about whether a user is allowed to book into a location is still the users' own.
+   *  - We assume all appointments for this booking are on the same day and at the same prison
    *
    * To consider later:
    *  - Get other VCC-enabled rooms at these prison(s) and offer them?
@@ -90,26 +90,16 @@ class AvailabilityService(
     log.info("AVAILABILITY CHECK: looking at BVLS and other non-VLB appointment types")
 
     val requestedLocations = run {
-      // We should be using location IDs where possible going forwards. Usage of location keys is being phased out as they cannot be relied on.
-      if (request.mainAppointment.dpsLocationId != null) {
-        log.info("AVAILABILITY CHECK: by location ID")
-        setOfNotNull(
-          request.preAppointment?.dpsLocationId,
-          request.postAppointment?.dpsLocationId,
-          request.mainAppointment.dpsLocationId,
-        ).let { getLocationsByIds(it) }
-      } else {
-        // We still need this until all UI's have been updated to use location IDs
-        log.info("AVAILABILITY CHECK: by location key")
-        setOfNotNull(
-          request.preAppointment?.prisonLocKey,
-          request.postAppointment?.prisonLocKey,
-          request.mainAppointment.prisonLocKey,
-        ).let { locationsInsidePrisonClient.getLocationsByKeys(it) }
-      }
+      log.info("AVAILABILITY CHECK: by location ID")
+
+      setOfNotNull(
+        request.preAppointment?.dpsLocationId,
+        request.postAppointment?.dpsLocationId,
+        request.mainAppointment.dpsLocationId,
+      ).let { getLocationsByIds(it) }
     }
 
-    log.info("AVAILABILITY CHECK: for the following locations ${requestedLocations.map { it.key }}")
+    log.info("AVAILABILITY CHECK: for the following locations ${requestedLocations.map { it.id }}")
 
     if (request.isForAnExistingBooking() && request.dateTimeAndLocationIsTheSame(requestedLocations)) {
       return AvailabilityResponse(true)
@@ -156,12 +146,12 @@ class AvailabilityService(
         return mayBeExistingBooking.probationMeeting()!!.dateTimeAndLocationIsTheSame(
           date,
           mainAppointment.interval,
-          requestedLocations.single { it.id == mainAppointment.dpsLocationId || it.key == mainAppointment.prisonLocKey },
+          requestedLocations.single { it.id == mainAppointment.dpsLocationId },
         )
       } else {
-        val preLocation = preAppointment?.let { requestedLocations.singleOrNull { it.id == preAppointment.dpsLocationId || it.key == preAppointment.prisonLocKey } }
-        val mainLocation = requestedLocations.single { it.id == mainAppointment.dpsLocationId || it.key == mainAppointment.prisonLocKey }
-        val postLocation = postAppointment?.let { requestedLocations.singleOrNull { it.id == postAppointment.dpsLocationId || it.key == postAppointment.prisonLocKey } }
+        val preLocation = preAppointment?.let { requestedLocations.singleOrNull { it.id == preAppointment.dpsLocationId } }
+        val mainLocation = requestedLocations.single { it.id == mainAppointment.dpsLocationId }
+        val postLocation = postAppointment?.let { requestedLocations.singleOrNull { it.id == postAppointment.dpsLocationId } }
 
         val preHearingIsTheSame = (mayBeExistingBooking.preHearing() == null && preLocation == null) ||
           mayBeExistingBooking.preHearing() != null &&
@@ -184,6 +174,13 @@ class AvailabilityService(
   private fun PrisonAppointment.dateTimeAndLocationIsTheSame(date: LocalDate?, interval: Interval?, location: Location?) = this.appointmentDate == date && this.startTime == interval?.start && this.endTime == interval.end && this.prisonLocationId == location?.id
 }
 
+@Deprecated(
+  "Use ReplacementExternalAppointmentsService instead",
+  replaceWith = ReplaceWith(
+    "ReplacementExternalAppointmentsService",
+    imports = ["uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.ReplacementExternalAppointmentsService"],
+  ),
+)
 @Service
 class ExternalAppointmentsService(
   private val prisonApiClient: PrisonApiClient,
@@ -196,6 +193,7 @@ class ExternalAppointmentsService(
    * - filter any appointments where the end-time is null (we cannot infer the duration)
    * - filter any BVLS-mastered appointment types as these will be retrieved from BVLS itself for checking.
    */
+  // TODO this needs to call A&A and not prison-api (for NOMIS exit).
   fun getAppointmentSlots(prisonCode: String, date: LocalDate, location: UUID) = nomisMappingClient.getNomisLocationMappingBy(location)
     ?.let { prisonApiClient.getScheduledAppointments(prisonCode, date, it.nomisLocationId) }
     ?.filterNot { it.eventStatus == "CANC" }

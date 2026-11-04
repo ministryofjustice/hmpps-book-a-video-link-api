@@ -157,7 +157,7 @@ class VideoLinkBookingControllerTest {
       "appointments": [
         {
           "type": "VLB_COURT_MAIN",
-          "locationKey": "BMI-VIDEOLINK-ROOM1",
+          "dpsLocationId": "dba722d3-4246-4220-aaa1-e4850b263cdc",
           "date": "2200-02-31",
           "startTime": "10:00",
           "endTime": "11:00"
@@ -198,7 +198,7 @@ class VideoLinkBookingControllerTest {
       "appointments": [
         {
           "type": "VLB_COURT_MAIN",
-          "locationKey": "BMI-VIDEOLINK-ROOM1",
+          "dpsLocationId": "dba722d3-4246-4220-aaa1-e4850b263cdc",
           "date": "2200-02-28",
           "startTime": "10:00",
           "endTime": "11:00"
