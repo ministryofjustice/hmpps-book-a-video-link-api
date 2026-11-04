@@ -113,8 +113,9 @@ class ProbationTeamsResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should migrate team preferences for an nDelius user from their equivalent external account`() {
-    // Define the users to migrate preferences from and to
-    val externalUser = probationUser(username = "delius.user@probation.com", name = "External user")
+    // Define the users to migrate preferences from and to.
+    // NOTE: External account usernames (usually an email address) are held in UPPERCASE in the tables.
+    val externalUser = probationUser(username = "DELIUS.USER@PROBATION.COM", name = "External user")
     val deliusUser = probationUserDelius(username = "X1111", name = "Delius User", email = "delius.user@probation.com")
 
     // Provide stubbed responses
