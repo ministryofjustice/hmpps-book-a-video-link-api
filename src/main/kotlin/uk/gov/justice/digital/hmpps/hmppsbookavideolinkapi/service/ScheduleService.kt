@@ -53,6 +53,8 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeCourtOnlyPrisons(),
+      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      hasProbationOfficerDetails = request.hasProbationOfficerDetails,
       pageable,
     )
     val modelContent = pageOfResults.content.mapScheduleToModel()
@@ -65,6 +67,8 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeProbationOnlyPrisons(),
+      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      hasCourtHearingLink = request.hasCourtHearingLink,
       pageable,
     )
     val modelContent = pageOfResults.content.mapScheduleToModel()
@@ -77,6 +81,8 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeCourtOnlyPrisons(),
+      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      hasProbationOfficerDetails = request.hasProbationOfficerDetails,
       sort,
     ).mapScheduleToModel()
   }
@@ -87,6 +93,8 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeProbationOnlyPrisons(),
+      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      hasCourtHearingLink = request.hasCourtHearingLink,
       sort,
     ).mapScheduleToModel()
   }

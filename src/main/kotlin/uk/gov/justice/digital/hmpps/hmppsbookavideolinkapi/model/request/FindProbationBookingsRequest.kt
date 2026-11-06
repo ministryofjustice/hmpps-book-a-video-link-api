@@ -20,6 +20,12 @@ data class FindProbationBookingsRequest(
   @field:NotEmpty(message = "At least one probation team code is required")
   @Schema(description = "A list of probation team codes to find bookings for", example = "[CODE1, CODE2, CODE3, CODE4]")
   val probationTeamCodes: List<String>,
+
+  @Schema(description = "A list of prisoner numbers to find bookings for", example = "[A1234AAA]")
+  val prisonerNumbers: List<String>? = null,
+
+  @Schema(description = "Optional filter on probation officer details presence")
+  val hasProbationOfficerDetails: Boolean? = null,
 ) {
   @JsonIgnore
   @AssertTrue(message = "The to date must be on or after the from date")
@@ -28,4 +34,8 @@ data class FindProbationBookingsRequest(
   @JsonIgnore
   @AssertTrue(message = "The to date must be a maximum of thirty days after the from date")
   private fun isInvalidDateRange() = toDate == null || !toDate.minusDays(30).isAfter(fromDate)
+
+  @JsonIgnore
+  @AssertTrue(message = "The prisoner numbers must be null or non empty")
+  private fun isInvalidPrisonerNumbers() = prisonerNumbers == null || prisonerNumbers.isNotEmpty()
 }
