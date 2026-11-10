@@ -3,14 +3,16 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.integrations
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VLB_COURT_MAIN
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VLB_PROBATION
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
 import java.time.LocalDate
 import java.util.UUID
 
 @Service
-class PrisonerSchedulesService(private val videoBookingRepository: VideoBookingRepository) {
+@Transactional(readOnly = true)
+class PrisonerSchedulesService(private val prisonAppointmentRepository: PrisonAppointmentRepository) {
   fun findCourtBookingIds(
     fromDate: LocalDate,
     toDate: LocalDate,
@@ -60,7 +62,7 @@ class PrisonerSchedulesService(private val videoBookingRepository: VideoBookingR
   ) = run {
     require(toDate >= fromDate) { "To date must be on or after the from date" }
 
-    videoBookingRepository.findBookingIdsPaginated(
+    prisonAppointmentRepository.findBookingIdsPaginated(
       appointmentType = appointmentType,
       fromDate = fromDate,
       toDate = toDate,
