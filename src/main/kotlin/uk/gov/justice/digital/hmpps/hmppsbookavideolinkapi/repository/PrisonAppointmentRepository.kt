@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -93,4 +95,17 @@ interface PrisonAppointmentRepository : JpaRepository<PrisonAppointment, Long> {
   @Query(value = "UPDATE PrisonAppointment pa SET pa.prisonerNumber = :replacementNumber WHERE pa.prisonerNumber = :removedNumber")
   @Modifying
   fun mergePrisonerNumber(removedNumber: String, replacementNumber: String)
+
+  @Query(
+    value = """
+      SELECT pa.videoBooking.videoBookingId
+      FROM PrisonAppointment pa
+      WHERE pa.appointmentType = :appointmentType
+      AND pa.appointmentDate BETWEEN :fromDate AND :toDate
+      AND (:prisonCode IS NULL OR pa.prison.code = :prisonCode)
+      AND (:prisonerNumber IS NULL OR pa.prisonerNumber = :prisonerNumber)
+      AND (:locationId IS NULL OR pa.prisonLocationId = :locationId)
+    """,
+  )
+  fun findBookingIdsPaginated(appointmentType: String, fromDate: LocalDate, toDate: LocalDate, prisonCode: String?, prisonerNumber: String?, locationId: UUID?, pageable: Pageable): Page<Long>
 }
