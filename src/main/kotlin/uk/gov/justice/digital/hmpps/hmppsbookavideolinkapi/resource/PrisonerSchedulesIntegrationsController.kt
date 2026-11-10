@@ -66,7 +66,7 @@ class PrisonerSchedulesIntegrationsController(private val prisonerSchedulesServi
     @Parameter(description = "The DPS location ID", example = "9485cf4a-750b-4d74-b594-59bacbcda247")
     locationId: UUID?,
     @Parameter(hidden = true)
-    @PageableDefault(size = 20, page = 0, direction = Sort.Direction.ASC, sort = ["videoBookingId"])
+    @PageableDefault(size = 20, page = 0, direction = Sort.Direction.ASC, sort = ["appointmentDate"])
     pageable: Pageable,
   ) = prisonerSchedulesService.findCourtBookingIds(fromDate, toDate, prisonCode, prisonerNumber, locationId, pageable)
 
@@ -109,7 +109,7 @@ class PrisonerSchedulesIntegrationsController(private val prisonerSchedulesServi
     @Parameter(description = "The DPS location ID", example = "9485cf4a-750b-4d74-b594-59bacbcda247")
     locationId: UUID?,
     @Parameter(hidden = true)
-    @PageableDefault(size = 20, page = 0, direction = Sort.Direction.ASC, sort = ["videoBookingId"])
+    @PageableDefault(size = 20, page = 0, direction = Sort.Direction.ASC, sort = ["appointmentDate"])
     pageable: Pageable,
   ) = prisonerSchedulesService.findProbationBookingIds(fromDate, toDate, prisonCode, prisonerNumber, locationId, pageable)
 }

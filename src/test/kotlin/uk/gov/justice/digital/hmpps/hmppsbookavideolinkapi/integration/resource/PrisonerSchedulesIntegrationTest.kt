@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CreateProbatio
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactlyInAnyOrder
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isEqualTo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrisoner
@@ -68,10 +68,17 @@ class PrisonerSchedulesIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should get over multiple days`() {
+    fun `should get over multiple days ascending by default`() {
       val ids = findBookingIds(tomorrow(), tomorrow().plusDays(1))
 
-      ids containsExactlyInAnyOrder listOf(pentonvilleBookingId, wandsworthBookingId)
+      ids containsExactly listOf(pentonvilleBookingId, wandsworthBookingId)
+    }
+
+    @Test
+    fun `should get over multiple days descending`() {
+      val ids = findBookingIds(tomorrow(), tomorrow().plusDays(1), sortOrder = "appointmentDate,desc")
+
+      ids containsExactly listOf(wandsworthBookingId, pentonvilleBookingId)
     }
 
     @Test
@@ -116,8 +123,9 @@ class PrisonerSchedulesIntegrationTest : IntegrationTestBase() {
       locationId: UUID? = null,
       page: Int? = null,
       pageSize: Int? = null,
+      sortOrder: String? = null,
     ) = run {
-      webTestClient.findBookingIds("court", fromDate, toDate, prisonCode, prisonerNumber, locationId, page, pageSize).content
+      webTestClient.findBookingIds("court", fromDate, toDate, prisonCode, prisonerNumber, locationId, page, pageSize, sortOrder).content
     }
   }
 
@@ -159,10 +167,17 @@ class PrisonerSchedulesIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should get over multiple days`() {
+    fun `should get over multiple days ascending by default`() {
       val ids = findBookingIds(tomorrow(), tomorrow().plusDays(1))
 
-      ids containsExactlyInAnyOrder listOf(pentonvilleBookingId, wandsworthBookingId)
+      ids containsExactly listOf(pentonvilleBookingId, wandsworthBookingId)
+    }
+
+    @Test
+    fun `should get over multiple days descending`() {
+      val ids = findBookingIds(tomorrow(), tomorrow().plusDays(1), sortOrder = "appointmentDate,desc")
+
+      ids containsExactly listOf(wandsworthBookingId, pentonvilleBookingId)
     }
 
     @Test
@@ -207,8 +222,9 @@ class PrisonerSchedulesIntegrationTest : IntegrationTestBase() {
       locationId: UUID? = null,
       page: Int? = null,
       pageSize: Int? = null,
+      sortOrder: String? = null,
     ) = run {
-      webTestClient.findBookingIds("probation", fromDate, toDate, prisonCode, prisonerNumber, locationId, page, pageSize).content
+      webTestClient.findBookingIds("probation", fromDate, toDate, prisonCode, prisonerNumber, locationId, page, pageSize, sortOrder).content
     }
   }
 
@@ -221,6 +237,7 @@ class PrisonerSchedulesIntegrationTest : IntegrationTestBase() {
     locationId: UUID? = null,
     page: Int? = 0,
     pageSize: Int? = 20,
+    sortOrder: String? = null,
   ) = run {
     get()
       .uri(
@@ -232,6 +249,7 @@ class PrisonerSchedulesIntegrationTest : IntegrationTestBase() {
           .maybeQueryParam("prisonCode", prisonCode)
           .maybeQueryParam("prisonerNumber", prisonerNumber)
           .maybeQueryParam("locationId", locationId?.toString())
+          .maybeQueryParam("sort", sortOrder)
           .build()
           .toUri().toString(),
       )
