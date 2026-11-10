@@ -454,43 +454,4 @@ class LocationsServiceTest {
       verify(locationAttributeRepository).findByDpsLocationId(wandsworthLocation.id)
     }
   }
-
-  @Test
-  fun `should return undecorated location by key`() {
-    whenever(locationsClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
-    whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn null
-
-    service.getLocationByKey(wandsworthLocation.key) isEqualTo wandsworthLocation.toModel()
-
-    inOrder(locationsClient, locationAttributeRepository) {
-      verify(locationsClient).getLocationByKey(wandsworthLocation.key)
-      verify(locationAttributeRepository).findByDpsLocationId(wandsworthLocation.id)
-    }
-  }
-
-  @Test
-  fun `should return decorated location by key`() {
-    whenever(locationsClient.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation
-
-    val roomAttributes = LocationAttribute.decoratedRoom(
-      dpsLocationId = wandsworthLocation.id,
-      prison = wandsworthPrison,
-      locationStatus = EntityLocationStatus.ACTIVE,
-      locationUsage = EntityLocationUsage.PROBATION,
-      createdBy = PROBATION_USER,
-      prisonVideoUrl = "video-link",
-      notes = null,
-      allowedParties = emptySet(),
-      roomArea = RoomArea.COURT_PROBATION,
-    )
-
-    whenever(locationAttributeRepository.findByDpsLocationId(wandsworthLocation.id)) doReturn roomAttributes
-
-    service.getLocationByKey(wandsworthLocation.key) isEqualTo wandsworthLocation.toModel(roomAttributes.toRoomAttributes())
-
-    inOrder(locationsClient, locationAttributeRepository) {
-      verify(locationsClient).getLocationByKey(wandsworthLocation.key)
-      verify(locationAttributeRepository).findByDpsLocationId(wandsworthLocation.id)
-    }
-  }
 }

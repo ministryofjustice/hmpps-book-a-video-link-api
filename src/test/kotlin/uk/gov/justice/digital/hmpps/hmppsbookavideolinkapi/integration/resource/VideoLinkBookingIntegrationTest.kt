@@ -33,7 +33,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.CreateCourtBoo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.HARROW
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.LocationKeyValue
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.NORWICH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_PENTONVILLE
@@ -1370,9 +1369,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
 
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
 
-    val locationId = UUID.randomUUID()
-    locationsInsidePrisonApi().stubPostLocationByKeys(listOf(LocationKeyValue(birminghamLocation.key, locationId)), BIRMINGHAM)
-
     val amendBookingRequest = amendCourtBookingRequest(
       prisonerNumber = "123456",
       prisonCode = BIRMINGHAM,
@@ -1835,67 +1831,9 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
-  fun `should find matching court video link bookings using location key`() {
-    val location1 = pentonvilleLocation.copy(id = UUID.fromString("b13f9018-f22d-456f-a690-d80e3d0feb5f"))
-    locationsInsidePrisonApi().stubGetLocationByKey(location1)
-    locationsInsidePrisonApi().stubGetLocationById(location1)
-
-    webTestClient.searchForBooking(
-      VideoBookingSearchRequest(
-        prisonerNumber = "123456",
-        locationKey = location1.key,
-        date = today(),
-        startTime = LocalTime.of(12, 0),
-        endTime = LocalTime.of(13, 0),
-        dpsLocationId = null,
-      ),
-      COURT_USER,
-    ).videoLinkBookingId isEqualTo 1000
-
-    val location2 = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
-    locationsInsidePrisonApi().stubGetLocationByKey(location2)
-    locationsInsidePrisonApi().stubGetLocationById(location2)
-
-    webTestClient.searchForBooking(
-      VideoBookingSearchRequest(
-        prisonerNumber = "78910",
-        locationKey = location2.key,
-        date = tomorrow(),
-        startTime = LocalTime.of(9, 0),
-        endTime = LocalTime.of(10, 0),
-        dpsLocationId = null,
-      ),
-      COURT_USER,
-    ).videoLinkBookingId isEqualTo 3000
-  }
-
-  @Test
-  @Sql("classpath:integration-test-data/seed-search-for-booking.sql")
-  fun `should find matching CANCELLED court video link bookings using location key`() {
-    val location = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
-    locationsInsidePrisonApi().stubGetLocationByKey(location)
-    locationsInsidePrisonApi().stubGetLocationById(location)
-
-    webTestClient.searchForBooking(
-      VideoBookingSearchRequest(
-        prisonerNumber = "78910",
-        locationKey = location.key,
-        date = tomorrow(),
-        startTime = LocalTime.of(9, 0),
-        endTime = LocalTime.of(10, 0),
-        statusCode = BookingStatus.CANCELLED,
-        dpsLocationId = null,
-      ),
-      COURT_USER,
-    ).videoLinkBookingId isEqualTo 4000
-  }
-
-  @Test
   @Sql("classpath:integration-test-data/seed-search-for-booking-by-location_id.sql")
   fun `should find matching court video link bookings using location id`() {
     val location1 = pentonvilleLocation.copy(id = UUID.fromString("b13f9018-f22d-456f-a690-d80e3d0feb5f"))
-    locationsInsidePrisonApi().stubGetLocationByKey(location1)
     locationsInsidePrisonApi().stubGetLocationById(location1)
 
     webTestClient.searchForBooking(
@@ -1905,13 +1843,12 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
         date = today(),
         startTime = LocalTime.of(12, 0),
         endTime = LocalTime.of(13, 0),
-        dpsLocationId = null,
+        dpsLocationId = location1.id,
       ),
       COURT_USER,
     ).videoLinkBookingId isEqualTo -1000
 
     val location2 = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
-    locationsInsidePrisonApi().stubGetLocationByKey(location2)
     locationsInsidePrisonApi().stubGetLocationById(location2)
 
     webTestClient.searchForBooking(
@@ -1931,7 +1868,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
   @Sql("classpath:integration-test-data/seed-search-for-booking-by-location_id.sql")
   fun `should find matching CANCELLED court video link bookings using location id`() {
     val location = pentonvilleLocation.copy(id = UUID.fromString("ba0df03b-7864-47d5-9729-0301b74ecbe2"), key = "PVI-78910")
-    locationsInsidePrisonApi().stubGetLocationByKey(location)
     locationsInsidePrisonApi().stubGetLocationById(location)
 
     webTestClient.searchForBooking(

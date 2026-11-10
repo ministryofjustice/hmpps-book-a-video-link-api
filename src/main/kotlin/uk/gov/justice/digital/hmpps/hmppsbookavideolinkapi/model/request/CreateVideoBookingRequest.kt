@@ -198,17 +198,11 @@ data class Appointment(
   @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
   val type: AppointmentType,
 
-  // TODO this is going to replace the location key
   @Schema(
     description = "The unique UUID for the location where the appointment takes place. The id field from the locations-inside-prison service.",
     example = "a4fe3fef-34fd-4354fde-a12efe",
   )
-  val dpsLocationId: UUID?,
-
-  @Deprecated(message = "Use dpsLocationId instead")
-  @field:Size(max = 160, message = "The location key should not exceed {max} characters")
-  @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
-  val locationKey: String?,
+  val dpsLocationId: UUID,
 
   @field:FutureOrPresent(message = "The combination of date and start time for the appointment must be in the future")
   @Schema(description = "The future date for which the appointment will start", example = "2022-12-23")
@@ -236,10 +230,6 @@ data class Appointment(
     groups = [DateValidationExtension::class],
   )
   private fun isInvalidStart() = date.atTime(startTime).isAfter(LocalDateTime.now())
-
-  @JsonIgnore
-  @AssertTrue(message = "You must provide either a location id or a location key for search")
-  private fun isInvalidLocation() = locationKey != null || dpsLocationId != null
 }
 
 interface DateValidationExtension

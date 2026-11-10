@@ -32,17 +32,14 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHe
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.mapping.toModel
 import java.time.LocalTime
 import java.util.Optional
 
 class ChangeTrackingServiceTest {
 
   private val videoBookingRepository: VideoBookingRepository = mock()
-  private val locationsService: LocationsService = mock()
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository = mock()
-  private val service = ChangeTrackingService(videoBookingRepository, locationsService, additionalBookingDetailRepository)
+  private val service = ChangeTrackingService(videoBookingRepository, additionalBookingDetailRepository)
 
   @Nested
   inner class DetermineChangeTypeForCourtBooking {
@@ -74,8 +71,6 @@ class ChangeTrackingServiceTest {
     @BeforeEach
     fun before() {
       whenever(videoBookingRepository.findById(1)) doReturn Optional.of(existingCourtBooking)
-      whenever(locationsService.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation.toModel()
-      whenever(locationsService.getLocationByKey(wandsworthLocation2.key)) doReturn wandsworthLocation2.toModel()
     }
 
     @Test
@@ -294,8 +289,6 @@ class ChangeTrackingServiceTest {
     @BeforeEach
     fun before() {
       whenever(videoBookingRepository.findById(1)) doReturn Optional.of(existingProbationBooking)
-      whenever(locationsService.getLocationByKey(wandsworthLocation.key)) doReturn wandsworthLocation.toModel()
-      whenever(locationsService.getLocationByKey(wandsworthLocation2.key)) doReturn wandsworthLocation2.toModel()
     }
 
     @Test
@@ -345,10 +338,10 @@ class ChangeTrackingServiceTest {
     }
 
     @Test
-    fun `should be global change for location as probation user by key`() {
+    fun `should be global change for location as probation user by location ID`() {
       val details = amendProbationBookingRequest.prisoners.single()
-      val appointment = details.appointments.single().copy(locationKey = wandsworthLocation2.key)
-      val differentLocation = amendProbationBookingRequest.copy(prisoners = listOf(details.copy(appointments = listOf(appointment.copy(dpsLocationId = null)))))
+      val appointment = details.appointments.single().copy(dpsLocationId = wandsworthLocation2.id)
+      val differentLocation = amendProbationBookingRequest.copy(prisoners = listOf(details.copy(appointments = listOf(appointment))))
 
       service.determineChangeType(1, differentLocation, PROBATION_USER) isEqualTo ChangeType.GLOBAL
     }
@@ -356,8 +349,8 @@ class ChangeTrackingServiceTest {
     @Test
     fun `should be global change for location as probation user by ID`() {
       val details = amendProbationBookingRequest.prisoners.single()
-      val appointment = details.appointments.single().copy(locationKey = null, dpsLocationId = wandsworthLocation2.id)
-      val differentLocation = amendProbationBookingRequest.copy(prisoners = listOf(details.copy(appointments = listOf(appointment.copy(locationKey = null)))))
+      val appointment = details.appointments.single().copy(dpsLocationId = wandsworthLocation2.id)
+      val differentLocation = amendProbationBookingRequest.copy(prisoners = listOf(details.copy(appointments = listOf(appointment))))
 
       service.determineChangeType(1, differentLocation, PROBATION_USER) isEqualTo ChangeType.GLOBAL
     }

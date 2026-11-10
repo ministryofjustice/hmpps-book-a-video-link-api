@@ -11,7 +11,6 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
 
   private val appointment = Appointment(
     type = AppointmentType.VLB_COURT_MAIN,
-    locationKey = "WWI-A-1-001",
     date = tomorrow(),
     startTime = LocalTime.now(),
     endTime = LocalTime.now().plusHours(1),
@@ -95,11 +94,6 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   }
 
   @Test
-  fun `should fail when location key too long`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = "a".repeat(161)))))) failsWithSingle ModelError("prisoners[0].appointments[0].locationKey", "The location key should not exceed 160 characters")
-  }
-
-  @Test
   fun `should fail when appointment date is in the past`() {
     courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(date = yesterday()))))) failsWithSingle ModelError("prisoners[0].appointments[0].date", "The combination of date and start time for the appointment must be in the future")
   }
@@ -134,10 +128,5 @@ class CreateVideoBookingRequestTest : ValidatorBase<CreateVideoBookingRequest>()
   @Test
   fun `should fail when appointment end time is not after start time`() {
     courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(startTime = LocalTime.of(12, 12), endTime = LocalTime.of(12, 12)))))) failsWithSingle ModelError("prisoners[0].appointments[0].invalidTime", "The end time must be after the start time for the appointment")
-  }
-
-  @Test
-  fun `should fail when location not present`() {
-    courtBooking.copy(prisoners = listOf(prisoner.copy(appointments = listOf(appointment.copy(locationKey = null, dpsLocationId = null))))) failsWithSingle ModelError("prisoners[0].appointments[0].invalidLocation", "You must provide either a location id or a location key for search")
   }
 }
