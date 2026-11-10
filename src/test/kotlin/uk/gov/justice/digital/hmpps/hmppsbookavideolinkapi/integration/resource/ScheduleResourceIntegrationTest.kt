@@ -5,6 +5,7 @@ import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.stub
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DERBY_JUSTICE_CENTRE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.WANDSWORTH
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.hasSize
@@ -443,11 +445,203 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       assertThat(scheduleResponse).isEmpty()
     }
 
-    private fun createThreeCourtBookings(appointmentDate: LocalDate = tomorrow()) {
+    @Test
+    fun `Court - error with empty prisoner numbers`() {
+      // Unpaginated
+
+      assertThrows<AssertionError> {
+        webTestClient.getUnpaginatedCourtsSchedule(
+          courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+          fromDate = tomorrow(),
+          prisonerNumbers = emptyList(),
+        )
+      }
+
+      // Paginated
+
+      assertThrows<AssertionError> {
+        webTestClient.getPaginatedCourtsSchedule(
+          courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+          fromDate = tomorrow(),
+          prisonerNumbers = emptyList(),
+        )
+      }
+    }
+
+    @Test
+    fun `Court - return list of bookings matching prisoner numbers`() {
+      val otherPrisoner = Prisoner(PENTONVILLE, "654321")
+
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubGetPrisoner(otherPrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(otherPrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeCourtBookings(tomorrow())
+      createThreeCourtBookings(tomorrow().plusDays(1), prisoner = otherPrisoner)
+      videoBookingRepository.findAll() hasSize 6
+
+      // Unpaginated
+
+      val scheduleResponse1 = webTestClient.getUnpaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        fromDate = tomorrow(),
+        toDate = tomorrow().plusDays(1),
+        prisonerNumbers = listOf(pentonvillePrisoner.number),
+      )
+
+      assertThat(scheduleResponse1).hasSize(3)
+      assertThat(scheduleResponse1).extracting("prisonerNumber").containsExactlyElementsOf(
+        listOf(
+          pentonvillePrisoner.number,
+          pentonvillePrisoner.number,
+          pentonvillePrisoner.number,
+        ),
+      )
+
+      val scheduleResponse2 = webTestClient.getUnpaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        fromDate = tomorrow(),
+        toDate = tomorrow().plusDays(1),
+        prisonerNumbers = listOf(otherPrisoner.number),
+      )
+
+      assertThat(scheduleResponse2).hasSize(3)
+      assertThat(scheduleResponse2).extracting("prisonerNumber").containsExactlyElementsOf(
+        listOf(
+          otherPrisoner.number,
+          otherPrisoner.number,
+          otherPrisoner.number,
+        ),
+      )
+
+      // Paginated
+
+      val schedulePaginatedResponse1 = webTestClient.getPaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        fromDate = tomorrow(),
+        toDate = tomorrow().plusDays(1),
+        prisonerNumbers = listOf(pentonvillePrisoner.number),
+      )
+
+      assertThat(schedulePaginatedResponse1.page.totalElements()).isEqualTo(3)
+      assertThat(schedulePaginatedResponse1.content).hasSize(3)
+      assertThat(schedulePaginatedResponse1.content).extracting("prisonerNumber").containsExactlyElementsOf(
+        listOf(
+          pentonvillePrisoner.number,
+          pentonvillePrisoner.number,
+          pentonvillePrisoner.number,
+        ),
+      )
+
+      val schedulePaginatedResponse2 = webTestClient.getPaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        fromDate = tomorrow(),
+        toDate = tomorrow().plusDays(1),
+        prisonerNumbers = listOf(otherPrisoner.number),
+      )
+
+      assertThat(schedulePaginatedResponse2.page.totalElements()).isEqualTo(3)
+      assertThat(schedulePaginatedResponse2.content).hasSize(3)
+      assertThat(schedulePaginatedResponse2.content).extracting("prisonerNumber").containsExactlyElementsOf(
+        listOf(
+          otherPrisoner.number,
+          otherPrisoner.number,
+          otherPrisoner.number,
+        ),
+      )
+    }
+
+    @Test
+    fun `Court - return list of bookings with no court hearing links`() {
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeCourtBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      // Unpaginated
+
+      val scheduleResponse = webTestClient.getUnpaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        fromDate = tomorrow(),
+        hasCourtHearingLink = false,
+      )
+
+      assertThat(scheduleResponse).hasSize(1)
+      assertThat(scheduleResponse).extracting("hmctsNumber", "videoUrl").containsExactlyElementsOf(
+        listOf(
+          Tuple(null, null),
+        ),
+      )
+
+      // Paginated
+
+      val schedulePaginatedResponse = webTestClient.getPaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        fromDate = tomorrow(),
+        hasCourtHearingLink = false,
+      )
+
+      assertThat(schedulePaginatedResponse.page.totalElements()).isEqualTo(1)
+      assertThat(schedulePaginatedResponse.content).hasSize(1)
+      assertThat(schedulePaginatedResponse.content).extracting("hmctsNumber", "videoUrl").containsExactlyElementsOf(
+        listOf(
+          Tuple(null, null),
+        ),
+      )
+    }
+
+    @Test
+    fun `Court - return list of bookings with court hearing links`() {
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeCourtBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      // Unpaginated
+
+      val scheduleResponse = webTestClient.getUnpaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        fromDate = tomorrow(),
+        hasCourtHearingLink = true,
+      )
+
+      assertThat(scheduleResponse).hasSize(2)
+      assertThat(scheduleResponse).extracting("hmctsNumber", "videoUrl").containsExactlyElementsOf(
+        listOf(
+          Tuple(null, "https://video.link.com"),
+          Tuple("123456", null),
+        ),
+      )
+
+      // Paginated
+
+      val schedulePaginatedResponse = webTestClient.getPaginatedCourtsSchedule(
+        courtCodes = listOf(DERBY_JUSTICE_CENTRE, CHESTERFIELD_JUSTICE_CENTRE),
+        fromDate = tomorrow(),
+        hasCourtHearingLink = true,
+      )
+
+      assertThat(schedulePaginatedResponse.page.totalElements()).isEqualTo(2)
+      assertThat(schedulePaginatedResponse.content).hasSize(2)
+      assertThat(schedulePaginatedResponse.content).extracting("hmctsNumber", "videoUrl").containsExactlyElementsOf(
+        listOf(
+          Tuple(null, "https://video.link.com"),
+          Tuple("123456", null),
+        ),
+      )
+    }
+
+    private fun createThreeCourtBookings(appointmentDate: LocalDate = tomorrow(), prisoner: Prisoner = pentonvillePrisoner) {
       // Bookings will default to tomorrow's date
       val courtBookingRequest1 = courtBookingRequest(
         courtCode = DERBY_JUSTICE_CENTRE,
-        prisonerNumber = pentonvillePrisoner.number,
+        prisonerNumber = prisoner.number,
         prisonCode = PENTONVILLE,
         location = pentonvilleLocation,
         date = appointmentDate,
@@ -459,24 +653,28 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
 
       val courtBookingRequest2 = courtBookingRequest(
         courtCode = DERBY_JUSTICE_CENTRE,
-        prisonerNumber = pentonvillePrisoner.number,
+        prisonerNumber = prisoner.number,
         prisonCode = PENTONVILLE,
         location = pentonvilleLocation,
         date = appointmentDate,
         startTime = LocalTime.of(14, 0),
         endTime = LocalTime.of(14, 30),
+        hmctsNumber = "123456",
+        videoLinkUrl = null,
       )
 
       webTestClient.createBooking(courtBookingRequest2, COURT_USER)
 
       val courtBookingRequest3 = courtBookingRequest(
         courtCode = CHESTERFIELD_JUSTICE_CENTRE,
-        prisonerNumber = pentonvillePrisoner.number,
+        prisonerNumber = prisoner.number,
         prisonCode = PENTONVILLE,
         location = pentonvilleLocation,
         date = appointmentDate,
         startTime = LocalTime.of(15, 0),
         endTime = LocalTime.of(15, 30),
+        hmctsNumber = null,
+        videoLinkUrl = null,
       )
 
       webTestClient.createBooking(courtBookingRequest3, COURT_USER)
@@ -764,12 +962,204 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       assertThat(scheduleResponse).isEmpty()
     }
 
-    private fun createThreeProbationBookings(appointmentDate: LocalDate = tomorrow()) {
+    @Test
+    fun `Probation - error with empty prisoner numbers`() {
+      // Unpaginated
+
+      assertThrows<AssertionError> {
+        webTestClient.getUnpaginatedProbationTeamsSchedule(
+          probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+          fromDate = tomorrow(),
+          prisonerNumbers = emptyList(),
+        )
+      }
+
+      // Paginated
+
+      assertThrows<AssertionError> {
+        webTestClient.getPaginatedProbationTeamsSchedule(
+          probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+          fromDate = tomorrow(),
+          prisonerNumbers = emptyList(),
+        )
+      }
+    }
+
+    @Test
+    fun `Probation - return list of bookings matching prisoner numbers`() {
+      val otherPrisoner = Prisoner(PENTONVILLE, "654321")
+
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubGetPrisoner(otherPrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(otherPrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeProbationBookings(tomorrow())
+      createThreeProbationBookings(tomorrow().plusDays(1), prisoner = otherPrisoner)
+      videoBookingRepository.findAll() hasSize 6
+
+      // Unpaginated
+
+      val scheduleResponse1 = webTestClient.getUnpaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+        fromDate = tomorrow(),
+        toDate = tomorrow().plusDays(1),
+        prisonerNumbers = listOf(pentonvillePrisoner.number),
+      )
+
+      assertThat(scheduleResponse1).hasSize(3)
+      assertThat(scheduleResponse1).extracting("prisonerNumber").containsExactlyElementsOf(
+        listOf(
+          pentonvillePrisoner.number,
+          pentonvillePrisoner.number,
+          pentonvillePrisoner.number,
+        ),
+      )
+
+      val scheduleResponse2 = webTestClient.getUnpaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+        fromDate = tomorrow(),
+        toDate = tomorrow().plusDays(1),
+        prisonerNumbers = listOf(otherPrisoner.number),
+      )
+
+      assertThat(scheduleResponse2).hasSize(3)
+      assertThat(scheduleResponse2).extracting("prisonerNumber").containsExactlyElementsOf(
+        listOf(
+          otherPrisoner.number,
+          otherPrisoner.number,
+          otherPrisoner.number,
+        ),
+      )
+
+      // Paginated
+
+      val schedulePaginatedResponse1 = webTestClient.getPaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+        fromDate = tomorrow(),
+        toDate = tomorrow().plusDays(1),
+        prisonerNumbers = listOf(pentonvillePrisoner.number),
+      )
+
+      assertThat(schedulePaginatedResponse1.page.totalElements()).isEqualTo(3)
+      assertThat(schedulePaginatedResponse1.content).hasSize(3)
+      assertThat(schedulePaginatedResponse1.content).extracting("prisonerNumber").containsExactlyElementsOf(
+        listOf(
+          pentonvillePrisoner.number,
+          pentonvillePrisoner.number,
+          pentonvillePrisoner.number,
+        ),
+      )
+
+      val schedulePaginatedResponse2 = webTestClient.getPaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+        fromDate = tomorrow(),
+        toDate = tomorrow().plusDays(1),
+        prisonerNumbers = listOf(otherPrisoner.number),
+      )
+
+      assertThat(schedulePaginatedResponse2.page.totalElements()).isEqualTo(3)
+      assertThat(schedulePaginatedResponse2.content).hasSize(3)
+      assertThat(schedulePaginatedResponse2.content).extracting("prisonerNumber").containsExactlyElementsOf(
+        listOf(
+          otherPrisoner.number,
+          otherPrisoner.number,
+          otherPrisoner.number,
+        ),
+      )
+    }
+
+    @Test
+    fun `Probation - return list of bookings with no probation officer details`() {
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeProbationBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      // Unpaginated
+
+      val scheduleResponse = webTestClient.getUnpaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+        fromDate = tomorrow(),
+        hasProbationOfficerDetails = false,
+      )
+
+      assertThat(scheduleResponse).hasSize(2)
+      assertThat(scheduleResponse).extracting("probationOfficerName").containsExactlyElementsOf(
+        listOf(
+          null,
+          null,
+        ),
+      )
+
+      // Paginated
+
+      val schedulePaginatedResponse = webTestClient.getPaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+        fromDate = tomorrow(),
+        hasProbationOfficerDetails = false,
+      )
+
+      assertThat(schedulePaginatedResponse.page.totalElements()).isEqualTo(2)
+      assertThat(schedulePaginatedResponse.content).hasSize(2)
+      assertThat(schedulePaginatedResponse.content).extracting("probationOfficerName").containsExactlyElementsOf(
+        listOf(
+          null,
+          null,
+        ),
+      )
+    }
+
+    @Test
+    fun `Probation - return list of bookings with probation officer details`() {
+      prisonSearchApi().stubGetPrisoner(pentonvillePrisoner.number, PENTONVILLE)
+      prisonSearchApi().stubSearchPrisonersByPrisonerNumbers(listOf(pentonvillePrisoner))
+
+      videoBookingRepository.findAll() hasSize 0
+      createThreeProbationBookings()
+      videoBookingRepository.findAll() hasSize 3
+
+      // Unpaginated
+
+      val scheduleResponse = webTestClient.getUnpaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+        fromDate = tomorrow(),
+        hasProbationOfficerDetails = true,
+      )
+
+      assertThat(scheduleResponse).hasSize(1)
+      assertThat(scheduleResponse).extracting("probationOfficerName").containsExactlyElementsOf(
+        listOf(
+          "probation officer name",
+        ),
+      )
+
+      // Paginated
+
+      val schedulePaginatedResponse = webTestClient.getPaginatedProbationTeamsSchedule(
+        probationTeamCodes = listOf("BLKPPP", "BARSPP"),
+        fromDate = tomorrow(),
+        hasProbationOfficerDetails = true,
+      )
+
+      assertThat(schedulePaginatedResponse.page.totalElements()).isEqualTo(1)
+      assertThat(schedulePaginatedResponse.content).hasSize(1)
+      assertThat(schedulePaginatedResponse.content).extracting("probationOfficerName").containsExactlyElementsOf(
+        listOf(
+          "probation officer name",
+        ),
+      )
+    }
+
+    private fun createThreeProbationBookings(appointmentDate: LocalDate = tomorrow(), prisoner: Prisoner = pentonvillePrisoner) {
       // Bookings will default to tomorrow's date
       val probationBookingRequest1 = probationBookingRequest(
         probationTeamCode = "BLKPPP",
         prisonCode = PENTONVILLE,
-        prisonerNumber = pentonvillePrisoner.number,
+        prisonerNumber = prisoner.number,
         appointmentDate = appointmentDate,
         startTime = LocalTime.of(9, 0),
         endTime = LocalTime.of(9, 30),
@@ -781,7 +1171,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       val probationBookingRequest2 = probationBookingRequest(
         probationTeamCode = "BLKPPP",
         prisonCode = PENTONVILLE,
-        prisonerNumber = pentonvillePrisoner.number,
+        prisonerNumber = prisoner.number,
         appointmentDate = appointmentDate,
         startTime = LocalTime.of(10, 0),
         endTime = LocalTime.of(10, 30),
@@ -793,11 +1183,16 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
       val probationBookingRequest3 = probationBookingRequest(
         probationTeamCode = "BARSPP",
         prisonCode = PENTONVILLE,
-        prisonerNumber = pentonvillePrisoner.number,
+        prisonerNumber = prisoner.number,
         appointmentDate = appointmentDate,
         startTime = LocalTime.of(11, 0),
         endTime = LocalTime.of(11, 30),
         location = pentonvilleLocation,
+        additionalBookingDetails = AdditionalBookingDetails(
+          contactName = "probation officer name",
+          contactEmail = "probation.officer@email.address",
+          contactNumber = null,
+        ),
       )
 
       webTestClient.createBooking(probationBookingRequest3, PROBATION_USER)
@@ -841,6 +1236,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     courtCodes: List<String>,
     fromDate: LocalDate,
     toDate: LocalDate? = null,
+    prisonerNumbers: List<String>? = null,
+    hasCourtHearingLink: Boolean? = null,
     page: Int? = 0,
     size: Int? = 10,
     sortField1: String? = "appointmentDate",
@@ -855,7 +1252,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         .build()
         .toUri().toString(),
     )
-    .bodyValue(FindCourtBookingsRequest(courtCodes = courtCodes, fromDate = fromDate, toDate = toDate))
+    .bodyValue(FindCourtBookingsRequest(courtCodes = courtCodes, fromDate = fromDate, toDate = toDate, prisonerNumbers = prisonerNumbers, hasCourtHearingLink = hasCourtHearingLink))
     .accept(MediaType.APPLICATION_JSON)
     .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
@@ -868,6 +1265,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     probationTeamCodes: List<String>,
     fromDate: LocalDate,
     toDate: LocalDate? = null,
+    prisonerNumbers: List<String>? = null,
+    hasProbationOfficerDetails: Boolean? = null,
     page: Int? = 0,
     size: Int? = 10,
     sortField1: String? = "appointmentDate",
@@ -882,7 +1281,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         .build()
         .toUri().toString(),
     )
-    .bodyValue(FindProbationBookingsRequest(probationTeamCodes = probationTeamCodes, fromDate = fromDate, toDate = toDate))
+    .bodyValue(FindProbationBookingsRequest(probationTeamCodes = probationTeamCodes, fromDate = fromDate, toDate = toDate, prisonerNumbers = prisonerNumbers, hasProbationOfficerDetails = hasProbationOfficerDetails))
     .accept(MediaType.APPLICATION_JSON)
     .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
@@ -895,6 +1294,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     courtCodes: List<String>,
     fromDate: LocalDate,
     toDate: LocalDate? = null,
+    prisonerNumbers: List<String>? = null,
+    hasCourtHearingLink: Boolean? = null,
     sort1: String? = "courtDescription",
     sort2: String? = "appointmentDate",
     sort3: String? = "startTime",
@@ -907,7 +1308,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         .build()
         .toUri().toString(),
     )
-    .bodyValue(FindCourtBookingsRequest(courtCodes = courtCodes, fromDate = fromDate, toDate = toDate))
+    .bodyValue(FindCourtBookingsRequest(courtCodes = courtCodes, fromDate = fromDate, toDate = toDate, prisonerNumbers = prisonerNumbers, hasCourtHearingLink = hasCourtHearingLink))
     .accept(MediaType.APPLICATION_JSON)
     .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
@@ -920,6 +1321,8 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
     probationTeamCodes: List<String>,
     fromDate: LocalDate,
     toDate: LocalDate? = null,
+    prisonerNumbers: List<String>? = null,
+    hasProbationOfficerDetails: Boolean? = null,
     sort1: String? = "probationTeamDescription",
     sort2: String? = "appointmentDate",
     sort3: String? = "startTime",
@@ -932,7 +1335,7 @@ class ScheduleResourceIntegrationTest : IntegrationTestBase() {
         .build()
         .toUri().toString(),
     )
-    .bodyValue(FindProbationBookingsRequest(probationTeamCodes = probationTeamCodes, fromDate = fromDate, toDate = toDate))
+    .bodyValue(FindProbationBookingsRequest(probationTeamCodes = probationTeamCodes, fromDate = fromDate, toDate = toDate, prisonerNumbers = prisonerNumbers, hasProbationOfficerDetails = hasProbationOfficerDetails))
     .accept(MediaType.APPLICATION_JSON)
     .headers(setAuthorisation(roles = listOf("ROLE_BOOK_A_VIDEO_LINK_ADMIN")))
     .exchange()
