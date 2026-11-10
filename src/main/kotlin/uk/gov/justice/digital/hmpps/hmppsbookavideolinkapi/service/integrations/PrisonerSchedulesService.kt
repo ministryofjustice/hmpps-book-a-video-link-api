@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
+package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.integrations
 
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
