@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.COURT_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.DELIUS_PROBATION_USER
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PROBATION_USER
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.norwichLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
@@ -149,6 +150,10 @@ abstract class IntegrationTestBase {
       is DeliusUser -> user.email
       else -> null
     }?.let { email -> manageUsersApi().stubGetUserEmail(user.username, email) }
+  }
+
+  protected fun stubGetPrisoner(prisoner: Prisoner) {
+    prisonSearchApi().stubGetPrisoner(prisoner)
   }
 
   protected fun WebTestClient.createBooking(request: CreateVideoBookingRequest, user: User) = this

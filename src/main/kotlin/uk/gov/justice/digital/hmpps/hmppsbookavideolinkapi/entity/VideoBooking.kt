@@ -25,6 +25,11 @@ import java.time.LocalTime
 import java.util.Objects
 import java.util.UUID
 
+const val VLB_COURT_PRE = "VLB_COURT_PRE"
+const val VLB_COURT_MAIN = "VLB_COURT_MAIN"
+const val VLB_COURT_POST = "VLB_COURT_POST"
+const val VLB_PROBATION = "VLB_PROBATION"
+
 @Entity
 @Table(name = "video_booking")
 class VideoBooking private constructor(
@@ -195,13 +200,13 @@ class VideoBooking private constructor(
   @Override
   override fun toString(): String = this::class.simpleName + "(videoBookingId = $videoBookingId)"
 
-  fun preHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_COURT_PRE" }
+  fun preHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == VLB_COURT_PRE }
 
-  fun mainHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_COURT_MAIN" }
+  fun mainHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == VLB_COURT_MAIN }
 
-  fun postHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_COURT_POST" }
+  fun postHearing(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == VLB_COURT_POST }
 
-  fun probationMeeting(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == "VLB_PROBATION" }
+  fun probationMeeting(): PrisonAppointment? = appointments().singleOrNull { it.appointmentType == VLB_PROBATION }
 
   /**
    * Will be null if no appointments on the booking, also bear in mind appointments are lazily loaded.
