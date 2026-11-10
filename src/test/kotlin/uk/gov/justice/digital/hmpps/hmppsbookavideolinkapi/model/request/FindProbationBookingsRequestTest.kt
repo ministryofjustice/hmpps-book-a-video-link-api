@@ -10,6 +10,7 @@ class FindProbationBookingsRequestTest : ValidatorBase<FindProbationBookingsRequ
   fun `should be no errors for valid requests`() {
     assertNoErrors(FindProbationBookingsRequest(fromDate = today(), toDate = null, probationTeamCodes = listOf("CODE")))
     assertNoErrors(FindProbationBookingsRequest(fromDate = today(), toDate = tomorrow(), probationTeamCodes = listOf("CODE")))
+    assertNoErrors(FindProbationBookingsRequest(fromDate = today(), toDate = null, probationTeamCodes = listOf("CODE"), prisonerNumbers = listOf("A1234AAA")))
   }
 
   @Test
@@ -17,5 +18,6 @@ class FindProbationBookingsRequestTest : ValidatorBase<FindProbationBookingsRequ
     FindProbationBookingsRequest(fromDate = today(), toDate = null, probationTeamCodes = emptyList()) failsWithSingle ModelError("probationTeamCodes", "At least one probation team code is required")
     FindProbationBookingsRequest(fromDate = today(), toDate = yesterday(), probationTeamCodes = listOf("CODE")) failsWithSingle ModelError("invalidDates", "The to date must be on or after the from date")
     FindProbationBookingsRequest(fromDate = today(), toDate = today().plusDays(31), probationTeamCodes = listOf("CODE")) failsWithSingle ModelError("invalidDateRange", "The to date must be a maximum of thirty days after the from date")
+    FindProbationBookingsRequest(fromDate = today(), toDate = null, probationTeamCodes = listOf("CODE"), prisonerNumbers = emptyList()) failsWithSingle ModelError("invalidPrisonerNumbers", "The prisoner numbers must be null or non empty")
   }
 }
