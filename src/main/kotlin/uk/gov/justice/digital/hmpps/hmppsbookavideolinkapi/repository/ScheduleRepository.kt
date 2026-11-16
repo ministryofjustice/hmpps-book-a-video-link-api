@@ -141,4 +141,38 @@ interface ScheduleRepository : JpaRepository<ScheduleItem, Long> {
     """,
   )
   fun getScheduleForProbationTeamsUnpaginated(probationTeamCodes: List<String>, fromDate: LocalDate, toDate: LocalDate?, excludingPrisons: List<String>?, includingPrisonerNumbers: List<String>?, hasProbationOfficerDetails: Boolean?, sort: Sort): List<ScheduleItem>
+
+  @Query(
+    value = """
+      SELECT DISTINCT si.prisonerNumber
+      FROM ScheduleItem si
+      WHERE ((CAST(:toDate as date) is null AND si.appointmentDate = :fromDate) OR si.appointmentDate between :fromDate and :toDate)
+      AND si.bookingType = "COURT"
+      AND si.courtCode in :courtCodes
+      AND si.statusCode = "ACTIVE"
+      AND (:excludingPrisons is null or si.prisonCode not in (:excludingPrisons))
+      AND (:includingPrisonerNumbers is null or si.prisonerNumber in (:includingPrisonerNumbers))
+      AND (:hasCourtHearingLink is distinct from true or coalesce(si.hmctsNumber, si.videoUrl) is not null)
+      AND (:hasCourtHearingLink is distinct from false or coalesce(si.hmctsNumber, si.videoUrl) is null)
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
+    """,
+  )
+  fun getPrisonerNumbersForCourts(courtCodes: List<String>, fromDate: LocalDate, toDate: LocalDate?, excludingPrisons: List<String>?, includingPrisonerNumbers: List<String>?, hasCourtHearingLink: Boolean?): Set<String>
+
+  @Query(
+    value = """
+      SELECT DISTINCT si.prisonerNumber
+      FROM ScheduleItem si
+      WHERE ((CAST(:toDate as date) is null AND si.appointmentDate = :fromDate) OR si.appointmentDate between :fromDate and :toDate)
+      AND si.bookingType = "PROBATION"
+      AND si.probationTeamCode in :probationTeamCodes
+      AND si.statusCode = "ACTIVE"
+      AND (:excludingPrisons is null or si.prisonCode not in (:excludingPrisons))
+      AND (:includingPrisonerNumbers is null or si.prisonerNumber in (:includingPrisonerNumbers))
+      AND (:hasProbationOfficerDetails is distinct from true or si.probationOfficerName is not null)
+      AND (:hasProbationOfficerDetails is distinct from false or si.probationOfficerName is null)
+      AND EXISTS (SELECT 1 FROM Prison p WHERE p.code = si.prisonCode AND p.enabled = true)
+    """,
+  )
+  fun getPrisonerNumbersForProbationTeams(probationTeamCodes: List<String>, fromDate: LocalDate, toDate: LocalDate?, excludingPrisons: List<String>?, includingPrisonerNumbers: List<String>?, hasProbationOfficerDetails: Boolean?): Set<String>
 }

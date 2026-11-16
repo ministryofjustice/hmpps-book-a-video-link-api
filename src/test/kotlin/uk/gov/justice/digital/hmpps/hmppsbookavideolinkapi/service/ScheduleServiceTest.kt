@@ -7,7 +7,12 @@ import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.FeatureSwitches
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.ScheduleItem
@@ -20,6 +25,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.LocationStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CourtHearingType
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.FindCourtBookingsRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.FindProbationBookingsRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.ProbationMeetingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.ScheduleRepository
@@ -180,6 +187,83 @@ class ScheduleServiceTest {
       .thenReturn(prisonItems)
 
     whenever(locationsService.getLocationById(any())) doReturn pentonvilleLocation.toModel(locationAttributes())
+
+    whenever(
+      scheduleRepository.getPrisonerNumbersForCourts(
+        courtCodes = listOf(courtCode),
+        fromDate = LocalDate.now(),
+        toDate = null,
+        excludingPrisons = null,
+        includingPrisonerNumbers = null,
+        hasCourtHearingLink = null,
+      ),
+    ) doReturn setOf("A1234AA", "B1234BB")
+
+    whenever(
+      scheduleRepository.getPrisonerNumbersForProbationTeams(
+        probationTeamCodes = listOf(probationTeamCode),
+        fromDate = LocalDate.now(),
+        toDate = null,
+        excludingPrisons = null,
+        includingPrisonerNumbers = null,
+        hasProbationOfficerDetails = null,
+      ),
+    ) doReturn setOf("A1234AA", "B1234BB")
+
+    whenever(
+      scheduleRepository.getScheduleForCourtsPaginated(
+        courtCodes = listOf(courtCode),
+        fromDate = LocalDate.now(),
+        toDate = null,
+        excludingPrisons = null,
+        includingPrisonerNumbers = listOf("A1234AA"),
+        hasCourtHearingLink = null,
+        pageable = Pageable.unpaged(),
+      ),
+    ) doReturn Page.empty()
+
+    whenever(
+      scheduleRepository.getScheduleForProbationTeamsPaginated(
+        probationTeamCodes = listOf(probationTeamCode),
+        fromDate = LocalDate.now(),
+        toDate = null,
+        excludingPrisons = null,
+        includingPrisonerNumbers = listOf("A1234AA"),
+        hasProbationOfficerDetails = null,
+        pageable = Pageable.unpaged(),
+      ),
+    ) doReturn Page.empty()
+
+    whenever(
+      scheduleRepository.getPrisonerNumbersForCourts(
+        courtCodes = listOf(courtCode),
+        fromDate = LocalDate.now(),
+        toDate = null,
+        excludingPrisons = null,
+        includingPrisonerNumbers = null,
+        hasCourtHearingLink = null,
+      ),
+    ) doReturn setOf("A1234AA", "B1234BB")
+
+    whenever(
+      scheduleRepository.getPrisonerNumbersForProbationTeams(
+        probationTeamCodes = listOf(probationTeamCode),
+        fromDate = LocalDate.now(),
+        toDate = null,
+        excludingPrisons = null,
+        includingPrisonerNumbers = null,
+        hasProbationOfficerDetails = null,
+      ),
+    ) doReturn setOf("A1234AA", "B1234BB")
+
+    whenever(
+      prisonerSearchClient.filterPrisonerNumbersByName(
+        prisonerNumbers = setOf("A1234AA", "B1234BB"),
+        firstName = "John",
+        lastName = "Smith",
+        batchSize = 1000,
+      ),
+    ) doReturn setOf("A1234AA")
   }
 
   @Test
@@ -315,5 +399,145 @@ class ScheduleServiceTest {
       .containsOnly(BookingStatus.ACTIVE, BookingStatus.CANCELLED)
     assertThat(response).extracting("courtCode").containsOnly(courtCode, null)
     assertThat(response).extracting("probationTeamCode").containsOnly(probationTeamCode, null)
+  }
+
+  @Test
+  fun `Returns the list of unpaginated scheduled court items filtered by name`() {
+    val request = FindCourtBookingsRequest(
+      courtCodes = listOf(courtCode),
+      fromDate = LocalDate.now(),
+      firstName = "John",
+      lastName = "Smith",
+    )
+    val sort = Sort.unsorted()
+    service.getScheduleForCourtsUnpaginated(request, sort)
+    verify(scheduleRepository, times(1)).getPrisonerNumbersForCourts(
+      courtCodes = listOf(courtCode),
+      fromDate = LocalDate.now(),
+      toDate = null,
+      excludingPrisons = null,
+      includingPrisonerNumbers = null,
+      hasCourtHearingLink = null,
+    )
+    verify(prisonerSearchClient, times(1)).filterPrisonerNumbersByName(
+      prisonerNumbers = setOf("A1234AA", "B1234BB"),
+      firstName = "John",
+      lastName = "Smith",
+      batchSize = 1000,
+    )
+    verify(scheduleRepository, times(1)).getScheduleForCourtsUnpaginated(
+      courtCodes = listOf(courtCode),
+      fromDate = LocalDate.now(),
+      toDate = null,
+      excludingPrisons = null,
+      includingPrisonerNumbers = listOf("A1234AA"),
+      hasCourtHearingLink = null,
+      sort = Sort.unsorted(),
+    )
+  }
+
+  @Test
+  fun `Returns the list of paginated scheduled court items filtered by name`() {
+    val request = FindCourtBookingsRequest(
+      courtCodes = listOf(courtCode),
+      fromDate = LocalDate.now(),
+      firstName = "John",
+      lastName = "Smith",
+    )
+    val pageable = Pageable.unpaged()
+    service.getScheduleForCourtsPaginated(request, pageable)
+    verify(scheduleRepository, times(1)).getPrisonerNumbersForCourts(
+      courtCodes = listOf(courtCode),
+      fromDate = LocalDate.now(),
+      toDate = null,
+      excludingPrisons = null,
+      includingPrisonerNumbers = null,
+      hasCourtHearingLink = null,
+    )
+    verify(prisonerSearchClient, times(1)).filterPrisonerNumbersByName(
+      prisonerNumbers = setOf("A1234AA", "B1234BB"),
+      firstName = "John",
+      lastName = "Smith",
+      batchSize = 1000,
+    )
+    verify(scheduleRepository, times(1)).getScheduleForCourtsPaginated(
+      courtCodes = listOf(courtCode),
+      fromDate = LocalDate.now(),
+      toDate = null,
+      excludingPrisons = null,
+      includingPrisonerNumbers = listOf("A1234AA"),
+      hasCourtHearingLink = null,
+      pageable = Pageable.unpaged(),
+    )
+  }
+
+  @Test
+  fun `Returns the list of unpaginated scheduled probation items filtered by name`() {
+    val request = FindProbationBookingsRequest(
+      probationTeamCodes = listOf(probationTeamCode),
+      fromDate = LocalDate.now(),
+      firstName = "John",
+      lastName = "Smith",
+    )
+    val sort = Sort.unsorted()
+    service.getScheduleForProbationTeamsUnpaginated(request, sort)
+    verify(scheduleRepository, times(1)).getPrisonerNumbersForProbationTeams(
+      probationTeamCodes = listOf(probationTeamCode),
+      fromDate = LocalDate.now(),
+      toDate = null,
+      excludingPrisons = null,
+      includingPrisonerNumbers = null,
+      hasProbationOfficerDetails = null,
+    )
+    verify(prisonerSearchClient, times(1)).filterPrisonerNumbersByName(
+      prisonerNumbers = setOf("A1234AA", "B1234BB"),
+      firstName = "John",
+      lastName = "Smith",
+      batchSize = 1000,
+    )
+    verify(scheduleRepository, times(1)).getScheduleForProbationTeamsUnpaginated(
+      probationTeamCodes = listOf(probationTeamCode),
+      fromDate = LocalDate.now(),
+      toDate = null,
+      excludingPrisons = null,
+      includingPrisonerNumbers = listOf("A1234AA"),
+      hasProbationOfficerDetails = null,
+      sort = Sort.unsorted(),
+    )
+  }
+
+  @Test
+  fun `Returns the list of paginated scheduled probation items filtered by name`() {
+    val request = FindProbationBookingsRequest(
+      probationTeamCodes = listOf(probationTeamCode),
+      fromDate = LocalDate.now(),
+      firstName = "John",
+      lastName = "Smith",
+    )
+    val pageable = Pageable.unpaged()
+    service.getScheduleForProbationTeamsPaginated(request, pageable)
+    verify(scheduleRepository, times(1)).getPrisonerNumbersForProbationTeams(
+      probationTeamCodes = listOf(probationTeamCode),
+      fromDate = LocalDate.now(),
+      toDate = null,
+      excludingPrisons = null,
+      includingPrisonerNumbers = null,
+      hasProbationOfficerDetails = null,
+    )
+    verify(prisonerSearchClient, times(1)).filterPrisonerNumbersByName(
+      prisonerNumbers = setOf("A1234AA", "B1234BB"),
+      firstName = "John",
+      lastName = "Smith",
+      batchSize = 1000,
+    )
+    verify(scheduleRepository, times(1)).getScheduleForProbationTeamsPaginated(
+      probationTeamCodes = listOf(probationTeamCode),
+      fromDate = LocalDate.now(),
+      toDate = null,
+      excludingPrisons = null,
+      includingPrisonerNumbers = listOf("A1234AA"),
+      hasProbationOfficerDetails = null,
+      pageable = Pageable.unpaged(),
+    )
   }
 }

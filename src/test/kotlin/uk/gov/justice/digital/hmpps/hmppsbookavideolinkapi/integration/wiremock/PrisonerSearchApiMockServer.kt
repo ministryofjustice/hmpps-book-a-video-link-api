@@ -11,8 +11,45 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerNumbers
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.Prisoner
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.prisonerSearchPrisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.attributesearch.Prisoner as AttributeSearchPrisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.attributesearch.Request as AttributeSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.attributesearch.Response as AttributeSearchResponse
 
 class PrisonerSearchApiMockServer : MockServer(8092) {
+
+  fun stubAttributeSearch(
+    prisonerNumbers: List<String>,
+    firstName: String?,
+    lastName: String?,
+    responsePrisonerNumbers: List<String>,
+  ) {
+    stubFor(
+      post("/attribute-search?size=1000&responseFields=prisonerNumber")
+        .withRequestBody(
+          equalToJson(
+            mapper.writeValueAsString(
+              AttributeSearchRequest.filterPrisonerNumbersByName(
+                prisonerNumbers,
+                firstName,
+                lastName,
+              ),
+            ),
+          ),
+        )
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              mapper.writeValueAsString(
+                AttributeSearchResponse(
+                  responsePrisonerNumbers.map { AttributeSearchPrisoner(it) },
+                ),
+              ),
+            )
+            .withStatus(200),
+        ),
+    )
+  }
 
   fun stubGetPrisoner(prisoner: Prisoner) = stubGetPrisoner(prisoner.number, prisoner.prison)
 
