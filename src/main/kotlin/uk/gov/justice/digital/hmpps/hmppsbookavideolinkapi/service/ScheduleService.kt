@@ -47,13 +47,43 @@ class ScheduleService(
     scheduleRepository.getScheduleForProbationTeam(probationTeamCode, date).mapScheduleToModel()
   }
 
+  private fun getPrisonerNumbersForProbationTeams(request: FindProbationBookingsRequest): Set<String>? {
+    if (request.firstName == null && request.lastName == null) {
+      return request.prisonerNumbers?.toSet()
+    }
+    val allPrisonerNumbers = scheduleRepository.getPrisonerNumbersForProbationTeams(
+      probationTeamCodes = request.probationTeamCodes.distinct(),
+      fromDate = request.fromDate,
+      toDate = request.toDate,
+      excludingPrisons = excludeCourtOnlyPrisons(),
+      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      hasProbationOfficerDetails = request.hasProbationOfficerDetails,
+    )
+    return prisonerSearchClient.filterPrisonerNumbersByName(allPrisonerNumbers, request.firstName, request.lastName)
+  }
+
+  private fun getPrisonerNumbersForCourts(request: FindCourtBookingsRequest): Set<String>? {
+    if (request.firstName == null && request.lastName == null) {
+      return request.prisonerNumbers?.toSet()
+    }
+    val allPrisonerNumbers = scheduleRepository.getPrisonerNumbersForCourts(
+      courtCodes = request.courtCodes.distinct(),
+      fromDate = request.fromDate,
+      toDate = request.toDate,
+      excludingPrisons = excludeProbationOnlyPrisons(),
+      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      hasCourtHearingLink = request.hasCourtHearingLink,
+    )
+    return prisonerSearchClient.filterPrisonerNumbersByName(allPrisonerNumbers, request.firstName, request.lastName)
+  }
+
   fun getScheduleForProbationTeamsPaginated(request: FindProbationBookingsRequest, pageable: Pageable): PagedModel<ScheduleItem> {
     val pageOfResults = scheduleRepository.getScheduleForProbationTeamsPaginated(
       probationTeamCodes = request.probationTeamCodes.distinct(),
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeCourtOnlyPrisons(),
-      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      includingPrisonerNumbers = getPrisonerNumbersForProbationTeams(request)?.toList(),
       hasProbationOfficerDetails = request.hasProbationOfficerDetails,
       pageable,
     )
@@ -67,7 +97,7 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeProbationOnlyPrisons(),
-      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      includingPrisonerNumbers = getPrisonerNumbersForCourts(request)?.toList(),
       hasCourtHearingLink = request.hasCourtHearingLink,
       pageable,
     )
@@ -81,7 +111,7 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeCourtOnlyPrisons(),
-      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      includingPrisonerNumbers = getPrisonerNumbersForProbationTeams(request)?.toList(),
       hasProbationOfficerDetails = request.hasProbationOfficerDetails,
       sort,
     ).mapScheduleToModel()
@@ -93,7 +123,7 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeProbationOnlyPrisons(),
-      includingPrisonerNumbers = request.prisonerNumbers?.distinct(),
+      includingPrisonerNumbers = getPrisonerNumbersForCourts(request)?.toList(),
       hasCourtHearingLink = request.hasCourtHearingLink,
       sort,
     ).mapScheduleToModel()

@@ -21,6 +21,12 @@ data class FindProbationBookingsRequest(
   @Schema(description = "A list of probation team codes to find bookings for", example = "[CODE1, CODE2, CODE3, CODE4]")
   val probationTeamCodes: List<String>,
 
+  @Schema(description = "Optional filter on prisoner first name")
+  val firstName: String? = null,
+
+  @Schema(description = "Optional filter on prisoner last name")
+  val lastName: String? = null,
+
   @Schema(description = "A list of prisoner numbers to find bookings for", example = "[A1234AAA]")
   val prisonerNumbers: List<String>? = null,
 
