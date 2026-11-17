@@ -62,7 +62,7 @@ class ScheduleService(
     return prisonerSearchClient.filterPrisonerNumbersByName(allPrisonerNumbers, request.firstName, request.lastName)
   }
 
-  private fun getPrisonerNumberForCourts(request: FindCourtBookingsRequest): Set<String>? {
+  private fun getPrisonerNumbersForCourts(request: FindCourtBookingsRequest): Set<String>? {
     if (request.firstName == null && request.lastName == null) {
       return request.prisonerNumbers?.toSet()
     }
@@ -97,7 +97,7 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeProbationOnlyPrisons(),
-      includingPrisonerNumbers = getPrisonerNumberForCourts(request)?.toList(),
+      includingPrisonerNumbers = getPrisonerNumbersForCourts(request)?.toList(),
       hasCourtHearingLink = request.hasCourtHearingLink,
       pageable,
     )
@@ -123,7 +123,7 @@ class ScheduleService(
       fromDate = request.fromDate,
       toDate = request.toDate,
       excludingPrisons = excludeProbationOnlyPrisons(),
-      includingPrisonerNumbers = getPrisonerNumberForCourts(request)?.toList(),
+      includingPrisonerNumbers = getPrisonerNumbersForCourts(request)?.toList(),
       hasCourtHearingLink = request.hasCourtHearingLink,
       sort,
     ).mapScheduleToModel()
