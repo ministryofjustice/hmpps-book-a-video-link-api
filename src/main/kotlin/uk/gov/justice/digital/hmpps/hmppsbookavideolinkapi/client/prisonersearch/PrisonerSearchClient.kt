@@ -8,11 +8,57 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import java.time.LocalDate
+import java.util.stream.Collectors
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.attributesearch.Request as AttributeSearchRequest
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.attributesearch.Response as AttributeSearchResponse
 
 @Component
 class PrisonerSearchClient(private val prisonerSearchApiWebClient: WebClient) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
+  fun filterPrisonerNumbersByName(
+    prisonerNumbers: Set<String>,
+    firstName: String?,
+    lastName: String?,
+    batchSize: Int = 1000,
+  ): Set<String> {
+    if (prisonerNumbers.isEmpty()) return emptySet()
+
+    require(firstName != null || lastName != null) {
+      "Either first name or last name must be set"
+    }
+
+    require(batchSize in 1..1000) {
+      "Batch size must be between 1 and 1000"
+    }
+
+    return prisonerNumbers.chunked(batchSize)
+      .stream()
+      .map {
+        prisonerSearchApiWebClient
+          .post()
+          .uri { builder ->
+            builder.path("/attribute-search")
+              .queryParam("size", batchSize)
+              .queryParam("responseFields", "prisonerNumber")
+              .build()
+          }
+          .bodyValue(
+            AttributeSearchRequest.filterPrisonerNumbersByName(
+              prisonerNumbers = it,
+              firstName = firstName,
+              lastName = lastName,
+            ),
+          )
+          .retrieve()
+          .bodyToMono<AttributeSearchResponse>()
+          .block()
+      }
+      .flatMap { it?.content?.stream() }
+      .map { it.prisonerNumber }
+      .collect(Collectors.toSet())
   }
 
   fun getPrisoner(prisonerNumber: String): Prisoner? = prisonerSearchApiWebClient
