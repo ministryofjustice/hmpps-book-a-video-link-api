@@ -3,8 +3,8 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.14"
-  id("org.openapi.generator") version "7.26.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.15"
+  id("org.openapi.generator") version "7.27.0"
   kotlin("plugin.spring") version "2.4.21"
   kotlin("plugin.jpa") version "2.4.21"
   id("dev.zacsweers.redacted") version "1.18.0"
@@ -17,8 +17,8 @@ redacted {
 dependencies {
 
   // HMPPS dependencies
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.3")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.4.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.1.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.6.0")
 
   // Spring boot dependencies
   implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -29,7 +29,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
   // CSV dependencies
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.22.4")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.23.0")
 
   // Database dependencies
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
@@ -44,13 +44,13 @@ dependencies {
   // Gov Notify client
   implementation("uk.gov.service.notify:notifications-java-client:6.2.1-RELEASE")
 
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.33.1")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.34.0")
 
   // Phone number validation
-  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.42")
+  implementation("com.googlecode.libphonenumber:libphonenumber:9.0.43")
 
   // Test dependencies
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.3")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.1.0")
   testImplementation("org.springframework.security:spring-security-test:7.1.2")
   testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
   testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
@@ -63,7 +63,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
   // SAR test library
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.8.6")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.10.0")
 
   testImplementation("net.javacrumbs.json-unit:json-unit:5.1.1")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.1")
