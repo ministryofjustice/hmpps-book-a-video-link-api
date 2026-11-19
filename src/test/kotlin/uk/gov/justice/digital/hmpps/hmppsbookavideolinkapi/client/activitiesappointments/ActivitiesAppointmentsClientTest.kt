@@ -10,8 +10,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppoi
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointmentSearchResult
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrisoner
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.tomorrow
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ActivitiesAppointmentsApiMockServer
 import java.time.LocalDate
@@ -95,6 +100,23 @@ class ActivitiesAppointmentsClientTest {
     assertThat(response).extracting("appointmentId").containsExactly(1L, 2L, 5L, 6L, 7L)
     assertThat(response.filter { it.isCancelled }).isEmpty()
     assertThat(response.filter { it.isDeleted }).isEmpty()
+  }
+
+  @Test
+  fun `should get scheduled prison appointments on date at location`() {
+    val searchResult = appointmentSearchResult(
+      pentonvillePrisoner,
+      pentonvilleLocation,
+      today(),
+      startTime = LocalTime.of(10, 0),
+      endTime = LocalTime.of(11, 0),
+    )
+
+    server.stubGetScheduledPrisonAppointmentsOnDateAtLocation(PENTONVILLE, today(), pentonvilleLocation.id, searchResult)
+
+    val response = client.getScheduledPrisonAppointments(PENTONVILLE, today(), pentonvilleLocation.id)
+
+    response containsExactly listOf(searchResult)
   }
 
   @AfterEach

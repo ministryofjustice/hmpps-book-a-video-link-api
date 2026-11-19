@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
-import com.github.tomakehurst.wiremock.client.WireMock.post
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -24,73 +22,6 @@ class LocationsInsidePrisonApiMockServer : MockServer(8091) {
           .withBody(mapper.writeValueAsString(location))
           .withStatus(200),
       ),
-    )
-  }
-
-  fun stubGetLocationByKey(location: Location) {
-    stubFor(
-      get("/locations/key/${location.key}").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(mapper.writeValueAsString(location))
-          .withStatus(200),
-      ),
-    )
-  }
-
-  fun stubPostLocationByKeys(vararg locations: Location) {
-    stubFor(
-      post("/locations/keys")
-        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(locations.map(Location::key))))
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(locations))
-            .withStatus(200),
-        ),
-    )
-  }
-
-  fun stubPostLocationByKeys(
-    keys: List<LocationKeyValue>,
-    prisonCode: String = WANDSWORTH,
-  ) {
-    val keyValues = keys.map { it.key }.toSet()
-    stubFor(
-      post("/locations/keys")
-        .withRequestBody(WireMock.equalToJson(mapper.writeValueAsString(keyValues)))
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              mapper.writeValueAsString(
-                keys.map {
-                  Location(
-                    id = it.id,
-                    prisonId = prisonCode,
-                    code = "001",
-                    localName = "$prisonCode ${it.key}",
-                    pathHierarchy = "A-1-001",
-                    locationType = Location.LocationType.VIDEO_LINK,
-                    permanentlyInactive = false,
-                    active = true,
-                    deactivatedByParent = false,
-                    topLevelId = UUID.randomUUID(),
-                    key = it.key,
-                    isResidential = true,
-                    lastModifiedBy = "test user",
-                    lastModifiedDate = LocalDateTime.now(),
-                    level = 2,
-                    leafLevel = true,
-                    status = Location.Status.ACTIVE,
-                    locked = false,
-                    inactiveStatus = null,
-                  )
-                },
-              ),
-            )
-            .withStatus(200),
-        ),
     )
   }
 

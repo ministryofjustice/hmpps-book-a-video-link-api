@@ -22,7 +22,7 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @Cacheable(CacheConfiguration.LOCATION_BY_KEY_CACHE_NAME)
+  @Cacheable(CacheConfiguration.LOCATION_BY_ID_CACHE_NAME)
   fun getLocationById(id: UUID): Location? = locationsInsidePrisonApiWebClient.get()
     .uri { uriBuilder: UriBuilder ->
       uriBuilder
@@ -35,26 +35,6 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
     .doOnError { error -> log.info("Error looking up location by location id $id in locations inside prison client", error) }
     .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
     .block()
-
-  @Deprecated("Use getLocationsById instead")
-  @Cacheable(CacheConfiguration.LOCATION_BY_KEY_CACHE_NAME)
-  fun getLocationByKey(key: String): Location? = locationsInsidePrisonApiWebClient.get()
-    .uri("/locations/key/{key}", key)
-    .retrieve()
-    .bodyToMono<Location>()
-    .doOnError { error -> log.info("Error looking up location by location key $key in locations inside prison client", error) }
-    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()
-
-  @Deprecated("Use getLocationsById instead")
-  fun getLocationsByKeys(keys: Set<String>): List<Location> = locationsInsidePrisonApiWebClient.post()
-    .uri("/locations/keys")
-    .bodyValue(keys)
-    .retrieve()
-    .bodyToMono<List<Location>>()
-    .doOnError { error -> log.info("Error looking up locations by location keys $keys in locations inside prison client", error) }
-    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block() ?: emptyList()
 
   @Cacheable(CacheConfiguration.NON_RESIDENTIAL_LOCATIONS_CACHE_NAME)
   fun getNonResidentialAppointmentLocationsAtPrison(prisonCode: String) = getLocationsForServiceType(prisonCode, ServiceType.APPOINTMENT)
@@ -80,44 +60,6 @@ class LocationsInsidePrisonClient(private val locationsInsidePrisonApiWebClient:
 
 @Component
 class LocationValidator(private val locationsInsidePrisonClient: LocationsInsidePrisonClient) {
-
-  @Deprecated("Use validatePrisonLocationId instead")
-  fun validatePrisonLocation(prisonCode: String, locationKey: String): Location = run {
-    validatePrisonLocations(prisonCode, setOf(locationKey)).single()
-  }
-
-  @Deprecated("Use validatePrisonLocationIds instead")
-  fun validatePrisonLocations(prisonCode: String, locationKeys: Set<String>): List<Location> {
-    val locations = locationsInsidePrisonClient.getLocationsByKeys(locationKeys)
-    validate(prisonCode, locationKeys, locations)
-    return locations
-  }
-
-  private fun validate(prisonCode: String, locationKeys: Set<String>, maybeLocations: List<Location>) {
-    val maybeFoundLocations = maybeLocations.associateBy { it.key }
-
-    if (maybeFoundLocations.isEmpty()) {
-      validationError("The following ${if (locationKeys.size == 1) "location was" else "locations were"} not found $locationKeys")
-    }
-
-    val mayBeMissingLocations = maybeFoundLocations.keys.filterNot { locationKeys.contains(it) }
-
-    if (mayBeMissingLocations.isNotEmpty()) {
-      validationError("The following ${if (mayBeMissingLocations.size == 1) "location was" else "locations were"} not found $mayBeMissingLocations")
-    }
-
-    val maybeLocationsAtDifferentPrison = maybeFoundLocations.values.filterNot { it.isAtPrison(prisonCode) }.map { it.key }
-
-    if (maybeLocationsAtDifferentPrison.isNotEmpty()) {
-      validationError("The following ${if (maybeLocationsAtDifferentPrison.size == 1) "location is" else "locations are"} not at prison code $prisonCode $maybeLocationsAtDifferentPrison")
-    }
-
-    val maybeInactiveLocations = maybeFoundLocations.values.filterNot { it.isActive() }.map { it.key }
-
-    if (maybeInactiveLocations.isNotEmpty()) {
-      validationError("The following ${if (maybeInactiveLocations.size == 1) "location is" else "locations are"} not active at prison code $prisonCode $maybeInactiveLocations")
-    }
-  }
   fun validatePrisonLocationId(prisonCode: String, locationId: UUID): Location = run {
     validatePrisonLocationIds(prisonCode, setOf(locationId)).single()
   }

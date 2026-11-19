@@ -5,11 +5,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.Appointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.AdditionalBookingDetailRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.LocationsService
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
@@ -23,7 +21,6 @@ import java.util.UUID
 @Transactional(readOnly = true)
 class ChangeTrackingService(
   private val videoBookingRepository: VideoBookingRepository,
-  private val locationsService: LocationsService,
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository,
 ) {
   /**
@@ -70,7 +67,7 @@ class ChangeTrackingService(
       }
       .toComparableBooking(additionalBookingDetailRepository, amendedBy)
 
-    existingBooking to requestedBookingChanges.toComparableBooking(amendedBy, locationsService)
+    existingBooking to requestedBookingChanges.toComparableBooking(amendedBy)
   }
 }
 
@@ -80,16 +77,13 @@ enum class ChangeType(val description: String) {
   PRISON("A change is considered prison-specific when something can only modified by a prison user."),
 }
 
-private fun AmendVideoBookingRequest.toComparableBooking(
-  user: User,
-  locationsService: LocationsService,
-): ComparableBooking {
+private fun AmendVideoBookingRequest.toComparableBooking(user: User): ComparableBooking {
   if (this.probationMeetingType != null) {
     val appointment = this.prisoners.single().appointments.single()
 
     return ProbationBooking(
       meetingType = this.probationMeetingType.name,
-      location = appointment.location(locationsService)!!,
+      location = appointment.dpsLocationId,
       date = appointment.date,
       startTime = appointment.startTime,
       endTime = appointment.endTime,
@@ -110,13 +104,13 @@ private fun AmendVideoBookingRequest.toComparableBooking(
     date = main.date,
     preStartTime = pre?.startTime,
     preEndTime = pre?.endTime,
-    preLocation = pre?.location(locationsService),
+    preLocation = pre?.dpsLocationId,
     mainStartTime = main.startTime,
     mainEndTime = main.endTime,
-    mainLocation = main.location(locationsService),
+    mainLocation = main.dpsLocationId,
     postStartTime = post?.startTime,
     postEndTime = post?.endTime,
-    postLocation = post?.location(locationsService),
+    postLocation = post?.dpsLocationId,
     cvpLink = videoLinkUrl,
     hmctsNumber = hmctsNumber,
     guestPin = guestPin,
@@ -124,8 +118,6 @@ private fun AmendVideoBookingRequest.toComparableBooking(
     notesForPrisoners = notesForPrisoners.takeIf { user is PrisonUser },
   )
 }
-
-private fun Appointment.location(locationsService: LocationsService) = dpsLocationId ?: locationsService.getLocationByKey(locationKey!!)?.dpsLocationId
 
 private fun VideoBooking.toComparableBooking(
   additionalBookingDetailRepository: AdditionalBookingDetailRepository,

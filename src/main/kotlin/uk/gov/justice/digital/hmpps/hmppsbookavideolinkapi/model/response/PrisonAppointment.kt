@@ -27,7 +27,6 @@ data class PrisonAppointment(
   @Schema(description = "The appointment type", example = "VLB_COURT_MAIN")
   val appointmentType: String,
 
-  @Deprecated(message = "Use dpsLocationId instead")
   @Schema(description = "The location of the appointment at the prison", example = "VCC-ROOM-1")
   val prisonLocKey: String,
 

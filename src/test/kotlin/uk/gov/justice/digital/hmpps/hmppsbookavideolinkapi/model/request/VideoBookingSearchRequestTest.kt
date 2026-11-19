@@ -18,12 +18,5 @@ class VideoBookingSearchRequestTest : ValidatorBase<VideoBookingSearchRequest>()
   @Test
   fun `should be no errors for valid requests`() {
     assertNoErrors(request)
-    assertNoErrors(request.copy(locationKey = null))
-    assertNoErrors(request.copy(dpsLocationId = null))
-  }
-
-  @Test
-  fun `should fail when location id and key are missing`() {
-    request.copy(dpsLocationId = null, locationKey = null) failsWithSingle ModelError("invalidLocation", "You must provide either a location id or a location key for search")
   }
 }

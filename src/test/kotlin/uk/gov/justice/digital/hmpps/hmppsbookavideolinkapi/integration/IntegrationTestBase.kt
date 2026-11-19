@@ -88,8 +88,6 @@ abstract class IntegrationTestBase {
   @BeforeEach
   fun `stub default locations`() {
     setOf(birminghamLocation, norwichLocation, pentonvilleLocation, risleyLocation, wandsworthLocation).forEach {
-      locationsInsidePrisonApi().stubGetLocationByKey(it)
-      locationsInsidePrisonApi().stubPostLocationByKeys(it)
       locationsInsidePrisonApi().stubGetLocationById(it)
     }
   }

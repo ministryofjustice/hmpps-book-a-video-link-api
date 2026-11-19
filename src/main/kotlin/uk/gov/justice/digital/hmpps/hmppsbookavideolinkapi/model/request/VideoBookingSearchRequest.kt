@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.NotBlank
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.BookingStatus
 import java.time.LocalDate
@@ -29,7 +27,7 @@ data class VideoBookingSearchRequest(
     description = "The unique UUID for the location where the appointment takes place. The id field from the locations-inside-prison service.",
     example = "a4fe3fef-34fd-4354fde-a12efe",
   )
-  val dpsLocationId: UUID?,
+  val dpsLocationId: UUID,
 
   @Deprecated(message = "Use dpsLocationId instead")
   @Schema(description = "The location key for the appointment", example = "PVI-A-1-001")
@@ -49,8 +47,4 @@ data class VideoBookingSearchRequest(
 
   @Schema(description = "The status of the booking to match, defaults to ACTIVE", example = "ACTIVE")
   val statusCode: BookingStatus? = BookingStatus.ACTIVE,
-) {
-  @JsonIgnore
-  @AssertTrue(message = "You must provide either a location id or a location key for search")
-  private fun isInvalidLocation() = locationKey != null || dpsLocationId != null
-}
+)

@@ -14,7 +14,6 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AdditionalBookingDetail
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
@@ -71,11 +70,10 @@ class AmendProbationBookingServiceTest {
   private val prisonRepository: PrisonRepository = mock()
   private val bookingHistoryService: BookingHistoryService = mock()
   private val prisonAppointmentRepository: PrisonAppointmentRepository = mock()
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient = mock()
   private val locationValidator: LocationValidator = mock()
   private val prisonerSearchClient: PrisonerSearchClient = mock()
   private val additionalBookingDetailRepository: AdditionalBookingDetailRepository = mock()
-  private val appointmentsService = spy(AppointmentsService(prisonAppointmentRepository, prisonRepository, locationsInsidePrisonClient, locationValidator))
+  private val appointmentsService = spy(AppointmentsService(prisonAppointmentRepository, prisonRepository, locationValidator))
 
   private val service = AmendProbationBookingService(
     videoBookingRepository,
@@ -112,8 +110,7 @@ class AmendProbationBookingServiceTest {
     withBookingFixture(2, probationBooking)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationValidator.validatePrisonLocationId(BIRMINGHAM, birminghamLocation.id)) doReturn birminghamLocation
     whenever(additionalBookingDetailRepository.saveAndFlush(any<AdditionalBookingDetail>())) doReturn AdditionalBookingDetail.newDetails(probationBooking, "contact name", "contact@email.com", "07928 660553")
 
     val (booking, prisoner) = service.amend(2, probationBookingRequest, PROBATION_USER)
@@ -155,7 +152,7 @@ class AmendProbationBookingServiceTest {
       verify(videoBookingRepository).findById(2)
       verify(prisonerSearchClient).getPrisoner(prisonerNumber)
       verify(appointmentsService).amendAppointmentForProbation(probationBooking, probationBookingRequest.prisoners.single(), PROBATION_USER)
-      verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
+      verify(locationValidator).validatePrisonLocationId(BIRMINGHAM, birminghamLocation.id)
       verify(videoBookingRepository).saveAndFlush(probationBooking)
       verify(additionalBookingDetailRepository).findByVideoBooking(probationBooking)
       verify(additionalBookingDetailRepository).saveAndFlush(additionalBookingDetailCaptor.capture())
@@ -191,8 +188,7 @@ class AmendProbationBookingServiceTest {
     withBookingFixture(2, probationBooking)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationValidator.validatePrisonLocationId(BIRMINGHAM, birminghamLocation.id)) doReturn birminghamLocation
     whenever(additionalBookingDetailRepository.saveAndFlush(any<AdditionalBookingDetail>())) doReturn AdditionalBookingDetail.newDetails(probationBooking, "contact name", "contact@email.com", "07928 660553")
 
     val (booking, prisoner) = service.amend(2, probationBookingRequest, DELIUS_PROBATION_USER)
@@ -234,7 +230,7 @@ class AmendProbationBookingServiceTest {
       verify(videoBookingRepository).findById(2)
       verify(prisonerSearchClient).getPrisoner(prisonerNumber)
       verify(appointmentsService).amendAppointmentForProbation(probationBooking, probationBookingRequest.prisoners.single(), DELIUS_PROBATION_USER)
-      verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
+      verify(locationValidator).validatePrisonLocationId(BIRMINGHAM, birminghamLocation.id)
       verify(videoBookingRepository).saveAndFlush(probationBooking)
       verify(additionalBookingDetailRepository).findByVideoBooking(probationBooking)
       verify(additionalBookingDetailRepository).saveAndFlush(additionalBookingDetailCaptor.capture())
@@ -265,8 +261,7 @@ class AmendProbationBookingServiceTest {
     withBookingFixture(2, probationBooking)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
 
-    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationValidator.validatePrisonLocationId(BIRMINGHAM, birminghamLocation.id)) doReturn birminghamLocation
     whenever(additionalBookingDetailRepository.findByVideoBooking(probationBooking)) doReturn additionalBookingDetail
 
     val (booking, prisoner) = service.amend(2, probationBookingRequest, PROBATION_USER)
@@ -308,7 +303,7 @@ class AmendProbationBookingServiceTest {
     ) {
       verify(videoBookingRepository).findById(2)
       verify(prisonerSearchClient).getPrisoner(prisonerNumber)
-      verify(locationValidator).validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)
+      verify(locationValidator).validatePrisonLocationId(BIRMINGHAM, birminghamLocation.id)
       verify(videoBookingRepository).saveAndFlush(probationBooking)
       verify(additionalBookingDetailRepository).findByVideoBooking(probationBooking)
       verify(additionalBookingDetailRepository).delete(additionalBookingDetail)
@@ -336,13 +331,12 @@ class AmendProbationBookingServiceTest {
     val probationBooking = probationBooking().withProbationPrisonAppointment()
     withBookingFixture(2, probationBooking)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)
-    whenever(locationValidator.validatePrisonLocation(BIRMINGHAM, birminghamLocation.key)) doReturn birminghamLocation
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
+    whenever(locationValidator.validatePrisonLocationId(BIRMINGHAM, birminghamLocation.id)) doReturn birminghamLocation
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
 
     val error = assertThrows<IllegalArgumentException> { service.amend(2, probationBookingRequest, PROBATION_USER) }
 
-    error.message isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.key}"
+    error.message isEqualTo "Requested probation appointment overlaps with an existing appointment at location ${birminghamLocation.id}"
   }
 
   @Test
@@ -369,8 +363,6 @@ class AmendProbationBookingServiceTest {
     }
 
     withBookingFixture(2, probationBooking)
-    whenever(locationValidator.validatePrisonLocations(BIRMINGHAM, setOf(birminghamLocation.key))) doReturn listOf(birminghamLocation)
-    whenever(locationsInsidePrisonClient.getLocationByKey(birminghamLocation.key)) doReturn birminghamLocation
 
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsAtLocationOnDate(BIRMINGHAM, birminghamLocation.id, tomorrow())) doReturn listOf(overlappingAppointment)
     withPrisonPrisonerFixture(BIRMINGHAM, prisonerNumber)

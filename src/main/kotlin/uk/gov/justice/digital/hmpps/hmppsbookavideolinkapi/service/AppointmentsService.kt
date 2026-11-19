@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationValidator
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.Prison
@@ -19,12 +18,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonRepo
 class AppointmentsService(
   private val prisonAppointmentRepository: PrisonAppointmentRepository,
   private val prisonRepository: PrisonRepository,
-  private val locationsInsidePrisonClient: LocationsInsidePrisonClient,
   private val locationValidator: LocationValidator,
 ) {
   // TODO: Assumes one person per booking, so revisit for co-defendant cases
   fun createAppointmentsForCourt(videoBooking: VideoBooking, prisoner: PrisonerDetails, user: User) {
-    checkCourtAppointments(prisoner.appointments, prisoner.prisonCode, user)
+    checkCourtAppointments(prisoner.appointments, prisoner.prisonCode)
 
     // We don't need to do a check for non-prison users as this is covered by the overlapping appointment check.
     if (user is PrisonUser) {
@@ -35,9 +33,6 @@ class AppointmentsService(
       ?.also { it.rejectIfCannotSelfServeAtPrisonFor(user) }
       ?: throw EntityNotFoundException("Prison with code ${prisoner.prisonCode} not found")
 
-    // Can be removed once we are using IDs for locations instead of keys in UI requests
-    val locations = prisoner.appointments.mapNotNull { it.locationKey }.toSet().takeUnless { it.isEmpty() }?.let { locationsInsidePrisonClient.getLocationsByKeys(it) }
-
     // Add all appointments to the booking - they will be saved when the booking is saved
     prisoner.appointments.forEach {
       videoBooking.addAppointment(
@@ -47,17 +42,13 @@ class AppointmentsService(
         date = it.date,
         startTime = it.startTime,
         endTime = it.endTime,
-        locationId = it.dpsLocationId ?: locations?.single { location -> location.key == it.locationKey }?.id!!,
+        locationId = it.dpsLocationId,
       )
     }
   }
 
-  private fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String, user: User) {
-    appointments.mapNotNull { it.dpsLocationId }.takeUnless { it.isEmpty() }?.let { ids -> locationValidator.validatePrisonLocationIds(prisonCode, ids.toSet()) }
-
-    // Can be removed once we are using IDs for locations instead of keys in UI requests
-    appointments.mapNotNull { it.locationKey }.takeUnless { it.isEmpty() }?.let { keys -> locationValidator.validatePrisonLocations(prisonCode, keys.toSet()) }
-
+  private fun checkCourtAppointments(appointments: List<Appointment>, prisonCode: String) {
+    appointments.map { it.dpsLocationId }.let { ids -> locationValidator.validatePrisonLocationIds(prisonCode, ids.toSet()) }
     appointments.checkCourtAppointmentTypesOnly()
     appointments.checkSuppliedCourtAppointmentDateAndTimesDoNotOverlap()
   }
@@ -118,8 +109,7 @@ class AppointmentsService(
         date = this.date,
         startTime = this.startTime,
         endTime = this.endTime,
-        // Call to location service can be removed once we are using IDs for locations instead of keys in UI requests
-        locationId = dpsLocationId ?: locationsInsidePrisonClient.getLocationByKey(this.locationKey!!)!!.id,
+        locationId = dpsLocationId,
       )
     }
   }
@@ -134,7 +124,7 @@ class AppointmentsService(
         "Appointment type $type is not valid for probation appointments"
       }
 
-      val location = this.dpsLocationId?.let { locationValidator.validatePrisonLocationId(prisonCode, it) } ?: locationValidator.validatePrisonLocation(prisonCode, this.locationKey!!)
+      val location = locationValidator.validatePrisonLocationId(prisonCode, this.dpsLocationId)
 
       // Prison users can have overlapping appointments
       if (user !is PrisonUser) {
@@ -151,10 +141,7 @@ class AppointmentsService(
       originalAppointment.appointmentDate == updatedAppointment.date &&
         originalAppointment.startTime == updatedAppointment.startTime &&
         originalAppointment.endTime == updatedAppointment.endTime &&
-        (
-          (updatedAppointment.dpsLocationId != null && originalAppointment.prisonLocationId == updatedAppointment.dpsLocationId) ||
-            (updatedAppointment.locationKey != null && originalAppointment.prisonLocationId == locationsInsidePrisonClient.getLocationByKey(updatedAppointment.locationKey)?.id)
-          )
+        originalAppointment.prisonLocationId == updatedAppointment.dpsLocationId
       ).not()
   }
 
@@ -167,7 +154,7 @@ class AppointmentsService(
         date = appointment.date,
         startTime = appointment.startTime,
         endTime = appointment.endTime,
-        prisonLocationId = appointment.dpsLocationId ?: locationsInsidePrisonClient.getLocationByKey(appointment.locationKey!!)!!.id,
+        prisonLocationId = appointment.dpsLocationId,
       )
     ) {
       throw IllegalArgumentException("Duplicate appointment requested for prisoner $prisonerNumber")
@@ -188,7 +175,7 @@ class AppointmentsService(
           existingAppointment.endTime,
         ),
       ) {
-        "Requested probation appointment overlaps with an existing appointment at location $locationKey"
+        "Requested probation appointment overlaps with an existing appointment at location $dpsLocationId"
       }
     }
   }

@@ -49,19 +49,16 @@ class BookedLocationsService(
     date: LocalDate,
     locations: Collection<Location>,
     existingAppointments: List<PrisonAppointment>,
-  ): BookedLocations {
-    val nomisToDpsLocations = nomisMappingClient.getNomisLocationMappingsBy(DpsLocationsIds(locations.map(Location::dpsLocationId)))
-      .associate { it.nomisLocationId to it.dpsLocationId }
-
+  ): BookedLocations = run {
     return when (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
-      true -> activitiesAppointmentsClient.getScheduledAppointments(prisonCode, date, nomisToDpsLocations.keys)
+      true -> activitiesAppointmentsClient.getScheduledAppointments(prisonCode, date, locations.map(Location::dpsLocationId).toSet())
         // Do not consider cancelled appointments
         .filterNot { it.isCancelled }
         .mapNotNull { result ->
-          // Only include if result does not match existing BVLS appointment
+          // Only include it if a result does not match an existing BVLS appointment
           if (existingAppointments.none { existing -> result.matches(existing) }) {
             BookedLocation(
-              locations.single { l -> l.dpsLocationId == nomisToDpsLocations[result.internalLocation!!.id] },
+              locations.single { l -> l.dpsLocationId == result.internalLocation?.dpsLocationId },
               startTime = LocalTime.parse(result.startTime),
               endTime = LocalTime.parse(result.endTime),
             )
@@ -71,21 +68,27 @@ class BookedLocationsService(
         }
         .let { BookedLocations(it) }
 
-      false -> prisonApiClient.getScheduledAppointments(prisonCode, date, nomisToDpsLocations.keys)
-        .filterNot { it.eventStatus == "CANC" }
-        .mapNotNull { result ->
-          // Only include if result does not match existing BVLS appointment
-          if (existingAppointments.none { existing -> result.matches(existing) }) {
-            BookedLocation(
-              locations.single { l -> l.dpsLocationId == nomisToDpsLocations[result.locationId] },
-              startTime = result.startTime.toLocalTime(),
-              endTime = result.endTime!!.toLocalTime(),
-            )
-          } else {
-            null
+      false -> {
+        // TODO remove usage of prison API/client.
+        val nomisToDpsLocations = nomisMappingClient.getNomisLocationMappingsBy(DpsLocationsIds(locations.map(Location::dpsLocationId).toSet()))
+          .associate { it.nomisLocationId to it.dpsLocationId }
+
+        prisonApiClient.getScheduledAppointments(prisonCode, date, nomisToDpsLocations.keys)
+          .filterNot { it.eventStatus == "CANC" }
+          .mapNotNull { result ->
+            // Only include it if a result does not match an existing BVLS appointment
+            if (existingAppointments.none { existing -> result.matches(existing) }) {
+              BookedLocation(
+                locations.single { l -> l.dpsLocationId == nomisToDpsLocations[result.locationId] },
+                startTime = result.startTime.toLocalTime(),
+                endTime = result.endTime!!.toLocalTime(),
+              )
+            } else {
+              null
+            }
           }
-        }
-        .let { BookedLocations(it) }
+          .let { BookedLocations(it) }
+      }
     }
   }
 

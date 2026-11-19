@@ -21,61 +21,32 @@ class AvailabilityFinderService(
 ) {
 
   fun getOptions(request: AvailabilityRequest, appointments: List<AppointmentSlot>, locations: List<Location>): AvailabilityResponse {
-    // Create a Map of <PrisonLocKey, Timeline> from the existing appointments - so we can check and find gaps
-    val timelinesByLocationKey = timelinesByLocationKey(appointments, locations)
+    // Create a Map of <LocationId, Timeline> from the existing appointments - so we can check and find gaps
     val timelinesByLocationId = timelinesByLocationId(appointments, locations)
 
     // Convert the requested times into a booking option object
     val preferredOption = BookingOption.from(request)
 
-    var alternatives: Sequence<BookingOption>
-
-    if (request.mainAppointment.dpsLocationId != null) {
-      // If the preferred option (requested times) is available, return ok with no alternatives
-      if (optionIsBookableById(preferredOption, timelinesByLocationId)) {
-        return AvailabilityResponse(availabilityOk = true, alternatives = emptyList())
-      }
-
-      // Find upto the maximum number of alternative booking times for these rooms
-      alternatives = availabilityOptionsGenerator
-        .getOptionsInPreferredOrder(preferredOption)
-        .filter { optionIsBookableById(it, timelinesByLocationId) }
-        .take(maxAlternatives)
-        .sortedBy { it.main.interval.start }
-    } else {
-      // If the preferred option (requested times) is available, return ok with no alternatives
-      if (optionIsBookableByKey(preferredOption, timelinesByLocationKey)) {
-        return AvailabilityResponse(availabilityOk = true, alternatives = emptyList())
-      }
-
-      // Find upto the maximum number of alternative booking times for these rooms
-      alternatives = availabilityOptionsGenerator
-        .getOptionsInPreferredOrder(preferredOption)
-        .filter { optionIsBookableByKey(it, timelinesByLocationKey) }
-        .take(maxAlternatives)
-        .sortedBy { it.main.interval.start }
+    // If the preferred option (requested times) is available, return ok with no alternatives
+    if (optionIsBookableById(preferredOption, timelinesByLocationId)) {
+      return AvailabilityResponse(availabilityOk = true, alternatives = emptyList())
     }
+
+    // Find up to the maximum number of alternative booking times for these rooms
+    val alternatives: Sequence<BookingOption> = availabilityOptionsGenerator
+      .getOptionsInPreferredOrder(preferredOption)
+      .filter { optionIsBookableById(it, timelinesByLocationId) }
+      .take(maxAlternatives)
+      .sortedBy { it.main.interval.start }
 
     // Return the alternatives
     return AvailabilityResponse(availabilityOk = false, alternatives = alternatives.toList())
   }
 
   companion object {
-
-    @Deprecated(message = "Use timelinesByLocationId instead", replaceWith = ReplaceWith("timelinesByLocationId(slots, locations)"))
-    fun optionIsBookableByKey(option: BookingOption, timelinesByLocationId: Map<String, Timeline>) = option
-      .toLocationsAndIntervals()
-      .all { timelinesByLocationId[it.prisonLocKey]?.isFreeForInterval(it.interval) ?: true }
-
     fun optionIsBookableById(option: BookingOption, timelinesByLocationId: Map<UUID, Timeline>) = option
       .toLocationsAndIntervals()
       .all { timelinesByLocationId[it.dpsLocationId]?.isFreeForInterval(it.interval) ?: true }
-
-    @Deprecated(message = "Use timelinesByLocationId instead", replaceWith = ReplaceWith("timelinesByLocationId(slots, locations)"))
-    fun timelinesByLocationKey(slots: List<AppointmentSlot>, locations: List<Location>): Map<String, Timeline> = slots
-      .groupBy { a -> locations.single { it.id == a.prisonLocationId }.key }
-      .mapValues { (_, appointments) -> appointments.flatMap(Companion::toEvents) }
-      .mapValues { Timeline(it.value) }
 
     fun timelinesByLocationId(slots: List<AppointmentSlot>, locations: List<Location>): Map<UUID, Timeline> = slots
       .groupBy { a -> locations.single { it.id == a.prisonLocationId }.id }
@@ -151,14 +122,6 @@ class Timeline(events: List<Event>) {
 
     // Handle the end of day
     updateStateForPreviousEventTime()
-  }
-
-  /**
-   * A List of pairs of start and end times representing the free periods.  Ordered by start time ascending.
-   * Used for testing only.
-   */
-  fun emptyPeriods() = emptyPeriods.navigableKeySet().map {
-    Pair(it, emptyPeriods[it])
   }
 
   /**

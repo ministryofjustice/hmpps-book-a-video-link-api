@@ -27,20 +27,6 @@ class LocationsInsidePrisonClientTest {
   }
 
   @Test
-  fun `should get matching location by key`() {
-    server.stubGetLocationByKey(location(WANDSWORTH, locationKeySuffix = "A-1-001"))
-
-    client.getLocationByKey(locationKey)!!.key isEqualTo locationKey
-  }
-
-  @Test
-  fun `should get matching location by list of keys`() {
-    server.stubPostLocationByKeys(listOf(LocationKeyValue(locationKey, locationId)))
-
-    client.getLocationsByKeys(setOf(locationKey)).single().key isEqualTo locationKey
-  }
-
-  @Test
   fun `should return video link locations`() {
     server.stubVideoLinkLocationsAtPrison(listOf(LocationKeyValue(wandsworthLocation.key, locationId)), leafLevel = true)
     client.getVideoLinkLocationsAtPrison(WANDSWORTH).single().key isEqualTo wandsworthLocation.key

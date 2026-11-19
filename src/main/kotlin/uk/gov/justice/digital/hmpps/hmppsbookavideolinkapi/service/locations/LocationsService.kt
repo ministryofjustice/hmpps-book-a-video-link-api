@@ -32,10 +32,4 @@ class LocationsService(
    */
   fun getLocationById(id: UUID) = locationsInsidePrisonClient.getLocationById(id)
     ?.let { location -> locationAttributeRepository.findByDpsLocationId(id).let { attributes -> location.toModel(attributes?.toRoomAttributes()) } }
-
-  /**
-   * Will also include room attributes if there are any.
-   */
-  fun getLocationByKey(key: String) = locationsInsidePrisonClient.getLocationByKey(key)
-    ?.let { location -> locationAttributeRepository.findByDpsLocationId(location.id).let { attributes -> location.toModel(attributes?.toRoomAttributes()) } }
 }
