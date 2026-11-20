@@ -11,7 +11,6 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.Email
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.TestEmailConfiguration
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.LocationStatus
@@ -63,9 +62,6 @@ class JobTriggerIntegrationTest : IntegrationTestBase() {
 
   @MockitoBean
   private lateinit var outboundEventsPublisher: OutboundEventsPublisher
-
-  @MockitoBean
-  private lateinit var nomisMappingClient: NomisMappingClient
 
   @Autowired
   private lateinit var videoBookingRepository: VideoBookingRepository

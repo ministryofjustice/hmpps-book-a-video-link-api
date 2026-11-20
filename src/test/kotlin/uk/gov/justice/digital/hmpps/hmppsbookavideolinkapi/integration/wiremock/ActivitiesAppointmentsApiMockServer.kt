@@ -16,10 +16,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toIsoDateTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -102,64 +100,6 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
                 ),
               ),
             )
-            .withStatus(201),
-        ),
-    )
-  }
-
-  fun stubGetPrisonersAppointments(
-    prisonCode: String,
-    prisonerNumber: String,
-    date: LocalDate,
-    appointmentType: SupportedAppointmentTypes.Type = SupportedAppointmentTypes.Type.COURT,
-    locationIds: Set<Long> = setOf(-1),
-  ) {
-    val appointments = locationIds.map { locationId ->
-      AppointmentSearchResult(
-        appointmentType = AppointmentSearchResult.AppointmentType.INDIVIDUAL,
-        startDate = date,
-        startTime = date.atStartOfDay().toIsoDateTime(),
-        endTime = date.atStartOfDay().plusHours(1).toIsoDateTime(),
-        isCancelled = false,
-        isExpired = false,
-        isEdited = false,
-        appointmentId = 1,
-        appointmentSeriesId = 1,
-        appointmentName = "appointment name",
-        attendees = listOf(AppointmentAttendeeSearchResult(1, prisonerNumber, 1)),
-        category = AppointmentCategorySummary(appointmentType.code, appointmentType.name),
-        inCell = false,
-        isRepeat = false,
-        maxSequenceNumber = 1,
-        prisonCode = prisonCode,
-        sequenceNumber = 1,
-        internalLocation = AppointmentLocationSummary(locationId, prisonCode, "VIDEO LINK"),
-        timeSlot = AppointmentSearchResult.TimeSlot.AM,
-        createdTime = LocalDateTime.now(),
-        isDeleted = false,
-        customName = null,
-        updatedTime = null,
-        cancelledTime = null,
-        cancelledBy = null,
-      )
-    }
-
-    stubFor(
-      post("/appointments/$prisonCode/search")
-        .withRequestBody(
-          WireMock.equalToJson(
-            mapper.writeValueAsString(
-              AppointmentSearchRequest(
-                startDate = date,
-                prisonerNumbers = listOf(prisonerNumber),
-              ),
-            ),
-          ),
-        )
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(appointments))
             .withStatus(201),
         ),
     )
@@ -271,28 +211,6 @@ class ActivitiesAppointmentsApiMockServer : MockServer(8089) {
             .withHeader("Content-Type", "application/json")
             .withBody(mapper.writeValueAsString(appointments))
             .withStatus(201),
-        ),
-    )
-  }
-
-  fun stubGetRolledOutPrison(prisonCode: String, isLive: Boolean) {
-    stubFor(
-      WireMock.get("/rollout/$prisonCode")
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              mapper.writeValueAsString(
-                RolloutPrisonPlan(
-                  prisonCode = prisonCode,
-                  activitiesRolledOut = true,
-                  appointmentsRolledOut = true,
-                  maxDaysToExpiry = 1,
-                  prisonLive = isLive,
-                ),
-              ),
-            )
-            .withStatus(200),
         ),
     )
   }

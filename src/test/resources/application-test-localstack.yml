@@ -26,8 +26,6 @@ api:
       locations-inside-prison: http://localhost:8091
       prisoner-search: http://localhost:8092
       manage-users: http://localhost:8093
-      prison-api:  http://localhost:8094
-      nomis-mapping: http://localhost:8096
       official-visits: http://localhost:8097
 
 hmpps.sqs:

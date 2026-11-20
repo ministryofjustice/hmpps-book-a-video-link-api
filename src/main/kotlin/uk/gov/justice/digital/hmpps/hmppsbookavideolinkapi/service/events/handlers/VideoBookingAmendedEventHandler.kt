@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ActivitiesAndAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.ManageExternalAppointmentsService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.VideoBookingAmendedEvent
 import kotlin.math.abs
@@ -18,7 +17,6 @@ class VideoBookingAmendedEventHandler(
   private val videoBookingRepository: VideoBookingRepository,
   private val bookingHistoryService: BookingHistoryService,
   private val manageExternalAppointmentsService: ManageExternalAppointmentsService,
-  private val activitiesService: ActivitiesAndAppointmentsService,
 ) : DomainEventHandler<VideoBookingAmendedEvent> {
 
   companion object {
@@ -49,42 +47,35 @@ class VideoBookingAmendedEventHandler(
               }
             }
 
-          if (activitiesService.isAppointmentsRolledOutAt(amendedBooking.prisonCode())) {
-            when (amendedBooking.bookingType) {
-              BookingType.COURT -> {
-                val (previousPreHearing, amendedPreHearing) = oldBooking.preHearing() to amendedBooking.preHearing()
-                val (previousMainHearing, amendedMainHearing) = oldBooking.mainHearing() to amendedBooking.mainHearing()!!
-                val (previousPostHearing, amendedPostHearing) = oldBooking.postHearing() to amendedBooking.postHearing()
+          when (amendedBooking.bookingType) {
+            BookingType.COURT -> {
+              val (previousPreHearing, amendedPreHearing) = oldBooking.preHearing() to amendedBooking.preHearing()
+              val (previousMainHearing, amendedMainHearing) = oldBooking.mainHearing() to amendedBooking.mainHearing()!!
+              val (previousPostHearing, amendedPostHearing) = oldBooking.postHearing() to amendedBooking.postHearing()
 
-                // All cancellations must be done first
-                cancelIfRemoved(previousPreHearing, amendedPreHearing)
-                cancelIfRemoved(previousPostHearing, amendedPostHearing)
+              // All cancellations must be done first
+              cancelIfRemoved(previousPreHearing, amendedPreHearing)
+              cancelIfRemoved(previousPostHearing, amendedPostHearing)
 
-                if (amendedMainHearing.isTheSameAs(previousMainHearing)) {
+              if (amendedMainHearing.isTheSameAs(previousMainHearing)) {
+                amendedPreHearing?.run { createOrAmend(previousPreHearing, amendedPreHearing) }
+                amendedPostHearing?.run { createOrAmend(previousPostHearing, amendedPostHearing) }
+              } else {
+                // The order in which appointments are created or amended depends on if the booking is now earlier or
+                // later. If the main hearing is now earlier then we process pre, main and then post.
+                // If the main hearing is now later (or longer) than before then we process post, main and then pre.
+                if (amendedMainHearing.isEarlierThanBefore(previousMainHearing)) {
                   amendedPreHearing?.run { createOrAmend(previousPreHearing, amendedPreHearing) }
+                  amendIfNotTheSame(previousMainHearing, amendedMainHearing)
                   amendedPostHearing?.run { createOrAmend(previousPostHearing, amendedPostHearing) }
                 } else {
-                  // The order in which appointments are created or amended depends on if the booking is now earlier or
-                  // later. If the main hearing is now earlier then we process pre, main and then post.
-                  // If the main hearing is now later (or longer) than before then we process post, main and then pre.
-                  if (amendedMainHearing.isEarlierThanBefore(previousMainHearing)) {
-                    amendedPreHearing?.run { createOrAmend(previousPreHearing, amendedPreHearing) }
-                    amendIfNotTheSame(previousMainHearing, amendedMainHearing)
-                    amendedPostHearing?.run { createOrAmend(previousPostHearing, amendedPostHearing) }
-                  } else {
-                    amendedPostHearing?.run { createOrAmend(previousPostHearing, amendedPostHearing) }
-                    amendIfNotTheSame(previousMainHearing, amendedMainHearing)
-                    amendedPreHearing?.run { createOrAmend(previousPreHearing, amendedPreHearing) }
-                  }
+                  amendedPostHearing?.run { createOrAmend(previousPostHearing, amendedPostHearing) }
+                  amendIfNotTheSame(previousMainHearing, amendedMainHearing)
+                  amendedPreHearing?.run { createOrAmend(previousPreHearing, amendedPreHearing) }
                 }
               }
-              BookingType.PROBATION -> amendIfNotTheSame(oldBooking.probationMeeting(), amendedBooking.probationMeeting()!!)
             }
-          } else {
-            // All cancellations must be done first so as not to interfere with new appointments
-            // There is no ability to amend appointments for non-rolled out prisons so we have to cancel and create
-            oldBooking.appointments().forEach(manageExternalAppointmentsService::cancelPreviousAppointment)
-            amendedBooking.appointments().forEach(manageExternalAppointmentsService::createAppointment)
+            BookingType.PROBATION -> amendIfNotTheSame(oldBooking.probationMeeting(), amendedBooking.probationMeeting()!!)
           }
 
           log.info("Processed BOOKING_AMENDED event for videoBookingId ${amendedBooking.videoBookingId}")

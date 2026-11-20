@@ -18,10 +18,10 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.today
 import java.time.LocalDate
 import java.time.LocalTime
 
-class ReplacementExternalAppointmentsServiceTest {
+class ExternalAppointmentsServiceTest {
   private val appointmentsClient: ActivitiesAppointmentsClient = mock()
   private val appointmentTypes: SupportedAppointmentTypes = mock()
-  private val service = ReplacementExternalAppointmentsService(appointmentsClient, appointmentTypes)
+  private val service = ExternalAppointmentsService(appointmentsClient, appointmentTypes)
   private val scheduledAppointment1 = appointmentSearchResult(
     pentonvillePrisoner,
     pentonvilleLocation,
@@ -156,9 +156,9 @@ class ReplacementExternalAppointmentsServiceTest {
       .hasEndTime(LocalTime.of(11, 0))
   }
 
-  private fun ReplacementExternalAppointmentsService.ExternalAppointmentSlot.hasLocation(location: Location) = also { prisonLocationId isEqualTo location.id }
-  private fun ReplacementExternalAppointmentsService.ExternalAppointmentSlot.hasPrisoner(prisoner: Prisoner) = also { prisonerNumber isEqualTo prisoner.number }
-  private fun ReplacementExternalAppointmentsService.ExternalAppointmentSlot.hasAppointmentDate(date: LocalDate) = also { appointmentDate isEqualTo date }
-  private fun ReplacementExternalAppointmentsService.ExternalAppointmentSlot.hasStartTime(startTime: LocalTime) = also { startTime isEqualTo startTime }
-  private fun ReplacementExternalAppointmentsService.ExternalAppointmentSlot.hasEndTime(endTime: LocalTime) = also { endTime isEqualTo endTime }
+  private fun ExternalAppointmentsService.ExternalAppointmentSlot.hasLocation(location: Location) = also { prisonLocationId isEqualTo location.id }
+  private fun ExternalAppointmentsService.ExternalAppointmentSlot.hasPrisoner(prisoner: Prisoner) = also { prisonerNumber isEqualTo prisoner.number }
+  private fun ExternalAppointmentsService.ExternalAppointmentSlot.hasAppointmentDate(date: LocalDate) = also { appointmentDate isEqualTo date }
+  private fun ExternalAppointmentsService.ExternalAppointmentSlot.hasStartTime(startTime: LocalTime) = also { startTime isEqualTo startTime }
+  private fun ExternalAppointmentsService.ExternalAppointmentSlot.hasEndTime(endTime: LocalTime) = also { endTime isEqualTo endTime }
 }

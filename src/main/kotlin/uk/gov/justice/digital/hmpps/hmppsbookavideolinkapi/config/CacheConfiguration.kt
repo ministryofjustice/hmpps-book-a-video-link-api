@@ -24,7 +24,6 @@ class CacheConfiguration {
     const val NON_RESIDENTIAL_LOCATIONS_CACHE_NAME: String = "non_residential_locations"
     const val LOCATION_BY_ID_CACHE_NAME: String = "location_by_id"
     const val PROBATION_TEAMS_CACHE = "probation_team"
-    const val ROLLED_OUT_PRISONS_CACHE_NAME = "rolled_out_prisons"
     const val VIDEO_LINK_LOCATIONS_CACHE_NAME: String = "video_link_locations"
 
     const val TWO = 2L
@@ -39,7 +38,6 @@ class CacheConfiguration {
     NOMIS_MAPPING_CACHE_NAME,
     NON_RESIDENTIAL_LOCATIONS_CACHE_NAME,
     PROBATION_TEAMS_CACHE,
-    ROLLED_OUT_PRISONS_CACHE_NAME,
     VIDEO_LINK_LOCATIONS_CACHE_NAME,
   )
 
@@ -53,12 +51,6 @@ class CacheConfiguration {
   @Scheduled(fixedDelay = FIVE, timeUnit = TimeUnit.MINUTES)
   fun cacheEvictNonResidentialLocations() {
     log.info("Evicting cache: $NON_RESIDENTIAL_LOCATIONS_CACHE_NAME after $FIVE mins")
-  }
-
-  @CacheEvict(value = [ROLLED_OUT_PRISONS_CACHE_NAME], allEntries = true)
-  @Scheduled(fixedDelay = FIVE, timeUnit = TimeUnit.MINUTES)
-  fun cacheEvictRolledOutPrisons() {
-    log.info("Evicting cache: $ROLLED_OUT_PRISONS_CACHE_NAME after $FIVE mins")
   }
 
   @CacheEvict(value = [NOMIS_MAPPING_CACHE_NAME], allEntries = true)

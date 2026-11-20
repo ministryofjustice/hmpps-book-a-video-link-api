@@ -12,12 +12,13 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentCategorySummary
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentLocationSummary
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model.Location
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PRISON_USER_BIRMINGHAM
+import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.birminghamLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.courtBooking
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
@@ -35,7 +36,7 @@ class ActivitiesAndAppointmentsServiceTest {
   private val supportedAppointmentTypes = SupportedAppointmentTypes()
   private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, supportedAppointmentTypes)
 
-  private val birminghamNomisLocation = Location(locationId = 123456, locationType = VLB, "VIDEO LINK", BIRMINGHAM)
+  private val birminghamNomisLocation = birminghamLocation
   private val courtBookingByCourt = courtBooking().withMainCourtPrisonAppointment()
   private val probationBookingByProbationTeam = probationBooking().withProbationPrisonAppointment()
 
@@ -250,9 +251,10 @@ class ActivitiesAndAppointmentsServiceTest {
       prisonCode = appointment.prisonCode(),
       sequenceNumber = 1,
       internalLocation = AppointmentLocationSummary(
-        location.locationId,
+        1,
         appointment.prisonCode(),
         "VIDEO LINK",
+        location.id,
       ),
       timeSlot = AppointmentSearchResult.TimeSlot.AM,
       createdTime = LocalDateTime.now(),

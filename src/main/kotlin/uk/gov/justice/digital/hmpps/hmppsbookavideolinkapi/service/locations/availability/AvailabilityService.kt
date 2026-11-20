@@ -5,9 +5,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.LocationsInsidePrisonClient
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.locationsinsideprison.model.Location
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.AppointmentSlot
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.BookingType.PROBATION
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -21,7 +18,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.response.Availa
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
 import java.time.LocalDate
-import java.time.LocalTime
 import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 
@@ -112,12 +108,12 @@ class AvailabilityService(
       forLocationIds = requestedLocations.map { it.id },
     ).partition { vlb -> vlb.videoBookingId != request.vlbIdToExclude }
 
-    // Build list of AppointmentSlot for all external non-VLB appointments from NOMIS in these locations on this date
+    // Build list of AppointmentSlot for all external non-VLB appointments for these locations on this date
     val externalAppointmentSlotsToInclude: List<AppointmentSlot> =
       requestedLocations
         .flatMap { externalAppointmentsService.getAppointmentSlots(request.prisonCode, request.date, it.id) }
         .filterNot { external ->
-          // We can only match on these values, there is no direct match between a BVLS appointment and what is in NOMIS
+          // We can only match on these values, there is no direct match between a BVLS appointment and what is in the external service.
           appointmentsToExclude.any { internal ->
             internal.prisonerNumber == external.prisonerNumber &&
               internal.appointmentDate == external.appointmentDate &&
@@ -172,41 +168,4 @@ class AvailabilityService(
   }
 
   private fun PrisonAppointment.dateTimeAndLocationIsTheSame(date: LocalDate?, interval: Interval?, location: Location?) = this.appointmentDate == date && this.startTime == interval?.start && this.endTime == interval.end && this.prisonLocationId == location?.id
-}
-
-@Deprecated(
-  "Use ReplacementExternalAppointmentsService instead",
-  replaceWith = ReplaceWith(
-    "ReplacementExternalAppointmentsService",
-    imports = ["uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.locations.availability.ReplacementExternalAppointmentsService"],
-  ),
-)
-@Service
-class ExternalAppointmentsService(
-  private val prisonApiClient: PrisonApiClient,
-  private val nomisMappingClient: NomisMappingClient,
-  private val supportedAppointmentTypes: SupportedAppointmentTypes,
-) {
-  /**
-   * Get the prison appointments on a date at a specific internal location ID in the prison
-   * - filter any prison API appointments that are cancelled
-   * - filter any appointments where the end-time is null (we cannot infer the duration)
-   * - filter any BVLS-mastered appointment types as these will be retrieved from BVLS itself for checking.
-   */
-  // TODO this needs to call A&A and not prison-api (for NOMIS exit).
-  fun getAppointmentSlots(prisonCode: String, date: LocalDate, location: UUID) = nomisMappingClient.getNomisLocationMappingBy(location)
-    ?.let { prisonApiClient.getScheduledAppointments(prisonCode, date, it.nomisLocationId) }
-    ?.filterNot { it.eventStatus == "CANC" }
-    ?.filter { it.endTime != null }
-    ?.filterNot { supportedAppointmentTypes.isSupported(it.appointmentTypeCode) }
-    ?.map { ExternalAppointmentSlot(location, it.offenderNo, it.startTime.toLocalDate(), it.startTime.toLocalTime(), it.endTime!!.toLocalTime()) }
-    ?: emptyList()
-
-  class ExternalAppointmentSlot(
-    override val prisonLocationId: UUID,
-    override val prisonerNumber: String,
-    override val appointmentDate: LocalDate,
-    override val startTime: LocalTime,
-    override val endTime: LocalTime,
-  ) : AppointmentSlot
 }

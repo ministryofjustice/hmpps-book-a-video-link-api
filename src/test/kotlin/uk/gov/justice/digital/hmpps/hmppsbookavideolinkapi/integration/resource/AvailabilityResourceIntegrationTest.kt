@@ -203,7 +203,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should find 16 available times in the morning for room 1 by time slot when nothing booked tomorrow`() {
-    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
     locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
 
     // A room must be decorated in availability checks - the default for undecorated rooms is AvailabilityStatus.NONE.
@@ -236,7 +235,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should find no available times in the morning if room is blocked`() {
-    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
     locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation)
     locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
 
@@ -270,7 +268,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should find two available room by date and time when nothing booked tomorrow`() {
-    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
     locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
     locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
     locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)
@@ -317,7 +314,6 @@ class AvailabilityResourceIntegrationTest : IntegrationTestBase() {
 
   @Test
   fun `should find one available room by date and time when one room is blocked and nothing booked tomorrow`() {
-    activitiesAppointmentsApi().stubGetRolledOutPrison(RISLEY, true)
     locationsInsidePrisonApi().stubVideoLinkLocationsAtPrison(RISLEY, risleyLocation, risleyLocation2)
     locationsInsidePrisonApi().stubGetLocationById(risleyLocation)
     locationsInsidePrisonApi().stubGetLocationById(risleyLocation2)

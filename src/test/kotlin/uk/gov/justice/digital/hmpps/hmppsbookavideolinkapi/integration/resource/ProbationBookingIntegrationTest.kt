@@ -180,10 +180,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should create a 56-day fixed term recall (FTR56) probation booking using the VLPM appointment type`() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
-    prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
-    activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
     val bookingId = webTestClient.createBooking(ftr56ProbationBookingRequest, PROBATION_USER)
 
@@ -249,10 +246,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should amend a recall report probation booking using the VLPM appointment type`() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
-    prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
-    activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
     val bookingId = webTestClient.createBooking(rrProbationBookingRequest, DELIUS_PROBATION_USER)
 
@@ -310,7 +304,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .also { it.appointments() hasSize 1 }
 
     activitiesAppointmentsClient.stub {
-      on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true
       on { getPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "123456", onDate = tomorrow(), birminghamLocation.id) } doReturn listOf(
         appointmentSearchResult(date = tomorrow(), startTime = LocalTime.of(11, 0), endTime = LocalTime.of(12, 30), prisonCode = BIRMINGHAM, prisonerNumber = "123456", locationId = 1, appointmentType = SupportedAppointmentTypes.Type.PROBATION),
       )
@@ -394,10 +387,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should remove existing details on probation booking using the VLPM appointment type`() {
     prisonSearchApi().stubGetPrisoner("654321", BIRMINGHAM)
-    nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
-    prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
-    activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
     val bookingId = webTestClient.createBooking(otherProbationBookingRequest, PROBATION_USER)
 
@@ -460,7 +450,6 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
       .also { it.contactNumber isEqualTo null }
 
     activitiesAppointmentsClient.stub {
-      on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true
       on { getPrisonersAppointments(prisonCode = BIRMINGHAM, prisonerNumber = "654321", onDate = tomorrow(), birminghamLocation.id) } doReturn listOf(
         appointmentSearchResult(date = tomorrow(), startTime = LocalTime.of(14, 0), endTime = LocalTime.of(15, 30), prisonCode = BIRMINGHAM, prisonerNumber = "654321", locationId = 1, appointmentType = SupportedAppointmentTypes.Type.PROBATION),
       )
@@ -535,10 +524,7 @@ class ProbationBookingIntegrationTest : SqsIntegrationTestBase() {
   @Test
   fun `should create a probation booking for team not listed`() {
     prisonSearchApi().stubGetPrisoner("123456", BIRMINGHAM)
-    nomisMappingApi().stubGetNomisLocationMappingBy(birminghamLocation, 1)
     locationsInsidePrisonApi().stubGetLocationById(birminghamLocation)
-    prisonApi().stubGetScheduledAppointments(BIRMINGHAM, tomorrow(), 1)
-    activitiesAppointmentsClient.stub { on { isAppointmentsRolledOutAt(BIRMINGHAM) } doReturn true }
 
     val bookingId = webTestClient.createBooking(teamNotListedProbationBookingRequest, PRISON_USER_BIRMINGHAM)
 
