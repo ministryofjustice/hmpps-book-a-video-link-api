@@ -114,7 +114,6 @@ class VideoEventsByLocationServiceTest {
 
   @Test
   fun `should return a list of video locations even when no video events exist in any of them`() {
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)).thenReturn(true)
     whenever(activitiesAppointmentsClient.getScheduledAppointmentsBetween(prisonCode, now(), now())).thenReturn(emptyList())
     whenever(prisonAppointmentRepository.findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())).thenReturn(emptyList())
     whenever(locationsService.getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)).thenReturn(
@@ -136,7 +135,6 @@ class VideoEventsByLocationServiceTest {
     }
 
     verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
-    verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
 
@@ -144,57 +142,7 @@ class VideoEventsByLocationServiceTest {
   }
 
   @Test
-  fun `should not return appointments if A&A is switched off and only return BVLS video bookings`() {
-    val bvlsAppointment1 = probationBooking()
-      .withProbationPrisonAppointment(
-        date = now(),
-        prisonCode = prisonCode,
-        location = pentonvilleLocation.copy(id = videoLocation1.dpsLocationId),
-        startTime = LocalTime.of(10, 0),
-        endTime = LocalTime.of(11, 0),
-      )
-      .appointments()
-      .first()
-
-    val bvlsAppointment2 = courtBooking()
-      .withMainCourtPrisonAppointment(
-        date = now(),
-        prisonCode = prisonCode,
-        location = pentonvilleLocation.copy(id = videoLocation2.dpsLocationId),
-        startTime = LocalTime.of(11, 0),
-        endTime = LocalTime.of(12, 0),
-      )
-      .appointments()
-      .first()
-
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)).thenReturn(false)
-    whenever(prisonAppointmentRepository.findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())).thenReturn(
-      listOf(bvlsAppointment1, bvlsAppointment2),
-    )
-    whenever(locationsService.getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)).thenReturn(
-      listOf(videoLocation1, videoLocation2, videoLocation3),
-    )
-
-    val response = service.videoEventsByLocation(PENTONVILLE, VideoEventRequest(now(), now()))
-
-    assertThat(response.locations).hasSize(3)
-
-    assertThat(response.locations[0].events).hasSize(1)
-    assertThat(response.locations[1].events).hasSize(1)
-    assertThat(response.locations[2].events).isEmpty()
-
-    verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
-    verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
-    verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
-    verify(referenceCodeRepository).findByProbationMeetingType(ProbationMeetingType.PSR.name)
-    verify(referenceCodeRepository).findByCourtHearingType(CourtHearingType.TRIBUNAL.name)
-
-    verifyNoMoreInteractions(activitiesAppointmentsClient, prisonAppointmentRepository, locationsService, referenceCodeRepository)
-  }
-
-  @Test
   fun `should return locations and video appointments`() {
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)).thenReturn(true)
     whenever(activitiesAppointmentsClient.getScheduledAppointmentsBetween(prisonCode, now(), now())).thenReturn(
       listOf(
         appointmentResult(
@@ -237,7 +185,6 @@ class VideoEventsByLocationServiceTest {
     assertThat(response.locations[2].events).isEmpty()
 
     verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
-    verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
 
@@ -268,7 +215,6 @@ class VideoEventsByLocationServiceTest {
       .appointments()
       .first()
 
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)).thenReturn(true)
     whenever(activitiesAppointmentsClient.getScheduledAppointmentsBetween(prisonCode, now(), now())).thenReturn(
       listOf(
         appointmentResult(
@@ -313,7 +259,6 @@ class VideoEventsByLocationServiceTest {
     assertThat(response.locations[1].events).extracting("eventType").containsExactly("APPOINTMENT", "COURT")
 
     verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
-    verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
     verify(referenceCodeRepository).findByProbationMeetingType(ProbationMeetingType.PSR.name)
@@ -324,7 +269,6 @@ class VideoEventsByLocationServiceTest {
 
   @Test
   fun `should filter appointments to uncancelled, undeleted, all appointment types except BVLS types`() {
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)).thenReturn(true)
     whenever(activitiesAppointmentsClient.getScheduledAppointmentsBetween(prisonCode, now(), now())).thenReturn(
       listOf(
         appointmentResult(
@@ -389,7 +333,6 @@ class VideoEventsByLocationServiceTest {
     assertThat(response.locations[2].events.map { it.subType }).containsExactlyInAnyOrder("CHAP", "VLPA")
 
     verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
-    verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
 
@@ -420,7 +363,6 @@ class VideoEventsByLocationServiceTest {
       .appointments()
       .first()
 
-    whenever(activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)).thenReturn(true)
     whenever(activitiesAppointmentsClient.getScheduledAppointmentsBetween(prisonCode, now(), now())).thenReturn(
       listOf(
         appointmentResult(
@@ -473,7 +415,6 @@ class VideoEventsByLocationServiceTest {
     assertThat(response.locations[1].events).extracting("eventType").containsExactly("APPOINTMENT", "OFFICIAL_VISIT", "OFFICIAL_VISIT", "COURT")
 
     verify(locationsService).getVideoLinkLocationsAtPrison(prisonCode, enabledOnly = false)
-    verify(activitiesAppointmentsClient).isAppointmentsRolledOutAt(prisonCode)
     verify(activitiesAppointmentsClient).getScheduledAppointmentsBetween(prisonCode, now(), now())
     verify(prisonAppointmentRepository).findActivePrisonAppointmentsBetweenDates(prisonCode, now(), now())
     verify(officialVisitsClient).findOfficialVisits(prisonCode, now(), now())

@@ -7,10 +7,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameAppointmentType
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.isTheSameTime
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSearchResult
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.DpsLocationsIds
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.nomismapping.NomisMappingClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.PrisonApiClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.ScheduledAppointment
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.isTimesOverlap
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.PrisonAppointment
@@ -24,8 +20,6 @@ import java.time.LocalTime
 @Transactional(readOnly = true)
 class BookedLocationsService(
   private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
-  private val prisonApiClient: PrisonApiClient,
-  private val nomisMappingClient: NomisMappingClient,
   private val videoBookingRepository: VideoBookingRepository,
   private val supportedAppointmentTypes: SupportedAppointmentTypes,
 ) {
@@ -50,55 +44,27 @@ class BookedLocationsService(
     locations: Collection<Location>,
     existingAppointments: List<PrisonAppointment>,
   ): BookedLocations = run {
-    return when (activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)) {
-      true -> activitiesAppointmentsClient.getScheduledAppointments(prisonCode, date, locations.map(Location::dpsLocationId).toSet())
-        // Do not consider cancelled appointments
-        .filterNot { it.isCancelled }
-        .mapNotNull { result ->
-          // Only include it if a result does not match an existing BVLS appointment
-          if (existingAppointments.none { existing -> result.matches(existing) }) {
-            BookedLocation(
-              locations.single { l -> l.dpsLocationId == result.internalLocation?.dpsLocationId },
-              startTime = LocalTime.parse(result.startTime),
-              endTime = LocalTime.parse(result.endTime),
-            )
-          } else {
-            null
-          }
+    return activitiesAppointmentsClient.getScheduledAppointments(prisonCode, date, locations.map(Location::dpsLocationId).toSet())
+      // Do not consider cancelled appointments
+      .filterNot { it.isCancelled }
+      .mapNotNull { result ->
+        // Only include it if a result does not match an existing BVLS appointment
+        if (existingAppointments.none { existing -> result.matches(existing) }) {
+          BookedLocation(
+            locations.single { l -> l.dpsLocationId == result.internalLocation?.dpsLocationId },
+            startTime = LocalTime.parse(result.startTime),
+            endTime = LocalTime.parse(result.endTime),
+          )
+        } else {
+          null
         }
-        .let { BookedLocations(it) }
-
-      false -> {
-        // TODO remove usage of prison API/client.
-        val nomisToDpsLocations = nomisMappingClient.getNomisLocationMappingsBy(DpsLocationsIds(locations.map(Location::dpsLocationId).toSet()))
-          .associate { it.nomisLocationId to it.dpsLocationId }
-
-        prisonApiClient.getScheduledAppointments(prisonCode, date, nomisToDpsLocations.keys)
-          .filterNot { it.eventStatus == "CANC" }
-          .mapNotNull { result ->
-            // Only include it if a result does not match an existing BVLS appointment
-            if (existingAppointments.none { existing -> result.matches(existing) }) {
-              BookedLocation(
-                locations.single { l -> l.dpsLocationId == nomisToDpsLocations[result.locationId] },
-                startTime = result.startTime.toLocalTime(),
-                endTime = result.endTime!!.toLocalTime(),
-              )
-            } else {
-              null
-            }
-          }
-          .let { BookedLocations(it) }
       }
-    }
+      .let { BookedLocations(it) }
   }
 
   private fun AppointmentSearchResult.matches(prisonAppointment: PrisonAppointment) = isTheSameTime(prisonAppointment) &&
     isTheSameAppointmentType(supportedAppointmentTypes.typeOf(prisonAppointment.bookingType())) &&
     attendees.any { it.prisonerNumber == prisonAppointment.prisonerNumber }
-
-  private fun ScheduledAppointment.matches(prisonAppointment: PrisonAppointment) = isTheSameTime(prisonAppointment) &&
-    isTheSameAppointmentType(supportedAppointmentTypes.typeOf(prisonAppointment.bookingType())) &&
-    offenderNo == prisonAppointment.prisonerNumber
 }
 
 data class BookedLookup(

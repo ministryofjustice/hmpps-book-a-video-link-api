@@ -30,9 +30,7 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.LocationsInsidePrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.ManageUsersApiExtension
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.NomisMappingApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.OfficialVisitsApiExtension
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.integration.wiremock.PrisonerSearchApiExtension
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.AmendVideoBookingRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.model.request.CreateVideoBookingRequest
@@ -49,9 +47,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
   HmppsAuthApiExtension::class,
   LocationsInsidePrisonApiExtension::class,
   ManageUsersApiExtension::class,
-  PrisonApiExtension::class,
   PrisonerSearchApiExtension::class,
-  NomisMappingApiExtension::class,
   OfficialVisitsApiExtension::class,
 )
 @Sql(
@@ -103,22 +99,17 @@ abstract class IntegrationTestBase {
     HmppsAuthApiExtension.server.stubHealthPing(status)
     locationsInsidePrisonApi().stubHealthPing(status)
     manageUsersApi().stubHealthPing(status)
-    prisonApi().stubHealthPing(status)
     prisonSearchApi().stubHealthPing(status)
-    nomisMappingApi().stubHealthPing(status)
     officialVisitsApi().stubHealthPing(status)
   }
 
   protected fun activitiesAppointmentsApi() = ActivitiesAppointmentsApiExtension.server
-  protected fun prisonApi() = PrisonApiExtension.server
 
   protected fun prisonSearchApi() = PrisonerSearchApiExtension.server
 
   protected fun locationsInsidePrisonApi() = LocationsInsidePrisonApiExtension.server
 
   protected fun manageUsersApi() = ManageUsersApiExtension.server
-
-  protected fun nomisMappingApi() = NomisMappingApiExtension.server
 
   protected fun officialVisitsApi() = OfficialVisitsApiExtension.server
 

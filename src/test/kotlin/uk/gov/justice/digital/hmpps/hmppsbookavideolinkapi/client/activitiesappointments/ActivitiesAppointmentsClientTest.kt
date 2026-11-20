@@ -9,10 +9,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.BIRMINGHAM
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.PENTONVILLE
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.RISLEY
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.appointmentSearchResult
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.containsExactly
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isBool
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.isInstanceOf
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvilleLocation
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.helper.pentonvillePrisoner
@@ -58,24 +56,6 @@ class ActivitiesAppointmentsClientTest {
     )
 
     response isInstanceOf AppointmentSeries::class.java
-  }
-
-  @Test
-  fun `should be rolled out prison`() {
-    server.stubGetRolledOutPrison(PENTONVILLE, true)
-    client.isAppointmentsRolledOutAt(PENTONVILLE) isBool true
-
-    server.stubGetRolledOutPrison(RISLEY, true)
-    client.isAppointmentsRolledOutAt(RISLEY) isBool true
-  }
-
-  @Test
-  fun `should not be rolled out prison`() {
-    server.stubGetRolledOutPrison(PENTONVILLE, false)
-    client.isAppointmentsRolledOutAt(PENTONVILLE) isBool false
-
-    server.stubGetRolledOutPrison(RISLEY, false)
-    client.isAppointmentsRolledOutAt(RISLEY) isBool false
   }
 
   @Test

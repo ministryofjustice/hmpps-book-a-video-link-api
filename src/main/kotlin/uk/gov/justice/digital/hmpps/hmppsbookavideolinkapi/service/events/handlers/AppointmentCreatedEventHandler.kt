@@ -8,11 +8,11 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.Manage
 
 /**
  * This handler is responsible for delegating the creation of appointments to external services e.g. Activities and
- * Appointments and/or prison-api (NOMIS).
+ * Appointments.
  *
  * Having this handled in the event handler means we are decoupling it from the actual appointment creation in BVLS and
- * will be handled as a background process. It also means if there are any issues talking to those external services it
- * will be retried should an error occur.
+ * will be handled as a background process. It also means if there are any issues talking to external services, it will
+ * be retried should an error occur.
  */
 @Component
 class AppointmentCreatedEventHandler(

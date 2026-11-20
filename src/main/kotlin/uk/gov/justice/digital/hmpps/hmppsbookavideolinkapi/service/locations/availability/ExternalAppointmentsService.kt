@@ -10,7 +10,7 @@ import java.time.LocalTime
 import java.util.UUID
 
 @Service
-class ReplacementExternalAppointmentsService(
+class ExternalAppointmentsService(
   private val appointmentsClient: ActivitiesAppointmentsClient,
   private val appointmentTypes: SupportedAppointmentTypes,
 ) {

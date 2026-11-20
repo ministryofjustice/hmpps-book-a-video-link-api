@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerMergedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReceivedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerVideoAppointmentCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingAmendedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCreatedEventHandler
@@ -21,7 +20,6 @@ class InboundEventsService(
   private val videoBookingAmendedEventHandler: VideoBookingAmendedEventHandler,
   private val prisonerReleasedEventHandler: PrisonerReleasedEventHandler,
   private val prisonerMergedEventHandler: PrisonerMergedEventHandler,
-  private val prisonerVideoAppointmentCancelledEventHandler: PrisonerVideoAppointmentCancelledEventHandler,
   private val prisonerAppointmentsChangedEventHandler: PrisonerAppointmentsChangedEventHandler,
   private val prisonerReceivedEventHandler: PrisonerReceivedEventHandler,
 ) {
@@ -37,7 +35,6 @@ class InboundEventsService(
       is VideoBookingAmendedEvent -> videoBookingAmendedEventHandler.handle(event)
       is VideoBookingCancelledEvent -> videoBookingCancelledEventHandler.handle(event)
       is VideoBookingCreatedEvent -> videoBookingCreatedEventHandler.handle(event)
-      is PrisonerVideoAppointmentCancelledEvent -> prisonerVideoAppointmentCancelledEventHandler.handle(event)
       is PrisonerAppointmentsChangedEvent -> prisonerAppointmentsChangedEventHandler.handle(event)
       is PrisonerReceivedEvent -> prisonerReceivedEventHandler.handle(event)
       else -> log.warn("Unsupported domain event ${event.javaClass.name}")

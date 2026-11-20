@@ -3,18 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.ActivitiesAppointmentsClient
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.HistoryType
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.entity.VideoAppointment
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.facade.BookingFacade
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.PrisonAppointmentRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoAppointmentRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.repository.VideoBookingRepository
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.BookingHistoryService
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.UserService
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.PrisonerVideoAppointmentCancelledEvent
-import java.time.LocalDateTime
 
 /**
  * The nature of this event handler is to do our best to cancel (or delete an appointment) providing we can match the
@@ -25,20 +14,12 @@ import java.time.LocalDateTime
  *
  * If zero or more than one matching appointment is found then we log and ignore this event entirely.
  *
- * For A&A rolled out prisons we can safely ignore this event. Appointments cannot be changed in NOMIS for rolled out
+ * For A&A rolled-out prisons we can safely ignore this event. Appointments cannot be changed in NOMIS for rolled-out
  * prisons, the screens are disabled. However, the event still gets raised on the back of syncing from A&A when we delete
  * appointments in BVLS and then in A&A.
  */
 @Component
-class PrisonerVideoAppointmentCancelledEventHandler(
-  private val activitiesAppointmentsClient: ActivitiesAppointmentsClient,
-  private val videoAppointmentRepository: VideoAppointmentRepository,
-  private val bookingFacade: BookingFacade,
-  private val videoBookingRepository: VideoBookingRepository,
-  private val prisonAppointmentRepository: PrisonAppointmentRepository,
-  private val bookingHistoryService: BookingHistoryService,
-  private val supportedAppointmentTypes: SupportedAppointmentTypes,
-) : DomainEventHandler<PrisonerVideoAppointmentCancelledEvent> {
+class PrisonerVideoAppointmentCancelledEventHandler : DomainEventHandler<PrisonerVideoAppointmentCancelledEvent> {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -46,81 +27,7 @@ class PrisonerVideoAppointmentCancelledEventHandler(
 
   @Transactional
   override fun handle(event: PrisonerVideoAppointmentCancelledEvent) {
-    if (supportedAppointmentTypes.isSupported(event.appointmentType()) && appointmentsNotManagedExternallyAt(event.prisonCode())) {
-      val activeAppointments = videoAppointmentRepository.findActiveVideoAppointments(
-        prisonCode = event.prisonCode(),
-        prisonerNumber = event.prisonerNumber(),
-        appointmentDate = event.date(),
-        startTime = event.startTime(),
-      )
-
-      if (activeAppointments.size == 1) {
-        val appointment = activeAppointments.single()
-
-        if (!appointment.isFutureAppointment()) {
-          log.info("PRISONER_APPOINTMENT_CANCELLATION: ignoring event ${event.additionalInformation}, appointment has already taken place.")
-          return
-        }
-
-        log.info("PRISONER_APPOINTMENT_CANCELLATION: processing $event")
-
-        when {
-          appointment.isForCourtBooking() -> {
-            if (appointment.isMainAppointment()) {
-              cancelTheBookingForThe(appointment)
-            } else {
-              removeFromBookingThe(appointment)
-            }
-          }
-
-          appointment.isForProbationBooking() -> cancelTheBookingForThe(appointment)
-
-          // This should never occur. Will see on the DLQ if it ever does happen!
-          else -> throw IllegalArgumentException("Video booking ${appointment.videoBookingId} appointment type ${appointment.appointmentType} not recognised")
-        }
-
-        return
-      }
-
-      log.info("PRISONER_APPOINTMENT_CANCELLATION: ignoring event ${event.additionalInformation}, could not find a unique match.")
-    }
-  }
-
-  private fun appointmentsNotManagedExternallyAt(prisonCode: String) = !activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)
-
-  private fun VideoAppointment.isForCourtBooking() = listOf("VLB_COURT_PRE", "VLB_COURT_MAIN", "VLB_COURT_POST").contains(appointmentType)
-
-  private fun VideoAppointment.isForProbationBooking() = appointmentType == "VLB_PROBATION"
-
-  private fun VideoAppointment.isMainAppointment() = listOf("VLB_COURT_MAIN").contains(appointmentType)
-
-  private fun VideoAppointment.isFutureAppointment() = this.start() > LocalDateTime.now()
-
-  private fun cancelTheBookingForThe(appointment: VideoAppointment) {
-    bookingFacade.cancel(appointment.videoBookingId, UserService.getServiceAsUser())
-  }
-  private fun removeFromBookingThe(appointment: VideoAppointment) {
-    prisonAppointmentRepository.deleteById(appointment.prisonAppointmentId)
-    prisonAppointmentRepository.flush()
-
-    createBookingHistoryForTheRemoved(appointment)
-  }
-
-  private fun createBookingHistoryForTheRemoved(appointment: VideoAppointment) {
-    videoBookingRepository.findById(appointment.videoBookingId)
-      .ifPresentOrElse(
-        { booking ->
-          // We need to manually apply the amended details to the booking for the history to be recorded correctly.
-          videoBookingRepository.saveAndFlush(
-            booking.apply {
-              amendedBy = UserService.getServiceAsUser().username
-              amendedTime = LocalDateTime.now()
-            },
-          )
-
-          bookingHistoryService.createBookingHistory(HistoryType.AMEND, booking)
-        },
-        { throw NullPointerException("Video booking with ID ${appointment.videoBookingId} not found.") },
-      )
+    log.info("VIDEO APPOINTMENT CANCELLED EVENT HANDLER: Ignoring event $event all prisons are now rolled out")
+    // TODO need to remove event from cloud platform config.
   }
 }

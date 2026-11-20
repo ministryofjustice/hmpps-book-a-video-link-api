@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handle
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerMergedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReceivedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerReleasedEventHandler
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.PrisonerVideoAppointmentCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingAmendedEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCancelledEventHandler
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.service.events.handlers.VideoBookingCreatedEventHandler
@@ -22,7 +21,6 @@ class InboundEventsServiceTest {
   private val videoBookingAmendedEventHandler: VideoBookingAmendedEventHandler = mock()
   private val prisonerReleasedEventHandler: PrisonerReleasedEventHandler = mock()
   private val prisonerMergedEventHandler: PrisonerMergedEventHandler = mock()
-  private val prisonerVideoAppointmentCancelledEventHandler: PrisonerVideoAppointmentCancelledEventHandler = mock()
   private val prisonerAppointmentsChangedEventHandler: PrisonerAppointmentsChangedEventHandler = mock()
   private val prisonerReceivedEventHandler: PrisonerReceivedEventHandler = mock()
 
@@ -33,7 +31,6 @@ class InboundEventsServiceTest {
     videoBookingAmendedEventHandler,
     prisonerReleasedEventHandler,
     prisonerMergedEventHandler,
-    prisonerVideoAppointmentCancelledEventHandler,
     prisonerAppointmentsChangedEventHandler,
     prisonerReceivedEventHandler,
   )
@@ -98,13 +95,6 @@ class InboundEventsServiceTest {
     val event = PrisonerMergedEvent(MergeInformation(nomsNumber = "NEW", removedNomsNumber = "OLD"))
     service.process(event)
     verify(prisonerMergedEventHandler).handle(event)
-  }
-
-  @Test
-  fun `should call prison video appointment cancelled handler when appointment cancelled event`() {
-    val event = mock<PrisonerVideoAppointmentCancelledEvent>()
-    service.process(event)
-    verify(prisonerVideoAppointmentCancelledEventHandler).handle(event)
   }
 
   @Test
