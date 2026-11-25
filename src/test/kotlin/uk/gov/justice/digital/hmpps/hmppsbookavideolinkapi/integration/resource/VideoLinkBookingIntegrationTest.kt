@@ -962,8 +962,6 @@ class VideoLinkBookingIntegrationTest : SqsIntegrationTestBase() {
     )
 
     prisonSearchApi().stubGetPrisoner("123456", WANDSWORTH)
-    nomisMappingApi().stubGetNomisLocationMappingBy(wandsworthLocation, 1)
-    prisonApi().stubGetScheduledAppointments(WANDSWORTH, tomorrow(), 1)
     locationsInsidePrisonApi().stubGetLocationById(wandsworthLocation)
 
     val probationBookingRequest = probationBookingRequest(

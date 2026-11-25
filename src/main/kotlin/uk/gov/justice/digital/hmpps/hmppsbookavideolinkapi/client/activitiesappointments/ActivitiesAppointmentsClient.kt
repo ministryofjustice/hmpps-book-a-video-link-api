@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments
 
 import org.slf4j.LoggerFactory
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -13,10 +12,8 @@ import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappo
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeries
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentSeriesCreateRequest
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.AppointmentUpdateRequest
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.activitiesappointments.model.RolloutPrisonPlan
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.SupportedAppointmentTypes
 import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.common.toHourMinuteStyle
-import uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.config.CacheConfiguration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
@@ -30,15 +27,6 @@ class ActivitiesAppointmentsClient(private val activitiesAppointmentsApiWebClien
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
-
-  @Cacheable(CacheConfiguration.ROLLED_OUT_PRISONS_CACHE_NAME)
-  fun isAppointmentsRolledOutAt(prisonCode: String) = activitiesAppointmentsApiWebClient
-    .get()
-    .uri("/rollout/{prisonCode}", prisonCode)
-    .retrieve()
-    .bodyToMono<RolloutPrisonPlan>()
-    .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-    .block()?.prisonLive == true
 
   fun createAppointment(
     prisonCode: String,

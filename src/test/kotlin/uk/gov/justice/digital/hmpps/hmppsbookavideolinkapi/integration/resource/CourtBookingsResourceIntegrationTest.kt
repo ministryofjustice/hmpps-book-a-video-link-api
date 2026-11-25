@@ -51,8 +51,6 @@ class CourtBookingsResourceIntegrationTest : IntegrationTestBase() {
   @BeforeEach
   fun before() {
     prisonSearchApi().stubGetPrisoner(pentonvillePrisoner)
-    nomisMappingApi().stubGetNomisLocationMappingBy(pentonvilleLocation, 1L)
-    prisonApi().stubGetScheduledAppointments(PENTONVILLE, tomorrow(), 1)
   }
 
   @Nested

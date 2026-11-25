@@ -87,7 +87,7 @@ kotlin {
 
 tasks {
   withType<KotlinCompile> {
-    dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel", "buildOfficialVisitsApiModel")
+    dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildManageUsersApiModel", "buildOfficialVisitsApiModel")
     compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
     compilerOptions.freeCompilerArgs.add("-Xannotation-default-target=param-property")
   }
@@ -119,15 +119,6 @@ tasks.register("buildActivitiesAppointmentsApiModel", GenerateTask::class) {
   globalProperties.set(mapOf("models" to ""))
 }
 
-tasks.register("buildPrisonApiModel", GenerateTask::class) {
-  generatorName.set("kotlin")
-  inputSpec.set("openapi-specs/prison-api.json")
-  outputDir.set("$buildDirectory/generated/prisonapi")
-  modelPackage.set("uk.gov.justice.digital.hmpps.hmppsbookavideolinkapi.client.prisonapi.model")
-  configOptions.set(configValues)
-  globalProperties.set(mapOf("models" to ""))
-}
-
 tasks.register("buildManageUsersApiModel", GenerateTask::class) {
   generatorName.set("kotlin")
   inputSpec.set("openapi-specs/manage-users-api.json")
@@ -146,7 +137,7 @@ tasks.register("buildOfficialVisitsApiModel", GenerateTask::class) {
   globalProperties.set(mapOf("models" to ""))
 }
 
-val generatedProjectDirs = listOf("locationsinsideprisonapi", "activitiesappointmentsapi", "prisonapi", "manageusersapi", "officialvisitsapi")
+val generatedProjectDirs = listOf("locationsinsideprisonapi", "activitiesappointmentsapi", "manageusersapi", "officialvisitsapi")
 
 tasks.register("integrationTest", Test::class) {
   description = "Runs integration tests"
@@ -179,7 +170,7 @@ kotlin {
 }
 
 tasks.named("runKtlintCheckOverMainSourceSet") {
-  dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildPrisonApiModel", "buildManageUsersApiModel", "buildOfficialVisitsApiModel")
+  dependsOn("buildLocationsInsidePrisonApiModel", "buildActivitiesAppointmentsApiModel", "buildManageUsersApiModel", "buildOfficialVisitsApiModel")
 }
 
 configure<KtlintExtension> {

@@ -19,14 +19,8 @@ class LocationsInsidePrisonApiHealthPingCheck(
 @Component("manageUsersApi")
 class ManageUsersHealthPingCheck(@Qualifier("manageUsersApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
 
-@Component("prisonApi")
-class PrisonApiHealthPingCheck(@Qualifier("prisonApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
-
 @Component("prisonerSearchApi")
 class PrisonerSearchApiHealthPingCheck(@Qualifier("prisonerSearchApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
-
-@Component("nomisMappingApi")
-class NomisMappingApiHealthPingCheck(@Qualifier("nomisMappingApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
 
 @Component("officialVisitsApi")
 class OfficialVisitsApiHealthPingCheck(@Qualifier("officialVisitsApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)

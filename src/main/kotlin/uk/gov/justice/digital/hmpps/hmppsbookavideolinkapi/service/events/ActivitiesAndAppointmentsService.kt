@@ -20,8 +20,6 @@ class ActivitiesAndAppointmentsService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun isAppointmentsRolledOutAt(prisonCode: String) = activitiesAppointmentsClient.isAppointmentsRolledOutAt(prisonCode)
-
   fun findMatchingAppointments(appointment: PrisonAppointment) = AppointmentsMatcher().findMatchingAppointments(appointment)
 
   fun findMatchingAppointments(appointment: BookingHistoryAppointment) = AppointmentsMatcher().findMatchingAppointments(appointment)
