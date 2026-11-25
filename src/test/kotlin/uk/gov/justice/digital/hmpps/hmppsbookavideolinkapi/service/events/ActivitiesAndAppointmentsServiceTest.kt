@@ -36,7 +36,6 @@ class ActivitiesAndAppointmentsServiceTest {
   private val supportedAppointmentTypes = SupportedAppointmentTypes()
   private val service = ActivitiesAndAppointmentsService(activitiesAppointmentsClient, supportedAppointmentTypes)
 
-  private val birminghamNomisLocation = birminghamLocation
   private val courtBookingByCourt = courtBooking().withMainCourtPrisonAppointment()
   private val probationBookingByProbationTeam = probationBooking().withProbationPrisonAppointment()
 
@@ -122,7 +121,7 @@ class ActivitiesAndAppointmentsServiceTest {
   inner class MatchingAppointments {
     @Test
     fun `should find matching court VLB appointment`() {
-      val matchingAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamNomisLocation, VLB)
+      val matchingAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamLocation, VLB)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointments(
@@ -138,7 +137,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should find matching probation VLB appointment`() {
-      val matchingAppointment = appointmentSearchResult(probationBookingByProbationTeam.probationMeeting()!!, birminghamNomisLocation, VLB)
+      val matchingAppointment = appointmentSearchResult(probationBookingByProbationTeam.probationMeeting()!!, birminghamLocation, VLB)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointments(
@@ -154,7 +153,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should find matching VLPM appointment`() {
-      val matchingAppointment = appointmentSearchResult(probationBookingByProbationTeam.probationMeeting()!!, birminghamNomisLocation, VLPM)
+      val matchingAppointment = appointmentSearchResult(probationBookingByProbationTeam.probationMeeting()!!, birminghamLocation, VLPM)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointments(
@@ -170,7 +169,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should not find matching appointment when already cancelled`() {
-      val cancelledAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamNomisLocation, VLB).copy(isCancelled = true)
+      val cancelledAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamLocation, VLB).copy(isCancelled = true)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointments(
@@ -186,7 +185,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should not find matching appointment when times do not match`() {
-      val differentEndTimeAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamNomisLocation, VLB).copy(endTime = courtBookingByCourt.mainHearing()!!.endTime.plusHours(1).toHourMinuteStyle())
+      val differentEndTimeAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamLocation, VLB).copy(endTime = courtBookingByCourt.mainHearing()!!.endTime.plusHours(1).toHourMinuteStyle())
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointments(
@@ -202,7 +201,7 @@ class ActivitiesAndAppointmentsServiceTest {
 
     @Test
     fun `should not find matching appointment when unsupported VLOO appointment type`() {
-      val vlooAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamNomisLocation, VLOO)
+      val vlooAppointment = appointmentSearchResult(courtBookingByCourt.mainHearing()!!, birminghamLocation, VLOO)
 
       whenever(
         activitiesAppointmentsClient.getPrisonersAppointments(

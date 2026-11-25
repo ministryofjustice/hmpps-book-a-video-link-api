@@ -67,12 +67,6 @@ spring:
             client-secret: ${system.client.secret}
             authorization-grant-type: client_credentials
             scope: read
-          nomis-mapping-api:
-            provider: hmpps-auth
-            client-id: ${system.client.id}
-            client-secret: ${system.client.secret}
-            authorization-grant-type: client_credentials
-            scope: read
           official-visits-api:
             provider: hmpps-auth
             client-id: ${system.client.id}
